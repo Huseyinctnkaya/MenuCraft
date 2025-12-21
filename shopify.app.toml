@@ -2,7 +2,7 @@
 
 client_id = "3054d337864a3d41b8aec9bb7d545897"
 name = "MenuCraft"
-application_url = "https://analog-protocols-hint-intimate.trycloudflare.com"
+application_url = "https://moving-suggesting-replies-optical.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,4 +27,4 @@ optional_scopes = []
 use_legacy_install_flow = false
 
 [auth]
-redirect_urls = ["https://analog-protocols-hint-intimate.trycloudflare.com/auth/callback"]
+redirect_urls = ["https://moving-suggesting-replies-optical.trycloudflare.com/auth/callback"]

@@ -1,15 +1,7 @@
+import { useState } from 'react';
+import { useNavigate } from '@remix-run/react';
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import {
-  Page,
-  Layout,
-  Text,
-  Card,
-  Button,
-  BlockStack,
-  InlineStack,
-  Badge,
-} from "@shopify/polaris";
-import { TitleBar } from "@shopify/app-bridge-react";
+import { Menu, Smartphone, Download, Shield, Star, ChevronDown, ChevronUp, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -17,184 +9,204 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return null;
 };
 
-export default function Index() {
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const features = [
+    {
+      icon: Menu,
+      title: 'Create Mega Menu',
+      description: 'Build powerful navigation menus with unlimited depth and customization',
+      action: () => navigate('/app/menu-builder')
+    },
+    {
+      icon: Smartphone,
+      title: 'Mobile Menu',
+      description: 'Responsive mobile-first menus optimized for all devices',
+      badge: 'Pro',
+      action: () => navigate('/app/pricing')
+    },
+    {
+      icon: Download,
+      title: 'Import Menu',
+      description: 'Import existing menus from your Shopify store instantly',
+      badge: 'Pro',
+      action: () => navigate('/app/pricing')
+    }
+  ];
+
+  const setupSteps = [
+    { title: 'Create your first menu', completed: false },
+    { title: 'Add menu block to your theme', completed: false },
+    { title: 'Publish and go live', completed: false }
+  ];
+
+  const faqs = [
+    { q: 'How do I install MenuCraft?', a: 'Simply click "Get Started" and follow the installation wizard. MenuCraft integrates seamlessly with your Shopify theme.' },
+    { q: 'Can I try MenuCraft for free?', a: 'Yes! MenuCraft offers a free plan with essential features. Upgrade anytime to unlock Pro features.' },
+    { q: 'What themes are supported?', a: 'MenuCraft works with all Shopify 2.0 themes and most legacy themes. Check our compatibility guide for details.' },
+    { q: 'Do I need coding skills?', a: 'Not at all! MenuCraft features an intuitive visual builder that anyone can use.' }
+  ];
+
   return (
-    <Page>
-      <TitleBar title="Dashboard" />
-      <BlockStack gap="500">
-        <Layout>
-          <Layout.Section>
-            <BlockStack gap="400">
-              <div style={{ textAlign: "center", paddingTop: "40px" }}>
-                <Text as="h1" variant="heading2xl" tone="base">
-                  Welcome to MenuCraft
-                </Text>
-                <Text as="p" variant="headingMd" tone="subdued" style={{ marginTop: "16px" }}>
-                  Create stunning mega menus that boost navigation and increase
-                  conversions for your Shopify store
-                </Text>
+    <div className="min-h-screen p-8 bg-gray-50">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="text-center space-y-4 py-8">
+          <h1 className="text-5xl font-bold text-gray-900">
+            Welcome to MenuCraft
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Create stunning mega menus that boost navigation and increase conversions for your Shopify store
+          </p>
+        </div>
+
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              onClick={feature.action}
+              className="bg-white rounded-lg border border-gray-200 p-6 text-center space-y-4 hover:shadow-lg transition-shadow cursor-pointer"
+            >
+              <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
+                <feature.icon className="w-10 h-10 text-indigo-600" />
               </div>
-
-              <div style={{ paddingTop: "40px" }}>
-                <InlineStack gap="400" wrap>
-                  {/* Create Mega Menu Card */}
-                  <div style={{ flex: "1", minWidth: "280px" }}>
-                    <Card>
-                      <BlockStack gap="300">
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            paddingTop: "20px",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "80px",
-                              height: "80px",
-                              borderRadius: "50%",
-                              backgroundColor: "#E0E7FF",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "40px",
-                            }}
-                          >
-                            ☰
-                          </div>
-                        </div>
-                        <div style={{ textAlign: "center" }}>
-                          <Text as="h3" variant="headingMd">
-                            Create Mega Menu
-                          </Text>
-                        </div>
-                        <Text
-                          as="p"
-                          variant="bodyMd"
-                          tone="subdued"
-                          style={{ textAlign: "center" }}
-                        >
-                          Build powerful navigation menus with unlimited depth
-                          and customization
-                        </Text>
-                        <div style={{ textAlign: "center", paddingBottom: "20px" }}>
-                          <Button variant="primary" fullWidth size="large">
-                            Get Started
-                          </Button>
-                        </div>
-                      </BlockStack>
-                    </Card>
-                  </div>
-
-                  {/* Mobile Menu Card */}
-                  <div style={{ flex: "1", minWidth: "280px" }}>
-                    <Card>
-                      <BlockStack gap="300">
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            paddingTop: "20px",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "80px",
-                              height: "80px",
-                              borderRadius: "50%",
-                              backgroundColor: "#E0E7FF",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "40px",
-                            }}
-                          >
-                            📱
-                          </div>
-                        </div>
-                        <div style={{ textAlign: "center" }}>
-                          <InlineStack gap="200" align="center" distribution="center">
-                            <Text as="h3" variant="headingMd">
-                              Mobile Menu
-                            </Text>
-                            <Badge tone="info">Pro</Badge>
-                          </InlineStack>
-                        </div>
-                        <Text
-                          as="p"
-                          variant="bodyMd"
-                          tone="subdued"
-                          style={{ textAlign: "center" }}
-                        >
-                          Responsive mobile-first menus optimized for all
-                          devices
-                        </Text>
-                        <div style={{ textAlign: "center", paddingBottom: "20px" }}>
-                          <Button variant="primary" fullWidth size="large">
-                            Explore
-                          </Button>
-                        </div>
-                      </BlockStack>
-                    </Card>
-                  </div>
-
-                  {/* Import Menu Card */}
-                  <div style={{ flex: "1", minWidth: "280px" }}>
-                    <Card>
-                      <BlockStack gap="300">
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            paddingTop: "20px",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "80px",
-                              height: "80px",
-                              borderRadius: "50%",
-                              backgroundColor: "#E0E7FF",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "40px",
-                            }}
-                          >
-                            ⬇️
-                          </div>
-                        </div>
-                        <div style={{ textAlign: "center" }}>
-                          <InlineStack gap="200" align="center" distribution="center">
-                            <Text as="h3" variant="headingMd">
-                              Import Menu
-                            </Text>
-                            <Badge tone="info">Pro</Badge>
-                          </InlineStack>
-                        </div>
-                        <Text
-                          as="p"
-                          variant="bodyMd"
-                          tone="subdued"
-                          style={{ textAlign: "center" }}
-                        >
-                          Import existing menus from your Shopify store
-                          instantly
-                        </Text>
-                        <div style={{ textAlign: "center", paddingBottom: "20px" }}>
-                          <Button variant="primary" fullWidth size="large">
-                            Import Now
-                          </Button>
-                        </div>
-                      </BlockStack>
-                    </Card>
-                  </div>
-                </InlineStack>
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900">{feature.title}</h3>
+                  {feature.badge && (
+                    <span className="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                      {feature.badge}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600">{feature.description}</p>
               </div>
-            </BlockStack>
-          </Layout.Section>
-        </Layout>
-      </BlockStack>
-    </Page>
+              <button className="w-full bg-gray-900 text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors font-medium">
+                {feature.badge ? 'Upgrade' : 'Get Started'}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* App Status & Setup Checklist */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* App Status */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">App Status</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Installation Status</p>
+                    <p className="text-xs text-gray-600">Theme integration pending</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => navigate('/app/install-status')}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Configure
+                </button>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Connected Theme</p>
+                  <p className="text-xs text-gray-600">Dawn 10.0.0</p>
+                </div>
+                <span className="inline-flex items-center rounded-md bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                  Active
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Setup Checklist */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Setup Checklist</h2>
+            <div className="space-y-3">
+              {setupSteps.map((step, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  {step.completed ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+                  )}
+                  <span className={`text-sm ${step.completed ? 'text-gray-600 line-through' : 'text-gray-900'}`}>
+                    {step.title}
+                  </span>
+                </div>
+              ))}
+              <button 
+                onClick={() => navigate('/app/menu-builder')}
+                className="w-full mt-4 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
+              >
+                Continue Setup
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Trust Indicators */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
+              <Shield className="w-4 h-4 text-green-600" />
+            </div>
+            <p className="text-sm text-gray-700">30-day money back guarantee</p>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center flex-shrink-0">
+              <Star className="w-4 h-4 text-indigo-600" />
+            </div>
+            <p className="text-sm text-gray-700">Built for Shopify by Shopify Experts</p>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Frequently Asked Questions</h2>
+          <div className="space-y-3">
+            {faqs.map((faq, index) => (
+              <div key={index} className="border-b border-gray-200 last:border-0 pb-3">
+                <button
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  className="w-full flex items-center justify-between text-left py-2 hover:bg-gray-50 px-2 rounded"
+                >
+                  <span className="text-sm font-medium text-gray-900">{faq.q}</span>
+                  {openFaq === index ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+                {openFaq === index && (
+                  <p className="text-sm text-gray-600 mt-2 px-2">{faq.a}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center py-6 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            Made by{' '}
+            <a 
+              href="https://www.34devs.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-indigo-600 hover:text-indigo-700 underline"
+            >
+              34devs
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

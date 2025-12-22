@@ -1,24 +1,41 @@
-import { useState } from 'react';
+import { useMemo, useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { 
-  Save, 
-  Eye, 
-  Smartphone, 
-  Monitor, 
-  Plus, 
-  GripVertical, 
-  ChevronRight, 
-  ChevronDown,
-  X,
-  Settings,
-  Palette,
-  FileText,
-  Code,
-  Search,
-  ShoppingBag,
-  Image,
-  Tag
-} from 'lucide-react';
+import { useLocation, useNavigate } from "@remix-run/react";
+import {
+  Badge,
+  BlockStack,
+  Box,
+  Button,
+  ButtonGroup,
+  Card,
+  Checkbox,
+  Divider,
+  InlineStack,
+  RangeSlider,
+  Select,
+  Text,
+  TextField,
+  Icon,
+} from "@shopify/polaris";
+import {
+  ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CodeIcon,
+  DesktopIcon,
+  DragHandleIcon,
+  DuplicateIcon,
+  EditIcon,
+  DeleteIcon,
+  MenuIcon,
+  MobileIcon,
+  PaintBrushRoundIcon,
+  PlusIcon,
+  SearchIcon,
+  SettingsIcon,
+  TextFontListIcon,
+  TextIcon,
+} from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -30,358 +47,735 @@ type MenuItem = {
   id: string;
   label: string;
   url: string;
-  hasSubmenu: boolean;
+  role: "menu" | "group" | "item";
   expanded?: boolean;
   children?: MenuItem[];
 };
 
-type Tab = 'general' | 'design' | 'content' | 'advanced';
+type RailPanel = "menu" | "theme" | "settings" | "code";
+
+type ThemeSettings = {
+  fontFamily: string;
+  menuBackground: string;
+  menuText: string;
+  menuActive: string;
+  dropdownBackground: string;
+  dropdownText: string;
+  dropdownHeading: string;
+  canvasBackground: string;
+  menuItemSpacing: number;
+};
+
+const FONT_OPTIONS = [
+  { label: "Inter", value: "Inter, system-ui, sans-serif" },
+  { label: "Shopify Sans", value: "Shopify Sans, Inter, system-ui, sans-serif" },
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+];
+
+const buildId = () => Math.random().toString(36).slice(2, 9);
+
+const findItemPath = (items: MenuItem[], id: string | null, path: MenuItem[] = []): MenuItem[] | null => {
+  if (!id) return null;
+  for (const item of items) {
+    const nextPath = [...path, item];
+    if (item.id === id) return nextPath;
+    if (item.children?.length) {
+      const found = findItemPath(item.children, id, nextPath);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+const updateItemById = (
+  items: MenuItem[],
+  id: string,
+  updater: (item: MenuItem) => MenuItem
+): MenuItem[] =>
+  items.map((item) => {
+    if (item.id === id) return updater(item);
+    if (item.children?.length) {
+      const nextChildren = updateItemById(item.children, id, updater);
+      if (nextChildren !== item.children) {
+        return { ...item, children: nextChildren };
+      }
+    }
+    return item;
+  });
+
+const addChildById = (items: MenuItem[], parentId: string, newItem: MenuItem): MenuItem[] =>
+  items.map((item) => {
+    if (item.id === parentId) {
+      const nextChildren = item.children ? [...item.children, newItem] : [newItem];
+      return { ...item, expanded: true, children: nextChildren };
+    }
+    if (item.children?.length) {
+      return { ...item, children: addChildById(item.children, parentId, newItem) };
+    }
+    return item;
+  });
 
 export default function MenuBuilder() {
-  const [preview, setPreview] = useState<'desktop' | 'mobile'>('desktop');
-  const [activeTab, setActiveTab] = useState<Tab>('general');
-  const [selectedItemId, setSelectedItemId] = useState<string | null>('1');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activePanel, setActivePanel] = useState<RailPanel>("menu");
+  const [menuView, setMenuView] = useState<"list" | "edit">("list");
   const [menuEnabled, setMenuEnabled] = useState(true);
-  
+  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
+  const [selectedItemId, setSelectedItemId] = useState<string | null>("catalogs");
+
+  const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
+    fontFamily: "Inter, system-ui, sans-serif",
+    menuBackground: "#0b0b0b",
+    menuText: "#f5f5f5",
+    menuActive: "#2563eb",
+    dropdownBackground: "#ffffff",
+    dropdownText: "#1f2937",
+    dropdownHeading: "#b91c1c",
+    canvasBackground: "#9fb1c4",
+    menuItemSpacing: 28,
+  });
+
   const [menuItems, setMenuItems] = useState<MenuItem[]>([
-    { 
-      id: '1', 
-      label: 'Shop', 
-      url: '/collections/all',
-      hasSubmenu: true,
+    { id: "home", label: "Home", url: "/", role: "menu" },
+    {
+      id: "catalogs",
+      label: "Catalogs",
+      url: "/collections",
+      role: "menu",
       expanded: true,
       children: [
-        { id: '1-1', label: 'New Arrivals', url: '/collections/new', hasSubmenu: false },
-        { id: '1-2', label: 'Best Sellers', url: '/collections/bestsellers', hasSubmenu: false },
-        { id: '1-3', label: 'Sale', url: '/collections/sale', hasSubmenu: false }
-      ]
+        {
+          id: "catalogs-list-1",
+          label: "Pet Food",
+          url: "",
+          role: "group",
+          expanded: true,
+          children: [
+            { id: "pet-food", label: "Wet Foods", url: "/collections/wet-foods", role: "item" },
+            { id: "dry-foods", label: "Dry Foods", url: "/collections/dry-foods", role: "item" },
+            { id: "raw-foods", label: "Raw Foods", url: "/collections/raw-foods", role: "item" },
+          ],
+        },
+        {
+          id: "catalogs-list-2",
+          label: "Pet Beds",
+          url: "",
+          role: "group",
+          expanded: true,
+          children: [
+            { id: "pet-beds", label: "Bolster Beds", url: "/collections/bolster-beds", role: "item" },
+            { id: "pillow-beds", label: "Pillow Beds", url: "/collections/pillow-beds", role: "item" },
+            { id: "tent-beds", label: "Tent Beds", url: "/collections/tent-beds", role: "item" },
+          ],
+        },
+        {
+          id: "catalogs-list-3",
+          label: "Pet Accessories",
+          url: "",
+          role: "group",
+          expanded: true,
+          children: [
+            { id: "pet-blanket", label: "Pet Blanket", url: "/collections/pet-blanket", role: "item" },
+            { id: "pet-belts", label: "Pet Belts", url: "/collections/pet-belts", role: "item" },
+            { id: "pet-clothes", label: "Pet Clothes", url: "/collections/pet-clothes", role: "item" },
+          ],
+        },
+        {
+          id: "catalogs-list-4",
+          label: "Pet Toys",
+          url: "",
+          role: "group",
+          expanded: true,
+          children: [
+            { id: "stuffed-toys", label: "Stuffed Toys", url: "/collections/stuffed-toys", role: "item" },
+            { id: "puzzle-toys", label: "Puzzle Toys", url: "/collections/puzzle-toys", role: "item" },
+            { id: "rope-toys", label: "Rope Toys", url: "/collections/rope-toys", role: "item" },
+          ],
+        },
+      ],
     },
-    { 
-      id: '2', 
-      label: 'Collections', 
-      url: '/collections',
-      hasSubmenu: true,
-      expanded: false,
-      children: [
-        { id: '2-1', label: 'Women', url: '/collections/women', hasSubmenu: false },
-        { id: '2-2', label: 'Men', url: '/collections/men', hasSubmenu: false }
-      ]
-    },
-    { id: '3', label: 'About', url: '/pages/about', hasSubmenu: false },
-    { id: '4', label: 'Blog', url: '/blogs/news', hasSubmenu: false },
-    { id: '5', label: 'Contact', url: '/pages/contact', hasSubmenu: false }
+    { id: "sale", label: "Sale", url: "/collections/sale", role: "menu" },
+    { id: "blog", label: "Blog", url: "/blogs/news", role: "menu" },
+    { id: "about", label: "About", url: "/pages/about", role: "menu" },
   ]);
 
-  const toggleExpand = (id: string) => {
-    setMenuItems(items => 
-      items.map(item => 
-        item.id === id ? { ...item, expanded: !item.expanded } : item
-      )
+  const selectedPath = useMemo(() => findItemPath(menuItems, selectedItemId), [menuItems, selectedItemId]);
+  const selectedItem = selectedPath?.[selectedPath.length - 1] ?? null;
+  const activeMenu = selectedPath?.[0] ?? null;
+
+  const handleSelectItem = (id: string) => {
+    setSelectedItemId(id);
+    setMenuView("edit");
+    setActivePanel("menu");
+  };
+
+  const handleToggleExpand = (id: string) => {
+    setMenuItems((items) => updateItemById(items, id, (item) => ({ ...item, expanded: !item.expanded })));
+  };
+
+  const handleUpdateSelected = (key: "label" | "url", value: string) => {
+    if (!selectedItemId) return;
+    setMenuItems((items) => updateItemById(items, selectedItemId, (item) => ({ ...item, [key]: value })));
+  };
+
+  const handleAddRoot = () => {
+    const newItem: MenuItem = {
+      id: buildId(),
+      label: "New menu",
+      url: "/",
+      role: "menu",
+    };
+    setMenuItems((items) => [...items, newItem]);
+  };
+
+  const handleAddChild = (parentId: string, role: "group" | "item") => {
+    const newItem: MenuItem = {
+      id: buildId(),
+      label: role === "group" ? "New group" : "New item",
+      url: role === "group" ? "" : "/",
+      role,
+      expanded: role === "group" ? true : undefined,
+      children: role === "group" ? [] : undefined,
+    };
+    setMenuItems((items) => addChildById(items, parentId, newItem));
+  };
+
+  const renderMenuTree = (item: MenuItem, depth: number = 0) => {
+    const isSelected = selectedItemId === item.id;
+    const hasChildren = Boolean(item.children?.length);
+    const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
+
+    return (
+      <Box key={item.id} paddingInlineStart={depth === 0 ? "0" : "200"} paddingBlockStart="100">
+        <InlineStack gap="200" blockAlign="center" wrap={false}>
+          {hasChildren ? (
+            <Button
+              variant="tertiary"
+              size="micro"
+              icon={item.expanded ? ChevronDownIcon : ChevronRightIcon}
+              onClick={() => handleToggleExpand(item.id)}
+              accessibilityLabel={item.expanded ? "Collapse" : "Expand"}
+            />
+          ) : (
+            <Box minWidth="24px" />
+          )}
+          <div className="flex-1">
+            <button
+              type="button"
+              onClick={() => handleSelectItem(item.id)}
+              className={`w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left transition-colors ${
+                isSelected ? "bg-gray-100" : "hover:bg-gray-50"
+              }`}
+            >
+              <Icon source={DragHandleIcon} tone="subdued" />
+              <Icon source={itemIcon} tone="subdued" />
+              <Text
+                as="span"
+                variant="bodyMd"
+                fontWeight={item.role === "menu" ? "semibold" : "regular"}
+              >
+                {item.label}
+              </Text>
+            </button>
+          </div>
+          {isSelected && (
+            <div className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
+              <Button
+                variant="tertiary"
+                size="micro"
+                icon={EditIcon}
+                accessibilityLabel="Edit item"
+                onClick={() => setMenuView("edit")}
+              />
+              <Button
+                variant="tertiary"
+                size="micro"
+                icon={DuplicateIcon}
+                accessibilityLabel="Duplicate item"
+                onClick={() => {}}
+              />
+              <Button
+                variant="tertiary"
+                size="micro"
+                icon={DeleteIcon}
+                accessibilityLabel="Delete item"
+                onClick={() => {}}
+              />
+            </div>
+          )}
+        </InlineStack>
+
+        {hasChildren && item.expanded && (
+          <Box
+            paddingInlineStart="400"
+            paddingBlockStart="200"
+            paddingBlockEnd="200"
+            borderInlineStartWidth="025"
+            borderInlineStartColor="border"
+          >
+            <BlockStack gap="200">
+              {item.children?.map((child) => renderMenuTree(child, depth + 1))}
+              {item.role !== "item" && (
+                <Button
+                  variant="plain"
+                  size="slim"
+                  icon={PlusIcon}
+                  onClick={() => handleAddChild(item.id, item.role === "menu" ? "group" : "item")}
+                >
+                  Add item
+                </Button>
+              )}
+            </BlockStack>
+          </Box>
+        )}
+        {!hasChildren && item.role !== "item" && (
+          <Box paddingInlineStart="400" paddingBlockStart="200">
+            <Button
+              variant="plain"
+              size="slim"
+              icon={PlusIcon}
+              onClick={() => handleAddChild(item.id, item.role === "menu" ? "group" : "item")}
+            >
+              Add item
+            </Button>
+          </Box>
+        )}
+      </Box>
     );
   };
 
-  const renderMenuItem = (item: MenuItem, depth: number = 0) => {
-    const isSelected = selectedItemId === item.id;
-    
+  const renderMenuPanel = () => {
+    if (menuView === "edit" && selectedItem) {
+      return (
+        <Card padding="400">
+          <BlockStack gap="400">
+            <InlineStack gap="200" blockAlign="center">
+              <Button variant="plain" icon={ArrowLeftIcon} onClick={() => setMenuView("list")}>
+                Back
+              </Button>
+              <Text as="h2" variant="headingMd">
+                Edit item
+              </Text>
+            </InlineStack>
+
+            <Divider />
+
+            <BlockStack gap="300">
+              <Text as="h3" variant="headingSm">
+                General
+              </Text>
+              <TextField
+                label="Label"
+                value={selectedItem.label}
+                onChange={(value) => handleUpdateSelected("label", value)}
+                autoComplete="off"
+              />
+              <TextField
+                label="Link"
+                value={selectedItem.url}
+                onChange={(value) => handleUpdateSelected("url", value)}
+                autoComplete="off"
+                placeholder="https://"
+              />
+              <Checkbox label="Open in new tab" checked={false} onChange={() => {}} />
+            </BlockStack>
+
+            <BlockStack gap="300">
+              <Text as="h3" variant="headingSm">
+                Appearance
+              </Text>
+              <Select
+                label="Item style"
+                options={[
+                  { label: "Default", value: "default" },
+                  { label: "Highlight", value: "highlight" },
+                  { label: "Badge", value: "badge" },
+                ]}
+                onChange={() => {}}
+                value="default"
+              />
+              <TextField label="Badge text" value="" onChange={() => {}} autoComplete="off" />
+            </BlockStack>
+
+            <Divider />
+
+            <InlineStack align="end" gap="200">
+              <Button variant="tertiary" onClick={() => setMenuView("list")}>Cancel</Button>
+              <Button variant="primary">Apply changes</Button>
+            </InlineStack>
+          </BlockStack>
+        </Card>
+      );
+    }
+
     return (
-      <div key={item.id}>
-        <div 
-          onClick={() => setSelectedItemId(item.id)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors group ${
-            isSelected ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-gray-50 text-gray-900'
-          }`}
-          style={{ paddingLeft: `${12 + depth * 20}px` }}
-        >
-          <GripVertical className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          
-          {item.hasSubmenu && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExpand(item.id);
-              }}
-              className="flex-shrink-0"
-            >
-              {item.expanded ? (
-                <ChevronDown className="w-4 h-4 text-gray-500" />
-              ) : (
-                <ChevronRight className="w-4 h-4 text-gray-500" />
-              )}
-            </button>
-          )}
-          
-          <span className="flex-1 text-sm truncate">{item.label}</span>
-          
-          <button 
-            onClick={(e) => e.stopPropagation()}
-            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-opacity flex-shrink-0"
-          >
-            <X className="w-3 h-3 text-gray-600" />
-          </button>
-        </div>
-        
-        {item.hasSubmenu && item.expanded && item.children && (
-          <div>
-            {item.children.map(child => renderMenuItem(child, depth + 1))}
-          </div>
-        )}
-      </div>
+      <Card padding="400">
+        <BlockStack gap="300">
+          <InlineStack align="space-between" blockAlign="center">
+            <Text as="h2" variant="headingMd">
+              Menu items
+            </Text>
+            <Button variant="plain" icon={PlusIcon} onClick={handleAddRoot}>
+              Add
+            </Button>
+          </InlineStack>
+          <Text as="p" variant="bodySm" tone="subdued">
+            Drag to reorder items.
+          </Text>
+          <Divider />
+          <BlockStack gap="200">
+            {menuItems.map((item) => renderMenuTree(item))}
+          </BlockStack>
+        </BlockStack>
+      </Card>
     );
   };
+
+  const renderThemePanel = () => (
+    <Card padding="400">
+      <BlockStack gap="400">
+        <Text as="h2" variant="headingMd">
+          Theme settings
+        </Text>
+        <Divider />
+        <BlockStack gap="300">
+          <Text as="h3" variant="headingSm">
+            Typography
+          </Text>
+          <Select
+            label="Font family"
+            options={FONT_OPTIONS}
+            value={themeSettings.fontFamily}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, fontFamily: value }))}
+          />
+        </BlockStack>
+        <BlockStack gap="300">
+          <Text as="h3" variant="headingSm">
+            Colors
+          </Text>
+          <TextField
+            label="Menu background"
+            value={themeSettings.menuBackground}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, menuBackground: value }))}
+            autoComplete="off"
+          />
+          <TextField
+            label="Menu text"
+            value={themeSettings.menuText}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, menuText: value }))}
+            autoComplete="off"
+          />
+          <TextField
+            label="Active item"
+            value={themeSettings.menuActive}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, menuActive: value }))}
+            autoComplete="off"
+          />
+          <TextField
+            label="Dropdown background"
+            value={themeSettings.dropdownBackground}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, dropdownBackground: value }))}
+            autoComplete="off"
+          />
+          <TextField
+            label="Dropdown text"
+            value={themeSettings.dropdownText}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, dropdownText: value }))}
+            autoComplete="off"
+          />
+          <TextField
+            label="Dropdown heading"
+            value={themeSettings.dropdownHeading}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, dropdownHeading: value }))}
+            autoComplete="off"
+          />
+          <TextField
+            label="Canvas background"
+            value={themeSettings.canvasBackground}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, canvasBackground: value }))}
+            autoComplete="off"
+          />
+        </BlockStack>
+        <BlockStack gap="300">
+          <Text as="h3" variant="headingSm">
+            Layout
+          </Text>
+          <RangeSlider
+            label="Menu item spacing"
+            value={themeSettings.menuItemSpacing}
+            min={12}
+            max={60}
+            onChange={(value) => setThemeSettings((prev) => ({ ...prev, menuItemSpacing: value }))}
+          />
+        </BlockStack>
+      </BlockStack>
+    </Card>
+  );
+
+  const renderSettingsPanel = () => (
+    <Card padding="400">
+      <BlockStack gap="400">
+        <Text as="h2" variant="headingMd">
+          Menu settings
+        </Text>
+        <Divider />
+        <BlockStack gap="300">
+          <Select
+            label="Alignment"
+            options={[
+              { label: "Left", value: "left" },
+              { label: "Center", value: "center" },
+              { label: "Right", value: "right" },
+            ]}
+            onChange={() => {}}
+            value="left"
+          />
+          <Checkbox label="Show search icon" checked onChange={() => {}} />
+          <Checkbox label="Show dropdown indicators" checked onChange={() => {}} />
+          <Checkbox label="Enable sticky header" checked={false} onChange={() => {}} />
+        </BlockStack>
+      </BlockStack>
+    </Card>
+  );
+
+  const renderCodePanel = () => (
+    <Card padding="400">
+      <BlockStack gap="300">
+        <Text as="h2" variant="headingMd">
+          Custom code
+        </Text>
+        <Text as="p" variant="bodySm" tone="subdued">
+          Add custom CSS or JS for this mega menu.
+        </Text>
+        <TextField label="Custom CSS" value="" onChange={() => {}} multiline autoComplete="off" />
+      </BlockStack>
+    </Card>
+  );
+
+  const dropdownGroups = activeMenu?.children ?? [];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* TOP BAR */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <ChevronRight className="w-5 h-5 text-gray-700 rotate-180" />
-          </button>
-          
-          <div>
-            <h1 className="text-sm font-semibold text-gray-900">Mega Menu #160205</h1>
-            <span className="inline-flex items-center rounded-md bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 mt-1">
-              Active
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
-            <span className="text-sm text-gray-600">Enable</span>
-            <button
-              onClick={() => setMenuEnabled(!menuEnabled)}
-              className={`relative w-11 h-6 rounded-full transition-colors ${
-                menuEnabled ? 'bg-indigo-600' : 'bg-gray-300'
-              }`}
+    <div className="h-screen flex flex-col bg-gray-100">
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <InlineStack align="space-between" blockAlign="center" gap="400">
+          <InlineStack gap="300" blockAlign="center">
+            <Button
+              variant="tertiary"
+              icon={ArrowLeftIcon}
+              onClick={() => navigate({ pathname: "/app/mega-menus", search: location.search })}
             >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                  menuEnabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
+              Back
+            </Button>
+            <InlineStack gap="200" blockAlign="center">
+              <Text as="h1" variant="headingMd">
+                Mega menu #160205
+              </Text>
+              <Badge tone={menuEnabled ? "success" : "read-only"}>{menuEnabled ? "Active" : "Draft"}</Badge>
+            </InlineStack>
+          </InlineStack>
 
-          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
-            <button
-              onClick={() => setPreview('desktop')}
-              className={`px-3 py-1.5 rounded-md transition-colors ${
-                preview === 'desktop' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Monitor className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPreview('mobile')}
-              className={`px-3 py-1.5 rounded-md transition-colors ${
-                preview === 'mobile' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Smartphone className="w-4 h-4" />
-            </button>
-          </div>
-
-          <button className="px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm border border-gray-200 transition-colors flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            Preview
-          </button>
-          
-          <button className="px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg text-sm border border-gray-200 transition-colors">
-            Save
-          </button>
-          
-          <button className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 transition-colors">
-            Publish
-          </button>
-        </div>
+          <InlineStack gap="200" blockAlign="center">
+            <Button variant="secondary" onClick={() => setMenuEnabled(!menuEnabled)}>
+              {menuEnabled ? "Disable" : "Enable"}
+            </Button>
+            <Button variant="secondary">Save</Button>
+            <Button variant="primary">Publish</Button>
+          </InlineStack>
+        </InlineStack>
       </div>
 
-      {/* MAIN LAYOUT */}
       <div className="flex flex-1 overflow-hidden">
-        
-        {/* LEFT PANEL */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-sm font-semibold text-gray-900">Menu Items</h2>
-              <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                <Plus className="w-4 h-4 text-gray-600" />
-              </button>
-            </div>
-            <p className="text-xs text-gray-500">Drag to reorder items</p>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-3">
-            <div className="space-y-1">
-              {menuItems.map(item => renderMenuItem(item))}
-            </div>
-          </div>
+        <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-3 gap-2">
+          {[
+            { id: "menu", icon: MenuIcon, label: "Menu" },
+            { id: "theme", icon: PaintBrushRoundIcon, label: "Theme" },
+            { id: "settings", icon: SettingsIcon, label: "Settings" },
+            { id: "code", icon: CodeIcon, label: "Code" },
+          ].map((panel) => (
+            <Button
+              key={panel.id}
+              variant={activePanel === panel.id ? "primary" : "tertiary"}
+              size="slim"
+              icon={panel.icon}
+              onClick={() => {
+                setActivePanel(panel.id as RailPanel);
+                if (panel.id !== "menu") {
+                  setMenuView("list");
+                }
+              }}
+              accessibilityLabel={panel.label}
+            />
+          ))}
+        </aside>
 
-          <div className="p-3 border-t border-gray-200">
-            <button className="w-full flex items-center justify-center gap-2 py-2 px-3 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-              <Plus className="w-4 h-4" />
-              Add Item
-            </button>
-          </div>
-        </div>
+        <aside className="w-96 bg-white border-r border-gray-200 overflow-y-auto p-4">
+          <BlockStack gap="400">
+            {activePanel === "menu" && renderMenuPanel()}
+            {activePanel === "theme" && renderThemePanel()}
+            {activePanel === "settings" && renderSettingsPanel()}
+            {activePanel === "code" && renderCodePanel()}
+          </BlockStack>
+        </aside>
 
-        {/* CENTER - Preview */}
-        <div className="flex-1 bg-gray-100 overflow-auto p-8">
-          <div className={`mx-auto transition-all ${
-            preview === 'mobile' ? 'max-w-[375px]' : 'max-w-full'
-          }`}>
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-gray-900 text-white text-center py-2 px-4 text-xs">
-                Free shipping on orders over $50
-              </div>
-
-              <div className="border-b border-gray-200 px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-2xl font-bold">YourStore</div>
-                  <div className="flex items-center gap-4">
-                    <Search className="w-5 h-5 text-gray-600" />
-                    <ShoppingBag className="w-5 h-5 text-gray-600" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-900 text-white">
-                <div className="flex items-center justify-center gap-8 px-6 py-3">
-                  {menuItems.map((item) => (
-                    <div key={item.id} className="relative group">
-                      <button 
-                        className={`text-sm hover:text-gray-300 transition-colors flex items-center gap-1 ${
-                          selectedItemId === item.id ? 'text-white font-medium' : 'text-gray-300'
-                        }`}
+        <main className="flex-1 overflow-auto relative" style={{ background: themeSettings.canvasBackground }}>
+          <Box padding="600">
+            <div
+              style={{
+                maxWidth: previewMode === "mobile" ? 420 : 1100,
+                margin: "0 auto",
+                fontFamily: themeSettings.fontFamily,
+              }}
+            >
+              <div style={{ background: themeSettings.menuBackground, borderRadius: 14, overflow: "hidden" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: themeSettings.menuItemSpacing,
+                    padding: "14px 24px",
+                    color: themeSettings.menuText,
+                  }}
+                >
+                  {menuItems.map((item) => {
+                    const isActive = activeMenu?.id === item.id;
+                    const isDimmed = Boolean(selectedItemId && activeMenu?.id && activeMenu.id !== item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleSelectItem(item.id)}
+                        style={{
+                          background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+                          border: isActive ? `2px solid ${themeSettings.menuActive}` : "2px solid transparent",
+                          borderRadius: 10,
+                          padding: "6px 12px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          color: themeSettings.menuText,
+                          opacity: isDimmed ? 0.5 : 1,
+                          cursor: "pointer",
+                        }}
                       >
-                        {item.label}
-                        {item.hasSubmenu && (
-                          <ChevronDown className="w-3 h-3" />
-                        )}
+                        <span>{item.label}</span>
+                        {item.role === "menu" && item.children?.length ? (
+                          <span style={{ display: "inline-flex" }}>
+                            <ChevronDownIcon width="14" height="14" />
+                          </span>
+                        ) : null}
                       </button>
-                    </div>
-                  ))}
+                    );
+                  })}
+                  <button type="button" style={{ color: themeSettings.menuText }}>
+                    +
+                  </button>
+                  <span style={{ marginLeft: "auto", display: "flex" }}>
+                    <SearchIcon width="18" height="18" />
+                  </span>
                 </div>
               </div>
 
-              <div className="bg-gray-50 h-64 flex items-center justify-center opacity-50">
-                <p className="text-sm text-gray-500">Storefront preview</p>
+              <div
+                style={{
+                  background: themeSettings.dropdownBackground,
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 12,
+                  marginTop: 16,
+                  padding: "20px 24px",
+                  boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${Math.max(dropdownGroups.length, 1)}, minmax(0, 1fr))`,
+                    gap: 24,
+                    color: themeSettings.dropdownText,
+                  }}
+                >
+                  {dropdownGroups.map((group) => {
+                    const isGroupSelected = selectedItemId === group.id;
+                    return (
+                      <div
+                        key={group.id}
+                        style={{
+                          border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
+                          borderRadius: 10,
+                          padding: "10px 12px",
+                        }}
+                      >
+                        <Text as="h3" variant="headingSm" fontWeight="semibold">
+                          <span style={{ color: themeSettings.dropdownHeading }}>{group.label}</span>
+                        </Text>
+                        <Divider />
+                        <BlockStack gap="200">
+                          {group.children?.map((child) => {
+                            const isChildSelected = selectedItemId === child.id;
+                            return (
+                              <button
+                                key={child.id}
+                                type="button"
+                                onClick={() => handleSelectItem(child.id)}
+                                style={{
+                                  textAlign: "left",
+                                  border: isChildSelected
+                                    ? `2px dashed ${themeSettings.menuActive}`
+                                    : "2px solid transparent",
+                                  borderRadius: 8,
+                                  padding: "6px 8px",
+                                  background: "transparent",
+                                  color: themeSettings.dropdownText,
+                                }}
+                              >
+                                {child.label}
+                              </button>
+                            );
+                          })}
+                          <Button
+                            variant="plain"
+                            icon={PlusIcon}
+                            size="slim"
+                            onClick={() => handleAddChild(group.id, "item")}
+                          >
+                            Add item
+                          </Button>
+                        </BlockStack>
+                      </div>
+                    );
+                  })}
+                </div>
+                <Box paddingBlockStart="400">
+                  <ButtonGroup>
+                    <Button variant="secondary" icon={PlusIcon} onClick={() => activeMenu && handleAddChild(activeMenu.id, "group")}>
+                      Add block
+                    </Button>
+                  </ButtonGroup>
+                </Box>
               </div>
             </div>
+          </Box>
+
+          <div className="absolute bottom-6 left-6">
+            <Card padding="200">
+              <InlineStack gap="100">
+                <Button
+                  variant={previewMode === "desktop" ? "primary" : "tertiary"}
+                  icon={DesktopIcon}
+                  onClick={() => setPreviewMode("desktop")}
+                  accessibilityLabel="Desktop"
+                />
+                <Button
+                  variant={previewMode === "mobile" ? "primary" : "tertiary"}
+                  icon={MobileIcon}
+                  onClick={() => setPreviewMode("mobile")}
+                  accessibilityLabel="Mobile"
+                />
+              </InlineStack>
+            </Card>
           </div>
-        </div>
-
-        {/* RIGHT PANEL - Settings */}
-        <div className="w-80 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
-          <div className="border-b border-gray-200 flex">
-            {(['general', 'design', 'content', 'advanced'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-4 py-3 text-xs text-center transition-colors border-b-2 ${
-                  activeTab === tab
-                    ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                {tab === 'general' && <Settings className="w-4 h-4 mx-auto mb-1" />}
-                {tab === 'design' && <Palette className="w-4 h-4 mx-auto mb-1" />}
-                {tab === 'content' && <FileText className="w-4 h-4 mx-auto mb-1" />}
-                {tab === 'advanced' && <Code className="w-4 h-4 mx-auto mb-1" />}
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            {activeTab === 'general' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-2">Position</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    <option>Automatic</option>
-                    <option>Replace navigation</option>
-                    <option>Custom CSS selector</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs text-gray-600 mb-2">Orientation</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button className="px-3 py-2 border-2 border-indigo-600 bg-indigo-50 text-indigo-600 rounded-lg text-sm">
-                      Horizontal
-                    </button>
-                    <button className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">
-                      Vertical
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'design' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-2">Background color</label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" defaultValue="#1f2937" className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer" />
-                    <input type="text" defaultValue="#1f2937" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs text-gray-600 mb-2">Text color</label>
-                  <div className="flex items-center gap-2">
-                    <input type="color" defaultValue="#ffffff" className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer" />
-                    <input type="text" defaultValue="#ffffff" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'content' && (
-              <div className="space-y-3">
-                <button className="w-full flex items-center gap-3 px-3 py-3 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                  <ShoppingBag className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-700">Add Collection</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-3 py-3 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                  <Tag className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-700">Add Product</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-3 py-3 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                  <Image className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-700">Add Image</span>
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'advanced' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-2">Trigger behavior</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button className="px-3 py-2 border-2 border-indigo-600 bg-indigo-50 text-indigo-600 rounded-lg text-sm">
-                      Hover
-                    </button>
-                    <button className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50">
-                      Click
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-gray-300 text-indigo-600" />
-                    <span className="text-sm text-gray-700">Sticky header</span>
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
+        </main>
       </div>
     </div>
   );

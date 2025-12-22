@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { Calendar, TrendingUp, BarChart3, MousePointer, Eye } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -15,6 +16,23 @@ export default function Analytics() {
     { label: 'Total Clicks', value: '1,234', change: '+12%', icon: MousePointer },
     { label: 'Total Views', value: '5,678', change: '+8%', icon: Eye },
     { label: 'Click-Through Rate', value: '21.7%', change: '+3%', icon: TrendingUp }
+  ];
+
+  const impressionsClicksData = [
+    { day: 'Mon', impressions: 3200, clicks: 680 },
+    { day: 'Tue', impressions: 3800, clicks: 820 },
+    { day: 'Wed', impressions: 3400, clicks: 720 },
+    { day: 'Thu', impressions: 4200, clicks: 950 },
+    { day: 'Fri', impressions: 4800, clicks: 1100 },
+    { day: 'Sat', impressions: 3900, clicks: 850 },
+    { day: 'Sun', impressions: 3500, clicks: 750 }
+  ];
+
+  const engagementData = [
+    { week: 'Week 1', withMenuCraft: 21.2, withoutMenuCraft: 18.4 },
+    { week: 'Week 2', withMenuCraft: 22.1, withoutMenuCraft: 18.9 },
+    { week: 'Week 3', withMenuCraft: 21.8, withoutMenuCraft: 18.6 },
+    { week: 'Week 4', withMenuCraft: 22.5, withoutMenuCraft: 19.1 }
   ];
 
   const topMenus = [
@@ -75,6 +93,113 @@ export default function Analytics() {
               </div>
             );
           })}
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <TrendingUp className="w-5 h-5 text-gray-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Menu Impressions & Clicks</h2>
+            </div>
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={impressionsClicksData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="day" 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    axisLine={{ stroke: '#e5e7eb' }}
+                  />
+                  <YAxis 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    axisLine={{ stroke: '#e5e7eb' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Legend 
+                    wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+                    iconType="line"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="impressions" 
+                    stroke="#3b82f6" 
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    name="Impressions"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="clicks" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    name="Clicks"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-gray-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Engagement Impact</h2>
+              </div>
+              <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded">
+                +0.8% avg
+              </span>
+            </div>
+            <div className="h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={engagementData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="week" 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    axisLine={{ stroke: '#e5e7eb' }}
+                  />
+                  <YAxis 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    axisLine={{ stroke: '#e5e7eb' }}
+                    domain={[0, 30]}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontSize: '12px'
+                    }}
+                    formatter={(value: number) => `${value}%`}
+                  />
+                  <Legend 
+                    wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }}
+                  />
+                  <Bar 
+                    dataKey="withMenuCraft" 
+                    fill="#6366f1" 
+                    radius={[6, 6, 0, 0]}
+                    name="With MenuCraft"
+                  />
+                  <Bar 
+                    dataKey="withoutMenuCraft" 
+                    fill="#d1d5db" 
+                    radius={[6, 6, 0, 0]}
+                    name="Without MenuCraft"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         {/* Top Performing Menus & Links */}

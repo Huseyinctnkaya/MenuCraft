@@ -28,55 +28,53 @@ const navigationItems = [
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
   const location = useLocation();
+  const isBuilderView = location.pathname.startsWith("/app/menu-builder");
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      <div className="flex h-screen bg-gray-50">
-        {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col">
-          {/* Logo */}
-          <div className="p-6 border-b border-gray-200">
-            <img src="/menucraft-logo.png" alt="MenuCraft" className="h-8" />
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-1">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.url || (item.url === "/app" && location.pathname === "/app");
-
-                return (
-                  <Link
-                    key={item.url}
-                    to={item.url}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive
-                        ? "bg-indigo-50 text-indigo-600"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-sm font-medium truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
+      <div className={`flex h-screen ${isBuilderView ? "bg-gray-100" : "bg-gray-50"}`}>
+        {!isBuilderView && (
+          <div className="w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col">
+            {/* Logo */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <img src="/menucraft-logo.png" alt="MenuCraft" className="h-8 w-8" />
+                <div className="leading-tight">
+                  <div className="text-lg font-semibold text-gray-900">MenuCraft</div>
+                  <div className="text-[10px] font-semibold tracking-[0.2em] text-gray-500">MEGA MENU BUILDER</div>
+                </div>
+              </div>
             </div>
-          </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-200 space-y-2">
-            <a href="#" className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors text-center block">
-              Help & Support
-            </a>
-            <a href="#" className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors text-center block">
-              Docs
-            </a>
+            {/* Navigation */}
+            <nav className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-1">
+                {navigationItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.url || (item.url === "/app" && location.pathname === "/app");
+
+                  return (
+                    <Link
+                      key={item.url}
+                      to={{ pathname: item.url, search: location.search }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-indigo-50 text-indigo-600"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      <span className="text-sm font-medium truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
           </div>
-        </div>
+        )}
 
         {/* Main Content */}
-        <div className="flex-1 overflow-auto">
+        <div className={`flex-1 ${isBuilderView ? "overflow-hidden" : "overflow-auto"}`}>
           <Outlet />
         </div>
       </div>
@@ -92,4 +90,3 @@ export function ErrorBoundary() {
 export const headers: HeadersFunction = (headersArgs) => {
   return boundary.headers(headersArgs);
 };
-

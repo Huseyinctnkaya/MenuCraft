@@ -21,7 +21,11 @@ export default function Card({
 }: CardProps) {
   return (
     <div
-      className={cn("bg-white border border-gray-200 rounded-xl", paddingStyles[padding], className)}
+      className={cn(
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border",
+        paddingStyles[padding],
+        className
+      )}
       {...props}
     />
   );

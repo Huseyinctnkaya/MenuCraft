@@ -83,9 +83,11 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="text-center space-y-4 py-8">
-          <h1 className="text-4xl text-gray-900">Welcome to MenuCraft</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center space-y-9 py-8 flex flex-col items-center">
+          <h1 className="!text-[32px] !leading-tight font-semibold text-gray-900">
+            Welcome to MenuCraft
+          </h1>
+          <p className="!text-[18px] !leading-7 text-gray-600 max-w-2xl mx-auto mt-4">
             Create stunning mega menus that boost navigation and increase conversions for your Shopify store
           </p>
         </div>
@@ -113,7 +115,9 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h2 className="text-lg text-gray-900 mb-4">App Status</h2>
+            <h2 className="text-lg font-semibold text-gray-900 tracking-tight mb-6">
+              App Status
+            </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">

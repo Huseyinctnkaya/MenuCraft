@@ -132,43 +132,43 @@
     font-size: var(--font-size);
   }
 
-  h1 {
+  h1:not([class]) {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
-  h2 {
+  h2:not([class]) {
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
-  h3 {
+  h3:not([class]) {
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
-  h4 {
+  h4:not([class]) {
     font-size: var(--text-base);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
-  label {
+  label:not([class]) {
     font-size: var(--text-base);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
-  button {
+  button:not([class]) {
     font-size: var(--text-base);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
-  input {
+  input:not([class]) {
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;

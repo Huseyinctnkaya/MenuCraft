@@ -68,7 +68,7 @@ export default defineConfig({
     assetsInlineLimit: 0,
   },
   ssr: {
-    noExternal: ["@shopify/polaris", "@shopify/polaris-icons"],
+    external: ["@shopify/polaris", "@shopify/polaris-icons", "react-router", "turbo-stream"],
   },
   optimizeDeps: {
     include: ["@shopify/app-bridge-react", "@shopify/polaris", "@shopify/polaris-icons"],

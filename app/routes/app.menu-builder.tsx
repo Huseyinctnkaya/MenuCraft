@@ -210,10 +210,10 @@ export default function MenuBuilder() {
   const selectedItem = selectedPath?.[selectedPath.length - 1] ?? null;
   const activeMenu = selectedPath?.[0] ?? null;
 
-  const handleSelectItem = (id: string) => {
+  const handleSelectItem = (id: string, openEdit = false) => {
     setSelectedItemId(id);
-    setMenuView("edit");
     setActivePanel("menu");
+    setMenuView(openEdit ? "edit" : "list");
   };
 
   const handleToggleExpand = (id: string) => {
@@ -231,6 +231,7 @@ export default function MenuBuilder() {
       label: "New menu",
       url: "/",
       role: "menu",
+      expanded: true,
     };
     setMenuItems((items) => [...items, newItem]);
   };
@@ -250,101 +251,101 @@ export default function MenuBuilder() {
   const renderMenuTree = (item: MenuItem, depth: number = 0) => {
     const isSelected = selectedItemId === item.id;
     const hasChildren = Boolean(item.children?.length);
+    const isExpanded = Boolean(item.expanded);
+    const showToggle = item.role === "menu" || hasChildren;
     const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
 
     return (
-      <Box key={item.id} paddingInlineStart={depth === 0 ? "0" : "200"} paddingBlockStart="100">
-        <InlineStack gap="200" blockAlign="center" wrap={false}>
-          {hasChildren ? (
-            <Button
-              variant="tertiary"
-              size="micro"
-              icon={item.expanded ? ChevronDownIcon : ChevronRightIcon}
-              onClick={() => handleToggleExpand(item.id)}
-              accessibilityLabel={item.expanded ? "Collapse" : "Expand"}
-            />
-          ) : (
-            <Box minWidth="24px" />
-          )}
-          <div className="flex-1">
+      <Box key={item.id} paddingInlineStart={depth === 0 ? "0" : "200"} paddingBlockStart="0">
+        <div
+          className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-colors ${
+            isSelected ? "bg-gray-50" : "hover:bg-gray-50"
+          }`}
+        >
+          {showToggle ? (
             <button
               type="button"
-              onClick={() => handleSelectItem(item.id)}
-              className={`w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left transition-colors ${
-                isSelected ? "bg-gray-100" : "hover:bg-gray-50"
-              }`}
+              onClick={() => handleToggleExpand(item.id)}
+              aria-label={isExpanded ? "Collapse" : "Expand"}
+              className="flex h-5 w-5 items-center justify-center text-gray-500 hover:text-gray-700"
             >
-              <Icon source={DragHandleIcon} tone="subdued" />
+              <Icon source={isExpanded ? ChevronDownIcon : ChevronRightIcon} tone="subdued" />
+            </button>
+          ) : (
+            <div className="h-5 w-5" />
+          )}
+          <div className="flex flex-1 items-center gap-2 text-left text-sm text-gray-700">
+            <span className="flex items-center group-hover:hidden">
               <Icon source={itemIcon} tone="subdued" />
-              <Text
-                as="span"
-                variant="bodyMd"
-                fontWeight={item.role === "menu" ? "semibold" : "regular"}
-              >
-                {item.label}
-              </Text>
+            </span>
+            <span className="hidden items-center group-hover:flex">
+              <Icon source={DragHandleIcon} tone="subdued" />
+            </span>
+            <span className={item.role === "menu" ? "font-medium" : "font-normal"}>
+              {item.label}
+            </span>
+          </div>
+          <div
+            className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100"
+          >
+            <button
+              type="button"
+              onClick={() => handleSelectItem(item.id, true)}
+              aria-label="Edit item"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            >
+              <Icon source={EditIcon} tone="subdued" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {}}
+              aria-label="Duplicate item"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            >
+              <Icon source={DuplicateIcon} tone="subdued" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {}}
+              aria-label="Delete item"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-red-600 hover:bg-gray-100 hover:text-red-700"
+            >
+              <Icon source={DeleteIcon} tone="critical" />
             </button>
           </div>
-          {isSelected && (
-            <div className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1">
-              <Button
-                variant="tertiary"
-                size="micro"
-                icon={EditIcon}
-                accessibilityLabel="Edit item"
-                onClick={() => setMenuView("edit")}
-              />
-              <Button
-                variant="tertiary"
-                size="micro"
-                icon={DuplicateIcon}
-                accessibilityLabel="Duplicate item"
-                onClick={() => {}}
-              />
-              <Button
-                variant="tertiary"
-                size="micro"
-                icon={DeleteIcon}
-                accessibilityLabel="Delete item"
-                onClick={() => {}}
-              />
-            </div>
-          )}
-        </InlineStack>
+        </div>
 
-        {hasChildren && item.expanded && (
-          <Box
-            paddingInlineStart="400"
-            paddingBlockStart="200"
-            paddingBlockEnd="200"
-            borderInlineStartWidth="025"
-            borderInlineStartColor="border"
-          >
+        {item.role !== "item" && (
+          <Box>
             <BlockStack gap="200">
-              {item.children?.map((child) => renderMenuTree(child, depth + 1))}
-              {item.role !== "item" && (
-                <Button
-                  variant="plain"
-                  size="slim"
-                  icon={PlusIcon}
-                  onClick={() => handleAddChild(item.id, item.role === "menu" ? "group" : "item")}
+              {hasChildren && item.expanded
+                ? item.children?.map((child) => renderMenuTree(child, depth + 1))
+                : null}
+              {item.role === "menu" && isExpanded ? (
+                <button
+                  type="button"
+                  onClick={() => handleAddChild(item.id, "group")}
+                  className="flex w-full items-center gap-2 rounded-xl bg-gray-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-gray-100"
                 >
-                  Add item
-                </Button>
-              )}
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                    +
+                  </span>
+                  Alt menü ekle
+                </button>
+              ) : null}
+              {item.role === "group" && (item.expanded || !hasChildren) ? (
+                <button
+                  type="button"
+                  onClick={() => handleAddChild(item.id, "item")}
+                  className="flex w-full items-center gap-2 rounded-lg py-2 pl-5 pr-2 text-sm font-medium text-blue-600 hover:bg-gray-100"
+                >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                    +
+                  </span>
+                  Öğe Ekle
+                </button>
+              ) : null}
             </BlockStack>
-          </Box>
-        )}
-        {!hasChildren && item.role !== "item" && (
-          <Box paddingInlineStart="400" paddingBlockStart="200">
-            <Button
-              variant="plain"
-              size="slim"
-              icon={PlusIcon}
-              onClick={() => handleAddChild(item.id, item.role === "menu" ? "group" : "item")}
-            >
-              Add item
-            </Button>
           </Box>
         )}
       </Box>
@@ -422,9 +423,6 @@ export default function MenuBuilder() {
             <Text as="h2" variant="headingMd">
               Menu items
             </Text>
-            <Button variant="plain" icon={PlusIcon} onClick={handleAddRoot}>
-              Add
-            </Button>
           </InlineStack>
           <Text as="p" variant="bodySm" tone="subdued">
             Drag to reorder items.
@@ -433,6 +431,18 @@ export default function MenuBuilder() {
           <BlockStack gap="200">
             {menuItems.map((item) => renderMenuTree(item))}
           </BlockStack>
+          <Box paddingBlockStart="200">
+            <button
+              type="button"
+              onClick={handleAddRoot}
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100"
+            >
+              <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                +
+              </span>
+              Öğe Ekle
+            </button>
+          </Box>
         </BlockStack>
       </Card>
     );
@@ -562,7 +572,7 @@ export default function MenuBuilder() {
   const dropdownGroups = activeMenu?.children ?? [];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
+    <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <InlineStack align="space-between" blockAlign="center" gap="400">
           <InlineStack gap="300" blockAlign="center">
@@ -592,30 +602,35 @@ export default function MenuBuilder() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-3 gap-2">
+        <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-3">
           {[
             { id: "menu", icon: MenuIcon, label: "Menu" },
             { id: "theme", icon: PaintBrushRoundIcon, label: "Theme" },
             { id: "settings", icon: SettingsIcon, label: "Settings" },
             { id: "code", icon: CodeIcon, label: "Code" },
           ].map((panel) => (
-            <Button
+            <button
               key={panel.id}
-              variant={activePanel === panel.id ? "primary" : "tertiary"}
-              size="slim"
-              icon={panel.icon}
+              type="button"
               onClick={() => {
                 setActivePanel(panel.id as RailPanel);
                 if (panel.id !== "menu") {
                   setMenuView("list");
                 }
               }}
-              accessibilityLabel={panel.label}
-            />
+              aria-label={panel.label}
+              className={`flex h-12 w-12 items-center justify-center rounded-xl border transition-colors ${
+                activePanel === panel.id
+                  ? "border-indigo-100 bg-indigo-50"
+                  : "border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+              }`}
+            >
+              <Icon source={panel.icon} tone={activePanel === panel.id ? "primary" : "subdued"} />
+            </button>
           ))}
         </aside>
 
-        <aside className="w-96 bg-white border-r border-gray-200 overflow-y-auto p-4">
+        <aside className="w-96 bg-white border-r border-gray-200 overflow-y-auto">
           <BlockStack gap="400">
             {activePanel === "menu" && renderMenuPanel()}
             {activePanel === "theme" && renderThemePanel()}

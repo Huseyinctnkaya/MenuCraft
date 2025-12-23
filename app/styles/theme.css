@@ -179,4 +179,30 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+
+  .menucraft-builder .Polaris-ShadowBevel {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    --pc-shadow-bevel-box-shadow-xs: none !important;
+    --pc-shadow-bevel-box-shadow-sm: none !important;
+    --pc-shadow-bevel-box-shadow-md: none !important;
+    --pc-shadow-bevel-box-shadow-lg: none !important;
+    --pc-shadow-bevel-box-shadow-xl: none !important;
+    --pc-shadow-bevel-border-radius-xs: 0 !important;
+    --pc-shadow-bevel-border-radius-sm: 0 !important;
+    --pc-shadow-bevel-border-radius-md: 0 !important;
+    --pc-shadow-bevel-border-radius-lg: 0 !important;
+    --pc-shadow-bevel-border-radius-xl: 0 !important;
+    --pc-shadow-bevel-content-xs: none !important;
+    --pc-shadow-bevel-content-sm: none !important;
+    --pc-shadow-bevel-content-md: none !important;
+    --pc-shadow-bevel-content-lg: none !important;
+    --pc-shadow-bevel-content-xl: none !important;
+  }
+
+  .menucraft-builder .Polaris-ShadowBevel::before {
+    content: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
 }

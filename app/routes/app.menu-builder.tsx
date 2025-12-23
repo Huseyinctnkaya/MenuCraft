@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
 import { useLocation, useNavigate } from "@remix-run/react";
 import {
   Badge,
@@ -36,7 +36,12 @@ import {
   TextFontListIcon,
   TextIcon,
 } from "@shopify/polaris-icons";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
+
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: polarisStyles },
+];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);

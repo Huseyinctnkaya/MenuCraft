@@ -2,7 +2,7 @@
 
 client_id = "3054d337864a3d41b8aec9bb7d545897"
 name = "MenuCraft"
-application_url = "https://rating-purpose-returns-watch.trycloudflare.com"
+application_url = "https://cable-permit-suppose-raising.trycloudflare.com"
 embedded = true
 
 [build]
@@ -29,5 +29,5 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://rating-purpose-returns-watch.trycloudflare.com/auth/callback"
+  "https://cable-permit-suppose-raising.trycloudflare.com/auth/callback"
 ]

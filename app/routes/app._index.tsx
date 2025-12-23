@@ -83,11 +83,11 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="text-center space-y-9 py-8 flex flex-col items-center">
+        <div className="text-center py-8 flex flex-col items-center gap-4">
           <h1 className="!text-[32px] !leading-tight font-semibold text-gray-900">
             Welcome to MenuCraft
           </h1>
-          <p className="!text-[18px] !leading-7 text-gray-600 max-w-2xl mx-auto mt-4">
+          <p className="!text-[18px] !leading-7 text-gray-600 max-w-2xl mx-auto">
             Create stunning mega menus that boost navigation and increase conversions for your Shopify store
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function Dashboard() {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="text-center space-y-4 hover:shadow-md transition-shadow cursor-pointer p-6"
+              className="text-center gap-4 hover:shadow-md transition-shadow cursor-pointer p-6"
               onClick={feature.action}
             >
               <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
@@ -115,7 +115,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 tracking-tight mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 tracking-tight mb-4">
               App Status
             </h2>
             <div className="space-y-4">
@@ -191,7 +191,7 @@ export default function Dashboard() {
         </div>
 
         <Card className="p-6">
-          <h2 className="text-xl text-gray-900 mb-6">Frequently Asked Questions</h2>
+          <h2 className="text-xl text-gray-900 mb-2">Frequently Asked Questions</h2>
           <div className="space-y-3">
             {faqs.map((faq, index) => (
               <div key={index} className="border-b border-gray-200 last:border-0 pb-3">

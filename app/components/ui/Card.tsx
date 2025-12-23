@@ -22,7 +22,7 @@ export default function Card({
   return (
     <div
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border",
+        "bg-card text-card-foreground flex flex-col gap-4 rounded-xl border",
         paddingStyles[padding],
         className
       )}

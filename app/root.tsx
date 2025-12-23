@@ -5,11 +5,9 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import styles from "./styles/tailwind.css?url";
 
 export const links = () => [
-  { rel: "stylesheet", href: polarisStyles },
   { rel: "stylesheet", href: styles },
 ];
 

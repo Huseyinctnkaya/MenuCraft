@@ -130,6 +130,8 @@ export default function MenuBuilder() {
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [selectedItemId, setSelectedItemId] = useState<string | null>("catalogs");
   const [hoveredMenuId, setHoveredMenuId] = useState<string | null>(null);
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [draggedParentId, setDraggedParentId] = useState<string | null>(null);
 
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
     fontFamily: "Inter, system-ui, sans-serif",
@@ -249,20 +251,71 @@ export default function MenuBuilder() {
     setMenuItems((items) => addChildById(items, parentId, newItem));
   };
 
+  const findParentId = (items: MenuItem[], id: string, parentId: string | null = null): string | null | undefined => {
+    for (const item of items) {
+      if (item.id === id) return parentId;
+      if (item.children?.length) {
+        const found = findParentId(item.children, id, item.id);
+        if (found !== undefined) return found;
+      }
+    }
+    return undefined;
+  };
+
+  const reorderItems = (items: MenuItem[], draggedId: string, targetId: string) => {
+    const fromIndex = items.findIndex((entry) => entry.id === draggedId);
+    const toIndex = items.findIndex((entry) => entry.id === targetId);
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return items;
+    const next = [...items];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    return next;
+  };
+
+  const moveItem = (items: MenuItem[], draggedId: string, targetId: string) => {
+    const dragParent = findParentId(items, draggedId);
+    const targetParent = findParentId(items, targetId);
+    if (dragParent === undefined || targetParent === undefined) return items;
+    if (dragParent !== targetParent) return items;
+    if (dragParent === null) {
+      return reorderItems(items, draggedId, targetId);
+    }
+    return updateItemById(items, dragParent, (item) => ({
+      ...item,
+      children: item.children ? reorderItems(item.children, draggedId, targetId) : item.children,
+    }));
+  };
+
   const renderMenuTree = (item: MenuItem, depth: number = 0) => {
     const isSelected = selectedItemId === item.id;
     const hasChildren = Boolean(item.children?.length);
     const isExpanded = Boolean(item.expanded);
     const showToggle = item.role === "menu" || hasChildren;
+    const isDragging = draggedItemId === item.id;
     const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
 
     return (
       <div key={item.id} className="mt-0">
         <Box paddingInlineStart={depth === 0 ? "0" : "200"}>
           <div
-            className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-colors ${
-              isSelected ? "bg-gray-50" : "hover:bg-gray-50"
-            }`}
+            className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-all duration-150 border-2 border-dotted ${
+              isDragging ? "border-blue-500 bg-blue-50 shadow-sm" : "border-transparent"
+            } ${isSelected ? "bg-gray-50" : "hover:bg-gray-50"}`}
+            onDragOver={(event) => {
+              if (!draggedItemId) return;
+              const targetParentId = findParentId(menuItems, item.id);
+              if (draggedParentId !== targetParentId) return;
+              event.preventDefault();
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              if (!draggedItemId) return;
+              const targetParentId = findParentId(menuItems, item.id);
+              if (draggedParentId !== targetParentId) return;
+              setMenuItems((items) => moveItem(items, draggedItemId, item.id));
+              setDraggedItemId(null);
+              setDraggedParentId(null);
+            }}
           >
           {showToggle ? (
             <button
@@ -280,7 +333,26 @@ export default function MenuBuilder() {
             <span className="flex items-center group-hover:hidden">
               <Icon source={itemIcon} tone="subdued" />
             </span>
-            <span className="hidden items-center group-hover:flex">
+            <span
+              className={`hidden items-center group-hover:flex cursor-grab ${
+                isDragging ? "cursor-grabbing" : ""
+              }`}
+              role="button"
+              tabIndex={0}
+              draggable
+              onDragStart={(event) => {
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", item.id);
+                setDraggedItemId(item.id);
+                const parentId = findParentId(menuItems, item.id);
+                setDraggedParentId(parentId ?? null);
+              }}
+              onDragEnd={() => {
+                setDraggedItemId(null);
+                setDraggedParentId(null);
+              }}
+              aria-label="Drag to reorder"
+            >
               <Icon source={DragHandleIcon} tone="subdued" />
             </span>
             <span className={item.role === "menu" ? "font-medium" : "font-normal"}>
@@ -637,7 +709,7 @@ export default function MenuBuilder() {
           ))}
         </aside>
 
-        <aside className="w-96 bg-white border-r border-gray-200 overflow-y-auto">
+        <aside className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
           <BlockStack gap="400">
             {activePanel === "menu" && renderMenuPanel()}
             {activePanel === "theme" && renderThemePanel()}
@@ -733,6 +805,39 @@ export default function MenuBuilder() {
                             </span>
                           ) : null}
                         </button>
+                        {isActive && dropdownGroups.length === 0 && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              left: 0,
+                              top: "100%",
+                              marginTop: 10,
+                              zIndex: 15,
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleAddChild(item.id, "group")}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "12px 16px",
+                                minWidth: 180,
+                                borderRadius: 0,
+                                border: "1px dashed #cbd5e1",
+                                background: themeSettings.dropdownBackground,
+                                color: themeSettings.dropdownText,
+                                fontSize: 14,
+                                fontWeight: 500,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+                              Alt menü ekle
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

@@ -129,6 +129,7 @@ export default function MenuBuilder() {
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [selectedItemId, setSelectedItemId] = useState<string | null>("catalogs");
+  const [hoveredMenuId, setHoveredMenuId] = useState<string | null>(null);
 
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
     fontFamily: "Inter, system-ui, sans-serif",
@@ -650,17 +651,19 @@ export default function MenuBuilder() {
             <div
               style={{
                 maxWidth: previewMode === "mobile" ? 420 : 1100,
-                margin: "0 auto",
+                margin: "36px auto 0",
+                padding: "0 32px",
                 fontFamily: themeSettings.fontFamily,
               }}
             >
-              <div style={{ background: themeSettings.menuBackground, borderRadius: 14, overflow: "hidden" }}>
+              <div style={{ background: themeSettings.menuBackground, borderRadius: 0, overflow: "visible" }}>
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "center",
-                    gap: themeSettings.menuItemSpacing,
-                    padding: "14px 24px",
+                    alignItems: "stretch",
+                    gap: 0,
+                    padding: 0,
+                    height: 50,
                     color: themeSettings.menuText,
                   }}
                 >
@@ -668,118 +671,180 @@ export default function MenuBuilder() {
                     const isActive = activeMenu?.id === item.id;
                     const isDimmed = Boolean(selectedItemId && activeMenu?.id && activeMenu.id !== item.id);
                     return (
-                      <button
+                      <div
                         key={item.id}
-                        type="button"
-                        onClick={() => handleSelectItem(item.id)}
-                        style={{
-                          background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
-                          border: isActive ? `2px solid ${themeSettings.menuActive}` : "2px solid transparent",
-                          borderRadius: 10,
-                          padding: "6px 12px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                          color: themeSettings.menuText,
-                          opacity: isDimmed ? 0.5 : 1,
-                          cursor: "pointer",
-                        }}
+                        className="relative inline-flex pt-9 -mt-9"
+                        onMouseEnter={() => setHoveredMenuId(item.id)}
+                        onMouseLeave={() => setHoveredMenuId(null)}
                       >
-                        <span>{item.label}</span>
-                        {item.role === "menu" && item.children?.length ? (
-                          <span style={{ display: "inline-flex" }}>
-                            <ChevronDownIcon width="14" height="14" />
-                          </span>
-                        ) : null}
-                      </button>
+                        {hoveredMenuId === item.id && (
+                          <div className="absolute top-0 left-0 z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectItem(item.id, true)}
+                              aria-label="Edit item"
+                              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                            >
+                              <Icon source={EditIcon} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {}}
+                              aria-label="Duplicate item"
+                              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                            >
+                              <Icon source={DuplicateIcon} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {}}
+                              aria-label="Delete item"
+                              className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                            >
+                              <Icon source={DeleteIcon} />
+                            </button>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleSelectItem(item.id)}
+                          style={{
+                            background:
+                              isActive || hoveredMenuId === item.id
+                                ? "rgba(255,255,255,0.12)"
+                                : "transparent",
+                            borderRight: "1px solid rgba(255,255,255,0.12)",
+                            borderRadius: 0,
+                            height: "100%",
+                            minWidth: 80,
+                            padding: "0 18px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            color: themeSettings.menuText,
+                            opacity: isDimmed ? 0.5 : 1,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span>{item.label}</span>
+                          {item.children?.length ? (
+                            <span style={{ display: "inline-flex" }}>
+                              <ChevronDownIcon width="14" height="14" fill={themeSettings.menuText} />
+                            </span>
+                          ) : null}
+                        </button>
+                      </div>
                     );
                   })}
-                  <button type="button" style={{ color: themeSettings.menuText }}>
+                  <button
+                    type="button"
+                    style={{
+                      color: themeSettings.menuText,
+                      height: "100%",
+                      minWidth: 50,
+                      padding: "0 18px",
+                      borderRight: "1px solid rgba(255,255,255,0.12)",
+                      borderRadius: 0,
+                      background: "transparent",
+                    }}
+                  >
                     +
                   </button>
-                  <span style={{ marginLeft: "auto", display: "flex" }}>
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "100%",
+                      width: 50,
+                      borderLeft: "1px solid rgba(255,255,255,0.12)",
+                    }}
+                  >
                     <SearchIcon width="18" height="18" />
                   </span>
                 </div>
               </div>
 
-              <div
-                style={{
-                  background: themeSettings.dropdownBackground,
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 12,
-                  marginTop: 16,
-                  padding: "20px 24px",
-                  boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
-                }}
-              >
+              {dropdownGroups.length > 0 && (
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: `repeat(${Math.max(dropdownGroups.length, 1)}, minmax(0, 1fr))`,
-                    gap: 24,
-                    color: themeSettings.dropdownText,
+                    background: themeSettings.dropdownBackground,
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 12,
+                    marginTop: 16,
+                    padding: "20px 24px",
+                    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
                   }}
                 >
-                  {dropdownGroups.map((group) => {
-                    const isGroupSelected = selectedItemId === group.id;
-                    return (
-                      <div
-                        key={group.id}
-                        style={{
-                          border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
-                          borderRadius: 10,
-                          padding: "10px 12px",
-                        }}
-                      >
-                        <Text as="h3" variant="headingSm" fontWeight="semibold">
-                          <span style={{ color: themeSettings.dropdownHeading }}>{group.label}</span>
-                        </Text>
-                        <Divider />
-                        <BlockStack gap="200">
-                          {group.children?.map((child) => {
-                            const isChildSelected = selectedItemId === child.id;
-                            return (
-                              <button
-                                key={child.id}
-                                type="button"
-                                onClick={() => handleSelectItem(child.id)}
-                                style={{
-                                  textAlign: "left",
-                                  border: isChildSelected
-                                    ? `2px dashed ${themeSettings.menuActive}`
-                                    : "2px solid transparent",
-                                  borderRadius: 8,
-                                  padding: "6px 8px",
-                                  background: "transparent",
-                                  color: themeSettings.dropdownText,
-                                }}
-                              >
-                                {child.label}
-                              </button>
-                            );
-                          })}
-                          <Button
-                            variant="plain"
-                            icon={PlusIcon}
-                            size="slim"
-                            onClick={() => handleAddChild(group.id, "item")}
-                          >
-                            Add item
-                          </Button>
-                        </BlockStack>
-                      </div>
-                    );
-                  })}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
+                      gap: 24,
+                      color: themeSettings.dropdownText,
+                    }}
+                  >
+                    {dropdownGroups.map((group) => {
+                      const isGroupSelected = selectedItemId === group.id;
+                      return (
+                        <div
+                          key={group.id}
+                          style={{
+                            border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
+                            borderRadius: 10,
+                            padding: "10px 12px",
+                          }}
+                        >
+                          <Text as="h3" variant="headingSm" fontWeight="semibold">
+                            <span style={{ color: themeSettings.dropdownHeading }}>{group.label}</span>
+                          </Text>
+                          <Divider />
+                          <BlockStack gap="200">
+                            {group.children?.map((child) => {
+                              const isChildSelected = selectedItemId === child.id;
+                              return (
+                                <button
+                                  key={child.id}
+                                  type="button"
+                                  onClick={() => handleSelectItem(child.id)}
+                                  style={{
+                                    textAlign: "left",
+                                    border: isChildSelected
+                                      ? `2px dashed ${themeSettings.menuActive}`
+                                      : "2px solid transparent",
+                                    borderRadius: 8,
+                                    padding: "6px 8px",
+                                    background: "transparent",
+                                    color: themeSettings.dropdownText,
+                                  }}
+                                >
+                                  {child.label}
+                                </button>
+                              );
+                            })}
+                            <Button
+                              variant="plain"
+                              icon={PlusIcon}
+                              size="slim"
+                              onClick={() => handleAddChild(group.id, "item")}
+                            >
+                              Add item
+                            </Button>
+                          </BlockStack>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <Box paddingBlockStart="400">
+                    <ButtonGroup>
+                      <Button variant="secondary" icon={PlusIcon} onClick={() => activeMenu && handleAddChild(activeMenu.id, "group")}>
+                        Add block
+                      </Button>
+                    </ButtonGroup>
+                  </Box>
                 </div>
-                <Box paddingBlockStart="400">
-                  <ButtonGroup>
-                    <Button variant="secondary" icon={PlusIcon} onClick={() => activeMenu && handleAddChild(activeMenu.id, "group")}>
-                      Add block
-                    </Button>
-                  </ButtonGroup>
-                </Box>
-              </div>
+              )}
             </div>
           </Box>
 

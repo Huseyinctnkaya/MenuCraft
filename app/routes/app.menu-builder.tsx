@@ -256,12 +256,13 @@ export default function MenuBuilder() {
     const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
 
     return (
-      <Box key={item.id} paddingInlineStart={depth === 0 ? "0" : "200"} paddingBlockStart="0">
-        <div
-          className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-colors ${
-            isSelected ? "bg-gray-50" : "hover:bg-gray-50"
-          }`}
-        >
+      <div key={item.id} className="mt-0">
+        <Box paddingInlineStart={depth === 0 ? "0" : "200"}>
+          <div
+            className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-colors ${
+              isSelected ? "bg-gray-50" : "hover:bg-gray-50"
+            }`}
+          >
           {showToggle ? (
             <button
               type="button"
@@ -315,40 +316,45 @@ export default function MenuBuilder() {
           </div>
         </div>
 
-        {item.role !== "item" && (
-          <Box>
-            <BlockStack gap="200">
-              {hasChildren && item.expanded
-                ? item.children?.map((child) => renderMenuTree(child, depth + 1))
-                : null}
-              {item.role === "menu" && isExpanded ? (
-                <button
-                  type="button"
-                  onClick={() => handleAddChild(item.id, "group")}
-                  className="flex w-full items-center gap-2 rounded-xl bg-gray-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-gray-100"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
-                    +
-                  </span>
-                  Alt menü ekle
-                </button>
-              ) : null}
-              {item.role === "group" && (item.expanded || !hasChildren) ? (
-                <button
-                  type="button"
-                  onClick={() => handleAddChild(item.id, "item")}
-                  className="flex w-full items-center gap-2 rounded-lg py-2 pl-5 pr-2 text-sm font-medium text-blue-600 hover:bg-gray-100"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
-                    +
-                  </span>
-                  Öğe Ekle
-                </button>
-              ) : null}
-            </BlockStack>
-          </Box>
-        )}
-      </Box>
+          {item.role !== "item" && isExpanded && (
+            <Box>
+              <div className="ml-1 border-l border-dashed border-gray-300/70 pl-5">
+                <BlockStack gap="300">
+                  {hasChildren
+                    ? item.children?.map((child) => renderMenuTree(child, depth + 1))
+                    : null}
+                {item.role === "menu" ? (
+                  <button
+                    type="button"
+                    onClick={() => handleAddChild(item.id, "group")}
+                    className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
+                  >
+                    <span className="h-5 w-5" />
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                      +
+                    </span>
+                    {hasChildren ? "Blok ekle" : "Alt menü ekle"}
+                  </button>
+                ) : null}
+                {item.role === "group" ? (
+                  <button
+                    type="button"
+                    onClick={() => handleAddChild(item.id, "item")}
+                    className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
+                  >
+                    <span className="h-5 w-5" />
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                      +
+                    </span>
+                    Öğe Ekle
+                  </button>
+                ) : null}
+                </BlockStack>
+              </div>
+            </Box>
+          )}
+        </Box>
+      </div>
     );
   };
 

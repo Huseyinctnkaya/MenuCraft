@@ -80,7 +80,7 @@ export default function Support() {
         </div>
 
         <Card className="p-6">
-          <h2 className="text-xl text-gray-900 mb-6">Frequently Asked Questions</h2>
+          <h2 className="text-xl text-gray-900 mb-2">Frequently Asked Questions</h2>
           <div className="space-y-3">
             {faqs.map((faq, index) => (
               <div key={index} className="border-b border-gray-200 last:border-0 pb-3">
@@ -104,8 +104,8 @@ export default function Support() {
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg text-gray-900 mb-3">Need More Help?</h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <h3 className="text-lg text-gray-900">Need More Help?</h3>
+          <p className="text-sm text-gray-600 mb-2">
             Our support team is available Monday-Friday, 9am-5pm EST. We typically respond within 24 hours.
           </p>
           <Button variant="primary">Contact Support</Button>

@@ -13,7 +13,7 @@ export default function AccountSettings() {
         </div>
 
         <Card>
-          <div className="flex items-start gap-4 mb-6">
+          <div className="flex items-start gap-4 mb-2">
             <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-indigo-600" />
             </div>

@@ -96,7 +96,7 @@ export default function Dashboard() {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="text-center gap-4 hover:shadow-md transition-shadow cursor-pointer p-6"
+              className="text-center space-y-2 hover:shadow-md transition-shadow cursor-pointer p-6"
               onClick={feature.action}
             >
               <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">

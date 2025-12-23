@@ -26,7 +26,7 @@ export default function AccountSettings() {
         </div>
 
         <Card className="p-6">
-          <div className="flex items-start gap-4 mb-6">
+          <div className="flex items-start gap-4 mb-2">
             <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-indigo-600" />
             </div>
@@ -70,7 +70,7 @@ export default function AccountSettings() {
         </Card>
 
         <Card className="p-6">
-          <h2 className="text-lg text-gray-900 mb-4 flex items-center gap-2">
+          <h2 className="text-lg text-gray-900 mb-2 flex items-center gap-2">
             <Globe className="w-5 h-5" />
             Preferences
           </h2>

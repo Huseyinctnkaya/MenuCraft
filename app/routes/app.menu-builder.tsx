@@ -172,7 +172,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   let items: MenuItem[];
-  let settings: BuilderSettings | undefined;
+  let settings: BuilderSettings | null = null;
   try {
     items = JSON.parse(itemsRaw) as MenuItem[];
     if (typeof settingsRaw === "string") {
@@ -192,9 +192,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     data: {
       items,
       status,
-      ...(settings ? { settings } : {}),
     },
   });
+  if (settings) {
+    await prisma.$executeRaw`
+      UPDATE Menu
+      SET settings = ${JSON.stringify(settings)}
+      WHERE id = ${menuId} AND shop = ${shop}
+    `;
+  }
 
   return json({ ok: true });
 };
@@ -208,7 +214,7 @@ type MenuItem = {
   children?: MenuItem[];
 };
 
-type RailPanel = "menu" | "theme" | "settings" | "code";
+type RailPanel = "menu" | "settings" | "typography" | "colors" | "code";
 
 type ThemeSettings = {
   fontFamily: string;
@@ -777,17 +783,14 @@ export default function MenuBuilder() {
     );
   };
 
-  const renderThemePanel = () => (
+  const renderTypographyPanel = () => (
     <Card padding="400">
       <BlockStack gap="400">
         <Text as="h2" variant="headingMd">
-          Theme settings
+          Typography
         </Text>
         <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm">
-            Typography
-          </Text>
           <Select
             label="Font family"
             options={FONT_OPTIONS}
@@ -795,10 +798,18 @@ export default function MenuBuilder() {
             onChange={(value) => setThemeSettings((prev) => ({ ...prev, fontFamily: value }))}
           />
         </BlockStack>
+      </BlockStack>
+    </Card>
+  );
+
+  const renderColorsPanel = () => (
+    <Card padding="400">
+      <BlockStack gap="400">
+        <Text as="h2" variant="headingMd">
+          Colors
+        </Text>
+        <Divider />
         <BlockStack gap="300">
-          <Text as="h3" variant="headingSm">
-            Colors
-          </Text>
           <TextField
             label="Menu background"
             value={themeSettings.menuBackground}
@@ -840,18 +851,6 @@ export default function MenuBuilder() {
             value={themeSettings.canvasBackground}
             onChange={(value) => setThemeSettings((prev) => ({ ...prev, canvasBackground: value }))}
             autoComplete="off"
-          />
-        </BlockStack>
-        <BlockStack gap="300">
-          <Text as="h3" variant="headingSm">
-            Layout
-          </Text>
-          <RangeSlider
-            label="Menu item spacing"
-            value={themeSettings.menuItemSpacing}
-            min={12}
-            max={60}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, menuItemSpacing: value }))}
           />
         </BlockStack>
       </BlockStack>
@@ -1390,11 +1389,12 @@ export default function MenuBuilder() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-3">
+        <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2">
           {[
             { id: "menu", icon: MenuIcon, label: "Menu" },
-            { id: "theme", icon: PaintBrushRoundIcon, label: "Theme" },
             { id: "settings", icon: SettingsIcon, label: "Settings" },
+            { id: "typography", icon: TextIcon, label: "Typography" },
+            { id: "colors", icon: PaintBrushRoundIcon, label: "Colors" },
             { id: "code", icon: CodeIcon, label: "Code" },
           ].map((panel) => (
             <button
@@ -1407,10 +1407,10 @@ export default function MenuBuilder() {
                 }
               }}
               aria-label={panel.label}
-              className={`flex h-12 w-12 items-center justify-center rounded-xl border transition-colors ${
+              className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors ${
                 activePanel === panel.id
-                  ? "border-indigo-100 bg-indigo-50"
-                  : "border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  ? "bg-indigo-50 text-indigo-600"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
               <Icon source={panel.icon} tone={activePanel === panel.id ? "primary" : "subdued"} />
@@ -1421,8 +1421,9 @@ export default function MenuBuilder() {
         <aside className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
           <BlockStack gap="400">
             {activePanel === "menu" && renderMenuPanel()}
-            {activePanel === "theme" && renderThemePanel()}
             {activePanel === "settings" && renderSettingsPanel()}
+            {activePanel === "typography" && renderTypographyPanel()}
+            {activePanel === "colors" && renderColorsPanel()}
             {activePanel === "code" && renderCodePanel()}
           </BlockStack>
         </aside>

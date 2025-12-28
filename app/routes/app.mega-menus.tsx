@@ -57,6 +57,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         name: menu.name,
         status: menu.status,
         items: menu.items,
+        settings: menu.settings,
       },
     });
     const copyName = menu.name.toLowerCase().startsWith("mega menu #")

@@ -10,6 +10,7 @@ import {
   ButtonGroup,
   Card,
   Checkbox,
+  ChoiceList,
   Divider,
   InlineStack,
   RangeSlider,
@@ -131,6 +132,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         name: "Mega menu",
         status: "draft",
         items: buildDefaultMenuItems(),
+        settings: DEFAULT_BUILDER_SETTINGS,
       },
     });
     menu = await prisma.menu.update({
@@ -146,6 +148,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       status: menu.status,
     },
     menuItems: menu.items as MenuItem[],
+    menuSettings: (menu.settings as BuilderSettings | null) ?? DEFAULT_BUILDER_SETTINGS,
   });
 };
 
@@ -162,14 +165,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const menuId = Number(formData.get("menuId"));
   const itemsRaw = formData.get("items");
   const status = String(formData.get("status") || "draft");
+  const settingsRaw = formData.get("settings");
 
   if (!menuId || typeof itemsRaw !== "string") {
     return json({ ok: false, error: "Missing data" }, { status: 400 });
   }
 
   let items: MenuItem[];
+  let settings: BuilderSettings | undefined;
   try {
     items = JSON.parse(itemsRaw) as MenuItem[];
+    if (typeof settingsRaw === "string") {
+      settings = JSON.parse(settingsRaw) as BuilderSettings;
+    }
   } catch {
     return json({ ok: false, error: "Invalid items payload" }, { status: 400 });
   }
@@ -184,6 +192,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     data: {
       items,
       status,
+      ...(settings ? { settings } : {}),
     },
   });
 
@@ -211,6 +220,78 @@ type ThemeSettings = {
   dropdownHeading: string;
   canvasBackground: string;
   menuItemSpacing: number;
+};
+
+type BuilderSettings = {
+  animationDesktopTrigger: "hover" | "click";
+  animationMobileTrigger: "toggle" | "tap";
+  animationEffect: "fade" | "slide" | "scale";
+  animationDuration: number;
+  animationDelay: number;
+  spacingMainPadding: number;
+  spacingMainRowHeight: number;
+  spacingDropdownRowHeight: number;
+  spacingTabRowHeight: number;
+  spacingLinkListRowHeight: number;
+  carouselAutoPlay: boolean;
+  carouselLoop: boolean;
+  advancedMobileBreakpoint: number;
+  advancedHideLinkListSubmenu: boolean;
+  advancedShowAddToCart: boolean;
+  advancedEnableLazyLoading: boolean;
+  elementsShowSearch: boolean;
+  elementsShowDesktopDivider: boolean;
+  elementsShowMobileDivider: boolean;
+  elementsShowIndicators: boolean;
+  layoutLocation: "auto" | "replaceNavigation" | "cssSelector";
+  layoutOrientation: "horizontal" | "vertical";
+  layoutAlignment: "left" | "right" | "center";
+  layoutMaxWidth: string;
+  accountShowLogin: boolean;
+  accountShowRegister: boolean;
+  accountShowAccount: boolean;
+  accountShowLogout: boolean;
+  submenuShowBorder: boolean;
+  submenuEnableDesktopScroll: boolean;
+  submenuEnableMobileScroll: boolean;
+  submenuMaxWidth: string;
+  submenuMobileStyle: "collapse" | "drawer";
+};
+
+const DEFAULT_BUILDER_SETTINGS: BuilderSettings = {
+  animationDesktopTrigger: "hover",
+  animationMobileTrigger: "toggle",
+  animationEffect: "fade",
+  animationDuration: 300,
+  animationDelay: 150,
+  spacingMainPadding: 20,
+  spacingMainRowHeight: 50,
+  spacingDropdownRowHeight: 50,
+  spacingTabRowHeight: 50,
+  spacingLinkListRowHeight: 30,
+  carouselAutoPlay: true,
+  carouselLoop: true,
+  advancedMobileBreakpoint: 768,
+  advancedHideLinkListSubmenu: false,
+  advancedShowAddToCart: false,
+  advancedEnableLazyLoading: true,
+  elementsShowSearch: true,
+  elementsShowDesktopDivider: true,
+  elementsShowMobileDivider: true,
+  elementsShowIndicators: true,
+  layoutLocation: "auto",
+  layoutOrientation: "horizontal",
+  layoutAlignment: "left",
+  layoutMaxWidth: "",
+  accountShowLogin: false,
+  accountShowRegister: false,
+  accountShowAccount: false,
+  accountShowLogout: false,
+  submenuShowBorder: true,
+  submenuEnableDesktopScroll: true,
+  submenuEnableMobileScroll: true,
+  submenuMaxWidth: "",
+  submenuMobileStyle: "collapse",
 };
 
 const FONT_OPTIONS = [
@@ -264,7 +345,7 @@ const addChildById = (items: MenuItem[], parentId: string, newItem: MenuItem): M
   });
 
 export default function MenuBuilder() {
-  const { menu, menuItems: initialMenuItems } = useLoaderData<typeof loader>();
+  const { menu, menuItems: initialMenuItems, menuSettings } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
   const saveFetcher = useFetcher<typeof action>();
@@ -273,7 +354,8 @@ export default function MenuBuilder() {
   const [menuStatus, setMenuStatus] = useState<"active" | "draft">(
     menu.status === "active" ? "active" : "draft"
   );
-  const [canNavigateBack, setCanNavigateBack] = useState(menu.status === "active");
+  const menuEnabled = menuStatus === "active";
+  const [hasSavedOnce, setHasSavedOnce] = useState(menu.status === "active");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(
     initialMenuItems[0]?.id ?? null
@@ -299,6 +381,17 @@ export default function MenuBuilder() {
   });
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [builderSettings, setBuilderSettings] = useState<BuilderSettings>({
+    ...menuSettings,
+  });
+  const [savedFingerprint, setSavedFingerprint] = useState(() =>
+    JSON.stringify({
+      status: menu.status,
+      items: initialMenuItems,
+      settings: menuSettings,
+    })
+  );
+  const lastSaveIntentRef = useRef<"save" | "publish" | "enable">("save");
 
   const selectedPath = useMemo(() => findItemPath(menuItems, selectedItemId), [menuItems, selectedItemId]);
   const selectedItem = selectedPath?.[selectedPath.length - 1] ?? null;
@@ -307,6 +400,13 @@ export default function MenuBuilder() {
     () => (openMenuId ? menuItems.find((item) => item.id === openMenuId) ?? null : null),
     [menuItems, openMenuId]
   );
+
+  const updateBuilderSetting = <K extends keyof BuilderSettings>(
+    key: K,
+    value: BuilderSettings[K]
+  ) => {
+    setBuilderSettings((prev) => ({ ...prev, [key]: value }));
+  };
 
   const registerItemRow = (id: string) => (node: HTMLDivElement | null) => {
     if (node) {
@@ -758,31 +858,389 @@ export default function MenuBuilder() {
     </Card>
   );
 
-  const renderSettingsPanel = () => (
-    <Card padding="400">
-      <BlockStack gap="400">
-        <Text as="h2" variant="headingMd">
-          Menu settings
-        </Text>
-        <Divider />
-        <BlockStack gap="300">
-          <Select
-            label="Alignment"
-            options={[
-              { label: "Left", value: "left" },
-              { label: "Center", value: "center" },
-              { label: "Right", value: "right" },
-            ]}
-            onChange={() => {}}
-            value="left"
+  const renderSettingsPanel = () => {
+    const toNumber = (value: string) => {
+      const next = Number(value);
+      return Number.isFinite(next) ? next : 0;
+    };
+
+    const renderSpacingControl = (
+      label: string,
+      value: number,
+      onChange: (next: number) => void,
+      min: number,
+      max: number
+    ) => (
+      <InlineStack gap="200" blockAlign="center">
+        <div style={{ flex: 1 }}>
+          <RangeSlider
+            label={label}
+            value={value}
+            min={min}
+            max={max}
+            onChange={onChange}
           />
-          <Checkbox label="Show search icon" checked onChange={() => {}} />
-          <Checkbox label="Show dropdown indicators" checked onChange={() => {}} />
-          <Checkbox label="Enable sticky header" checked={false} onChange={() => {}} />
+        </div>
+        <div style={{ width: 90 }}>
+          <TextField
+            type="number"
+            value={String(value)}
+            onChange={(next) => onChange(toNumber(next))}
+            suffix="px"
+            autoComplete="off"
+          />
+        </div>
+      </InlineStack>
+    );
+
+    return (
+      <Card padding="400">
+        <BlockStack gap="400">
+          <Text as="h2" variant="headingMd">
+            Genel Ayarlar
+          </Text>
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Konum
+            </Text>
+            <ChoiceList
+              choices={[
+                { label: "Otomatik", value: "auto" },
+                { label: "Gezinmeyi Değiştir", value: "replaceNavigation" },
+                {
+                  label: "Bu CSS seçicisinde menüyü göster",
+                  value: "cssSelector",
+                  helpText:
+                    "Bu seçeneği yalnızca geliştiriciyseniz veya yukarıdaki seçenekler işe yaramıyorsa kullanın.",
+                },
+              ]}
+              selected={[builderSettings.layoutLocation]}
+              onChange={(value) =>
+                updateBuilderSetting("layoutLocation", value[0] as BuilderSettings["layoutLocation"])
+              }
+            />
+          </BlockStack>
+
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Düzen
+            </Text>
+            <ChoiceList
+              title="Oryantasyon"
+              choices={[
+                { label: "Yatay", value: "horizontal" },
+                { label: "Dikey", value: "vertical" },
+              ]}
+              selected={[builderSettings.layoutOrientation]}
+              onChange={(value) =>
+                updateBuilderSetting(
+                  "layoutOrientation",
+                  value[0] as BuilderSettings["layoutOrientation"]
+                )
+              }
+            />
+            <ChoiceList
+              title="Hizala"
+              choices={[
+                { label: "Sol", value: "left" },
+                { label: "Sağ", value: "right" },
+                { label: "Merkez", value: "center" },
+              ]}
+              selected={[builderSettings.layoutAlignment]}
+              onChange={(value) =>
+                updateBuilderSetting(
+                  "layoutAlignment",
+                  value[0] as BuilderSettings["layoutAlignment"]
+                )
+              }
+            />
+            <TextField
+              label="Menü maksimum genişliği"
+              value={builderSettings.layoutMaxWidth}
+              onChange={(value) => updateBuilderSetting("layoutMaxWidth", value)}
+              suffix="px"
+              autoComplete="off"
+            />
+          </BlockStack>
+
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Animasyon
+            </Text>
+            <Select
+              label="Tetikleyici - Masaüstü"
+              options={[
+                { label: "Gezinme", value: "hover" },
+                { label: "Tıklama", value: "click" },
+              ]}
+              value={builderSettings.animationDesktopTrigger}
+              onChange={(value) =>
+                updateBuilderSetting(
+                  "animationDesktopTrigger",
+                  value as BuilderSettings["animationDesktopTrigger"]
+                )
+              }
+            />
+            <Select
+              label="Tetikleyici - Mobil"
+              options={[
+                { label: "Geçiş düğmesine tıklayın", value: "toggle" },
+                { label: "Dokunma", value: "tap" },
+              ]}
+              value={builderSettings.animationMobileTrigger}
+              onChange={(value) =>
+                updateBuilderSetting(
+                  "animationMobileTrigger",
+                  value as BuilderSettings["animationMobileTrigger"]
+                )
+              }
+            />
+            <Select
+              label="Etki"
+              options={[
+                { label: "Solmak", value: "fade" },
+                { label: "Kaydır", value: "slide" },
+                { label: "Ölçek", value: "scale" },
+              ]}
+              value={builderSettings.animationEffect}
+              onChange={(value) =>
+                updateBuilderSetting(
+                  "animationEffect",
+                  value as BuilderSettings["animationEffect"]
+                )
+              }
+            />
+            <InlineStack gap="200" blockAlign="center">
+              <TextField
+                label="Geçiş hızı"
+                type="number"
+                value={String(builderSettings.animationDuration)}
+                onChange={(value) =>
+                  updateBuilderSetting("animationDuration", toNumber(value))
+                }
+                suffix="ms"
+                autoComplete="off"
+              />
+              <TextField
+                label="Geçiş gecikmesi"
+                type="number"
+                value={String(builderSettings.animationDelay)}
+                onChange={(value) =>
+                  updateBuilderSetting("animationDelay", toNumber(value))
+                }
+                suffix="ms"
+                autoComplete="off"
+              />
+            </InlineStack>
+          </BlockStack>
+
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Boşluk
+            </Text>
+            {renderSpacingControl(
+              "Ana menü dolgusu",
+              builderSettings.spacingMainPadding,
+              (value) => updateBuilderSetting("spacingMainPadding", value),
+              0,
+              60
+            )}
+            {renderSpacingControl(
+              "Ana menü satır yüksekliği",
+              builderSettings.spacingMainRowHeight,
+              (value) => updateBuilderSetting("spacingMainRowHeight", value),
+              30,
+              90
+            )}
+            {renderSpacingControl(
+              "Açılır satır yüksekliği",
+              builderSettings.spacingDropdownRowHeight,
+              (value) => updateBuilderSetting("spacingDropdownRowHeight", value),
+              30,
+              90
+            )}
+            {renderSpacingControl(
+              "Sekme satır yüksekliği",
+              builderSettings.spacingTabRowHeight,
+              (value) => updateBuilderSetting("spacingTabRowHeight", value),
+              30,
+              90
+            )}
+            {renderSpacingControl(
+              "Bağlantı listesi satır yüksekliği",
+              builderSettings.spacingLinkListRowHeight,
+              (value) => updateBuilderSetting("spacingLinkListRowHeight", value),
+              20,
+              60
+            )}
+          </BlockStack>
+
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Atlıkarınca
+            </Text>
+            <Checkbox
+              label="Otomatik oynatma"
+              checked={builderSettings.carouselAutoPlay}
+              onChange={(value) => updateBuilderSetting("carouselAutoPlay", value)}
+            />
+            <Checkbox
+              label="Sonsuzluk döngüsü"
+              checked={builderSettings.carouselLoop}
+              onChange={(value) => updateBuilderSetting("carouselLoop", value)}
+            />
+          </BlockStack>
+
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Gelişmiş
+            </Text>
+            <TextField
+              label="Genişlik 'den az olduğunda mobil menü"
+              type="number"
+              value={String(builderSettings.advancedMobileBreakpoint)}
+              onChange={(value) =>
+                updateBuilderSetting("advancedMobileBreakpoint", toNumber(value))
+              }
+              suffix="px"
+              autoComplete="off"
+            />
+            <Checkbox
+              label="Bağlantı listesi bloğunun alt menüsünü gizle"
+              checked={builderSettings.advancedHideLinkListSubmenu}
+              onChange={(value) => updateBuilderSetting("advancedHideLinkListSubmenu", value)}
+            />
+            <Checkbox
+              label="Sepete Ekle düğmesini göster"
+              checked={builderSettings.advancedShowAddToCart}
+              onChange={(value) => updateBuilderSetting("advancedShowAddToCart", value)}
+            />
+            <Checkbox
+              label="Tembel yükleme görüntüsünü etkinleştir"
+              checked={builderSettings.advancedEnableLazyLoading}
+              onChange={(value) => updateBuilderSetting("advancedEnableLazyLoading", value)}
+            />
+          </BlockStack>
+
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Öğeler
+            </Text>
+            <Checkbox
+              label="Arama kutusunu göster"
+              checked={builderSettings.elementsShowSearch}
+              onChange={(value) => updateBuilderSetting("elementsShowSearch", value)}
+            />
+            <Checkbox
+              label="Masaüstünde ayırıcıyı göster"
+              checked={builderSettings.elementsShowDesktopDivider}
+              onChange={(value) => updateBuilderSetting("elementsShowDesktopDivider", value)}
+            />
+            <Checkbox
+              label="Mobilde ayırıcı göster"
+              checked={builderSettings.elementsShowMobileDivider}
+              onChange={(value) => updateBuilderSetting("elementsShowMobileDivider", value)}
+            />
+            <Checkbox
+              label="Göstergeleri göster (aşağı ok)"
+              checked={builderSettings.elementsShowIndicators}
+              onChange={(value) => updateBuilderSetting("elementsShowIndicators", value)}
+            />
+          </BlockStack>
+
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Hesap bağlantıları
+            </Text>
+            <Checkbox
+              label="Giriş bağlantısını göster"
+              checked={builderSettings.accountShowLogin}
+              helpText="Giriş yapılmadığında"
+              onChange={(value) => updateBuilderSetting("accountShowLogin", value)}
+            />
+            <Checkbox
+              label="Kayıt bağlantısını göster"
+              checked={builderSettings.accountShowRegister}
+              helpText="Giriş yapılmadığında"
+              onChange={(value) => updateBuilderSetting("accountShowRegister", value)}
+            />
+            <Checkbox
+              label="Hesap bağlantısını göster"
+              checked={builderSettings.accountShowAccount}
+              helpText="Giriş yapıldığında"
+              onChange={(value) => updateBuilderSetting("accountShowAccount", value)}
+            />
+            <Checkbox
+              label="Çıkış bağlantısını göster"
+              checked={builderSettings.accountShowLogout}
+              helpText="Giriş yapıldığında"
+              onChange={(value) => updateBuilderSetting("accountShowLogout", value)}
+            />
+          </BlockStack>
+
+          <Divider />
+
+          <BlockStack gap="300">
+            <Text as="h3" variant="headingSm">
+              Alt menü
+            </Text>
+            <Checkbox
+              label="Sınırı göster"
+              checked={builderSettings.submenuShowBorder}
+              onChange={(value) => updateBuilderSetting("submenuShowBorder", value)}
+            />
+            <Checkbox
+              label="Masaüstünde kaydırma çubuğunu etkinleştir"
+              checked={builderSettings.submenuEnableDesktopScroll}
+              onChange={(value) => updateBuilderSetting("submenuEnableDesktopScroll", value)}
+            />
+            <Checkbox
+              label="Mobil cihazda kaydırma çubuğunu etkinleştir"
+              checked={builderSettings.submenuEnableMobileScroll}
+              onChange={(value) => updateBuilderSetting("submenuEnableMobileScroll", value)}
+            />
+            <TextField
+              label="Alt menü maksimum genişliği"
+              value={builderSettings.submenuMaxWidth}
+              onChange={(value) => updateBuilderSetting("submenuMaxWidth", value)}
+              suffix="px"
+              autoComplete="off"
+            />
+            <Select
+              label="Mobilde stil aç"
+              options={[
+                { label: "Yıkılmak", value: "collapse" },
+                { label: "Açılır", value: "drawer" },
+              ]}
+              value={builderSettings.submenuMobileStyle}
+              onChange={(value) =>
+                updateBuilderSetting(
+                  "submenuMobileStyle",
+                  value as BuilderSettings["submenuMobileStyle"]
+                )
+              }
+            />
+          </BlockStack>
         </BlockStack>
-      </BlockStack>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   const renderCodePanel = () => (
     <Card padding="400">
@@ -799,8 +1257,38 @@ export default function MenuBuilder() {
   );
 
   const dropdownGroups = previewMenu?.children ?? [];
+  const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
+    left: "flex-start",
+    right: "flex-end",
+    center: "center",
+  };
+  const isVerticalMenu = builderSettings.layoutOrientation === "vertical";
+  const showDividers =
+    previewMode === "mobile"
+      ? builderSettings.elementsShowMobileDivider
+      : builderSettings.elementsShowDesktopDivider;
+  const menuMaxWidthValue = builderSettings.layoutMaxWidth.trim();
+  const menuMaxWidth = menuMaxWidthValue
+    ? Number.isFinite(Number(menuMaxWidthValue))
+      ? Number(menuMaxWidthValue)
+      : null
+    : null;
+  const submenuMaxWidthValue = builderSettings.submenuMaxWidth.trim();
+  const submenuMaxWidth = submenuMaxWidthValue
+    ? Number.isFinite(Number(submenuMaxWidthValue))
+      ? Number(submenuMaxWidthValue)
+      : null
+    : null;
+  const dropdownOverflowY =
+    previewMode === "mobile"
+      ? builderSettings.submenuEnableMobileScroll
+      : builderSettings.submenuEnableDesktopScroll;
 
-  const handleSaveMenu = (nextStatus?: "active" | "draft") => {
+  const handleSaveMenu = (
+    nextStatus?: "active" | "draft",
+    intent: "save" | "publish" | "enable" = "save"
+  ) => {
+    lastSaveIntentRef.current = intent;
     const status = nextStatus ?? menuStatus;
     setMenuStatus(status);
     saveFetcher.submit(
@@ -809,18 +1297,42 @@ export default function MenuBuilder() {
         menuId: String(menu.id),
         status,
         items: JSON.stringify(menuItems),
+        settings: JSON.stringify(builderSettings),
       },
       { method: "post" }
     );
   };
 
   const isSaving = saveFetcher.state !== "idle";
+  const currentFingerprint = useMemo(
+    () => JSON.stringify({ status: menuStatus, items: menuItems, settings: builderSettings }),
+    [menuStatus, menuItems, builderSettings]
+  );
+  const isDirty = currentFingerprint !== savedFingerprint;
+  const backDisabled = isDirty || !hasSavedOnce || isSaving;
 
   useEffect(() => {
     if (saveFetcher.state === "idle" && saveFetcher.data?.ok) {
-      setCanNavigateBack(true);
+      setHasSavedOnce(true);
+      if (lastSaveIntentRef.current === "save") {
+        setSavedFingerprint(currentFingerprint);
+      }
     }
-  }, [saveFetcher.state, saveFetcher.data]);
+  }, [saveFetcher.state, saveFetcher.data, currentFingerprint]);
+
+  useEffect(() => {
+    setMenuStatus(menu.status === "active" ? "active" : "draft");
+    setMenuItems(initialMenuItems);
+    setHasSavedOnce(menu.status === "active");
+    setBuilderSettings({ ...menuSettings });
+    setSavedFingerprint(
+      JSON.stringify({
+        status: menu.status,
+        items: initialMenuItems,
+        settings: menuSettings,
+      })
+    );
+  }, [menu.id, menuSettings, initialMenuItems]);
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
@@ -830,23 +1342,23 @@ export default function MenuBuilder() {
             <Button
               variant="tertiary"
               icon={ArrowLeftIcon}
-              disabled={!canNavigateBack}
+              disabled={backDisabled}
               onClick={() => navigate({ pathname: "/app/mega-menus", search: location.search })}
             >
               Back
             </Button>
-            <InlineStack gap="200" blockAlign="center">
+            <InlineStack gap="300" blockAlign="center">
               <Text as="h1" variant="headingMd">
                 {menu.name}
               </Text>
-              {menuStatus === "active" ? (
-                <Badge tone="success">Live</Badge>
-              ) : canNavigateBack ? (
-                <Badge tone="read-only">Draft</Badge>
-              ) : (
+              {isDirty || !hasSavedOnce ? (
                 <Text as="span" variant="bodySm" tone="critical">
                   Save before leaving
                 </Text>
+              ) : menuEnabled ? (
+                <Badge tone="success">Live</Badge>
+              ) : (
+                <Badge tone="read-only">Draft</Badge>
               )}
             </InlineStack>
           </InlineStack>
@@ -854,19 +1366,23 @@ export default function MenuBuilder() {
           <InlineStack gap="200" blockAlign="center">
             <Button
               variant="secondary"
-              disabled={menuStatus === "draft" || isSaving}
-              onClick={() => handleSaveMenu("draft")}
+              disabled={!menuEnabled || isSaving}
+              onClick={() => handleSaveMenu("draft", "enable")}
             >
               Enable
             </Button>
             <Button
               variant="secondary"
-              onClick={() => handleSaveMenu()}
+              onClick={() => handleSaveMenu(undefined, "save")}
               loading={isSaving}
             >
               Save
             </Button>
-            <Button variant="primary" onClick={() => handleSaveMenu("active")} loading={isSaving}>
+            <Button
+              variant="primary"
+              onClick={() => handleSaveMenu("active", "publish")}
+              loading={isSaving}
+            >
               Publish
             </Button>
           </InlineStack>
@@ -915,7 +1431,7 @@ export default function MenuBuilder() {
           <Box padding="600">
             <div
               style={{
-                maxWidth: previewMode === "mobile" ? 420 : 1100,
+                maxWidth: previewMode === "mobile" ? 420 : menuMaxWidth ?? 1100,
                 margin: "36px auto 0",
                 padding: "0 32px",
                 fontFamily: themeSettings.fontFamily,
@@ -925,10 +1441,14 @@ export default function MenuBuilder() {
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "stretch",
+                    flexDirection: isVerticalMenu ? "column" : "row",
+                    alignItems: isVerticalMenu ? "stretch" : "center",
+                    justifyContent: isVerticalMenu ? "flex-start" : menuAlignmentMap[builderSettings.layoutAlignment],
                     gap: 0,
-                    padding: 0,
-                    height: 50,
+                    padding: isVerticalMenu
+                      ? `${builderSettings.spacingMainPadding}px`
+                      : `0 ${builderSettings.spacingMainPadding}px`,
+                    height: isVerticalMenu ? "auto" : builderSettings.spacingMainRowHeight,
                     color: themeSettings.menuText,
                   }}
                 >
@@ -1004,11 +1524,20 @@ export default function MenuBuilder() {
                               isActive || hoveredMenuId === item.id
                                 ? "rgba(255,255,255,0.12)"
                                 : "transparent",
-                            borderRight: "1px solid rgba(255,255,255,0.12)",
+                            borderRight:
+                              showDividers && !isVerticalMenu
+                                ? "1px solid rgba(255,255,255,0.12)"
+                                : "none",
+                            borderBottom:
+                              showDividers && isVerticalMenu
+                                ? "1px solid rgba(255,255,255,0.12)"
+                                : "none",
                             borderRadius: 0,
-                            height: "100%",
-                            minWidth: 80,
-                            padding: "0 18px",
+                            height: isVerticalMenu
+                              ? builderSettings.spacingMainRowHeight
+                              : "100%",
+                            minWidth: isVerticalMenu ? "100%" : 80,
+                            padding: isVerticalMenu ? "0 12px" : "0 18px",
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 6,
@@ -1018,7 +1547,7 @@ export default function MenuBuilder() {
                           }}
                         >
                           <span>{item.label}</span>
-                          {item.children?.length ? (
+                          {builderSettings.elementsShowIndicators && item.children?.length ? (
                             <span style={{ display: "inline-flex" }}>
                               <ChevronDownIcon width="14" height="14" fill={themeSettings.menuText} />
                             </span>
@@ -1064,29 +1593,45 @@ export default function MenuBuilder() {
                     type="button"
                     style={{
                       color: themeSettings.menuText,
-                      height: "100%",
-                      minWidth: 50,
-                      padding: "0 18px",
-                      borderRight: "1px solid rgba(255,255,255,0.12)",
+                      height: isVerticalMenu ? builderSettings.spacingMainRowHeight : "100%",
+                      minWidth: isVerticalMenu ? "100%" : 50,
+                      padding: isVerticalMenu ? "0 12px" : "0 18px",
+                      borderRight:
+                        showDividers && !isVerticalMenu
+                          ? "1px solid rgba(255,255,255,0.12)"
+                          : "none",
+                      borderBottom:
+                        showDividers && isVerticalMenu
+                          ? "1px solid rgba(255,255,255,0.12)"
+                          : "none",
                       borderRadius: 0,
                       background: "transparent",
                     }}
                   >
                     +
                   </button>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      height: "100%",
-                      width: 50,
-                      borderLeft: "1px solid rgba(255,255,255,0.12)",
-                    }}
-                  >
-                    <SearchIcon width="18" height="18" />
-                  </span>
+                  {builderSettings.elementsShowSearch && (
+                    <span
+                      style={{
+                        marginLeft: isVerticalMenu ? 0 : "auto",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: isVerticalMenu ? builderSettings.spacingMainRowHeight : "100%",
+                        width: isVerticalMenu ? "100%" : 50,
+                        borderLeft:
+                          showDividers && !isVerticalMenu
+                            ? "1px solid rgba(255,255,255,0.12)"
+                            : "none",
+                        borderTop:
+                          showDividers && isVerticalMenu
+                            ? "1px solid rgba(255,255,255,0.12)"
+                            : "none",
+                      }}
+                    >
+                      <SearchIcon width="18" height="18" />
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -1094,11 +1639,22 @@ export default function MenuBuilder() {
                 <div
                   style={{
                     background: themeSettings.dropdownBackground,
-                    border: "1px solid #e5e7eb",
+                    border: builderSettings.submenuShowBorder ? "1px solid #e5e7eb" : "none",
                     borderRadius: 12,
                     marginTop: 16,
                     padding: "20px 24px",
                     boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
+                    maxWidth: submenuMaxWidth ?? "none",
+                    overflowY: dropdownOverflowY ? "auto" : "visible",
+                    maxHeight: dropdownOverflowY ? 420 : "none",
+                    opacity: 1,
+                    transform:
+                      builderSettings.animationEffect === "slide"
+                        ? "translateY(0)"
+                        : builderSettings.animationEffect === "scale"
+                          ? "scale(1)"
+                          : "none",
+                    transition: `opacity ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms, transform ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms`,
                   }}
                 >
                   <div
@@ -1120,9 +1676,17 @@ export default function MenuBuilder() {
                             padding: "10px 12px",
                           }}
                         >
-                          <Text as="h3" variant="headingSm" fontWeight="semibold">
-                            <span style={{ color: themeSettings.dropdownHeading }}>{group.label}</span>
-                          </Text>
+                          <div
+                            style={{
+                              minHeight: builderSettings.spacingTabRowHeight,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Text as="h3" variant="headingSm" fontWeight="semibold">
+                              <span style={{ color: themeSettings.dropdownHeading }}>{group.label}</span>
+                            </Text>
+                          </div>
                           <Divider />
                           <BlockStack gap="200">
                             {group.children?.map((child) => {
@@ -1139,6 +1703,7 @@ export default function MenuBuilder() {
                                       : "2px solid transparent",
                                     borderRadius: 8,
                                     padding: "6px 8px",
+                                    minHeight: builderSettings.spacingLinkListRowHeight,
                                     background: "transparent",
                                     color: themeSettings.dropdownText,
                                   }}
@@ -1152,6 +1717,7 @@ export default function MenuBuilder() {
                               icon={PlusIcon}
                               size="slim"
                               onClick={() => handleAddChild(group.id, "item")}
+                              style={{ minHeight: builderSettings.spacingLinkListRowHeight }}
                             >
                               Add item
                             </Button>

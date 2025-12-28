@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLocation, useNavigate, useLoaderData } from "@remix-run/react";
@@ -270,7 +270,10 @@ export default function MenuBuilder() {
   const saveFetcher = useFetcher<typeof action>();
   const [activePanel, setActivePanel] = useState<RailPanel>("menu");
   const [menuView, setMenuView] = useState<"list" | "edit">("list");
-  const [menuEnabled, setMenuEnabled] = useState(menu.status === "active");
+  const [menuStatus, setMenuStatus] = useState<"active" | "draft">(
+    menu.status === "active" ? "active" : "draft"
+  );
+  const [canNavigateBack, setCanNavigateBack] = useState(menu.status === "active");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(
     initialMenuItems[0]?.id ?? null
@@ -797,17 +800,27 @@ export default function MenuBuilder() {
 
   const dropdownGroups = previewMenu?.children ?? [];
 
-  const handleSaveMenu = () => {
+  const handleSaveMenu = (nextStatus?: "active" | "draft") => {
+    const status = nextStatus ?? menuStatus;
+    setMenuStatus(status);
     saveFetcher.submit(
       {
         intent: "save",
         menuId: String(menu.id),
-        status: menuEnabled ? "active" : "draft",
+        status,
         items: JSON.stringify(menuItems),
       },
       { method: "post" }
     );
   };
+
+  const isSaving = saveFetcher.state !== "idle";
+
+  useEffect(() => {
+    if (saveFetcher.state === "idle" && saveFetcher.data?.ok) {
+      setCanNavigateBack(true);
+    }
+  }, [saveFetcher.state, saveFetcher.data]);
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
@@ -817,6 +830,7 @@ export default function MenuBuilder() {
             <Button
               variant="tertiary"
               icon={ArrowLeftIcon}
+              disabled={!canNavigateBack}
               onClick={() => navigate({ pathname: "/app/mega-menus", search: location.search })}
             >
               Back
@@ -825,22 +839,36 @@ export default function MenuBuilder() {
               <Text as="h1" variant="headingMd">
                 {menu.name}
               </Text>
-              <Badge tone={menuEnabled ? "success" : "read-only"}>{menuEnabled ? "Active" : "Draft"}</Badge>
+              {menuStatus === "active" ? (
+                <Badge tone="success">Live</Badge>
+              ) : canNavigateBack ? (
+                <Badge tone="read-only">Draft</Badge>
+              ) : (
+                <Text as="span" variant="bodySm" tone="critical">
+                  Save before leaving
+                </Text>
+              )}
             </InlineStack>
           </InlineStack>
 
           <InlineStack gap="200" blockAlign="center">
-            <Button variant="secondary" onClick={() => setMenuEnabled(!menuEnabled)}>
-              {menuEnabled ? "Disable" : "Enable"}
+            <Button
+              variant="secondary"
+              disabled={menuStatus === "draft" || isSaving}
+              onClick={() => handleSaveMenu("draft")}
+            >
+              Enable
             </Button>
             <Button
               variant="secondary"
-              onClick={handleSaveMenu}
-              loading={saveFetcher.state !== "idle"}
+              onClick={() => handleSaveMenu()}
+              loading={isSaving}
             >
               Save
             </Button>
-            <Button variant="primary">Publish</Button>
+            <Button variant="primary" onClick={() => handleSaveMenu("active")} loading={isSaving}>
+              Publish
+            </Button>
           </InlineStack>
         </InlineStack>
       </div>

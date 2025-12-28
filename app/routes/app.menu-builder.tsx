@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
-import type { LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
-import { useLocation, useNavigate } from "@remix-run/react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { ActionFunctionArgs, LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useFetcher, useLocation, useNavigate, useLoaderData } from "@remix-run/react";
 import {
   Badge,
   BlockStack,
@@ -38,14 +39,151 @@ import {
 } from "@shopify/polaris-icons";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: polarisStyles },
 ];
 
+const DEFAULT_MENU_ITEMS: MenuItem[] = [
+  { id: "home", label: "Home", url: "/", role: "menu" },
+  {
+    id: "catalogs",
+    label: "Catalogs",
+    url: "/collections",
+    role: "menu",
+    expanded: true,
+    children: [
+      {
+        id: "catalogs-list-1",
+        label: "Pet Food",
+        url: "",
+        role: "group",
+        expanded: true,
+        children: [
+          { id: "pet-food", label: "Wet Foods", url: "/collections/wet-foods", role: "item" },
+          { id: "dry-foods", label: "Dry Foods", url: "/collections/dry-foods", role: "item" },
+          { id: "raw-foods", label: "Raw Foods", url: "/collections/raw-foods", role: "item" },
+        ],
+      },
+      {
+        id: "catalogs-list-2",
+        label: "Pet Beds",
+        url: "",
+        role: "group",
+        expanded: true,
+        children: [
+          { id: "pet-beds", label: "Bolster Beds", url: "/collections/bolster-beds", role: "item" },
+          { id: "pillow-beds", label: "Pillow Beds", url: "/collections/pillow-beds", role: "item" },
+          { id: "tent-beds", label: "Tent Beds", url: "/collections/tent-beds", role: "item" },
+        ],
+      },
+      {
+        id: "catalogs-list-3",
+        label: "Pet Accessories",
+        url: "",
+        role: "group",
+        expanded: true,
+        children: [
+          { id: "pet-blanket", label: "Pet Blanket", url: "/collections/pet-blanket", role: "item" },
+          { id: "pet-belts", label: "Pet Belts", url: "/collections/pet-belts", role: "item" },
+          { id: "pet-clothes", label: "Pet Clothes", url: "/collections/pet-clothes", role: "item" },
+        ],
+      },
+      {
+        id: "catalogs-list-4",
+        label: "Pet Toys",
+        url: "",
+        role: "group",
+        expanded: true,
+        children: [
+          { id: "stuffed-toys", label: "Stuffed Toys", url: "/collections/stuffed-toys", role: "item" },
+          { id: "puzzle-toys", label: "Puzzle Toys", url: "/collections/puzzle-toys", role: "item" },
+          { id: "rope-toys", label: "Rope Toys", url: "/collections/rope-toys", role: "item" },
+        ],
+      },
+    ],
+  },
+  { id: "sale", label: "Sale", url: "/collections/sale", role: "menu" },
+  { id: "blog", label: "Blog", url: "/blogs/news", role: "menu" },
+  { id: "about", label: "About", url: "/pages/about", role: "menu" },
+];
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { session } = await authenticate.admin(request);
+  const shop = session.shop;
+  const url = new URL(request.url);
+  const menuIdParam = url.searchParams.get("id");
+  const menuId = menuIdParam ? Number(menuIdParam) : null;
+
+  let menu = menuId
+    ? await prisma.menu.findFirst({ where: { id: menuId, shop } })
+    : null;
+
+  if (!menu) {
+    const created = await prisma.menu.create({
+      data: {
+        shop,
+        name: "Mega menu",
+        status: "draft",
+        items: DEFAULT_MENU_ITEMS,
+      },
+    });
+    menu = await prisma.menu.update({
+      where: { id: created.id },
+      data: { name: `Mega menu #${created.id}` },
+    });
+  }
+
+  return json({
+    menu: {
+      id: menu.id,
+      name: menu.name,
+      status: menu.status,
+    },
+    menuItems: menu.items as MenuItem[],
+  });
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { session } = await authenticate.admin(request);
+  const shop = session.shop;
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent !== "save") {
+    return json({ ok: false, error: "Unknown intent" }, { status: 400 });
+  }
+
+  const menuId = Number(formData.get("menuId"));
+  const itemsRaw = formData.get("items");
+  const status = String(formData.get("status") || "draft");
+
+  if (!menuId || typeof itemsRaw !== "string") {
+    return json({ ok: false, error: "Missing data" }, { status: 400 });
+  }
+
+  let items: MenuItem[];
+  try {
+    items = JSON.parse(itemsRaw) as MenuItem[];
+  } catch {
+    return json({ ok: false, error: "Invalid items payload" }, { status: 400 });
+  }
+
+  const existing = await prisma.menu.findFirst({ where: { id: menuId, shop } });
+  if (!existing) {
+    return json({ ok: false, error: "Menu not found" }, { status: 404 });
+  }
+
+  await prisma.menu.update({
+    where: { id: menuId },
+    data: {
+      items,
+      status,
+    },
+  });
+
+  return json({ ok: true });
 };
 
 type MenuItem = {
@@ -122,16 +260,24 @@ const addChildById = (items: MenuItem[], parentId: string, newItem: MenuItem): M
   });
 
 export default function MenuBuilder() {
+  const { menu, menuItems: initialMenuItems } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
+  const saveFetcher = useFetcher<typeof action>();
   const [activePanel, setActivePanel] = useState<RailPanel>("menu");
   const [menuView, setMenuView] = useState<"list" | "edit">("list");
-  const [menuEnabled, setMenuEnabled] = useState(true);
+  const [menuEnabled, setMenuEnabled] = useState(menu.status === "active");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
-  const [selectedItemId, setSelectedItemId] = useState<string | null>("catalogs");
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(
+    initialMenuItems[0]?.id ?? null
+  );
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [hoveredMenuId, setHoveredMenuId] = useState<string | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [draggedParentId, setDraggedParentId] = useState<string | null>(null);
+  const itemRowRefs = useRef(new Map<string, HTMLDivElement>());
+  const prevPositionsRef = useRef(new Map<string, DOMRect>());
+  const lastDragOverIdRef = useRef<string | null>(null);
 
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
     fontFamily: "Inter, system-ui, sans-serif",
@@ -145,73 +291,50 @@ export default function MenuBuilder() {
     menuItemSpacing: 28,
   });
 
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([
-    { id: "home", label: "Home", url: "/", role: "menu" },
-    {
-      id: "catalogs",
-      label: "Catalogs",
-      url: "/collections",
-      role: "menu",
-      expanded: true,
-      children: [
-        {
-          id: "catalogs-list-1",
-          label: "Pet Food",
-          url: "",
-          role: "group",
-          expanded: true,
-          children: [
-            { id: "pet-food", label: "Wet Foods", url: "/collections/wet-foods", role: "item" },
-            { id: "dry-foods", label: "Dry Foods", url: "/collections/dry-foods", role: "item" },
-            { id: "raw-foods", label: "Raw Foods", url: "/collections/raw-foods", role: "item" },
-          ],
-        },
-        {
-          id: "catalogs-list-2",
-          label: "Pet Beds",
-          url: "",
-          role: "group",
-          expanded: true,
-          children: [
-            { id: "pet-beds", label: "Bolster Beds", url: "/collections/bolster-beds", role: "item" },
-            { id: "pillow-beds", label: "Pillow Beds", url: "/collections/pillow-beds", role: "item" },
-            { id: "tent-beds", label: "Tent Beds", url: "/collections/tent-beds", role: "item" },
-          ],
-        },
-        {
-          id: "catalogs-list-3",
-          label: "Pet Accessories",
-          url: "",
-          role: "group",
-          expanded: true,
-          children: [
-            { id: "pet-blanket", label: "Pet Blanket", url: "/collections/pet-blanket", role: "item" },
-            { id: "pet-belts", label: "Pet Belts", url: "/collections/pet-belts", role: "item" },
-            { id: "pet-clothes", label: "Pet Clothes", url: "/collections/pet-clothes", role: "item" },
-          ],
-        },
-        {
-          id: "catalogs-list-4",
-          label: "Pet Toys",
-          url: "",
-          role: "group",
-          expanded: true,
-          children: [
-            { id: "stuffed-toys", label: "Stuffed Toys", url: "/collections/stuffed-toys", role: "item" },
-            { id: "puzzle-toys", label: "Puzzle Toys", url: "/collections/puzzle-toys", role: "item" },
-            { id: "rope-toys", label: "Rope Toys", url: "/collections/rope-toys", role: "item" },
-          ],
-        },
-      ],
-    },
-    { id: "sale", label: "Sale", url: "/collections/sale", role: "menu" },
-    { id: "blog", label: "Blog", url: "/blogs/news", role: "menu" },
-    { id: "about", label: "About", url: "/pages/about", role: "menu" },
-  ]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
 
   const selectedPath = useMemo(() => findItemPath(menuItems, selectedItemId), [menuItems, selectedItemId]);
   const selectedItem = selectedPath?.[selectedPath.length - 1] ?? null;
   const activeMenu = selectedPath?.[0] ?? null;
+  const previewMenu = useMemo(
+    () => (openMenuId ? menuItems.find((item) => item.id === openMenuId) ?? null : null),
+    [menuItems, openMenuId]
+  );
+
+  const registerItemRow = (id: string) => (node: HTMLDivElement | null) => {
+    if (node) {
+      itemRowRefs.current.set(id, node);
+    } else {
+      itemRowRefs.current.delete(id);
+    }
+  };
+
+  useLayoutEffect(() => {
+    const prevPositions = prevPositionsRef.current;
+    const nextPositions = new Map<string, DOMRect>();
+
+    itemRowRefs.current.forEach((node, id) => {
+      nextPositions.set(id, node.getBoundingClientRect());
+    });
+
+    nextPositions.forEach((nextBox, id) => {
+      const prevBox = prevPositions.get(id);
+      if (!prevBox) return;
+      const deltaX = prevBox.left - nextBox.left;
+      const deltaY = prevBox.top - nextBox.top;
+      if (deltaX === 0 && deltaY === 0) return;
+      const node = itemRowRefs.current.get(id);
+      if (!node) return;
+      node.style.transition = "transform 0s";
+      node.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+      requestAnimationFrame(() => {
+        node.style.transition = "transform 180ms ease";
+        node.style.transform = "";
+      });
+    });
+
+    prevPositionsRef.current = nextPositions;
+  }, [menuItems]);
 
   const handleSelectItem = (id: string, openEdit = false) => {
     setSelectedItemId(id);
@@ -291,22 +414,28 @@ export default function MenuBuilder() {
     const hasChildren = Boolean(item.children?.length);
     const isExpanded = Boolean(item.expanded);
     const showToggle = item.role === "menu" || hasChildren;
-    const isDragging = draggedItemId === item.id;
     const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
 
     return (
       <div key={item.id} className="mt-0">
         <Box paddingInlineStart={depth === 0 ? "0" : "200"}>
-          <div
-            className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-all duration-150 border-2 border-dotted ${
-              isDragging ? "border-blue-500 bg-blue-50 shadow-sm" : "border-transparent"
-            } ${isSelected ? "bg-gray-50" : "hover:bg-gray-50"}`}
-            onDragOver={(event) => {
-              if (!draggedItemId) return;
-              const targetParentId = findParentId(menuItems, item.id);
-              if (draggedParentId !== targetParentId) return;
-              event.preventDefault();
-            }}
+          <div>
+            <div
+              className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-colors ${
+                isSelected ? "bg-gray-50" : "hover:bg-gray-50"
+              }`}
+              ref={registerItemRow(item.id)}
+              style={{ willChange: "transform" }}
+              onDragOver={(event) => {
+                if (!draggedItemId) return;
+                const targetParentId = findParentId(menuItems, item.id);
+                if (draggedParentId !== targetParentId) return;
+                if (draggedItemId === item.id) return;
+                event.preventDefault();
+                if (lastDragOverIdRef.current === item.id) return;
+                lastDragOverIdRef.current = item.id;
+                setMenuItems((items) => moveItem(items, draggedItemId, item.id));
+              }}
             onDrop={(event) => {
               event.preventDefault();
               if (!draggedItemId) return;
@@ -315,79 +444,86 @@ export default function MenuBuilder() {
               setMenuItems((items) => moveItem(items, draggedItemId, item.id));
               setDraggedItemId(null);
               setDraggedParentId(null);
+              lastDragOverIdRef.current = null;
             }}
           >
-          {showToggle ? (
-            <button
-              type="button"
-              onClick={() => handleToggleExpand(item.id)}
-              aria-label={isExpanded ? "Collapse" : "Expand"}
-              className="flex h-5 w-5 items-center justify-center text-gray-500 hover:text-gray-700"
-            >
-              <Icon source={isExpanded ? ChevronDownIcon : ChevronRightIcon} tone="subdued" />
-            </button>
-          ) : (
-            <div className="h-5 w-5" />
-          )}
-          <div className="flex flex-1 items-center gap-2 text-left text-sm text-gray-700">
-            <span className="flex items-center group-hover:hidden">
-              <Icon source={itemIcon} tone="subdued" />
-            </span>
-            <span
-              className={`hidden items-center group-hover:flex cursor-grab ${
-                isDragging ? "cursor-grabbing" : ""
-              }`}
-              role="button"
-              tabIndex={0}
+            {showToggle ? (
+              <button
+                type="button"
+                onClick={() => handleToggleExpand(item.id)}
+                aria-label={isExpanded ? "Collapse" : "Expand"}
+                className="flex h-5 w-5 items-center justify-center text-gray-500 hover:text-gray-700"
+              >
+                <Icon source={isExpanded ? ChevronDownIcon : ChevronRightIcon} tone="subdued" />
+              </button>
+            ) : (
+              <div className="h-5 w-5" />
+            )}
+            <div className="flex flex-1 items-center gap-2 text-left text-sm text-gray-700">
+              <span className="flex items-center group-hover:hidden">
+                <Icon source={itemIcon} tone="subdued" />
+              </span>
+              <span
+                className={`hidden items-center group-hover:flex cursor-grab ${
+                  draggedItemId === item.id ? "cursor-grabbing" : ""
+                }`}
+                role="button"
+                tabIndex={0}
               draggable
               onDragStart={(event) => {
                 event.dataTransfer.effectAllowed = "move";
                 event.dataTransfer.setData("text/plain", item.id);
+                const row = itemRowRefs.current.get(item.id);
+                if (row) {
+                  event.dataTransfer.setDragImage(row, 24, 16);
+                }
                 setDraggedItemId(item.id);
                 const parentId = findParentId(menuItems, item.id);
                 setDraggedParentId(parentId ?? null);
+                lastDragOverIdRef.current = null;
               }}
               onDragEnd={() => {
                 setDraggedItemId(null);
                 setDraggedParentId(null);
+                lastDragOverIdRef.current = null;
               }}
-              aria-label="Drag to reorder"
+                aria-label="Drag to reorder"
+              >
+                <Icon source={DragHandleIcon} tone="subdued" />
+              </span>
+              <span className={item.role === "menu" ? "font-medium" : "font-normal"}>
+                {item.label}
+              </span>
+            </div>
+            <div
+              className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100"
             >
-              <Icon source={DragHandleIcon} tone="subdued" />
-            </span>
-            <span className={item.role === "menu" ? "font-medium" : "font-normal"}>
-              {item.label}
-            </span>
+              <button
+                type="button"
+                onClick={() => handleSelectItem(item.id, true)}
+                aria-label="Edit item"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              >
+                <Icon source={EditIcon} tone="subdued" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {}}
+                aria-label="Duplicate item"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              >
+                <Icon source={DuplicateIcon} tone="subdued" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {}}
+                aria-label="Delete item"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-red-600 hover:bg-gray-100 hover:text-red-700"
+              >
+                <Icon source={DeleteIcon} tone="critical" />
+              </button>
+            </div>
           </div>
-          <div
-            className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100"
-          >
-            <button
-              type="button"
-              onClick={() => handleSelectItem(item.id, true)}
-              aria-label="Edit item"
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-            >
-              <Icon source={EditIcon} tone="subdued" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {}}
-              aria-label="Duplicate item"
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-            >
-              <Icon source={DuplicateIcon} tone="subdued" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {}}
-              aria-label="Delete item"
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-red-600 hover:bg-gray-100 hover:text-red-700"
-            >
-              <Icon source={DeleteIcon} tone="critical" />
-            </button>
-          </div>
-        </div>
 
           {item.role !== "item" && isExpanded && (
             <Box>
@@ -426,6 +562,7 @@ export default function MenuBuilder() {
               </div>
             </Box>
           )}
+          </div>
         </Box>
       </div>
     );
@@ -507,9 +644,15 @@ export default function MenuBuilder() {
             Drag to reorder items.
           </Text>
           <Divider />
-          <BlockStack gap="200">
-            {menuItems.map((item) => renderMenuTree(item))}
-          </BlockStack>
+          <div
+            className={`rounded-lg border-2 border-dotted transition-all duration-150 ${
+              draggedItemId ? "border-blue-500 bg-blue-50/40 p-2" : "border-transparent"
+            }`}
+          >
+            <BlockStack gap="200">
+              {menuItems.map((item) => renderMenuTree(item))}
+            </BlockStack>
+          </div>
           <Box paddingBlockStart="200">
             <button
               type="button"
@@ -648,7 +791,19 @@ export default function MenuBuilder() {
     </Card>
   );
 
-  const dropdownGroups = activeMenu?.children ?? [];
+  const dropdownGroups = previewMenu?.children ?? [];
+
+  const handleSaveMenu = () => {
+    saveFetcher.submit(
+      {
+        intent: "save",
+        menuId: String(menu.id),
+        status: menuEnabled ? "active" : "draft",
+        items: JSON.stringify(menuItems),
+      },
+      { method: "post" }
+    );
+  };
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
@@ -664,7 +819,7 @@ export default function MenuBuilder() {
             </Button>
             <InlineStack gap="200" blockAlign="center">
               <Text as="h1" variant="headingMd">
-                Mega menu #160205
+                {menu.name}
               </Text>
               <Badge tone={menuEnabled ? "success" : "read-only"}>{menuEnabled ? "Active" : "Draft"}</Badge>
             </InlineStack>
@@ -674,7 +829,13 @@ export default function MenuBuilder() {
             <Button variant="secondary" onClick={() => setMenuEnabled(!menuEnabled)}>
               {menuEnabled ? "Disable" : "Enable"}
             </Button>
-            <Button variant="secondary">Save</Button>
+            <Button
+              variant="secondary"
+              onClick={handleSaveMenu}
+              loading={saveFetcher.state !== "idle"}
+            >
+              Save
+            </Button>
             <Button variant="primary">Publish</Button>
           </InlineStack>
         </InlineStack>
@@ -740,7 +901,7 @@ export default function MenuBuilder() {
                   }}
                 >
                   {menuItems.map((item) => {
-                    const isActive = activeMenu?.id === item.id;
+                    const isActive = openMenuId === item.id;
                     const isDimmed = Boolean(selectedItemId && activeMenu?.id && activeMenu.id !== item.id);
                     return (
                       <div
@@ -779,7 +940,33 @@ export default function MenuBuilder() {
                         )}
                         <button
                           type="button"
-                          onClick={() => handleSelectItem(item.id)}
+                          onClick={() => {
+                            handleSelectItem(item.id);
+                            setOpenMenuId((prev) => (prev === item.id ? null : item.id));
+                          }}
+                          draggable
+                          onDragStart={(event) => {
+                            event.dataTransfer.effectAllowed = "move";
+                            event.dataTransfer.setData("text/plain", item.id);
+                            lastDragOverIdRef.current = null;
+                            setDraggedItemId(item.id);
+                            setDraggedParentId(null);
+                            setOpenMenuId(item.id);
+                          }}
+                          onDragOver={(event) => {
+                            if (!draggedItemId) return;
+                            if (draggedParentId !== null) return;
+                            if (draggedItemId === item.id) return;
+                            event.preventDefault();
+                            if (lastDragOverIdRef.current === item.id) return;
+                            lastDragOverIdRef.current = item.id;
+                            setMenuItems((items) => moveItem(items, draggedItemId, item.id));
+                          }}
+                          onDragEnd={() => {
+                            setDraggedItemId(null);
+                            setDraggedParentId(null);
+                            lastDragOverIdRef.current = null;
+                          }}
                           style={{
                             background:
                               isActive || hoveredMenuId === item.id
@@ -795,7 +982,7 @@ export default function MenuBuilder() {
                             gap: 6,
                             color: themeSettings.menuText,
                             opacity: isDimmed ? 0.5 : 1,
-                            cursor: "pointer",
+                            cursor: "grab",
                           }}
                         >
                           <span>{item.label}</span>

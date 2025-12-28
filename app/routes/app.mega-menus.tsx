@@ -1,28 +1,53 @@
 import { useEffect, useRef, useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { useLocation, useNavigate } from "@remix-run/react";
+import { json } from "@remix-run/node";
+import { useLoaderData, useLocation, useNavigate } from "@remix-run/react";
 import { Copy, Edit, Eye, EyeOff, MoreVertical, Plus, Settings, Trash2 } from "lucide-react";
 import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { session } = await authenticate.admin(request);
+  const shop = session.shop;
+  const menus = await prisma.menu.findMany({
+    where: { shop },
+    orderBy: { id: "asc" },
+  });
+  return json({
+    menus: menus.map((menu) => ({
+      id: menu.id,
+      name: menu.name,
+      status: menu.status,
+      items: menu.items,
+      views: 0,
+    })),
+  });
 };
 
 export default function MegaMenusList() {
+  const { menus: rawMenus } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const buttonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
-  const [menus] = useState([
-    { id: 1, name: "Main Navigation", status: "active", items: 12, views: 1250 },
-    { id: 2, name: "Footer Menu", status: "draft", items: 8, views: 0 },
-    { id: 3, name: "Mobile Menu", status: "active", items: 15, views: 890 },
-  ]);
+
+  const countItems = (items: unknown): number => {
+    if (!Array.isArray(items)) return 0;
+    return items.reduce((total, item) => {
+      if (!item || typeof item !== "object") return total;
+      const children = (item as { children?: unknown }).children;
+      return total + 1 + countItems(children);
+    }, 0);
+  };
+
+  const menus = rawMenus.map((menu) => ({
+    ...menu,
+    items: countItems(menu.items),
+  }));
 
   const withSearch = (path: string) => ({ pathname: path, search: location.search });
 
@@ -83,7 +108,7 @@ export default function MegaMenusList() {
                     <td className="px-6 py-4">
                       <button
                         className="text-sm text-gray-900 hover:text-indigo-600"
-                        onClick={() => navigate(withSearch(`/app/menu-builder/${menu.id}`))}
+                        onClick={() => navigate(withSearch(`/app/menu-builder?id=${menu.id}`))}
                       >
                         {menu.name}
                       </button>
@@ -110,10 +135,10 @@ export default function MegaMenusList() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(withSearch(`/app/menu-builder/${menu.id}`))}
-                        >
-                          Customize
-                        </Button>
+                        onClick={() => navigate(withSearch(`/app/menu-builder?id=${menu.id}`))}
+                      >
+                        Customize
+                      </Button>
                         <Button variant="ghost" size="sm">
                           <Copy className="w-4 h-4" />
                         </Button>
@@ -145,7 +170,7 @@ export default function MegaMenusList() {
                                 <div className="py-1">
                                   <button
                                     onClick={() => {
-                                      navigate(withSearch(`/app/menu-builder/${menu.id}`));
+                                      navigate(withSearch(`/app/menu-builder?id=${menu.id}`));
                                       setOpenMenuId(null);
                                     }}
                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"

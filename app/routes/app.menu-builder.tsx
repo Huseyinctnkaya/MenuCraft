@@ -1094,8 +1094,13 @@ export default function MenuBuilder() {
     ) => {
       const fontValue = builderSettings[fontKey] as string;
       const weightValue = Number(builderSettings[weightKey]);
+      const isCustom = builderSettings[useCustomKey] as boolean;
       const weightLabel =
         weightOptions.find((option) => Number(option.value) === weightValue)?.label ?? "Regular";
+      const fontLabel =
+        FONT_OPTIONS.find((option) => option.value === fontValue)?.label ??
+        fontValue.split(",")[0] ??
+        "Work Sans";
 
       const fontCard = (
         <button
@@ -1130,7 +1135,32 @@ export default function MenuBuilder() {
           <Text as="p" variant="bodySm" tone="subdued">
             Yazı tipi
           </Text>
-          {fontCard}
+          {isCustom ? (
+            <InlineStack gap="200" blockAlign="center">
+              <div style={{ flex: 1 }}>
+                <TextField
+                  label="Yazı tipi"
+                  labelHidden
+                  value={fontLabel}
+                  readOnly
+                  autoComplete="off"
+                  onFocus={() => openFontPickerFor(id, fontKey, weightKey)}
+                  onClick={() => openFontPickerFor(id, fontKey, weightKey)}
+                />
+              </div>
+              <div style={{ width: 120 }}>
+                <Select
+                  label="Ağırlık"
+                  labelHidden
+                  options={weightOptions}
+                  value={String(builderSettings[weightKey])}
+                  onChange={(value) => updateBuilderSetting(weightKey, Number(value) as never)}
+                />
+              </div>
+            </InlineStack>
+          ) : (
+            fontCard
+          )}
           <InlineStack gap="200" blockAlign="center">
             <div style={{ flex: 1 }}>
               <RangeSlider

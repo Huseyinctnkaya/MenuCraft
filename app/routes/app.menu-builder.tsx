@@ -390,6 +390,7 @@ export default function MenuBuilder() {
   const [builderSettings, setBuilderSettings] = useState<BuilderSettings>({
     ...menuSettings,
   });
+  const [requiresExplicitSave, setRequiresExplicitSave] = useState(false);
   const [savedFingerprint, setSavedFingerprint] = useState(() =>
     JSON.stringify({
       status: menu.status,
@@ -1288,6 +1289,9 @@ export default function MenuBuilder() {
     intent: "save" | "publish" | "enable" = "save"
   ) => {
     lastSaveIntentRef.current = intent;
+    if (intent !== "save") {
+      setRequiresExplicitSave(true);
+    }
     const status = nextStatus ?? menuStatus;
     setMenuStatus(status);
     saveFetcher.submit(
@@ -1308,13 +1312,14 @@ export default function MenuBuilder() {
     [menuStatus, menuItems, builderSettings]
   );
   const isDirty = currentFingerprint !== savedFingerprint;
-  const backDisabled = isDirty || !hasSavedOnce || isSaving;
+  const backDisabled = isDirty || !hasSavedOnce || isSaving || requiresExplicitSave;
 
   useEffect(() => {
     if (saveFetcher.state === "idle" && saveFetcher.data?.ok) {
       setHasSavedOnce(true);
+      setSavedFingerprint(currentFingerprint);
       if (lastSaveIntentRef.current === "save") {
-        setSavedFingerprint(currentFingerprint);
+        setRequiresExplicitSave(false);
       }
     }
   }, [saveFetcher.state, saveFetcher.data, currentFingerprint]);
@@ -1324,6 +1329,7 @@ export default function MenuBuilder() {
     setMenuItems(initialMenuItems);
     setHasSavedOnce(menu.status === "active");
     setBuilderSettings({ ...menuSettings });
+    setRequiresExplicitSave(false);
     setSavedFingerprint(
       JSON.stringify({
         status: menu.status,

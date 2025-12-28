@@ -109,6 +109,10 @@ const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { id: "about", label: "About", url: "/pages/about", role: "menu" },
 ];
 
+const buildDefaultMenuItems = (): MenuItem[] => [
+  structuredClone(DEFAULT_MENU_ITEMS[0]),
+];
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = session.shop;
@@ -126,7 +130,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         shop,
         name: "Mega menu",
         status: "draft",
-        items: DEFAULT_MENU_ITEMS,
+        items: buildDefaultMenuItems(),
       },
     });
     menu = await prisma.menu.update({

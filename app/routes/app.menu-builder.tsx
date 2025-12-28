@@ -262,6 +262,32 @@ type BuilderSettings = {
   submenuEnableMobileScroll: boolean;
   submenuMaxWidth: string;
   submenuMobileStyle: "collapse" | "drawer";
+  typographyMainUseCustom: boolean;
+  typographyMainFont: string;
+  typographyMainWeight: number;
+  typographyMainSize: number;
+  typographySubheadingUseCustom: boolean;
+  typographySubheadingFont: string;
+  typographySubheadingWeight: number;
+  typographySubheadingSize: number;
+  typographySubtextUseCustom: boolean;
+  typographySubtextFont: string;
+  typographySubtextWeight: number;
+  typographySubtextSize: number;
+  typographyDescriptionUseCustom: boolean;
+  typographyDescriptionFont: string;
+  typographyDescriptionWeight: number;
+  typographyDescriptionSize: number;
+  typographyTabUseCustom: boolean;
+  typographyTabFont: string;
+  typographyTabWeight: number;
+  typographyTabSize: number;
+};
+
+type FontPickerState = {
+  id: string;
+  fontKey: keyof BuilderSettings;
+  weightKey: keyof BuilderSettings;
 };
 
 const DEFAULT_BUILDER_SETTINGS: BuilderSettings = {
@@ -298,13 +324,60 @@ const DEFAULT_BUILDER_SETTINGS: BuilderSettings = {
   submenuEnableMobileScroll: true,
   submenuMaxWidth: "",
   submenuMobileStyle: "collapse",
+  typographyMainUseCustom: false,
+  typographyMainFont: "Work Sans, system-ui, sans-serif",
+  typographyMainWeight: 500,
+  typographyMainSize: 14,
+  typographySubheadingUseCustom: false,
+  typographySubheadingFont: "Work Sans, system-ui, sans-serif",
+  typographySubheadingWeight: 600,
+  typographySubheadingSize: 14,
+  typographySubtextUseCustom: false,
+  typographySubtextFont: "Work Sans, system-ui, sans-serif",
+  typographySubtextWeight: 400,
+  typographySubtextSize: 13,
+  typographyDescriptionUseCustom: false,
+  typographyDescriptionFont: "Work Sans, system-ui, sans-serif",
+  typographyDescriptionWeight: 400,
+  typographyDescriptionSize: 12,
+  typographyTabUseCustom: false,
+  typographyTabFont: "Work Sans, system-ui, sans-serif",
+  typographyTabWeight: 500,
+  typographyTabSize: 14,
 };
 
 const FONT_OPTIONS = [
-  { label: "Inter", value: "Inter, system-ui, sans-serif" },
+  { label: "Work Sans", value: "Work Sans, system-ui, sans-serif" },
   { label: "Shopify Sans", value: "Shopify Sans, Inter, system-ui, sans-serif" },
+  { label: "Inter", value: "Inter, system-ui, sans-serif" },
   { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Arial", value: "Arial, sans-serif" },
   { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "\"Times New Roman\", serif" },
+  { label: "Roboto", value: "Roboto, system-ui, sans-serif" },
+  { label: "Open Sans", value: "\"Open Sans\", system-ui, sans-serif" },
+  { label: "Lato", value: "Lato, system-ui, sans-serif" },
+  { label: "Montserrat", value: "Montserrat, system-ui, sans-serif" },
+  { label: "Poppins", value: "Poppins, system-ui, sans-serif" },
+  { label: "Nunito", value: "Nunito, system-ui, sans-serif" },
+  { label: "Source Sans 3", value: "\"Source Sans 3\", system-ui, sans-serif" },
+  { label: "Raleway", value: "Raleway, system-ui, sans-serif" },
+  { label: "Merriweather", value: "Merriweather, serif" },
+  { label: "Playfair Display", value: "\"Playfair Display\", serif" },
+  { label: "PT Sans", value: "\"PT Sans\", system-ui, sans-serif" },
+  { label: "Fira Sans", value: "\"Fira Sans\", system-ui, sans-serif" },
+  { label: "Noto Sans", value: "\"Noto Sans\", system-ui, sans-serif" },
+  { label: "Noto Serif", value: "\"Noto Serif\", serif" },
+  { label: "IBM Plex Sans", value: "\"IBM Plex Sans\", system-ui, sans-serif" },
+  { label: "Ubuntu", value: "Ubuntu, system-ui, sans-serif" },
+  { label: "Rubik", value: "Rubik, system-ui, sans-serif" },
+  { label: "Cabin", value: "Cabin, system-ui, sans-serif" },
+  { label: "Manrope", value: "Manrope, system-ui, sans-serif" },
+  { label: "DM Sans", value: "\"DM Sans\", system-ui, sans-serif" },
+  { label: "Space Grotesk", value: "\"Space Grotesk\", system-ui, sans-serif" },
+  { label: "Quicksand", value: "Quicksand, system-ui, sans-serif" },
+  { label: "Inconsolata", value: "Inconsolata, monospace" },
+  { label: "JetBrains Mono", value: "\"JetBrains Mono\", monospace" },
 ];
 
 const buildId = () => Math.random().toString(36).slice(2, 9);
@@ -350,6 +423,63 @@ const addChildById = (items: MenuItem[], parentId: string, newItem: MenuItem): M
     return item;
   });
 
+const buildCopyLabel = (label: string) => (label.trim().endsWith("Copy") ? `${label} 2` : `${label} Copy`);
+
+const cloneMenuItem = (item: MenuItem): MenuItem => ({
+  ...item,
+  id: buildId(),
+  label: buildCopyLabel(item.label),
+  children: item.children?.map(cloneMenuItem),
+});
+
+const duplicateItemById = (
+  items: MenuItem[],
+  id: string
+): { items: MenuItem[]; duplicatedId: string | null } => {
+  const index = items.findIndex((entry) => entry.id === id);
+  if (index >= 0) {
+    const copy = cloneMenuItem(items[index]);
+    const next = [...items];
+    next.splice(index + 1, 0, copy);
+    return { items: next, duplicatedId: copy.id };
+  }
+
+  let duplicatedId: string | null = null;
+  const next = items.map((item) => {
+    if (!item.children?.length) return item;
+    const result = duplicateItemById(item.children, id);
+    if (result.items !== item.children) {
+      duplicatedId = result.duplicatedId;
+      return { ...item, children: result.items };
+    }
+    return item;
+  });
+
+  return duplicatedId ? { items: next, duplicatedId } : { items, duplicatedId: null };
+};
+
+const removeItemById = (items: MenuItem[], id: string): MenuItem[] => {
+  let changed = false;
+  const next = items.reduce<MenuItem[]>((acc, item) => {
+    if (item.id === id) {
+      changed = true;
+      return acc;
+    }
+    let nextItem = item;
+    if (item.children?.length) {
+      const nextChildren = removeItemById(item.children, id);
+      if (nextChildren !== item.children) {
+        changed = true;
+        nextItem = { ...item, children: nextChildren };
+      }
+    }
+    acc.push(nextItem);
+    return acc;
+  }, []);
+
+  return changed ? next : items;
+};
+
 export default function MenuBuilder() {
   const { menu, menuItems: initialMenuItems, menuSettings } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
@@ -361,7 +491,6 @@ export default function MenuBuilder() {
     menu.status === "active" ? "active" : "draft"
   );
   const menuEnabled = menuStatus === "active";
-  const [hasSavedOnce, setHasSavedOnce] = useState(menu.status === "active");
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(
     initialMenuItems[0]?.id ?? null
@@ -373,6 +502,7 @@ export default function MenuBuilder() {
   const itemRowRefs = useRef(new Map<string, HTMLDivElement>());
   const prevPositionsRef = useRef(new Map<string, DOMRect>());
   const lastDragOverIdRef = useRef<string | null>(null);
+  const prevMenuIdRef = useRef(menu.id);
 
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
     fontFamily: "Inter, system-ui, sans-serif",
@@ -388,14 +518,22 @@ export default function MenuBuilder() {
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [builderSettings, setBuilderSettings] = useState<BuilderSettings>({
+    ...DEFAULT_BUILDER_SETTINGS,
     ...menuSettings,
   });
   const [requiresExplicitSave, setRequiresExplicitSave] = useState(false);
+  const [activeSaveAction, setActiveSaveAction] = useState<"save" | "publish" | "enable" | null>(
+    null
+  );
+  const [fontPickerState, setFontPickerState] = useState<FontPickerState | null>(null);
+  const [fontPickerSearch, setFontPickerSearch] = useState("");
+  const [fontPickerFont, setFontPickerFont] = useState("");
+  const [fontPickerWeight, setFontPickerWeight] = useState("400");
   const [savedFingerprint, setSavedFingerprint] = useState(() =>
     JSON.stringify({
       status: menu.status,
       items: initialMenuItems,
-      settings: menuSettings,
+      settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
     })
   );
   const lastSaveIntentRef = useRef<"save" | "publish" | "enable">("save");
@@ -414,6 +552,30 @@ export default function MenuBuilder() {
   ) => {
     setBuilderSettings((prev) => ({ ...prev, [key]: value }));
   };
+
+  const openFontPickerFor = (
+    id: string,
+    fontKey: keyof BuilderSettings,
+    weightKey: keyof BuilderSettings
+  ) => {
+    const currentFont = builderSettings[fontKey] as string;
+    const currentWeight = builderSettings[weightKey] as number;
+    setFontPickerState({ id, fontKey, weightKey });
+    setFontPickerSearch("");
+    setFontPickerFont(currentFont || FONT_OPTIONS[0]?.value || "");
+    setFontPickerWeight(String(currentWeight || 400));
+  };
+
+  const closeFontPicker = () => {
+    setFontPickerState(null);
+  };
+
+  const backSearch = useMemo(() => {
+    const search = new URLSearchParams(location.search);
+    search.delete("id");
+    const next = search.toString();
+    return next ? `?${next}` : "";
+  }, [location.search]);
 
   const registerItemRow = (id: string) => (node: HTMLDivElement | null) => {
     if (node) {
@@ -465,7 +627,7 @@ export default function MenuBuilder() {
     setMenuItems((items) => updateItemById(items, selectedItemId, (item) => ({ ...item, [key]: value })));
   };
 
-  const handleAddRoot = () => {
+  const handleAddRoot = (openEdit = false) => {
     const newItem: MenuItem = {
       id: buildId(),
       label: "New menu",
@@ -474,6 +636,9 @@ export default function MenuBuilder() {
       expanded: true,
     };
     setMenuItems((items) => [...items, newItem]);
+    setSelectedItemId(newItem.id);
+    setActivePanel("menu");
+    setMenuView(openEdit ? "edit" : "list");
   };
 
   const handleAddChild = (parentId: string, role: "group" | "item") => {
@@ -486,6 +651,37 @@ export default function MenuBuilder() {
       children: role === "group" ? [] : undefined,
     };
     setMenuItems((items) => addChildById(items, parentId, newItem));
+  };
+
+  const handleDuplicateItem = (id: string) => {
+    setMenuItems((items) => {
+      const result = duplicateItemById(items, id);
+      if (result.duplicatedId) {
+        setSelectedItemId(result.duplicatedId);
+        setMenuView("list");
+      }
+      return result.items;
+    });
+  };
+
+  const handleDeleteItem = (id: string) => {
+    setMenuItems((items) => {
+      if (selectedItemId) {
+        const selectedPath = findItemPath(items, selectedItemId);
+        if (selectedPath?.some((entry) => entry.id === id)) {
+          const parentId = findParentId(items, id);
+          setSelectedItemId(parentId ?? null);
+          setMenuView("list");
+        }
+      }
+      if (openMenuId) {
+        const openPath = findItemPath(items, openMenuId);
+        if (openPath?.some((entry) => entry.id === id)) {
+          setOpenMenuId(null);
+        }
+      }
+      return removeItemById(items, id);
+    });
   };
 
   const findParentId = (items: MenuItem[], id: string, parentId: string | null = null): string | null | undefined => {
@@ -622,7 +818,7 @@ export default function MenuBuilder() {
               </button>
               <button
                 type="button"
-                onClick={() => {}}
+                onClick={() => handleDuplicateItem(item.id)}
                 aria-label="Duplicate item"
                 className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
               >
@@ -630,7 +826,7 @@ export default function MenuBuilder() {
               </button>
               <button
                 type="button"
-                onClick={() => {}}
+                onClick={() => handleDeleteItem(item.id)}
                 aria-label="Delete item"
                 className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-red-600 hover:bg-gray-100 hover:text-red-700"
               >
@@ -784,24 +980,236 @@ export default function MenuBuilder() {
     );
   };
 
-  const renderTypographyPanel = () => (
-    <Card padding="400">
-      <BlockStack gap="400">
-        <Text as="h2" variant="headingMd">
-          Typography
-        </Text>
-        <Divider />
+  const renderTypographyPanel = () => {
+    const weightOptions = [
+      { label: "Regular", value: "400" },
+      { label: "Medium", value: "500" },
+      { label: "Semi Bold", value: "600" },
+      { label: "Bold", value: "700" },
+    ];
+
+    const renderFontPickerPanel = () => {
+      if (!fontPickerState) {
+        return null;
+      }
+
+      const filteredFonts = FONT_OPTIONS.filter((option) =>
+        option.label.toLowerCase().includes(fontPickerSearch.trim().toLowerCase())
+      );
+      const selectedFont =
+        FONT_OPTIONS.find((option) => option.value === fontPickerFont) ?? FONT_OPTIONS[0];
+
+      return (
+        <div className="flex min-h-full flex-col">
+          <div className="border-b border-gray-200 px-4 py-3">
+            <InlineStack gap="200" blockAlign="center">
+              <Button
+                variant="tertiary"
+                icon={ArrowLeftIcon}
+                onClick={closeFontPicker}
+                accessibilityLabel="Geri"
+              />
+              <Text as="h2" variant="headingSm">
+                Yazı Tipini Seçin
+              </Text>
+            </InlineStack>
+          </div>
+          <div className="px-4 py-3">
+            <TextField
+              label="Search"
+              labelHidden
+              value={fontPickerSearch}
+              onChange={setFontPickerSearch}
+              autoComplete="off"
+              placeholder="Search"
+              prefix={<Icon source={SearchIcon} tone="subdued" />}
+            />
+          </div>
+          <div className="flex-1 overflow-auto px-3 pb-3">
+            <BlockStack gap="100">
+              {filteredFonts.map((option) => {
+                const isSelected = option.value === fontPickerFont;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setFontPickerFont(option.value)}
+                    className={`w-full rounded-md px-3 py-2 text-left text-sm ${
+                      isSelected ? "bg-gray-100" : "hover:bg-gray-100"
+                    }`}
+                    style={{ fontFamily: option.value }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </BlockStack>
+          </div>
+          <div className="border-t border-gray-200 px-4 py-3">
+            <BlockStack gap="200">
+              <Text as="p" variant="bodySm" tone="subdued">
+                {selectedFont?.label || "Work Sans"}
+              </Text>
+              <Select
+                label="Ağırlık"
+                labelHidden
+                options={weightOptions}
+                value={fontPickerWeight}
+                onChange={setFontPickerWeight}
+              />
+              <InlineStack align="end" gap="200">
+                <Button variant="tertiary" onClick={closeFontPicker}>
+                  İptal etmek
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    if (!fontPickerState) return;
+                    const nextFont = fontPickerFont || selectedFont?.value || "";
+                    updateBuilderSetting(fontPickerState.fontKey, nextFont as never);
+                    updateBuilderSetting(fontPickerState.weightKey, Number(fontPickerWeight) as never);
+                    closeFontPicker();
+                  }}
+                >
+                  Seçme
+                </Button>
+              </InlineStack>
+            </BlockStack>
+          </div>
+        </div>
+      );
+    };
+
+    if (fontPickerState) {
+      return renderFontPickerPanel();
+    }
+
+    const renderTypographySection = (
+      id: string,
+      title: string,
+      useCustomKey: keyof BuilderSettings,
+      fontKey: keyof BuilderSettings,
+      weightKey: keyof BuilderSettings,
+      sizeKey: keyof BuilderSettings
+    ) => {
+      const fontValue = builderSettings[fontKey] as string;
+      const weightValue = Number(builderSettings[weightKey]);
+      const weightLabel =
+        weightOptions.find((option) => Number(option.value) === weightValue)?.label ?? "Regular";
+
+      const fontCard = (
+        <button
+          type="button"
+          onClick={() => openFontPickerFor(id, fontKey, weightKey)}
+          className="w-full overflow-hidden rounded-lg border border-gray-300 bg-white text-left"
+        >
+          <div className="px-4 py-3">
+            <Text as="p" variant="headingMd" fontWeight="medium" style={{ fontFamily: fontValue }}>
+              {fontValue.split(",")[0]}
+            </Text>
+            <Text as="p" variant="bodySm" tone="subdued">
+              {weightLabel}
+            </Text>
+          </div>
+          <div className="border-t border-gray-200 px-4 py-2 text-center text-sm text-gray-700">
+            Değiştirmek
+          </div>
+        </button>
+      );
+
+      return (
         <BlockStack gap="300">
-          <Select
-            label="Font family"
-            options={FONT_OPTIONS}
-            value={themeSettings.fontFamily}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, fontFamily: value }))}
+          <Text as="h3" variant="headingSm">
+            {title}
+          </Text>
+          <Checkbox
+            label="Özel yazı tipini kullan"
+            checked={builderSettings[useCustomKey] as boolean}
+            onChange={(value) => updateBuilderSetting(useCustomKey, value as never)}
           />
+          <Text as="p" variant="bodySm" tone="subdued">
+            Yazı tipi
+          </Text>
+          {fontCard}
+          <InlineStack gap="200" blockAlign="center">
+            <div style={{ flex: 1 }}>
+              <RangeSlider
+                label="Boyut"
+                value={builderSettings[sizeKey] as number}
+                min={10}
+                max={24}
+                onChange={(value) => updateBuilderSetting(sizeKey, value as never)}
+              />
+            </div>
+            <div style={{ width: 90 }}>
+              <TextField
+                type="number"
+                value={String(builderSettings[sizeKey])}
+                onChange={(value) => updateBuilderSetting(sizeKey, Number(value) as never)}
+                suffix="px"
+                autoComplete="off"
+              />
+            </div>
+          </InlineStack>
         </BlockStack>
-      </BlockStack>
-    </Card>
-  );
+      );
+    };
+
+    return (
+      <Card padding="400">
+        <BlockStack gap="400">
+          <Text as="h2" variant="headingMd">
+            Yazı Tipi Ayarları
+          </Text>
+          <Divider />
+          {renderTypographySection(
+            "main",
+            "Ana menü",
+            "typographyMainUseCustom",
+            "typographyMainFont",
+            "typographyMainWeight",
+            "typographyMainSize"
+          )}
+          <Divider />
+          {renderTypographySection(
+            "tab",
+            "Sekme",
+            "typographyTabUseCustom",
+            "typographyTabFont",
+            "typographyTabWeight",
+            "typographyTabSize"
+          )}
+          <Divider />
+          {renderTypographySection(
+            "subheading",
+            "Alt menü başlığı",
+            "typographySubheadingUseCustom",
+            "typographySubheadingFont",
+            "typographySubheadingWeight",
+            "typographySubheadingSize"
+          )}
+          <Divider />
+          {renderTypographySection(
+            "subtext",
+            "Alt menü metni",
+            "typographySubtextUseCustom",
+            "typographySubtextFont",
+            "typographySubtextWeight",
+            "typographySubtextSize"
+          )}
+          <Divider />
+          {renderTypographySection(
+            "description",
+            "Alt menü açıklaması",
+            "typographyDescriptionUseCustom",
+            "typographyDescriptionFont",
+            "typographyDescriptionWeight",
+            "typographyDescriptionSize"
+          )}
+        </BlockStack>
+      </Card>
+    );
+  };
 
   const renderColorsPanel = () => (
     <Card padding="400">
@@ -1279,6 +1687,48 @@ export default function MenuBuilder() {
       ? Number(submenuMaxWidthValue)
       : null
     : null;
+
+  const resolveTypographyStyle = (
+    useCustom: boolean,
+    fontFamily: string,
+    fontWeight: number,
+    fontSize: number
+  ) => ({
+    fontFamily: useCustom ? fontFamily : themeSettings.fontFamily,
+    fontWeight,
+    fontSize,
+  });
+
+  const mainTypography = resolveTypographyStyle(
+    builderSettings.typographyMainUseCustom,
+    builderSettings.typographyMainFont,
+    builderSettings.typographyMainWeight,
+    builderSettings.typographyMainSize
+  );
+  const tabTypography = resolveTypographyStyle(
+    builderSettings.typographyTabUseCustom,
+    builderSettings.typographyTabFont,
+    builderSettings.typographyTabWeight,
+    builderSettings.typographyTabSize
+  );
+  const subheadingTypography = resolveTypographyStyle(
+    builderSettings.typographySubheadingUseCustom,
+    builderSettings.typographySubheadingFont,
+    builderSettings.typographySubheadingWeight,
+    builderSettings.typographySubheadingSize
+  );
+  const subtextTypography = resolveTypographyStyle(
+    builderSettings.typographySubtextUseCustom,
+    builderSettings.typographySubtextFont,
+    builderSettings.typographySubtextWeight,
+    builderSettings.typographySubtextSize
+  );
+  const descriptionTypography = resolveTypographyStyle(
+    builderSettings.typographyDescriptionUseCustom,
+    builderSettings.typographyDescriptionFont,
+    builderSettings.typographyDescriptionWeight,
+    builderSettings.typographyDescriptionSize
+  );
   const dropdownOverflowY =
     previewMode === "mobile"
       ? builderSettings.submenuEnableMobileScroll
@@ -1292,6 +1742,7 @@ export default function MenuBuilder() {
     if (intent !== "save") {
       setRequiresExplicitSave(true);
     }
+    setActiveSaveAction(intent);
     const status = nextStatus ?? menuStatus;
     setMenuStatus(status);
     saveFetcher.submit(
@@ -1312,29 +1763,33 @@ export default function MenuBuilder() {
     [menuStatus, menuItems, builderSettings]
   );
   const isDirty = currentFingerprint !== savedFingerprint;
-  const backDisabled = isDirty || !hasSavedOnce || isSaving || requiresExplicitSave;
+  const backDisabled = isDirty || isSaving || requiresExplicitSave;
 
   useEffect(() => {
     if (saveFetcher.state === "idle" && saveFetcher.data?.ok) {
-      setHasSavedOnce(true);
-      setSavedFingerprint(currentFingerprint);
+      setActiveSaveAction(null);
       if (lastSaveIntentRef.current === "save") {
+        setSavedFingerprint(currentFingerprint);
         setRequiresExplicitSave(false);
       }
     }
   }, [saveFetcher.state, saveFetcher.data, currentFingerprint]);
 
   useEffect(() => {
+    if (prevMenuIdRef.current === menu.id) {
+      return;
+    }
+    prevMenuIdRef.current = menu.id;
     setMenuStatus(menu.status === "active" ? "active" : "draft");
     setMenuItems(initialMenuItems);
-    setHasSavedOnce(menu.status === "active");
-    setBuilderSettings({ ...menuSettings });
+    setBuilderSettings({ ...DEFAULT_BUILDER_SETTINGS, ...menuSettings });
     setRequiresExplicitSave(false);
+    setActiveSaveAction(null);
     setSavedFingerprint(
       JSON.stringify({
         status: menu.status,
         items: initialMenuItems,
-        settings: menuSettings,
+        settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
       })
     );
   }, [menu.id, menuSettings, initialMenuItems]);
@@ -1348,7 +1803,7 @@ export default function MenuBuilder() {
               variant="tertiary"
               icon={ArrowLeftIcon}
               disabled={backDisabled}
-              onClick={() => navigate({ pathname: "/app/mega-menus", search: location.search })}
+              onClick={() => navigate({ pathname: "/app/mega-menus", search: backSearch })}
             >
               Back
             </Button>
@@ -1356,7 +1811,7 @@ export default function MenuBuilder() {
               <Text as="h1" variant="headingMd">
                 {menu.name}
               </Text>
-              {isDirty || !hasSavedOnce ? (
+              {isDirty || requiresExplicitSave ? (
                 <Text as="span" variant="bodySm" tone="critical">
                   Save before leaving
                 </Text>
@@ -1373,20 +1828,21 @@ export default function MenuBuilder() {
               variant="secondary"
               disabled={!menuEnabled || isSaving}
               onClick={() => handleSaveMenu("draft", "enable")}
+              loading={isSaving && activeSaveAction === "enable"}
             >
-              Enable
+              Disable
             </Button>
             <Button
               variant="secondary"
               onClick={() => handleSaveMenu(undefined, "save")}
-              loading={isSaving}
+              loading={isSaving && activeSaveAction === "save"}
             >
               Save
             </Button>
             <Button
               variant="primary"
               onClick={() => handleSaveMenu("active", "publish")}
-              loading={isSaving}
+              loading={isSaving && activeSaveAction === "publish"}
             >
               Publish
             </Button>
@@ -1424,14 +1880,16 @@ export default function MenuBuilder() {
           ))}
         </aside>
 
-        <aside className="w-80 bg-white border-r border-gray-200 overflow-y-auto">
-          <BlockStack gap="400">
-            {activePanel === "menu" && renderMenuPanel()}
-            {activePanel === "settings" && renderSettingsPanel()}
-            {activePanel === "typography" && renderTypographyPanel()}
-            {activePanel === "colors" && renderColorsPanel()}
-            {activePanel === "code" && renderCodePanel()}
-          </BlockStack>
+        <aside className="w-80 bg-white border-r border-gray-200 flex flex-col">
+          <div className="flex-1 overflow-y-auto">
+            <BlockStack gap="400" className="min-h-full">
+              {activePanel === "menu" && renderMenuPanel()}
+              {activePanel === "settings" && renderSettingsPanel()}
+              {activePanel === "typography" && renderTypographyPanel()}
+              {activePanel === "colors" && renderColorsPanel()}
+              {activePanel === "code" && renderCodePanel()}
+            </BlockStack>
+          </div>
         </aside>
 
         <main className="flex-1 overflow-auto relative" style={{ background: themeSettings.canvasBackground }}>
@@ -1449,12 +1907,8 @@ export default function MenuBuilder() {
                   style={{
                     display: "flex",
                     flexDirection: isVerticalMenu ? "column" : "row",
-                    alignItems: isVerticalMenu ? "stretch" : "center",
                     justifyContent: isVerticalMenu ? "flex-start" : menuAlignmentMap[builderSettings.layoutAlignment],
                     gap: 0,
-                    padding: isVerticalMenu
-                      ? `${builderSettings.spacingMainPadding}px`
-                      : `0 ${builderSettings.spacingMainPadding}px`,
                     height: isVerticalMenu ? "auto" : builderSettings.spacingMainRowHeight,
                     color: themeSettings.menuText,
                   }}
@@ -1465,12 +1919,12 @@ export default function MenuBuilder() {
                     return (
                       <div
                         key={item.id}
-                        className="relative inline-flex pt-9 -mt-9"
+                        className="relative inline-flex"
                         onMouseEnter={() => setHoveredMenuId(item.id)}
                         onMouseLeave={() => setHoveredMenuId(null)}
                       >
                         {hoveredMenuId === item.id && (
-                          <div className="absolute top-0 left-0 z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md">
+                          <div className="absolute -top-10 left-0 z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md">
                             <button
                               type="button"
                               onClick={() => handleSelectItem(item.id, true)}
@@ -1530,7 +1984,7 @@ export default function MenuBuilder() {
                             background:
                               isActive || hoveredMenuId === item.id
                                 ? "rgba(255,255,255,0.12)"
-                                : "transparent",
+                                : themeSettings.menuBackground,
                             borderRight:
                               showDividers && !isVerticalMenu
                                 ? "1px solid rgba(255,255,255,0.12)"
@@ -1553,7 +2007,14 @@ export default function MenuBuilder() {
                             cursor: "grab",
                           }}
                         >
-                          <span>{item.label}</span>
+                          <span
+                            style={{
+                              ...(isActive ? tabTypography : mainTypography),
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {item.label}
+                          </span>
                           {builderSettings.elementsShowIndicators && item.children?.length ? (
                             <span style={{ display: "inline-flex" }}>
                               <ChevronDownIcon width="14" height="14" fill={themeSettings.menuText} />
@@ -1598,6 +2059,7 @@ export default function MenuBuilder() {
                   })}
                   <button
                     type="button"
+                    onClick={() => handleAddRoot()}
                     style={{
                       color: themeSettings.menuText,
                       height: isVerticalMenu ? builderSettings.spacingMainRowHeight : "100%",
@@ -1612,7 +2074,14 @@ export default function MenuBuilder() {
                           ? "1px solid rgba(255,255,255,0.12)"
                           : "none",
                       borderRadius: 0,
-                      background: "transparent",
+                      background: themeSettings.menuBackground,
+                      transition: "background 150ms ease",
+                    }}
+                    onMouseEnter={(event) => {
+                      event.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                    }}
+                    onMouseLeave={(event) => {
+                      event.currentTarget.style.background = themeSettings.menuBackground;
                     }}
                   >
                     +
@@ -1691,7 +2160,15 @@ export default function MenuBuilder() {
                             }}
                           >
                             <Text as="h3" variant="headingSm" fontWeight="semibold">
-                              <span style={{ color: themeSettings.dropdownHeading }}>{group.label}</span>
+                              <span
+                                style={{
+                                  color: themeSettings.dropdownHeading,
+                                  ...subheadingTypography,
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {group.label}
+                              </span>
                             </Text>
                           </div>
                           <Divider />
@@ -1713,6 +2190,8 @@ export default function MenuBuilder() {
                                     minHeight: builderSettings.spacingLinkListRowHeight,
                                     background: "transparent",
                                     color: themeSettings.dropdownText,
+                                    ...subtextTypography,
+                                    lineHeight: 1.2,
                                   }}
                                 >
                                   {child.label}
@@ -1724,7 +2203,10 @@ export default function MenuBuilder() {
                               icon={PlusIcon}
                               size="slim"
                               onClick={() => handleAddChild(group.id, "item")}
-                              style={{ minHeight: builderSettings.spacingLinkListRowHeight }}
+                              style={{
+                                minHeight: builderSettings.spacingLinkListRowHeight,
+                                ...descriptionTypography,
+                              }}
                             >
                               Add item
                             </Button>
@@ -1735,7 +2217,12 @@ export default function MenuBuilder() {
                   </div>
                   <Box paddingBlockStart="400">
                     <ButtonGroup>
-                      <Button variant="secondary" icon={PlusIcon} onClick={() => activeMenu && handleAddChild(activeMenu.id, "group")}>
+                      <Button
+                        variant="secondary"
+                        icon={PlusIcon}
+                        onClick={() => activeMenu && handleAddChild(activeMenu.id, "group")}
+                        style={descriptionTypography}
+                      >
                         Add block
                       </Button>
                     </ButtonGroup>

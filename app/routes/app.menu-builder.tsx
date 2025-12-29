@@ -9,6 +9,7 @@ import {
   Button,
   ButtonGroup,
   Card,
+  ColorPicker,
   Checkbox,
   ChoiceList,
   Divider,
@@ -282,6 +283,30 @@ type BuilderSettings = {
   typographyTabFont: string;
   typographyTabWeight: number;
   typographyTabSize: number;
+  colorMainBackground: string;
+  colorMainBackgroundHover: string;
+  colorMainDivider: string;
+  colorMainText: string;
+  colorMainTextHover: string;
+  colorTabHeading: string;
+  colorTabHeadingActive: string;
+  colorTabBackgroundActive: string;
+  colorSubmenuBackground: string;
+  colorSubmenuBorder: string;
+  colorSubmenuHeading: string;
+  colorSubmenuText: string;
+  colorSubmenuTextHover: string;
+  colorSubmenuDescription: string;
+  colorSubmenuDescriptionHover: string;
+  colorBadgeSaleText: string;
+  colorBadgeSaleBackground: string;
+  colorBadgeSoldOutText: string;
+  colorBadgeSoldOutBackground: string;
+  colorButtonText: string;
+  colorButtonBackground: string;
+  colorButtonBackgroundHover: string;
+  colorButtonTextHover: string;
+  customCss: string;
 };
 
 type FontPickerState = {
@@ -344,6 +369,30 @@ const DEFAULT_BUILDER_SETTINGS: BuilderSettings = {
   typographyTabFont: "Work Sans, system-ui, sans-serif",
   typographyTabWeight: 500,
   typographyTabSize: 14,
+  colorMainBackground: "#000000",
+  colorMainBackgroundHover: "#1D1D1D",
+  colorMainDivider: "#0F0F0F",
+  colorMainText: "#FFFFFF",
+  colorMainTextHover: "#F6F1F1",
+  colorTabHeading: "#202020",
+  colorTabHeadingActive: "#000000",
+  colorTabBackgroundActive: "#D9D9D9",
+  colorSubmenuBackground: "#FFFFFF",
+  colorSubmenuBorder: "#D1D1D1",
+  colorSubmenuHeading: "#AE2828",
+  colorSubmenuText: "#313131",
+  colorSubmenuTextHover: "#000000",
+  colorSubmenuDescription: "#969696",
+  colorSubmenuDescriptionHover: "#4D5BCD",
+  colorBadgeSaleText: "#FFFFFF",
+  colorBadgeSaleBackground: "#EC523E",
+  colorBadgeSoldOutText: "#757575",
+  colorBadgeSoldOutBackground: "#D5D5D5",
+  colorButtonText: "#FFFFFF",
+  colorButtonBackground: "#1F1F1F",
+  colorButtonBackgroundHover: "#000000",
+  colorButtonTextHover: "#FFFFFF",
+  customCss: "",
 };
 
 const FONT_OPTIONS = [
@@ -381,6 +430,134 @@ const FONT_OPTIONS = [
 ];
 
 const buildId = () => Math.random().toString(36).slice(2, 9);
+
+type RgbColor = {
+  red: number;
+  green: number;
+  blue: number;
+};
+
+type HsbColor = {
+  hue: number;
+  saturation: number;
+  brightness: number;
+  alpha?: number;
+};
+
+const clampNumber = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
+
+const hexToRgb = (value: string): RgbColor => {
+  const cleaned = value.replace("#", "").trim();
+  const normalized =
+    cleaned.length === 3
+      ? cleaned
+          .split("")
+          .map((char) => char + char)
+          .join("")
+      : cleaned;
+  if (normalized.length !== 6) {
+    return { red: 0, green: 0, blue: 0 };
+  }
+  const intValue = Number.parseInt(normalized, 16);
+  if (Number.isNaN(intValue)) {
+    return { red: 0, green: 0, blue: 0 };
+  }
+  return {
+    red: (intValue >> 16) & 255,
+    green: (intValue >> 8) & 255,
+    blue: intValue & 255,
+  };
+};
+
+const rgbToHex = ({ red, green, blue }: RgbColor) => {
+  const toHex = (channel: number) =>
+    clampNumber(Math.round(channel), 0, 255).toString(16).padStart(2, "0").toUpperCase();
+  return `#${toHex(red)}${toHex(green)}${toHex(blue)}`;
+};
+
+const rgbToHsb = ({ red, green, blue }: RgbColor): HsbColor => {
+  const r = red / 255;
+  const g = green / 255;
+  const b = blue / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+
+  let hue = 0;
+  if (delta !== 0) {
+    if (max === r) {
+      hue = ((g - b) / delta) % 6;
+    } else if (max === g) {
+      hue = (b - r) / delta + 2;
+    } else {
+      hue = (r - g) / delta + 4;
+    }
+    hue *= 60;
+    if (hue < 0) hue += 360;
+  }
+
+  const saturation = max === 0 ? 0 : delta / max;
+  const brightness = max;
+
+  return {
+    hue,
+    saturation,
+    brightness,
+    alpha: 1,
+  };
+};
+
+const hsbToRgb = ({ hue, saturation, brightness }: HsbColor): RgbColor => {
+  const h = clampNumber(hue, 0, 360);
+  const normalizedS =
+    saturation > 1 ? clampNumber(saturation, 0, 100) / 100 : clampNumber(saturation, 0, 1);
+  const normalizedV =
+    brightness > 1 ? clampNumber(brightness, 0, 100) / 100 : clampNumber(brightness, 0, 1);
+  const s = normalizedS;
+  const v = normalizedV;
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+
+  if (h >= 0 && h < 60) {
+    r = c;
+    g = x;
+  } else if (h >= 60 && h < 120) {
+    r = x;
+    g = c;
+  } else if (h >= 120 && h < 180) {
+    g = c;
+    b = x;
+  } else if (h >= 180 && h < 240) {
+    g = x;
+    b = c;
+  } else if (h >= 240 && h < 300) {
+    r = x;
+    b = c;
+  } else {
+    r = c;
+    b = x;
+  }
+
+  return {
+    red: Math.round((r + m) * 255),
+    green: Math.round((g + m) * 255),
+    blue: Math.round((b + m) * 255),
+  };
+};
+
+const hexToHsb = (value: string) => rgbToHsb(hexToRgb(value));
+
+const hsbToHex = (color: HsbColor) => rgbToHex(hsbToRgb(color));
+
+const normalizeHexInput = (value: string) => {
+  const cleaned = value.replace(/[^0-9a-fA-F]/g, "").slice(0, 6);
+  return `#${cleaned.toUpperCase()}`;
+};
 
 const findItemPath = (items: MenuItem[], id: string | null, path: MenuItem[] = []): MenuItem[] | null => {
   if (!id) return null;
@@ -529,6 +706,8 @@ export default function MenuBuilder() {
   const [fontPickerSearch, setFontPickerSearch] = useState("");
   const [fontPickerFont, setFontPickerFont] = useState("");
   const [fontPickerWeight, setFontPickerWeight] = useState("400");
+  const [openColorPicker, setOpenColorPicker] = useState<keyof BuilderSettings | null>(null);
+  const [colorPickerHsb, setColorPickerHsb] = useState<HsbColor | null>(null);
   const [savedFingerprint, setSavedFingerprint] = useState(() =>
     JSON.stringify({
       status: menu.status,
@@ -568,6 +747,22 @@ export default function MenuBuilder() {
 
   const closeFontPicker = () => {
     setFontPickerState(null);
+  };
+
+  const toggleColorPicker = (key: keyof BuilderSettings) => {
+    setOpenColorPicker((prev) => {
+      if (prev === key) {
+        setColorPickerHsb(null);
+        return null;
+      }
+      const current = builderSettings[key];
+      if (typeof current === "string") {
+        setColorPickerHsb(hexToHsb(current));
+      } else {
+        setColorPickerHsb(null);
+      }
+      return key;
+    });
   };
 
   const backSearch = useMemo(() => {
@@ -1007,7 +1202,7 @@ export default function MenuBuilder() {
                 variant="tertiary"
                 icon={ArrowLeftIcon}
                 onClick={closeFontPicker}
-                accessibilityLabel="Geri"
+                accessibilityLabel="Back"
               />
               <Text as="h2" variant="headingSm">
                 Select font
@@ -1241,60 +1436,137 @@ export default function MenuBuilder() {
     );
   };
 
-  const renderColorsPanel = () => (
-    <Card padding="400">
-      <BlockStack gap="400">
-        <Text as="h2" variant="headingMd">
-          Colors
-        </Text>
-        <Divider />
-        <BlockStack gap="300">
-          <TextField
-            label="Menu background"
-            value={themeSettings.menuBackground}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, menuBackground: value }))}
-            autoComplete="off"
-          />
-          <TextField
-            label="Menu text"
-            value={themeSettings.menuText}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, menuText: value }))}
-            autoComplete="off"
-          />
-          <TextField
-            label="Active item"
-            value={themeSettings.menuActive}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, menuActive: value }))}
-            autoComplete="off"
-          />
-          <TextField
-            label="Dropdown background"
-            value={themeSettings.dropdownBackground}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, dropdownBackground: value }))}
-            autoComplete="off"
-          />
-          <TextField
-            label="Dropdown text"
-            value={themeSettings.dropdownText}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, dropdownText: value }))}
-            autoComplete="off"
-          />
-          <TextField
-            label="Dropdown heading"
-            value={themeSettings.dropdownHeading}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, dropdownHeading: value }))}
-            autoComplete="off"
-          />
-          <TextField
-            label="Canvas background"
-            value={themeSettings.canvasBackground}
-            onChange={(value) => setThemeSettings((prev) => ({ ...prev, canvasBackground: value }))}
-            autoComplete="off"
-          />
+  const renderColorsPanel = () => {
+    const renderColorRow = (label: string, key: keyof BuilderSettings) => {
+      const value = builderSettings[key] as string;
+      const isOpen = openColorPicker === key;
+      const displayColor = isOpen && colorPickerHsb ? hsbToHex(colorPickerHsb) : value;
+
+      return (
+        <div className="relative">
+          <InlineStack gap="400" blockAlign="center">
+            <button
+              type="button"
+              onClick={() => toggleColorPicker(key)}
+              className={`h-10 w-10 rounded-full border-2 shadow-sm ${
+                isOpen ? "border-blue-500 ring-2 ring-blue-500/30" : "border-gray-300"
+              }`}
+              style={{ backgroundColor: displayColor }}
+              aria-label={label}
+            />
+            <BlockStack gap="100">
+              <Text as="p" variant="bodyMd">
+                {label}
+              </Text>
+              <Text as="p" variant="bodySm" tone="subdued">
+                {displayColor.toUpperCase()}
+              </Text>
+            </BlockStack>
+          </InlineStack>
+          {isOpen && (
+            <div
+              className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <BlockStack gap="200">
+                <ColorPicker
+                  color={colorPickerHsb ?? hexToHsb(value)}
+                  onChange={(color) => {
+                    setColorPickerHsb({ ...color });
+                    updateBuilderSetting(key, hsbToHex(color) as never);
+                  }}
+                />
+                <TextField
+                  label="Hex"
+                  labelHidden
+                  value={displayColor}
+                  onChange={(next) => {
+                    const normalized = normalizeHexInput(next);
+                    updateBuilderSetting(key, normalized as never);
+                    setColorPickerHsb(hexToHsb(normalized));
+                  }}
+                  autoComplete="off"
+                />
+              </BlockStack>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const sections: Array<{ title: string; items: Array<{ label: string; key: keyof BuilderSettings }> }> = [
+      {
+        title: "Main menu",
+        items: [
+          { label: "Main menu background", key: "colorMainBackground" },
+          { label: "Main menu hover background", key: "colorMainBackgroundHover" },
+          { label: "Main menu divider", key: "colorMainDivider" },
+          { label: "Main menu text", key: "colorMainText" },
+          { label: "Main menu hover text", key: "colorMainTextHover" },
+        ],
+      },
+      {
+        title: "Tab menu",
+        items: [
+          { label: "Tab heading color", key: "colorTabHeading" },
+          { label: "Tab active heading color", key: "colorTabHeadingActive" },
+          { label: "Tab active background", key: "colorTabBackgroundActive" },
+        ],
+      },
+      {
+        title: "Submenu",
+        items: [
+          { label: "Submenu background", key: "colorSubmenuBackground" },
+          { label: "Submenu border", key: "colorSubmenuBorder" },
+          { label: "Submenu heading", key: "colorSubmenuHeading" },
+          { label: "Submenu text", key: "colorSubmenuText" },
+          { label: "Submenu hover text", key: "colorSubmenuTextHover" },
+          { label: "Submenu description", key: "colorSubmenuDescription" },
+          { label: "Submenu hover description", key: "colorSubmenuDescriptionHover" },
+        ],
+      },
+      {
+        title: "Badge",
+        items: [
+          { label: "Sale badge text", key: "colorBadgeSaleText" },
+          { label: "Sale badge background", key: "colorBadgeSaleBackground" },
+          { label: "Sold out badge text", key: "colorBadgeSoldOutText" },
+          { label: "Sold out badge background", key: "colorBadgeSoldOutBackground" },
+        ],
+      },
+      {
+        title: "Add to cart button",
+        items: [
+          { label: "Button text", key: "colorButtonText" },
+          { label: "Button background", key: "colorButtonBackground" },
+          { label: "Button hover background", key: "colorButtonBackgroundHover" },
+          { label: "Button hover text", key: "colorButtonTextHover" },
+        ],
+      },
+    ];
+
+    return (
+      <Card padding="400">
+        <BlockStack gap="400">
+          <Text as="h2" variant="headingMd">
+            Color settings
+          </Text>
+          <Divider />
+          {sections.map((section, index) => (
+            <BlockStack key={section.title} gap="300">
+              <Text as="h3" variant="headingSm">
+                {section.title}
+              </Text>
+              <BlockStack gap="300">
+                {section.items.map((item) => renderColorRow(item.label, item.key))}
+              </BlockStack>
+              {index < sections.length - 1 ? <Divider /> : null}
+            </BlockStack>
+          ))}
         </BlockStack>
-      </BlockStack>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   const renderSettingsPanel = () => {
     const toNumber = (value: string) => {
@@ -1686,10 +1958,22 @@ export default function MenuBuilder() {
         <Text as="h2" variant="headingMd">
           Custom code
         </Text>
-        <Text as="p" variant="bodySm" tone="subdued">
-          Add custom CSS or JS for this mega menu.
-        </Text>
-        <TextField label="Custom CSS" value="" onChange={() => {}} multiline autoComplete="off" />
+        <Divider />
+        <BlockStack gap="200">
+          <Text as="h3" variant="headingSm">
+            Stylesheet / CSS
+          </Text>
+          <TextField
+            label="Custom CSS"
+            labelHidden
+            value={builderSettings.customCss}
+            placeholder="// enter custom CSS here"
+            onChange={(value) => updateBuilderSetting("customCss", value)}
+            multiline={8}
+            autoComplete="off"
+            className="rounded-xl bg-white"
+          />
+        </BlockStack>
       </BlockStack>
     </Card>
   );
@@ -1759,6 +2043,27 @@ export default function MenuBuilder() {
     builderSettings.typographyDescriptionWeight,
     builderSettings.typographyDescriptionSize
   );
+  const previewColors = {
+    mainBackground: builderSettings.colorMainBackground,
+    mainBackgroundHover: builderSettings.colorMainBackgroundHover,
+    mainDivider: builderSettings.colorMainDivider,
+    mainText: builderSettings.colorMainText,
+    mainTextHover: builderSettings.colorMainTextHover,
+    tabHeading: builderSettings.colorTabHeading,
+    tabHeadingActive: builderSettings.colorTabHeadingActive,
+    tabBackgroundActive: builderSettings.colorTabBackgroundActive,
+    submenuBackground: builderSettings.colorSubmenuBackground,
+    submenuBorder: builderSettings.colorSubmenuBorder,
+    submenuHeading: builderSettings.colorSubmenuHeading,
+    submenuText: builderSettings.colorSubmenuText,
+    submenuTextHover: builderSettings.colorSubmenuTextHover,
+    submenuDescription: builderSettings.colorSubmenuDescription,
+    submenuDescriptionHover: builderSettings.colorSubmenuDescriptionHover,
+    buttonText: builderSettings.colorButtonText,
+    buttonBackground: builderSettings.colorButtonBackground,
+    buttonBackgroundHover: builderSettings.colorButtonBackgroundHover,
+    buttonTextHover: builderSettings.colorButtonTextHover,
+  };
   const dropdownOverflowY =
     previewMode === "mobile"
       ? builderSettings.submenuEnableMobileScroll
@@ -1925,6 +2230,7 @@ export default function MenuBuilder() {
         <main className="flex-1 overflow-auto relative" style={{ background: themeSettings.canvasBackground }}>
           <Box padding="600">
             <div
+              className="menucraft-preview"
               style={{
                 maxWidth: previewMode === "mobile" ? 420 : menuMaxWidth ?? 1100,
                 margin: "36px auto 0",
@@ -1932,7 +2238,13 @@ export default function MenuBuilder() {
                 fontFamily: themeSettings.fontFamily,
               }}
             >
-              <div style={{ background: themeSettings.menuBackground, borderRadius: 0, overflow: "visible" }}>
+              {builderSettings.customCss ? (
+                <style
+                  // Intentionally raw to allow advanced selectors in preview.
+                  dangerouslySetInnerHTML={{ __html: builderSettings.customCss }}
+                />
+              ) : null}
+              <div style={{ background: previewColors.mainBackground, borderRadius: 0, overflow: "visible" }}>
                 <div
                   style={{
                     display: "flex",
@@ -1940,11 +2252,22 @@ export default function MenuBuilder() {
                     justifyContent: isVerticalMenu ? "flex-start" : menuAlignmentMap[builderSettings.layoutAlignment],
                     gap: 0,
                     height: isVerticalMenu ? "auto" : builderSettings.spacingMainRowHeight,
-                    color: themeSettings.menuText,
+                    color: previewColors.mainText,
                   }}
                 >
                   {menuItems.map((item) => {
                     const isActive = openMenuId === item.id;
+                    const isHovered = hoveredMenuId === item.id;
+                    const itemBackground = isActive
+                      ? previewColors.tabBackgroundActive
+                      : isHovered
+                        ? previewColors.mainBackgroundHover
+                        : previewColors.mainBackground;
+                    const itemTextColor = isActive
+                      ? previewColors.tabHeadingActive
+                      : isHovered
+                        ? previewColors.mainTextHover
+                        : previewColors.mainText;
                     const isDimmed = Boolean(selectedItemId && activeMenu?.id && activeMenu.id !== item.id);
                     return (
                       <div
@@ -2011,17 +2334,14 @@ export default function MenuBuilder() {
                             lastDragOverIdRef.current = null;
                           }}
                           style={{
-                            background:
-                              isActive || hoveredMenuId === item.id
-                                ? "rgba(255,255,255,0.12)"
-                                : themeSettings.menuBackground,
+                            background: itemBackground,
                             borderRight:
                               showDividers && !isVerticalMenu
-                                ? "1px solid rgba(255,255,255,0.12)"
+                                ? `1px solid ${previewColors.mainDivider}`
                                 : "none",
                             borderBottom:
                               showDividers && isVerticalMenu
-                                ? "1px solid rgba(255,255,255,0.12)"
+                                ? `1px solid ${previewColors.mainDivider}`
                                 : "none",
                             borderRadius: 0,
                             height: isVerticalMenu
@@ -2032,7 +2352,7 @@ export default function MenuBuilder() {
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 6,
-                            color: themeSettings.menuText,
+                            color: itemTextColor,
                             opacity: isDimmed ? 0.5 : 1,
                             cursor: "grab",
                           }}
@@ -2047,7 +2367,7 @@ export default function MenuBuilder() {
                           </span>
                           {builderSettings.elementsShowIndicators && item.children?.length ? (
                             <span style={{ display: "inline-flex" }}>
-                              <ChevronDownIcon width="14" height="14" fill={themeSettings.menuText} />
+                              <ChevronDownIcon width="14" height="14" fill={itemTextColor} />
                             </span>
                           ) : null}
                         </button>
@@ -2072,8 +2392,8 @@ export default function MenuBuilder() {
                                 minWidth: 180,
                                 borderRadius: 0,
                                 border: "1px dashed #cbd5e1",
-                                background: themeSettings.dropdownBackground,
-                                color: themeSettings.dropdownText,
+                                background: previewColors.submenuBackground,
+                                color: previewColors.submenuText,
                                 fontSize: 14,
                                 fontWeight: 500,
                                 whiteSpace: "nowrap",
@@ -2091,27 +2411,29 @@ export default function MenuBuilder() {
                     type="button"
                     onClick={() => handleAddRoot()}
                     style={{
-                      color: themeSettings.menuText,
+                      color: previewColors.mainText,
                       height: isVerticalMenu ? builderSettings.spacingMainRowHeight : "100%",
                       minWidth: isVerticalMenu ? "100%" : 50,
                       padding: isVerticalMenu ? "0 12px" : "0 18px",
                       borderRight:
                         showDividers && !isVerticalMenu
-                          ? "1px solid rgba(255,255,255,0.12)"
+                          ? `1px solid ${previewColors.mainDivider}`
                           : "none",
                       borderBottom:
                         showDividers && isVerticalMenu
-                          ? "1px solid rgba(255,255,255,0.12)"
+                          ? `1px solid ${previewColors.mainDivider}`
                           : "none",
                       borderRadius: 0,
-                      background: themeSettings.menuBackground,
+                      background: previewColors.mainBackground,
                       transition: "background 150ms ease",
                     }}
                     onMouseEnter={(event) => {
-                      event.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                      event.currentTarget.style.background = previewColors.mainBackgroundHover;
+                      event.currentTarget.style.color = previewColors.mainTextHover;
                     }}
                     onMouseLeave={(event) => {
-                      event.currentTarget.style.background = themeSettings.menuBackground;
+                      event.currentTarget.style.background = previewColors.mainBackground;
+                      event.currentTarget.style.color = previewColors.mainText;
                     }}
                   >
                     +
@@ -2127,12 +2449,13 @@ export default function MenuBuilder() {
                         width: isVerticalMenu ? "100%" : 50,
                         borderLeft:
                           showDividers && !isVerticalMenu
-                            ? "1px solid rgba(255,255,255,0.12)"
+                            ? `1px solid ${previewColors.mainDivider}`
                             : "none",
                         borderTop:
                           showDividers && isVerticalMenu
-                            ? "1px solid rgba(255,255,255,0.12)"
+                            ? `1px solid ${previewColors.mainDivider}`
                             : "none",
+                        color: previewColors.mainText,
                       }}
                     >
                       <SearchIcon width="18" height="18" />
@@ -2144,8 +2467,10 @@ export default function MenuBuilder() {
               {dropdownGroups.length > 0 && (
                 <div
                   style={{
-                    background: themeSettings.dropdownBackground,
-                    border: builderSettings.submenuShowBorder ? "1px solid #e5e7eb" : "none",
+                    background: previewColors.submenuBackground,
+                    border: builderSettings.submenuShowBorder
+                      ? `1px solid ${previewColors.submenuBorder}`
+                      : "none",
                     borderRadius: 12,
                     marginTop: 16,
                     padding: "20px 24px",
@@ -2163,12 +2488,12 @@ export default function MenuBuilder() {
                     transition: `opacity ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms, transform ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms`,
                   }}
                 >
-                  <div
+                    <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
                       gap: 24,
-                      color: themeSettings.dropdownText,
+                      color: previewColors.submenuText,
                     }}
                   >
                     {dropdownGroups.map((group) => {
@@ -2192,7 +2517,7 @@ export default function MenuBuilder() {
                             <Text as="h3" variant="headingSm" fontWeight="semibold">
                               <span
                                 style={{
-                                  color: themeSettings.dropdownHeading,
+                                  color: previewColors.submenuHeading,
                                   ...subheadingTypography,
                                   lineHeight: 1.2,
                                 }}
@@ -2210,6 +2535,12 @@ export default function MenuBuilder() {
                                   key={child.id}
                                   type="button"
                                   onClick={() => handleSelectItem(child.id)}
+                                  onMouseEnter={(event) => {
+                                    event.currentTarget.style.color = previewColors.submenuTextHover;
+                                  }}
+                                  onMouseLeave={(event) => {
+                                    event.currentTarget.style.color = previewColors.submenuText;
+                                  }}
                                   style={{
                                     textAlign: "left",
                                     border: isChildSelected
@@ -2219,7 +2550,7 @@ export default function MenuBuilder() {
                                     padding: "6px 8px",
                                     minHeight: builderSettings.spacingLinkListRowHeight,
                                     background: "transparent",
-                                    color: themeSettings.dropdownText,
+                                    color: previewColors.submenuText,
                                     ...subtextTypography,
                                     lineHeight: 1.2,
                                   }}
@@ -2235,7 +2566,14 @@ export default function MenuBuilder() {
                               onClick={() => handleAddChild(group.id, "item")}
                               style={{
                                 minHeight: builderSettings.spacingLinkListRowHeight,
+                                color: previewColors.submenuDescription,
                                 ...descriptionTypography,
+                              }}
+                              onMouseEnter={(event) => {
+                                event.currentTarget.style.color = previewColors.submenuDescriptionHover;
+                              }}
+                              onMouseLeave={(event) => {
+                                event.currentTarget.style.color = previewColors.submenuDescription;
                               }}
                             >
                               Add item
@@ -2251,7 +2589,13 @@ export default function MenuBuilder() {
                         variant="secondary"
                         icon={PlusIcon}
                         onClick={() => activeMenu && handleAddChild(activeMenu.id, "group")}
-                        style={descriptionTypography}
+                        style={{ color: previewColors.submenuDescription, ...descriptionTypography }}
+                        onMouseEnter={(event) => {
+                          event.currentTarget.style.color = previewColors.submenuDescriptionHover;
+                        }}
+                        onMouseLeave={(event) => {
+                          event.currentTarget.style.color = previewColors.submenuDescription;
+                        }}
                       >
                         Add block
                       </Button>

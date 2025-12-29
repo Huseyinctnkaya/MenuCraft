@@ -303,6 +303,24 @@ type MenuItem = {
   children?: MenuItem[];
   description?: string;
   icon?: string;
+  openInNewTab?: boolean;
+  hideOnDesktop?: boolean;
+  hideOnMobile?: boolean;
+  hideWhenLoggedIn?: boolean;
+  showWhenLoggedOut?: boolean;
+  schedulePublish?: boolean;
+  extraClassName?: string;
+  badgeEnabled?: boolean;
+  badgeText?: string;
+  customTextColor?: string;
+  customBackgroundColor?: string;
+  customTextHoverColor?: string;
+  customBackgroundHoverColor?: string;
+  submenuType?: "mega" | "dropdown";
+  submenuWidth?: "full" | "content";
+  submenuContentAlign?: "left" | "center" | "right";
+  submenuBackgroundColor?: string;
+  submenuBackgroundImage?: string;
 };
 
 type AddableItem = {
@@ -322,6 +340,7 @@ type CustomAddItem = {
 type IconPickerState = {
   itemId: string;
   mode: "library" | "upload";
+  target: "custom" | "edit";
 };
 
 type RailPanel = "menu" | "settings" | "typography" | "colors" | "code";
@@ -784,6 +803,8 @@ export default function MenuBuilder() {
   );
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [hoveredMenuId, setHoveredMenuId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<MenuItem | null>(null);
+  const hoverClearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [draggedParentId, setDraggedParentId] = useState<string | null>(null);
   const itemRowRefs = useRef(new Map<string, HTMLDivElement>());
@@ -822,6 +843,9 @@ export default function MenuBuilder() {
   const [fontPickerWeight, setFontPickerWeight] = useState("400");
   const [iconPickerState, setIconPickerState] = useState<IconPickerState | null>(null);
   const [iconPickerSearch, setIconPickerSearch] = useState("");
+  const [submenuImagePickerOpen, setSubmenuImagePickerOpen] = useState(false);
+  const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
+  const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
   const [openColorPicker, setOpenColorPicker] = useState<keyof BuilderSettings | null>(null);
   const [colorPickerHsb, setColorPickerHsb] = useState<HsbColor | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -853,6 +877,18 @@ export default function MenuBuilder() {
     () => (openMenuId ? menuItems.find((item) => item.id === openMenuId) ?? null : null),
     [menuItems, openMenuId]
   );
+
+  useEffect(() => {
+    if (menuView !== "edit") {
+      setEditDraft(null);
+      return;
+    }
+    if (!selectedItem) {
+      setEditDraft(null);
+      return;
+    }
+    setEditDraft((prev) => (prev?.id === selectedItem.id ? prev : { ...selectedItem }));
+  }, [menuView, selectedItem?.id]);
 
   const updateBuilderSetting = <K extends keyof BuilderSettings>(
     key: K,
@@ -891,8 +927,104 @@ export default function MenuBuilder() {
     }
   };
 
-  const openIconPicker = (itemId: string, mode: IconPickerState["mode"]) => {
-    setIconPickerState({ itemId, mode });
+  const handlePreviewHoverStart = (id: string) => {
+    if (hoverClearTimeoutRef.current) {
+      clearTimeout(hoverClearTimeoutRef.current);
+      hoverClearTimeoutRef.current = null;
+    }
+    setHoveredMenuId(id);
+  };
+
+  const handlePreviewHoverEnd = () => {
+    if (hoverClearTimeoutRef.current) {
+      clearTimeout(hoverClearTimeoutRef.current);
+    }
+    hoverClearTimeoutRef.current = setTimeout(() => {
+      setHoveredMenuId(null);
+      hoverClearTimeoutRef.current = null;
+    }, 120);
+  };
+
+  const handleSubmenuBackgroundUpload = (file?: File | null) => {
+    if (!selectedItemId || !file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      if (!result) return;
+      if (menuView === "edit") {
+        updateEditDraft("submenuBackgroundImage", result);
+      } else {
+        handleUpdateSelected("submenuBackgroundImage", result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const renderSubmenuImagePickerPanel = () => {
+    if (!submenuImagePickerOpen) return null;
+    return (
+      <Card padding="0">
+        <div className="flex min-h-[560px] flex-col">
+          <div className="border-b border-gray-200 px-4 py-3">
+            <InlineStack gap="200" blockAlign="center">
+              <Button
+                variant="tertiary"
+                icon={ArrowLeftIcon}
+                onClick={() => setSubmenuImagePickerOpen(false)}
+                accessibilityLabel="Back"
+              />
+              <Text as="h2" variant="headingSm">
+                Images
+              </Text>
+            </InlineStack>
+          </div>
+          <div className="flex-1 px-4 py-4">
+            <label
+              className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                handleSubmenuBackgroundUpload(event.dataTransfer.files?.[0]);
+                setSubmenuImagePickerOpen(false);
+              }}
+            >
+              <Button
+                variant="tertiary"
+                onClick={(event) => {
+                  event.preventDefault();
+                  const input = event.currentTarget
+                    .closest("label")
+                    ?.querySelector("input[type=file]") as HTMLInputElement | null;
+                  input?.click();
+                }}
+              >
+                Add image
+              </Button>
+              <Text as="p" variant="bodySm" tone="subdued">
+                Drag and drop your image
+              </Text>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                  handleSubmenuBackgroundUpload(event.target.files?.[0] ?? null);
+                  setSubmenuImagePickerOpen(false);
+                }}
+              />
+            </label>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  const openIconPicker = (
+    target: IconPickerState["target"],
+    itemId: string,
+    mode: IconPickerState["mode"]
+  ) => {
+    setIconPickerState({ itemId, mode, target });
     setIconPickerSearch("");
     setLinkPickerOpenId(null);
   };
@@ -951,13 +1083,29 @@ export default function MenuBuilder() {
     return null;
   };
 
-  const handleIconUploadFile = (itemId: string, file?: File | null) => {
+  const handleIconUploadFile = (
+    itemId: string,
+    file: File | null | undefined,
+    target: IconPickerState["target"]
+  ) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const result = typeof reader.result === "string" ? reader.result : "";
       if (!result) return;
-      updateCustomItem(itemId, { icon: result });
+      if (target === "custom") {
+        updateCustomItem(itemId, { icon: result });
+      } else {
+        setEditDraft((prev) => {
+          if (prev && prev.id === itemId) {
+            return { ...prev, icon: result };
+          }
+          if (selectedItem?.id === itemId) {
+            return { ...selectedItem, icon: result };
+          }
+          return prev;
+        });
+      }
       closeIconPicker();
     };
     reader.readAsDataURL(file);
@@ -965,13 +1113,34 @@ export default function MenuBuilder() {
 
   const renderIconLibraryPanel = () => {
     if (!iconPickerState || iconPickerState.mode !== "library") return null;
-    const item = customItems.find((entry) => entry.id === iconPickerState.itemId);
-    const selectedIconId = item?.icon?.startsWith(ICON_PREFIX)
-      ? item.icon.slice(ICON_PREFIX.length)
+    const selectedItemIcon =
+      iconPickerState.target === "custom"
+        ? customItems.find((entry) => entry.id === iconPickerState.itemId)?.icon
+        : editDraft?.id === iconPickerState.itemId
+          ? editDraft.icon
+          : findItemPath(menuItems, iconPickerState.itemId)?.slice(-1)[0]?.icon;
+    const selectedIconId = selectedItemIcon?.startsWith(ICON_PREFIX)
+      ? selectedItemIcon.slice(ICON_PREFIX.length)
       : null;
     const filteredIcons = ICON_LIBRARY.filter((option) =>
       option.label.toLowerCase().includes(iconPickerSearch.trim().toLowerCase())
     );
+
+    const applyIconSelection = (iconValue: string) => {
+      if (iconPickerState.target === "custom") {
+        updateCustomItem(iconPickerState.itemId, { icon: iconValue });
+      } else {
+        setEditDraft((prev) => {
+          if (prev && prev.id === iconPickerState.itemId) {
+            return { ...prev, icon: iconValue };
+          }
+          if (selectedItem?.id === iconPickerState.itemId) {
+            return { ...selectedItem, icon: iconValue };
+          }
+          return prev;
+        });
+      }
+    };
 
     return (
       <div className="flex min-h-[560px] flex-col">
@@ -1008,7 +1177,7 @@ export default function MenuBuilder() {
                   key={option.id}
                   type="button"
                   onClick={() => {
-                    updateCustomItem(iconPickerState.itemId, { icon: `${ICON_PREFIX}${option.id}` });
+                    applyIconSelection(`${ICON_PREFIX}${option.id}`);
                     closeIconPicker();
                   }}
                   className={`flex h-10 w-10 items-center justify-center rounded-md border ${
@@ -1050,7 +1219,7 @@ export default function MenuBuilder() {
             onDrop={(event) => {
               event.preventDefault();
               const file = event.dataTransfer.files?.[0];
-              handleIconUploadFile(iconPickerState.itemId, file);
+              handleIconUploadFile(iconPickerState.itemId, file, iconPickerState.target);
             }}
           >
             <Button
@@ -1073,7 +1242,11 @@ export default function MenuBuilder() {
               accept="image/*"
               className="hidden"
               onChange={(event) =>
-                handleIconUploadFile(iconPickerState.itemId, event.target.files?.[0] ?? null)
+                handleIconUploadFile(
+                  iconPickerState.itemId,
+                  event.target.files?.[0] ?? null,
+                  iconPickerState.target
+                )
               }
             />
           </label>
@@ -1156,6 +1329,11 @@ export default function MenuBuilder() {
     };
   }, [linkPickerOpenId]);
 
+  useEffect(() => {
+    setSubmenuColorPickerOpen(false);
+    setSubmenuColorPickerHsb(null);
+  }, [selectedItemId]);
+
   const toggleColorPicker = (key: keyof BuilderSettings) => {
     setOpenColorPicker((prev) => {
       if (prev === key) {
@@ -1224,9 +1402,19 @@ export default function MenuBuilder() {
     setMenuItems((items) => updateItemById(items, id, (item) => ({ ...item, expanded: !item.expanded })));
   };
 
-  const handleUpdateSelected = (key: "label" | "url", value: string) => {
+  const handleUpdateSelected = <K extends keyof MenuItem>(key: K, value: MenuItem[K]) => {
     if (!selectedItemId) return;
     setMenuItems((items) => updateItemById(items, selectedItemId, (item) => ({ ...item, [key]: value })));
+  };
+
+  const updateEditDraft = <K extends keyof MenuItem>(key: K, value: MenuItem[K]) => {
+    setEditDraft((prev) => {
+      if (prev) {
+        return { ...prev, [key]: value };
+      }
+      if (!selectedItem) return prev;
+      return { ...selectedItem, [key]: value };
+    });
   };
 
   const handleAddRoot = (openEdit = false) => {
@@ -1266,6 +1454,7 @@ export default function MenuBuilder() {
   };
 
   const handleOpenAddRoot = () => {
+    setActivePanel("menu");
     setMenuView("add-root");
     resetAddItemsState();
   };
@@ -1405,8 +1594,8 @@ export default function MenuBuilder() {
   const renderMenuTree = (item: MenuItem, depth: number = 0) => {
     const isSelected = selectedItemId === item.id;
     const hasChildren = Boolean(item.children?.length);
-    const isExpanded = Boolean(item.expanded);
-    const showToggle = item.role === "menu" || hasChildren;
+    const isExpanded = item.expanded ?? item.role !== "item";
+    const showToggle = item.role !== "item";
     const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
 
     return (
@@ -1523,7 +1712,7 @@ export default function MenuBuilder() {
           {item.role !== "item" && isExpanded && (
             <Box>
               <div className="ml-1 border-l border-dashed border-gray-300/70 pl-5">
-                <BlockStack gap="300">
+                <BlockStack>
                   {hasChildren
                     ? item.children?.map((child) => renderMenuTree(child, depth + 1))
                     : null}
@@ -1565,13 +1754,30 @@ export default function MenuBuilder() {
 
   const renderMenuPanel = () => {
     if (menuView === "edit" && selectedItem) {
+      const editingItem = editDraft ?? selectedItem;
+      if (iconPickerState?.target === "edit") {
+        return (
+          <Card padding="0">
+            {iconPickerState.mode === "library" ? renderIconLibraryPanel() : renderIconUploadPanel()}
+          </Card>
+        );
+      }
+      if (submenuImagePickerOpen) {
+        return renderSubmenuImagePickerPanel();
+      }
       return (
         <Card padding="400">
           <BlockStack gap="400">
             <InlineStack gap="200" blockAlign="center">
-              <Button variant="plain" icon={ArrowLeftIcon} onClick={() => setMenuView("list")}>
-                Back
-              </Button>
+              <Button
+                variant="plain"
+                icon={ArrowLeftIcon}
+                onClick={() => {
+                  setEditDraft(null);
+                  setMenuView("list");
+                }}
+                accessibilityLabel="Back"
+              />
               <Text as="h2" variant="headingMd">
                 Edit item
               </Text>
@@ -1579,48 +1785,352 @@ export default function MenuBuilder() {
 
             <Divider />
 
-            <BlockStack gap="300">
-              <Text as="h3" variant="headingSm">
-                General
-              </Text>
-              <TextField
-                label="Label"
-                value={selectedItem.label}
-                onChange={(value) => handleUpdateSelected("label", value)}
-                autoComplete="off"
-              />
-              <TextField
-                label="Link"
-                value={selectedItem.url}
-                onChange={(value) => handleUpdateSelected("url", value)}
-                autoComplete="off"
-                placeholder="https://"
-              />
-              <Checkbox label="Open in new tab" checked={false} onChange={() => {}} />
-            </BlockStack>
+            <BlockStack gap="400">
+              <BlockStack gap="300">
+                <Text as="h3" variant="headingSm">
+                  General
+                </Text>
+                <BlockStack gap="200">
+                  <Text as="h4" variant="headingSm">
+                    Icon
+                  </Text>
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      {editingItem.icon ? (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                          {resolveCustomIconPreview(editingItem.icon)}
+                        </div>
+                      ) : null}
+                      <InlineStack align="center" blockAlign="center" gap="200">
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("edit", editingItem.id, "library")}
+                        >
+                          Select icon
+                        </button>
+                        <Text as="span" variant="bodySm" tone="subdued">
+                          or
+                        </Text>
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("edit", editingItem.id, "upload")}
+                        >
+                          Upload icon
+                        </button>
+                      </InlineStack>
+                    </div>
+                  </div>
+                </BlockStack>
+                <TextField
+                  label="Title"
+                  value={editingItem.label}
+                  onChange={(value) => updateEditDraft("label", value)}
+                  autoComplete="off"
+                />
+                <div dir="ltr" className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <TextField
+                      label="Link"
+                      value={editingItem.url}
+                      onChange={(value) => updateEditDraft("url", value)}
+                      autoComplete="off"
+                      placeholder="Search or paste a link"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Clear link"
+                    onClick={() => updateEditDraft("url", "")}
+                    className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  >
+                    <span className="text-base leading-none">×</span>
+                  </button>
+                </div>
+                <Checkbox
+                  label="Open in new tab"
+                  checked={Boolean(editingItem.openInNewTab)}
+                  onChange={(value) => updateEditDraft("openInNewTab", value)}
+                />
+                <TextField
+                  label="Description"
+                  value={editingItem.description ?? ""}
+                  onChange={(value) => updateEditDraft("description", value)}
+                  autoComplete="off"
+                />
+              </BlockStack>
 
-            <BlockStack gap="300">
-              <Text as="h3" variant="headingSm">
-                Appearance
-              </Text>
-              <Select
-                label="Item style"
-                options={[
-                  { label: "Default", value: "default" },
-                  { label: "Highlight", value: "highlight" },
-                  { label: "Badge", value: "badge" },
-                ]}
-                onChange={() => {}}
-                value="default"
-              />
-              <TextField label="Badge text" value="" onChange={() => {}} autoComplete="off" />
+              <Divider />
+
+              <BlockStack gap="300">
+                <InlineStack align="space-between" blockAlign="center">
+                  <Text as="h3" variant="headingSm">
+                    Colors
+                  </Text>
+                  <button
+                    type="button"
+                    className="text-sm text-gray-400"
+                    disabled
+                  >
+                    Clear settings
+                  </button>
+                </InlineStack>
+                <div className="relative rounded-lg border border-gray-200 p-3">
+                  <div className="pointer-events-none opacity-50">
+                    {[
+                      "Text color",
+                      "Background color",
+                      "Hover text color",
+                      "Hover background color",
+                    ].map((label) => (
+                      <div key={label} className="flex items-center justify-between py-2">
+                        <div className="flex items-center gap-3">
+                          <span className="h-6 w-6 rounded-full border border-gray-300 bg-white" />
+                          <Text as="span" variant="bodySm">
+                            {label}
+                          </Text>
+                        </div>
+                        <Text as="span" variant="bodySm" tone="subdued">
+                          Transparent
+                        </Text>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="pt-2 text-sm text-gray-500">Available on the Pro plan</p>
+                </div>
+              </BlockStack>
+
+              <Divider />
+
+              <BlockStack gap="300">
+                <InlineStack align="space-between" blockAlign="center">
+                  <Text as="h3" variant="headingSm">
+                    Badge
+                  </Text>
+                  <div className="flex h-6 w-10 items-center rounded-full bg-gray-200 px-0.5">
+                    <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
+                  </div>
+                </InlineStack>
+                <Text as="p" variant="bodySm" tone="subdued">
+                  Available on the Pro plan
+                </Text>
+              </BlockStack>
+
+              {editingItem.role === "menu" && editingItem.children?.length ? (
+                <>
+                  <Divider />
+                  <BlockStack gap="300">
+                    <Text as="h3" variant="headingSm">
+                      Submenu
+                    </Text>
+                    <Select
+                      label="Type"
+                      options={[
+                        { label: "Mega", value: "mega" },
+                        { label: "Dropdown", value: "dropdown" },
+                      ]}
+                      value={editingItem.submenuType ?? "mega"}
+                      onChange={(value) => updateEditDraft("submenuType", value as MenuItem["submenuType"])}
+                    />
+                    <Select
+                      label="Width + alignment"
+                      options={[
+                        { label: "Full width", value: "full" },
+                        { label: "Content width", value: "content" },
+                      ]}
+                      value={editingItem.submenuWidth ?? "full"}
+                      onChange={(value) =>
+                        updateEditDraft("submenuWidth", value as MenuItem["submenuWidth"])
+                      }
+                    />
+                    <Select
+                      label="Content alignment"
+                      options={[
+                        { label: "Left", value: "left" },
+                        { label: "Center", value: "center" },
+                        { label: "Right", value: "right" },
+                      ]}
+                      value={editingItem.submenuContentAlign ?? "center"}
+                      onChange={(value) =>
+                        updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"])
+                      }
+                    />
+                    <div className="relative">
+                      <InlineStack gap="400" blockAlign="center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSubmenuColorPickerOpen((prev) => {
+                              const next = !prev;
+                              if (next) {
+                                const current = editingItem.submenuBackgroundColor || "#FFFFFF";
+                                setSubmenuColorPickerHsb(hexToHsb(current));
+                              } else {
+                                setSubmenuColorPickerHsb(null);
+                              }
+                              return next;
+                            });
+                          }}
+                          className={`h-10 w-10 rounded-full border-2 shadow-sm ${
+                            submenuColorPickerOpen
+                              ? "border-blue-500 ring-2 ring-blue-500/30"
+                              : "border-gray-300"
+                          }`}
+                          style={{
+                            backgroundColor: editingItem.submenuBackgroundColor || "transparent",
+                            backgroundImage: editingItem.submenuBackgroundColor
+                              ? undefined
+                              : "linear-gradient(45deg,#e5e7eb 25%,transparent 25%),linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e7eb 75%),linear-gradient(-45deg,transparent 75%,#e5e7eb 75%)",
+                            backgroundSize: "10px 10px",
+                            backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
+                          }}
+                          aria-label="Background color"
+                        />
+                        <BlockStack gap="100">
+                          <Text as="p" variant="bodyMd">
+                            Background color
+                          </Text>
+                          <Text as="p" variant="bodySm" tone="subdued">
+                            {editingItem.submenuBackgroundColor
+                              ? editingItem.submenuBackgroundColor.toUpperCase()
+                              : "Transparent"}
+                          </Text>
+                        </BlockStack>
+                      </InlineStack>
+                      {submenuColorPickerOpen && (
+                        <div
+                          className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
+                          onMouseDown={(event) => event.stopPropagation()}
+                        >
+                          <BlockStack gap="200">
+                            <ColorPicker
+                              color={submenuColorPickerHsb ?? hexToHsb("#FFFFFF")}
+                              onChange={(color) => {
+                                setSubmenuColorPickerHsb({ ...color });
+                                updateEditDraft("submenuBackgroundColor", hsbToHex(color));
+                              }}
+                            />
+                            <TextField
+                              label="Hex"
+                              labelHidden
+                              value={
+                                submenuColorPickerHsb
+                                  ? hsbToHex(submenuColorPickerHsb)
+                                  : editingItem.submenuBackgroundColor || "#FFFFFF"
+                              }
+                              onChange={(next) => {
+                                const normalized = normalizeHexInput(next);
+                                updateEditDraft("submenuBackgroundColor", normalized);
+                                setSubmenuColorPickerHsb(hexToHsb(normalized));
+                              }}
+                              autoComplete="off"
+                            />
+                          </BlockStack>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        Background image
+                      </Text>
+                      <button
+                        type="button"
+                        onClick={() => setSubmenuImagePickerOpen(true)}
+                        className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50"
+                      >
+                        <span className="rounded-full border border-gray-900 bg-gray-900 px-4 py-1 text-sm font-medium text-white shadow-sm">
+                          Select photo
+                        </span>
+                      </button>
+                      {editingItem.submenuBackgroundImage ? (
+                        <div className="mt-2">
+                          <img
+                            src={editingItem.submenuBackgroundImage}
+                            alt=""
+                            className="h-20 w-full rounded-md object-cover"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  </BlockStack>
+                </>
+              ) : null}
+
+              <Divider />
+
+              <BlockStack gap="300">
+                <Text as="h3" variant="headingSm">
+                  Visibility
+                </Text>
+                <Checkbox
+                  label="Hide on desktop"
+                  checked={Boolean(editingItem.hideOnDesktop)}
+                  onChange={(value) => updateEditDraft("hideOnDesktop", value)}
+                />
+                <Checkbox
+                  label="Hide on mobile"
+                  checked={Boolean(editingItem.hideOnMobile)}
+                  onChange={(value) => updateEditDraft("hideOnMobile", value)}
+                />
+                <Checkbox
+                  label="Hide when logged in"
+                  checked={Boolean(editingItem.hideWhenLoggedIn)}
+                  onChange={(value) => updateEditDraft("hideWhenLoggedIn", value)}
+                />
+                <Checkbox
+                  label="Show only when logged out"
+                  checked={Boolean(editingItem.showWhenLoggedOut)}
+                  onChange={(value) => updateEditDraft("showWhenLoggedOut", value)}
+                />
+                <Checkbox
+                  label="Publish scheduling"
+                  checked={Boolean(editingItem.schedulePublish)}
+                  onChange={(value) => updateEditDraft("schedulePublish", value)}
+                />
+              </BlockStack>
+
+              <Divider />
+
+              <BlockStack gap="300">
+                <Text as="h3" variant="headingSm">
+                  Advanced
+                </Text>
+                <TextField
+                  label="Extra class name"
+                  value={editingItem.extraClassName ?? ""}
+                  onChange={(value) => updateEditDraft("extraClassName", value)}
+                  autoComplete="off"
+                />
+              </BlockStack>
             </BlockStack>
 
             <Divider />
 
             <InlineStack align="end" gap="200">
-              <Button variant="tertiary" onClick={() => setMenuView("list")}>Cancel</Button>
-              <Button variant="primary">Apply changes</Button>
+              <Button
+                variant="tertiary"
+                onClick={() => {
+                  setEditDraft(null);
+                  setMenuView("list");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  if (editDraft && selectedItemId) {
+                    setMenuItems((items) =>
+                      updateItemById(items, selectedItemId, () => ({ ...editDraft }))
+                    );
+                  }
+                  setEditDraft(null);
+                  setMenuView("list");
+                }}
+              >
+                Apply changes
+              </Button>
             </InlineStack>
           </BlockStack>
         </Card>
@@ -1664,9 +2174,12 @@ export default function MenuBuilder() {
           <BlockStack gap="0">
             <Box padding="400">
               <InlineStack gap="200" blockAlign="center">
-                <Button variant="plain" icon={ArrowLeftIcon} onClick={handleCloseAddRoot}>
-                  Back
-                </Button>
+                <Button
+                  variant="plain"
+                  icon={ArrowLeftIcon}
+                  onClick={handleCloseAddRoot}
+                  accessibilityLabel="Back"
+                />
                 <Text as="h2" variant="headingMd">
                   Create menu items
                 </Text>
@@ -1777,7 +2290,7 @@ export default function MenuBuilder() {
                                     <button
                                       type="button"
                                       className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                                      onClick={() => openIconPicker(item.id, "library")}
+                                      onClick={() => openIconPicker("custom", item.id, "library")}
                                     >
                                       Select icon
                                     </button>
@@ -1787,7 +2300,7 @@ export default function MenuBuilder() {
                                     <button
                                       type="button"
                                       className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                                      onClick={() => openIconPicker(item.id, "upload")}
+                                      onClick={() => openIconPicker("custom", item.id, "upload")}
                                     >
                                       Upload icon
                                     </button>
@@ -1892,7 +2405,7 @@ export default function MenuBuilder() {
               {menuItems.map((item) => renderMenuTree(item))}
             </BlockStack>
           </div>
-          <Box paddingBlockStart="200">
+          <Box>
             <button
               type="button"
               onClick={handleOpenAddRoot}
@@ -3011,11 +3524,15 @@ export default function MenuBuilder() {
                       <div
                         key={item.id}
                         className="relative inline-flex"
-                        onMouseEnter={() => setHoveredMenuId(item.id)}
-                        onMouseLeave={() => setHoveredMenuId(null)}
+                        onMouseEnter={() => handlePreviewHoverStart(item.id)}
+                        onMouseLeave={handlePreviewHoverEnd}
                       >
                         {hoveredMenuId === item.id && (
-                          <div className="absolute -top-10 left-0 z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md">
+                          <div
+                            className="absolute -top-10 left-0 z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md"
+                            onMouseEnter={() => handlePreviewHoverStart(item.id)}
+                            onMouseLeave={handlePreviewHoverEnd}
+                          >
                             <button
                               type="button"
                               onClick={() => handleSelectItem(item.id, true)}
@@ -3155,7 +3672,7 @@ export default function MenuBuilder() {
                   })}
                   <button
                     type="button"
-                    onClick={() => handleAddRoot()}
+                    onClick={handleOpenAddRoot}
                     style={{
                       color: previewColors.mainText,
                       height: isVerticalMenu ? builderSettings.spacingMainRowHeight : "100%",

@@ -3231,7 +3231,11 @@ export default function MenuBuilder() {
     right: "flex-end",
     center: "center",
   };
-  const isVerticalMenu = builderSettings.layoutOrientation === "vertical";
+  const isMobilePreview = previewMode === "mobile";
+  const isVerticalMenu = isMobilePreview || builderSettings.layoutOrientation === "vertical";
+  const menuRowHeight = isMobilePreview
+    ? Math.max(builderSettings.spacingMainRowHeight, 64)
+    : builderSettings.spacingMainRowHeight;
   const showDividers =
     previewMode === "mobile"
       ? builderSettings.elementsShowMobileDivider
@@ -3484,7 +3488,7 @@ export default function MenuBuilder() {
             <div
               className="menucraft-preview"
               style={{
-                maxWidth: previewMode === "mobile" ? 420 : menuMaxWidth ?? 1100,
+                maxWidth: previewMode === "mobile" ? 520 : menuMaxWidth ?? 1100,
                 margin: "36px auto 0",
                 padding: "0 32px",
                 fontFamily: themeSettings.fontFamily,
@@ -3496,6 +3500,23 @@ export default function MenuBuilder() {
                   dangerouslySetInnerHTML={{ __html: builderSettings.customCss }}
                 />
               ) : null}
+              {builderSettings.elementsShowSearch && isMobilePreview ? (
+                <div
+                  style={{
+                    background: "#ffffff",
+                    color: "#1f2937",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "14px 20px",
+                    borderRadius: 0,
+                  }}
+                >
+                  <span style={{ color: "#6b7280", fontSize: 18 }}>Search for...</span>
+                  <span style={{ marginLeft: "auto", display: "inline-flex", color: "#111827" }}>
+                    <SearchIcon width="18" height="18" fill="#111827" />
+                  </span>
+                </div>
+              ) : null}
               <div style={{ background: previewColors.mainBackground, borderRadius: 0, overflow: "visible" }}>
                 <div
                   style={{
@@ -3503,7 +3524,7 @@ export default function MenuBuilder() {
                     flexDirection: isVerticalMenu ? "column" : "row",
                     justifyContent: isVerticalMenu ? "flex-start" : menuAlignmentMap[builderSettings.layoutAlignment],
                     gap: 0,
-                    height: isVerticalMenu ? "auto" : builderSettings.spacingMainRowHeight,
+                    height: isVerticalMenu ? "auto" : menuRowHeight,
                     color: previewColors.mainText,
                   }}
                 >
@@ -3529,7 +3550,16 @@ export default function MenuBuilder() {
                       >
                         {hoveredMenuId === item.id && (
                           <div
-                            className="absolute -top-10 left-0 z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md"
+                            className="absolute z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md"
+                            style={
+                              isMobilePreview
+                                ? {
+                                    top: "50%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -50%)",
+                                  }
+                                : { top: "-40px", left: 0 }
+                            }
                             onMouseEnter={() => handlePreviewHoverStart(item.id)}
                             onMouseLeave={handlePreviewHoverEnd}
                           >
@@ -3599,73 +3629,101 @@ export default function MenuBuilder() {
                                 ? `1px solid ${previewColors.mainDivider}`
                                 : "none",
                             borderRadius: 0,
-                            height: isVerticalMenu
-                              ? builderSettings.spacingMainRowHeight
-                              : "100%",
+                            height: isVerticalMenu ? menuRowHeight : "100%",
                             minWidth: isVerticalMenu ? "100%" : 80,
-                            padding: isVerticalMenu ? "0 12px" : "0 18px",
+                            padding: isVerticalMenu ? (isMobilePreview ? "0 20px" : "0 12px") : "0 18px",
                             display: "inline-flex",
                             alignItems: "center",
+                            justifyContent: isVerticalMenu ? "space-between" : "flex-start",
                             gap: 6,
                             color: itemTextColor,
                             cursor: "grab",
                           }}
                         >
-                          {item.icon ? (
-                            <span style={{ display: "inline-flex", alignItems: "center" }}>
-                              {renderMenuIcon(item.icon, {
-                                size: 14,
-                                color: itemTextColor,
-                                className: "text-current",
-                              })}
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: 1 }}>
+                            {item.icon ? (
+                              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                                {renderMenuIcon(item.icon, {
+                                  size: 14,
+                                  color: itemTextColor,
+                                  className: "text-current",
+                                })}
+                              </span>
+                            ) : null}
+                            <span
+                              style={{
+                                ...(isActive ? tabTypography : mainTypography),
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {item.label}
                             </span>
-                          ) : null}
-                          <span
-                            style={{
-                              ...(isActive ? tabTypography : mainTypography),
-                              lineHeight: 1.2,
-                            }}
-                          >
-                            {item.label}
                           </span>
                           {builderSettings.elementsShowIndicators && item.children?.length ? (
-                            <span style={{ display: "inline-flex" }}>
+                            <span style={{ display: "inline-flex", marginLeft: "auto" }}>
                               <ChevronDownIcon width="14" height="14" fill={itemTextColor} />
                             </span>
                           ) : null}
                         </button>
                         {isActive && dropdownGroups.length === 0 && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              left: 0,
-                              top: "100%",
-                              marginTop: 10,
-                              zIndex: 15,
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleAddChild(item.id, "group")}
+                          isVerticalMenu ? (
+                            <div style={{ width: "100%" }}>
+                              <button
+                                type="button"
+                                onClick={() => handleAddChild(item.id, "group")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 10,
+                                  padding: isMobilePreview ? "16px 18px" : "12px 16px",
+                                  width: "100%",
+                                  borderRadius: 0,
+                                  border: "1px dashed #cbd5e1",
+                                  background: "#ffffff",
+                                  color: "#111827",
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+                                Add submenu
+                              </button>
+                            </div>
+                          ) : (
+                            <div
                               style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 10,
-                                padding: "12px 16px",
-                                minWidth: 180,
-                                borderRadius: 0,
-                                border: "1px dashed #cbd5e1",
-                                background: previewColors.submenuBackground,
-                                color: previewColors.submenuText,
-                                fontSize: 14,
-                                fontWeight: 500,
-                                whiteSpace: "nowrap",
+                                position: "absolute",
+                                left: 0,
+                                top: "100%",
+                                marginTop: 10,
+                                zIndex: 15,
                               }}
                             >
-                              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-                              Add submenu
-                            </button>
-                          </div>
+                              <button
+                                type="button"
+                                onClick={() => handleAddChild(item.id, "group")}
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 10,
+                                  padding: "12px 16px",
+                                  minWidth: 180,
+                                  borderRadius: 0,
+                                  border: "1px dashed #cbd5e1",
+                                  background: previewColors.submenuBackground,
+                                  color: previewColors.submenuText,
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+                                Add submenu
+                              </button>
+                            </div>
+                          )
                         )}
                       </div>
                     );
@@ -3675,7 +3733,7 @@ export default function MenuBuilder() {
                     onClick={handleOpenAddRoot}
                     style={{
                       color: previewColors.mainText,
-                      height: isVerticalMenu ? builderSettings.spacingMainRowHeight : "100%",
+                      height: isVerticalMenu ? menuRowHeight : "100%",
                       minWidth: isVerticalMenu ? "100%" : 50,
                       padding: isVerticalMenu ? "0 12px" : "0 18px",
                       borderRight:
@@ -3689,6 +3747,9 @@ export default function MenuBuilder() {
                       borderRadius: 0,
                       background: previewColors.mainBackground,
                       transition: "background 150ms ease",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: isVerticalMenu ? "center" : "flex-start",
                     }}
                     onMouseEnter={(event) => {
                       event.currentTarget.style.background = previewColors.mainBackgroundHover;
@@ -3701,7 +3762,7 @@ export default function MenuBuilder() {
                   >
                     +
                   </button>
-                  {builderSettings.elementsShowSearch && (
+                  {builderSettings.elementsShowSearch && !isMobilePreview && (
                     <div
                       style={{
                         marginLeft: isVerticalMenu ? 0 : "auto",
@@ -3709,7 +3770,7 @@ export default function MenuBuilder() {
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        height: isVerticalMenu ? builderSettings.spacingMainRowHeight : "100%",
+                        height: isVerticalMenu ? menuRowHeight : "100%",
                         width: isVerticalMenu ? "100%" : 56,
                         borderLeft:
                           showDividers && !isVerticalMenu

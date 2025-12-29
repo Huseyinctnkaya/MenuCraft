@@ -9,14 +9,12 @@ import {
   Menu,
   Palette,
   Settings,
-  Wand2,
 } from "lucide-react";
 
 const navItems = [
   { path: "/app", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/app/analytics", icon: BarChart3, label: "Analytics" },
   { path: "/app/mega-menus", icon: Menu, label: "Mega Menus" },
-  { path: "/app/menu-builder", icon: Wand2, label: "Menu Builder" },
   { path: "/app/templates", icon: LayoutTemplate, label: "Templates" },
   { path: "/app/install-status", icon: Download, label: "Install & Theme Status" },
   { path: "/app/pricing", icon: CreditCard, label: "Pricing & Plans" },
@@ -50,8 +48,6 @@ export default function Sidebar() {
             const Icon = item.icon;
             const isActive =
               location.pathname === item.path ||
-              (item.path === "/app/menu-builder" &&
-                location.pathname.startsWith("/app/menu-builder")) ||
               (item.path === "/app" && location.pathname === "/app");
 
             return (

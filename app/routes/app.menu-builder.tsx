@@ -148,15 +148,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   try {
     const response = await admin.graphql(
-      `query MenuItemPicker($collectionsFirst: Int!, $pagesFirst: Int!, $productsFirst: Int!) {
+      `query MenuItemPicker($collectionsFirst: Int!, $productsFirst: Int!) {
         collections(first: $collectionsFirst, sortKey: TITLE) {
-          nodes {
-            id
-            title
-            handle
-          }
-        }
-        pages(first: $pagesFirst, sortKey: TITLE) {
           nodes {
             id
             title
@@ -174,19 +167,41 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       {
         variables: {
           collectionsFirst: 20,
-          pagesFirst: 20,
           productsFirst: 20,
         },
       }
     );
     const data = await response.json();
     collections = data?.data?.collections?.nodes ?? [];
-    pages = data?.data?.pages?.nodes ?? [];
     products = data?.data?.products?.nodes ?? [];
-  } catch {
+  } catch (error) {
+    console.error("Failed to fetch collections/products", error);
     collections = [];
-    pages = [];
     products = [];
+  }
+
+  try {
+    const response = await admin.graphql(
+      `query MenuPages($first: Int!) {
+        pages(first: $first, sortKey: TITLE) {
+          nodes {
+            id
+            title
+            handle
+          }
+        }
+      }`,
+      {
+        variables: {
+          first: 20,
+        },
+      }
+    );
+    const data = await response.json();
+    pages = data?.data?.pages?.nodes ?? [];
+  } catch (error) {
+    console.error("Failed to fetch pages", error);
+    pages = [];
   }
 
   return json({

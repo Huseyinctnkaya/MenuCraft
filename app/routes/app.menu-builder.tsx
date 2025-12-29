@@ -116,7 +116,7 @@ const buildDefaultMenuItems = (): MenuItem[] => [
 ];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
   const url = new URL(request.url);
   const menuIdParam = url.searchParams.get("id");
@@ -142,6 +142,53 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
   }
 
+  let collections: Array<{ id: string; title: string; handle: string }> = [];
+  let pages: Array<{ id: string; title: string; handle: string }> = [];
+  let products: Array<{ id: string; title: string; handle: string }> = [];
+
+  try {
+    const response = await admin.graphql(
+      `query MenuItemPicker($collectionsFirst: Int!, $pagesFirst: Int!, $productsFirst: Int!) {
+        collections(first: $collectionsFirst, sortKey: TITLE) {
+          nodes {
+            id
+            title
+            handle
+          }
+        }
+        pages(first: $pagesFirst, sortKey: TITLE) {
+          nodes {
+            id
+            title
+            handle
+          }
+        }
+        products(first: $productsFirst, sortKey: TITLE) {
+          nodes {
+            id
+            title
+            handle
+          }
+        }
+      }`,
+      {
+        variables: {
+          collectionsFirst: 20,
+          pagesFirst: 20,
+          productsFirst: 20,
+        },
+      }
+    );
+    const data = await response.json();
+    collections = data?.data?.collections?.nodes ?? [];
+    pages = data?.data?.pages?.nodes ?? [];
+    products = data?.data?.products?.nodes ?? [];
+  } catch {
+    collections = [];
+    pages = [];
+    products = [];
+  }
+
   return json({
     menu: {
       id: menu.id,
@@ -150,6 +197,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
     menuItems: menu.items as MenuItem[],
     menuSettings: (menu.settings as BuilderSettings | null) ?? DEFAULT_BUILDER_SETTINGS,
+    collections,
+    pages,
+    products,
   });
 };
 
@@ -213,6 +263,12 @@ type MenuItem = {
   role: "menu" | "group" | "item";
   expanded?: boolean;
   children?: MenuItem[];
+};
+
+type AddableItem = {
+  id: string;
+  label: string;
+  url: string;
 };
 
 type RailPanel = "menu" | "settings" | "typography" | "colors" | "code";
@@ -658,12 +714,13 @@ const removeItemById = (items: MenuItem[], id: string): MenuItem[] => {
 };
 
 export default function MenuBuilder() {
-  const { menu, menuItems: initialMenuItems, menuSettings } = useLoaderData<typeof loader>();
+  const { menu, menuItems: initialMenuItems, menuSettings, collections, pages, products } =
+    useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
   const saveFetcher = useFetcher<typeof action>();
   const [activePanel, setActivePanel] = useState<RailPanel>("menu");
-  const [menuView, setMenuView] = useState<"list" | "edit">("list");
+  const [menuView, setMenuView] = useState<"list" | "edit" | "add-root">("list");
   const [menuStatus, setMenuStatus] = useState<"active" | "draft">(
     menu.status === "active" ? "active" : "draft"
   );
@@ -708,6 +765,12 @@ export default function MenuBuilder() {
   const [fontPickerWeight, setFontPickerWeight] = useState("400");
   const [openColorPicker, setOpenColorPicker] = useState<keyof BuilderSettings | null>(null);
   const [colorPickerHsb, setColorPickerHsb] = useState<HsbColor | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [addItemsTab, setAddItemsTab] = useState<"select" | "custom">("select");
+  const [addItemsSearch, setAddItemsSearch] = useState("");
+  const [selectedAddItems, setSelectedAddItems] = useState<Record<string, AddableItem>>({});
+  const [customItemLabel, setCustomItemLabel] = useState("");
+  const [customItemUrl, setCustomItemUrl] = useState("");
   const [savedFingerprint, setSavedFingerprint] = useState(() =>
     JSON.stringify({
       status: menu.status,
@@ -846,6 +909,67 @@ export default function MenuBuilder() {
       children: role === "group" ? [] : undefined,
     };
     setMenuItems((items) => addChildById(items, parentId, newItem));
+  };
+
+  const resetAddItemsState = () => {
+    setAddItemsTab("select");
+    setAddItemsSearch("");
+    setSelectedAddItems({});
+    setCustomItemLabel("");
+    setCustomItemUrl("");
+  };
+
+  const handleOpenAddRoot = () => {
+    setMenuView("add-root");
+    resetAddItemsState();
+  };
+
+  const handleCloseAddRoot = () => {
+    setMenuView("list");
+    resetAddItemsState();
+  };
+
+  const toggleSelectableItem = (item: AddableItem) => {
+    setSelectedAddItems((prev) => {
+      const next = { ...prev };
+      if (next[item.id]) {
+        delete next[item.id];
+      } else {
+        next[item.id] = item;
+      }
+      return next;
+    });
+  };
+
+  const handleAddSelectedItems = () => {
+    const items = Object.values(selectedAddItems);
+    if (!items.length) return;
+    const nextItems = items.map((item) => ({
+      id: buildId(),
+      label: item.label,
+      url: item.url,
+      role: "menu" as const,
+    }));
+    setMenuItems((prev) => [...prev, ...nextItems]);
+    setMenuView("list");
+    resetAddItemsState();
+  };
+
+  const handleAddCustomItem = () => {
+    const label = customItemLabel.trim();
+    if (!label) return;
+    const url = customItemUrl.trim() || "/";
+    setMenuItems((prev) => [
+      ...prev,
+      {
+        id: buildId(),
+        label,
+        url,
+        role: "menu" as const,
+      },
+    ]);
+    setMenuView("list");
+    resetAddItemsState();
   };
 
   const handleDuplicateItem = (id: string) => {
@@ -1137,6 +1261,176 @@ export default function MenuBuilder() {
       );
     }
 
+    if (menuView === "add-root") {
+      const staticItems: AddableItem[] = [
+        { id: "static-home", label: "Home", url: "/" },
+        { id: "static-all-collections", label: "All collections", url: "/collections" },
+        { id: "static-all-products", label: "All products", url: "/collections/all" },
+        { id: "static-search", label: "Search", url: "/search" },
+      ];
+      const collectionItems: AddableItem[] = collections.map((collection) => ({
+        id: `collection-${collection.id}`,
+        label: collection.title,
+        url: `/collections/${collection.handle}`,
+      }));
+      const pageItems: AddableItem[] = pages.map((page) => ({
+        id: `page-${page.id}`,
+        label: page.title,
+        url: `/pages/${page.handle}`,
+      }));
+      const productItems: AddableItem[] = products.map((product) => ({
+        id: `product-${product.id}`,
+        label: product.title,
+        url: `/products/${product.handle}`,
+      }));
+      const searchValue = addItemsSearch.trim().toLowerCase();
+      const filterItems = (items: AddableItem[]) =>
+        searchValue ? items.filter((item) => item.label.toLowerCase().includes(searchValue)) : items;
+      const selectedCount = Object.keys(selectedAddItems).length;
+
+      const renderCheckboxItem = (item: AddableItem) => (
+        <Checkbox
+          key={item.id}
+          label={item.label}
+          checked={Boolean(selectedAddItems[item.id])}
+          onChange={() => toggleSelectableItem(item)}
+        />
+      );
+
+      return (
+        <Card padding="0">
+          <BlockStack gap="0">
+            <Box padding="400">
+              <InlineStack gap="200" blockAlign="center">
+                <Button variant="plain" icon={ArrowLeftIcon} onClick={handleCloseAddRoot}>
+                  Back
+                </Button>
+                <Text as="h2" variant="headingMd">
+                  Create menu items
+                </Text>
+              </InlineStack>
+            </Box>
+            <Divider />
+            <Box padding="400">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAddItemsTab("select")}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    addItemsTab === "select"
+                      ? "border-blue-600 bg-blue-50 text-blue-700"
+                      : "border-gray-300 text-gray-600 hover:border-gray-400"
+                  }`}
+                >
+                  Select items
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAddItemsTab("custom")}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    addItemsTab === "custom"
+                      ? "border-blue-600 bg-blue-50 text-blue-700"
+                      : "border-gray-300 text-gray-600 hover:border-gray-400"
+                  }`}
+                >
+                  Add item
+                </button>
+              </div>
+            </Box>
+            <Divider />
+            {addItemsTab === "select" ? (
+              <>
+                <Box padding="400">
+                  <TextField
+                    label="Search"
+                    labelHidden
+                    value={addItemsSearch}
+                    onChange={setAddItemsSearch}
+                    placeholder="Search"
+                    autoComplete="off"
+                    prefix={<Icon source={SearchIcon} tone="subdued" />}
+                  />
+                </Box>
+                <Divider />
+                <div className="max-h-[420px] overflow-auto px-4 py-4">
+                  <BlockStack gap="300">
+                    <BlockStack gap="200">{filterItems(staticItems).map(renderCheckboxItem)}</BlockStack>
+                    <Divider />
+                    <BlockStack gap="200">
+                      <Text as="h3" variant="headingSm">
+                        Collections
+                      </Text>
+                      <BlockStack gap="200">
+                        {filterItems(collectionItems).map(renderCheckboxItem)}
+                      </BlockStack>
+                    </BlockStack>
+                    <Divider />
+                    <BlockStack gap="200">
+                      <Text as="h3" variant="headingSm">
+                        Pages
+                      </Text>
+                      <BlockStack gap="200">{filterItems(pageItems).map(renderCheckboxItem)}</BlockStack>
+                    </BlockStack>
+                    <Divider />
+                    <BlockStack gap="200">
+                      <Text as="h3" variant="headingSm">
+                        Products
+                      </Text>
+                      <BlockStack gap="200">
+                        {filterItems(productItems).map(renderCheckboxItem)}
+                      </BlockStack>
+                    </BlockStack>
+                  </BlockStack>
+                </div>
+                <Divider />
+                <Box padding="400">
+                  <InlineStack align="end" gap="200">
+                    <Button variant="tertiary" onClick={handleCloseAddRoot}>
+                      Cancel
+                    </Button>
+                    <Button variant="primary" disabled={selectedCount === 0} onClick={handleAddSelectedItems}>
+                      Add
+                    </Button>
+                  </InlineStack>
+                </Box>
+              </>
+            ) : (
+              <>
+                <Box padding="400">
+                  <BlockStack gap="300">
+                    <TextField
+                      label="Label"
+                      value={customItemLabel}
+                      onChange={setCustomItemLabel}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="Link"
+                      value={customItemUrl}
+                      onChange={setCustomItemUrl}
+                      autoComplete="off"
+                      placeholder="https://"
+                    />
+                  </BlockStack>
+                </Box>
+                <Divider />
+                <Box padding="400">
+                  <InlineStack align="end" gap="200">
+                    <Button variant="tertiary" onClick={handleCloseAddRoot}>
+                      Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleAddCustomItem} disabled={!customItemLabel.trim()}>
+                      Add
+                    </Button>
+                  </InlineStack>
+                </Box>
+              </>
+            )}
+          </BlockStack>
+        </Card>
+      );
+    }
+
     return (
       <Card padding="400">
         <BlockStack gap="300">
@@ -1161,7 +1455,7 @@ export default function MenuBuilder() {
           <Box paddingBlockStart="200">
             <button
               type="button"
-              onClick={handleAddRoot}
+              onClick={handleOpenAddRoot}
               className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100"
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
@@ -2194,24 +2488,29 @@ export default function MenuBuilder() {
             { id: "colors", icon: PaintBrushRoundIcon, label: "Colors" },
             { id: "code", icon: CodeIcon, label: "Code" },
           ].map((panel) => (
-            <button
-              key={panel.id}
-              type="button"
-              onClick={() => {
-                setActivePanel(panel.id as RailPanel);
-                if (panel.id !== "menu") {
-                  setMenuView("list");
-                }
-              }}
-              aria-label={panel.label}
-              className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors ${
-                activePanel === panel.id
-                  ? "bg-indigo-50 text-indigo-600"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-              }`}
-            >
-              <Icon source={panel.icon} tone={activePanel === panel.id ? "primary" : "subdued"} />
-            </button>
+            <div key={panel.id} className="group relative flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setActivePanel(panel.id as RailPanel);
+                  if (panel.id !== "menu") {
+                    setMenuView("list");
+                  }
+                }}
+                aria-label={panel.label}
+                className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors ${
+                  activePanel === panel.id
+                    ? "bg-indigo-50 text-indigo-600"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                }`}
+              >
+                <Icon source={panel.icon} tone={activePanel === panel.id ? "primary" : "subdued"} />
+              </button>
+              <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+                <span className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-l border-t border-gray-200 bg-white" />
+                {panel.label}
+              </span>
+            </div>
           ))}
         </aside>
 
@@ -2439,14 +2738,15 @@ export default function MenuBuilder() {
                     +
                   </button>
                   {builderSettings.elementsShowSearch && (
-                    <span
+                    <div
                       style={{
                         marginLeft: isVerticalMenu ? 0 : "auto",
+                        position: "relative",
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
                         height: isVerticalMenu ? builderSettings.spacingMainRowHeight : "100%",
-                        width: isVerticalMenu ? "100%" : 50,
+                        width: isVerticalMenu ? "100%" : 56,
                         borderLeft:
                           showDividers && !isVerticalMenu
                             ? `1px solid ${previewColors.mainDivider}`
@@ -2455,11 +2755,67 @@ export default function MenuBuilder() {
                           showDividers && isVerticalMenu
                             ? `1px solid ${previewColors.mainDivider}`
                             : "none",
-                        color: previewColors.mainText,
                       }}
                     >
-                      <SearchIcon width="18" height="18" />
-                    </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsSearchOpen((prev) => !prev)}
+                        style={{
+                          height: "100%",
+                          width: "100%",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: previewColors.mainText,
+                          background: isSearchOpen
+                            ? previewColors.mainBackgroundHover
+                            : previewColors.mainBackground,
+                        }}
+                        onMouseEnter={(event) => {
+                          event.currentTarget.style.background = previewColors.mainBackgroundHover;
+                        }}
+                        onMouseLeave={(event) => {
+                          event.currentTarget.style.background = isSearchOpen
+                            ? previewColors.mainBackgroundHover
+                            : previewColors.mainBackground;
+                        }}
+                      >
+                        <SearchIcon width="18" height="18" fill={previewColors.mainText} />
+                      </button>
+                      {isSearchOpen && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            right: 0,
+                            top: "100%",
+                            marginTop: 0,
+                            background: previewColors.submenuBackground,
+                            border: `1px solid ${previewColors.submenuBorder}`,
+                            borderRadius: 0,
+                            minWidth: isVerticalMenu ? "100%" : 180,
+                            padding: "14px 16px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            color: previewColors.submenuText,
+                            boxShadow: "0 12px 24px rgba(15, 23, 42, 0.12)",
+                            zIndex: 20,
+                          }}
+                        >
+                          <span
+                            style={{
+                              flex: 1,
+                              fontSize: 16,
+                              color: previewColors.submenuText,
+                              opacity: 0.7,
+                            }}
+                          >
+                            Search for...
+                          </span>
+                          <SearchIcon width="18" height="18" fill={previewColors.submenuText} />
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

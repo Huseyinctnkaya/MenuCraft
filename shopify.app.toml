@@ -1,8 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "3054d337864a3d41b8aec9bb7d545897"
+client_id = "e458d01dd187d4941bb99548a78e9421"
 name = "MenuCraft"
-application_url = "https://promise-copies-hugh-contributors.trycloudflare.com"
+application_url = "https://attitudes-mhz-exotic-ringtone.trycloudflare.com"
 embedded = true
 
 [build]
@@ -11,7 +11,7 @@ dev_store_url = "mega-menu-test-2.myshopify.com"
 include_config_on_deploy = true
 
 [webhooks]
-api_version = "2025-10"
+api_version = "2026-01"
 
   [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
@@ -23,11 +23,11 @@ api_version = "2025-10"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,write_products,read_themes,write_themes"
+scopes = "read_products,write_products,read_themes,write_themes,read_content,write_content"
 optional_scopes = [ ]
 use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://promise-copies-hugh-contributors.trycloudflare.com/auth/callback"
+  "https://attitudes-mhz-exotic-ringtone.trycloudflare.com/auth/callback"
 ]

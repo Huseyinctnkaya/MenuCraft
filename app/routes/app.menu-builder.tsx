@@ -916,6 +916,41 @@ export default function MenuBuilder() {
     return null;
   };
 
+  const renderMenuIcon = (
+    icon?: string,
+    options?: { size?: number; className?: string; color?: string }
+  ) => {
+    if (!icon) return null;
+    const size = options?.size ?? 16;
+    const className = options?.className ?? "";
+    const color = options?.color;
+    if (icon.startsWith("data:")) {
+      return (
+        <img
+          src={icon}
+          alt=""
+          className={`object-contain ${className}`}
+          style={{ width: size, height: size }}
+        />
+      );
+    }
+    if (icon.startsWith(ICON_PREFIX)) {
+      const iconId = icon.slice(ICON_PREFIX.length);
+      const option = ICON_LIBRARY_BY_ID[iconId];
+      if (option) {
+        return (
+          <option.Icon
+            size={size}
+            strokeWidth={1.6}
+            className={className}
+            style={color ? { color } : undefined}
+          />
+        );
+      }
+    }
+    return null;
+  };
+
   const handleIconUploadFile = (itemId: string, file?: File | null) => {
     if (!file) return;
     const reader = new FileReader();
@@ -1419,7 +1454,9 @@ export default function MenuBuilder() {
             )}
             <div className="flex flex-1 items-center gap-2 text-left text-sm text-gray-700">
               <span className="flex items-center group-hover:hidden">
-                <Icon source={itemIcon} tone="subdued" />
+                {item.icon
+                  ? renderMenuIcon(item.icon, { size: 16, className: "text-gray-500" })
+                  : <Icon source={itemIcon} tone="subdued" />}
               </span>
               <span
                 className={`hidden items-center group-hover:flex cursor-grab ${
@@ -2970,7 +3007,6 @@ export default function MenuBuilder() {
                       : isHovered
                         ? previewColors.mainTextHover
                         : previewColors.mainText;
-                    const isDimmed = Boolean(selectedItemId && activeMenu?.id && activeMenu.id !== item.id);
                     return (
                       <div
                         key={item.id}
@@ -3055,10 +3091,18 @@ export default function MenuBuilder() {
                             alignItems: "center",
                             gap: 6,
                             color: itemTextColor,
-                            opacity: isDimmed ? 0.5 : 1,
                             cursor: "grab",
                           }}
                         >
+                          {item.icon ? (
+                            <span style={{ display: "inline-flex", alignItems: "center" }}>
+                              {renderMenuIcon(item.icon, {
+                                size: 14,
+                                color: itemTextColor,
+                                className: "text-current",
+                              })}
+                            </span>
+                          ) : null}
                           <span
                             style={{
                               ...(isActive ? tabTypography : mainTypography),

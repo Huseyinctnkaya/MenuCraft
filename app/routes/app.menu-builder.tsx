@@ -852,7 +852,7 @@ export default function MenuBuilder() {
                     <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
                       +
                     </span>
-                    {hasChildren ? "Blok ekle" : "Alt menü ekle"}
+                    {hasChildren ? "Add block" : "Add submenu"}
                   </button>
                 ) : null}
                 {item.role === "group" ? (
@@ -865,7 +865,7 @@ export default function MenuBuilder() {
                     <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
                       +
                     </span>
-                    Öğe Ekle
+                    Add item
                   </button>
                 ) : null}
                 </BlockStack>
@@ -972,7 +972,7 @@ export default function MenuBuilder() {
               <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
                 +
               </span>
-              Öğe Ekle
+              Add item
             </button>
           </Box>
         </BlockStack>
@@ -1010,7 +1010,7 @@ export default function MenuBuilder() {
                 accessibilityLabel="Geri"
               />
               <Text as="h2" variant="headingSm">
-                Yazı Tipini Seçin
+                Select font
               </Text>
             </InlineStack>
           </div>
@@ -1051,7 +1051,7 @@ export default function MenuBuilder() {
                 {selectedFont?.label || "Work Sans"}
               </Text>
               <Select
-                label="Ağırlık"
+                label="Weight"
                 labelHidden
                 options={weightOptions}
                 value={fontPickerWeight}
@@ -1059,7 +1059,7 @@ export default function MenuBuilder() {
               />
               <InlineStack align="end" gap="200">
                 <Button variant="tertiary" onClick={closeFontPicker}>
-                  İptal etmek
+                  Cancel
                 </Button>
                 <Button
                   variant="primary"
@@ -1071,7 +1071,7 @@ export default function MenuBuilder() {
                     closeFontPicker();
                   }}
                 >
-                  Seçme
+                  Select
                 </Button>
               </InlineStack>
             </BlockStack>
@@ -1117,7 +1117,7 @@ export default function MenuBuilder() {
             </Text>
           </div>
           <div className="border-t border-gray-200 px-4 py-2 text-center text-sm text-gray-700">
-            Değiştirmek
+            Change
           </div>
         </button>
       );
@@ -1128,18 +1128,18 @@ export default function MenuBuilder() {
             {title}
           </Text>
           <Checkbox
-            label="Özel yazı tipini kullan"
+            label="Use custom font"
             checked={builderSettings[useCustomKey] as boolean}
             onChange={(value) => updateBuilderSetting(useCustomKey, value as never)}
           />
           <Text as="p" variant="bodySm" tone="subdued">
-            Yazı tipi
+            Font
           </Text>
           {isCustom ? (
             <InlineStack gap="200" blockAlign="center">
               <div style={{ flex: 1 }}>
                 <TextField
-                  label="Yazı tipi"
+                  label="Font"
                   labelHidden
                   value={fontLabel}
                   readOnly
@@ -1150,7 +1150,7 @@ export default function MenuBuilder() {
               </div>
               <div style={{ width: 120 }}>
                 <Select
-                  label="Ağırlık"
+                  label="Weight"
                   labelHidden
                   options={weightOptions}
                   value={String(builderSettings[weightKey])}
@@ -1189,12 +1189,12 @@ export default function MenuBuilder() {
       <Card padding="400">
         <BlockStack gap="400">
           <Text as="h2" variant="headingMd">
-            Yazı Tipi Ayarları
+            Typography settings
           </Text>
           <Divider />
           {renderTypographySection(
             "main",
-            "Ana menü",
+            "Main menu",
             "typographyMainUseCustom",
             "typographyMainFont",
             "typographyMainWeight",
@@ -1203,7 +1203,7 @@ export default function MenuBuilder() {
           <Divider />
           {renderTypographySection(
             "tab",
-            "Sekme",
+            "Tab",
             "typographyTabUseCustom",
             "typographyTabFont",
             "typographyTabWeight",
@@ -1212,7 +1212,7 @@ export default function MenuBuilder() {
           <Divider />
           {renderTypographySection(
             "subheading",
-            "Alt menü başlığı",
+            "Submenu heading",
             "typographySubheadingUseCustom",
             "typographySubheadingFont",
             "typographySubheadingWeight",
@@ -1221,7 +1221,7 @@ export default function MenuBuilder() {
           <Divider />
           {renderTypographySection(
             "subtext",
-            "Alt menü metni",
+            "Submenu text",
             "typographySubtextUseCustom",
             "typographySubtextFont",
             "typographySubtextWeight",
@@ -1230,7 +1230,7 @@ export default function MenuBuilder() {
           <Divider />
           {renderTypographySection(
             "description",
-            "Alt menü açıklaması",
+            "Submenu description",
             "typographyDescriptionUseCustom",
             "typographyDescriptionFont",
             "typographyDescriptionWeight",
@@ -1335,23 +1335,23 @@ export default function MenuBuilder() {
       <Card padding="400">
         <BlockStack gap="400">
           <Text as="h2" variant="headingMd">
-            Genel Ayarlar
+            General settings
           </Text>
           <Divider />
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Konum
+              Location
             </Text>
             <ChoiceList
               choices={[
-                { label: "Otomatik", value: "auto" },
-                { label: "Gezinmeyi Değiştir", value: "replaceNavigation" },
+                { label: "Automatic", value: "auto" },
+                { label: "Replace navigation", value: "replaceNavigation" },
                 {
-                  label: "Bu CSS seçicisinde menüyü göster",
+                  label: "Show menu in this CSS selector",
                   value: "cssSelector",
                   helpText:
-                    "Bu seçeneği yalnızca geliştiriciyseniz veya yukarıdaki seçenekler işe yaramıyorsa kullanın.",
+                    "Use this option only if you're a developer or the options above don't work.",
                 },
               ]}
               selected={[builderSettings.layoutLocation]}
@@ -1365,13 +1365,13 @@ export default function MenuBuilder() {
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Düzen
+              Layout
             </Text>
             <ChoiceList
-              title="Oryantasyon"
+              title="Orientation"
               choices={[
-                { label: "Yatay", value: "horizontal" },
-                { label: "Dikey", value: "vertical" },
+                { label: "Horizontal", value: "horizontal" },
+                { label: "Vertical", value: "vertical" },
               ]}
               selected={[builderSettings.layoutOrientation]}
               onChange={(value) =>
@@ -1382,11 +1382,11 @@ export default function MenuBuilder() {
               }
             />
             <ChoiceList
-              title="Hizala"
+              title="Alignment"
               choices={[
-                { label: "Sol", value: "left" },
-                { label: "Sağ", value: "right" },
-                { label: "Merkez", value: "center" },
+                { label: "Left", value: "left" },
+                { label: "Right", value: "right" },
+                { label: "Center", value: "center" },
               ]}
               selected={[builderSettings.layoutAlignment]}
               onChange={(value) =>
@@ -1397,7 +1397,7 @@ export default function MenuBuilder() {
               }
             />
             <TextField
-              label="Menü maksimum genişliği"
+              label="Menu max width"
               value={builderSettings.layoutMaxWidth}
               onChange={(value) => updateBuilderSetting("layoutMaxWidth", value)}
               suffix="px"
@@ -1409,13 +1409,13 @@ export default function MenuBuilder() {
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Animasyon
+              Animation
             </Text>
             <Select
-              label="Tetikleyici - Masaüstü"
+              label="Trigger - Desktop"
               options={[
-                { label: "Gezinme", value: "hover" },
-                { label: "Tıklama", value: "click" },
+                { label: "Hover", value: "hover" },
+                { label: "Click", value: "click" },
               ]}
               value={builderSettings.animationDesktopTrigger}
               onChange={(value) =>
@@ -1426,10 +1426,10 @@ export default function MenuBuilder() {
               }
             />
             <Select
-              label="Tetikleyici - Mobil"
+              label="Trigger - Mobile"
               options={[
-                { label: "Geçiş düğmesine tıklayın", value: "toggle" },
-                { label: "Dokunma", value: "tap" },
+                { label: "Click toggle button", value: "toggle" },
+                { label: "Tap", value: "tap" },
               ]}
               value={builderSettings.animationMobileTrigger}
               onChange={(value) =>
@@ -1440,11 +1440,11 @@ export default function MenuBuilder() {
               }
             />
             <Select
-              label="Etki"
+              label="Effect"
               options={[
-                { label: "Solmak", value: "fade" },
-                { label: "Kaydır", value: "slide" },
-                { label: "Ölçek", value: "scale" },
+                { label: "Fade", value: "fade" },
+                { label: "Slide", value: "slide" },
+                { label: "Scale", value: "scale" },
               ]}
               value={builderSettings.animationEffect}
               onChange={(value) =>
@@ -1456,7 +1456,7 @@ export default function MenuBuilder() {
             />
             <InlineStack gap="200" blockAlign="center">
               <TextField
-                label="Geçiş hızı"
+                label="Transition duration"
                 type="number"
                 value={String(builderSettings.animationDuration)}
                 onChange={(value) =>
@@ -1466,7 +1466,7 @@ export default function MenuBuilder() {
                 autoComplete="off"
               />
               <TextField
-                label="Geçiş gecikmesi"
+                label="Transition delay"
                 type="number"
                 value={String(builderSettings.animationDelay)}
                 onChange={(value) =>
@@ -1482,38 +1482,38 @@ export default function MenuBuilder() {
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Boşluk
+              Spacing
             </Text>
             {renderSpacingControl(
-              "Ana menü dolgusu",
+              "Main menu padding",
               builderSettings.spacingMainPadding,
               (value) => updateBuilderSetting("spacingMainPadding", value),
               0,
               60
             )}
             {renderSpacingControl(
-              "Ana menü satır yüksekliği",
+              "Main menu row height",
               builderSettings.spacingMainRowHeight,
               (value) => updateBuilderSetting("spacingMainRowHeight", value),
               30,
               90
             )}
             {renderSpacingControl(
-              "Açılır satır yüksekliği",
+              "Dropdown row height",
               builderSettings.spacingDropdownRowHeight,
               (value) => updateBuilderSetting("spacingDropdownRowHeight", value),
               30,
               90
             )}
             {renderSpacingControl(
-              "Sekme satır yüksekliği",
+              "Tab row height",
               builderSettings.spacingTabRowHeight,
               (value) => updateBuilderSetting("spacingTabRowHeight", value),
               30,
               90
             )}
             {renderSpacingControl(
-              "Bağlantı listesi satır yüksekliği",
+              "Link list row height",
               builderSettings.spacingLinkListRowHeight,
               (value) => updateBuilderSetting("spacingLinkListRowHeight", value),
               20,
@@ -1525,15 +1525,15 @@ export default function MenuBuilder() {
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Atlıkarınca
+              Carousel
             </Text>
             <Checkbox
-              label="Otomatik oynatma"
+              label="Autoplay"
               checked={builderSettings.carouselAutoPlay}
               onChange={(value) => updateBuilderSetting("carouselAutoPlay", value)}
             />
             <Checkbox
-              label="Sonsuzluk döngüsü"
+              label="Infinite loop"
               checked={builderSettings.carouselLoop}
               onChange={(value) => updateBuilderSetting("carouselLoop", value)}
             />
@@ -1543,10 +1543,10 @@ export default function MenuBuilder() {
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Gelişmiş
+              Advanced
             </Text>
             <TextField
-              label="Genişlik 'den az olduğunda mobil menü"
+              label="Mobile menu when width is below"
               type="number"
               value={String(builderSettings.advancedMobileBreakpoint)}
               onChange={(value) =>
@@ -1556,17 +1556,17 @@ export default function MenuBuilder() {
               autoComplete="off"
             />
             <Checkbox
-              label="Bağlantı listesi bloğunun alt menüsünü gizle"
+              label="Hide link list submenus"
               checked={builderSettings.advancedHideLinkListSubmenu}
               onChange={(value) => updateBuilderSetting("advancedHideLinkListSubmenu", value)}
             />
             <Checkbox
-              label="Sepete Ekle düğmesini göster"
+              label="Show Add to cart button"
               checked={builderSettings.advancedShowAddToCart}
               onChange={(value) => updateBuilderSetting("advancedShowAddToCart", value)}
             />
             <Checkbox
-              label="Tembel yükleme görüntüsünü etkinleştir"
+              label="Enable lazy loading placeholder"
               checked={builderSettings.advancedEnableLazyLoading}
               onChange={(value) => updateBuilderSetting("advancedEnableLazyLoading", value)}
             />
@@ -1576,25 +1576,25 @@ export default function MenuBuilder() {
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Öğeler
+              Elements
             </Text>
             <Checkbox
-              label="Arama kutusunu göster"
+              label="Show search bar"
               checked={builderSettings.elementsShowSearch}
               onChange={(value) => updateBuilderSetting("elementsShowSearch", value)}
             />
             <Checkbox
-              label="Masaüstünde ayırıcıyı göster"
+              label="Show divider on desktop"
               checked={builderSettings.elementsShowDesktopDivider}
               onChange={(value) => updateBuilderSetting("elementsShowDesktopDivider", value)}
             />
             <Checkbox
-              label="Mobilde ayırıcı göster"
+              label="Show divider on mobile"
               checked={builderSettings.elementsShowMobileDivider}
               onChange={(value) => updateBuilderSetting("elementsShowMobileDivider", value)}
             />
             <Checkbox
-              label="Göstergeleri göster (aşağı ok)"
+              label="Show indicators (down arrow)"
               checked={builderSettings.elementsShowIndicators}
               onChange={(value) => updateBuilderSetting("elementsShowIndicators", value)}
             />
@@ -1604,30 +1604,30 @@ export default function MenuBuilder() {
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Hesap bağlantıları
+              Account links
             </Text>
             <Checkbox
-              label="Giriş bağlantısını göster"
+              label="Show login link"
               checked={builderSettings.accountShowLogin}
-              helpText="Giriş yapılmadığında"
+              helpText="When logged out"
               onChange={(value) => updateBuilderSetting("accountShowLogin", value)}
             />
             <Checkbox
-              label="Kayıt bağlantısını göster"
+              label="Show register link"
               checked={builderSettings.accountShowRegister}
-              helpText="Giriş yapılmadığında"
+              helpText="When logged out"
               onChange={(value) => updateBuilderSetting("accountShowRegister", value)}
             />
             <Checkbox
-              label="Hesap bağlantısını göster"
+              label="Show account link"
               checked={builderSettings.accountShowAccount}
-              helpText="Giriş yapıldığında"
+              helpText="When logged in"
               onChange={(value) => updateBuilderSetting("accountShowAccount", value)}
             />
             <Checkbox
-              label="Çıkış bağlantısını göster"
+              label="Show logout link"
               checked={builderSettings.accountShowLogout}
-              helpText="Giriş yapıldığında"
+              helpText="When logged in"
               onChange={(value) => updateBuilderSetting("accountShowLogout", value)}
             />
           </BlockStack>
@@ -1636,35 +1636,35 @@ export default function MenuBuilder() {
 
           <BlockStack gap="300">
             <Text as="h3" variant="headingSm">
-              Alt menü
+              Submenu
             </Text>
             <Checkbox
-              label="Sınırı göster"
+              label="Show border"
               checked={builderSettings.submenuShowBorder}
               onChange={(value) => updateBuilderSetting("submenuShowBorder", value)}
             />
             <Checkbox
-              label="Masaüstünde kaydırma çubuğunu etkinleştir"
+              label="Enable desktop scrollbar"
               checked={builderSettings.submenuEnableDesktopScroll}
               onChange={(value) => updateBuilderSetting("submenuEnableDesktopScroll", value)}
             />
             <Checkbox
-              label="Mobil cihazda kaydırma çubuğunu etkinleştir"
+              label="Enable mobile scrollbar"
               checked={builderSettings.submenuEnableMobileScroll}
               onChange={(value) => updateBuilderSetting("submenuEnableMobileScroll", value)}
             />
             <TextField
-              label="Alt menü maksimum genişliği"
+              label="Submenu max width"
               value={builderSettings.submenuMaxWidth}
               onChange={(value) => updateBuilderSetting("submenuMaxWidth", value)}
               suffix="px"
               autoComplete="off"
             />
             <Select
-              label="Mobilde stil aç"
+              label="Mobile style"
               options={[
-                { label: "Yıkılmak", value: "collapse" },
-                { label: "Açılır", value: "drawer" },
+                { label: "Collapse", value: "collapse" },
+                { label: "Drawer", value: "drawer" },
               ]}
               value={builderSettings.submenuMobileStyle}
               onChange={(value) =>
@@ -2080,7 +2080,7 @@ export default function MenuBuilder() {
                               }}
                             >
                               <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-                              Alt menü ekle
+                              Add submenu
                             </button>
                           </div>
                         )}

@@ -2,7 +2,7 @@
 
 client_id = "e458d01dd187d4941bb99548a78e9421"
 name = "MenuCraft"
-application_url = "https://marks-newspapers-greene-returned.trycloudflare.com"
+application_url = "https://assessments-tuition-parade-blonde.trycloudflare.com"
 embedded = true
 
 [build]
@@ -23,11 +23,11 @@ api_version = "2026-01"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,write_products,read_themes,write_themes,read_content,write_content"
+scopes = "read_products,write_products,read_content,write_content,read_themes,write_themes"
 optional_scopes = [ ]
 use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://marks-newspapers-greene-returned.trycloudflare.com/auth/callback"
+  "https://assessments-tuition-parade-blonde.trycloudflare.com/auth/callback"
 ]

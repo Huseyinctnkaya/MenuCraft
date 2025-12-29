@@ -143,7 +143,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   let collections: Array<{ id: string; title: string; handle: string }> = [];
-  let pages: Array<{ id: string; title: string; handle: string }> = [];
   let products: Array<{ id: string; title: string; handle: string }> = [];
 
   try {
@@ -172,36 +171,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     );
     const data = await response.json();
+    if (data?.errors?.length) {
+      console.error("Collections/products query errors", data.errors);
+    }
     collections = data?.data?.collections?.nodes ?? [];
     products = data?.data?.products?.nodes ?? [];
   } catch (error) {
     console.error("Failed to fetch collections/products", error);
     collections = [];
     products = [];
-  }
-
-  try {
-    const response = await admin.graphql(
-      `query MenuPages($first: Int!) {
-        pages(first: $first, sortKey: TITLE) {
-          nodes {
-            id
-            title
-            handle
-          }
-        }
-      }`,
-      {
-        variables: {
-          first: 20,
-        },
-      }
-    );
-    const data = await response.json();
-    pages = data?.data?.pages?.nodes ?? [];
-  } catch (error) {
-    console.error("Failed to fetch pages", error);
-    pages = [];
   }
 
   return json({
@@ -213,7 +191,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     menuItems: menu.items as MenuItem[],
     menuSettings: (menu.settings as BuilderSettings | null) ?? DEFAULT_BUILDER_SETTINGS,
     collections,
-    pages,
     products,
   });
 };
@@ -729,7 +706,7 @@ const removeItemById = (items: MenuItem[], id: string): MenuItem[] => {
 };
 
 export default function MenuBuilder() {
-  const { menu, menuItems: initialMenuItems, menuSettings, collections, pages, products } =
+  const { menu, menuItems: initialMenuItems, menuSettings, collections, products } =
     useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1288,11 +1265,6 @@ export default function MenuBuilder() {
         label: collection.title,
         url: `/collections/${collection.handle}`,
       }));
-      const pageItems: AddableItem[] = pages.map((page) => ({
-        id: `page-${page.id}`,
-        label: page.title,
-        url: `/pages/${page.handle}`,
-      }));
       const productItems: AddableItem[] = products.map((product) => ({
         id: `product-${product.id}`,
         label: product.title,
@@ -1378,13 +1350,6 @@ export default function MenuBuilder() {
                       <BlockStack gap="200">
                         {filterItems(collectionItems).map(renderCheckboxItem)}
                       </BlockStack>
-                    </BlockStack>
-                    <Divider />
-                    <BlockStack gap="200">
-                      <Text as="h3" variant="headingSm">
-                        Pages
-                      </Text>
-                      <BlockStack gap="200">{filterItems(pageItems).map(renderCheckboxItem)}</BlockStack>
                     </BlockStack>
                     <Divider />
                     <BlockStack gap="200">

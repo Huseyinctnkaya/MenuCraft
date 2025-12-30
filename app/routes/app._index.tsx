@@ -44,39 +44,32 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     if (mainTheme?.id) {
-      const settingsResponse = await admin.graphql(
-        `query ThemeSettings($id: ID!) {
-          theme(id: $id) {
-            files(first: 1, filenames: ["config/settings_data.json"]) {
-              nodes {
-                body {
-                  ... on OnlineStoreThemeFileBodyText {
-                    content
-                  }
-                  ... on OnlineStoreThemeFileBodyJson {
-                    value
-                  }
-                }
+      let rawSettings: unknown = "";
+      if (session.accessToken) {
+        const themeIdMatch = mainTheme.id.match(/\/(\d+)$/);
+        const themeId = themeIdMatch?.[1];
+        if (themeId) {
+          try {
+            const restResponse = await fetch(
+              `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=config/settings_data.json`,
+              {
+                headers: {
+                  "X-Shopify-Access-Token": session.accessToken,
+                  "Content-Type": "application/json",
+                },
               }
+            );
+            const restData = await restResponse.json();
+            if (restData?.asset?.value) {
+              rawSettings = restData.asset.value;
             }
+          } catch (error) {
+            console.error("Failed to load settings_data.json via REST", error);
           }
-        }`,
-        { variables: { id: mainTheme.id } }
-      );
-      const settingsData = await settingsResponse.json();
-      const body = settingsData?.data?.theme?.files?.nodes?.[0]?.body;
-      let rawSettings = "";
-      if (typeof body === "string") {
-        rawSettings = body;
-      } else if (body?.value) {
-        rawSettings = body.value;
-      } else if (body?.content) {
-        rawSettings = body.content;
-      } else if (body) {
-        rawSettings = JSON.stringify(body);
+        }
       }
       try {
-        const parsed = JSON.parse(rawSettings);
+        const parsed = typeof rawSettings === "string" ? JSON.parse(rawSettings) : rawSettings;
         const currentSettings = parsed?.current ?? parsed;
         const presetName = parsed?.current?.preset ?? parsed?.preset;
         const presetSettings = presetName ? parsed?.presets?.[presetName] : null;
@@ -117,20 +110,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
         scanNode(parsed);
       } catch {
-        const fallback = rawSettings.toLowerCase();
+        const fallback = typeof rawSettings === "string" ? rawSettings.toLowerCase() : "";
         appEmbedEnabled = fallback.includes("menucraft-embed") || fallback.includes("menucraft");
       }
 
       if (!appEmbedEnabled) {
         const embedEnabledMatch =
-          /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"disabled"\s*:\s*false/i.test(rawSettings) ||
-          /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"enabled"\s*:\s*true/i.test(rawSettings);
+          /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"disabled"\s*:\s*false/i.test(
+            typeof rawSettings === "string" ? rawSettings : ""
+          ) ||
+          /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"enabled"\s*:\s*true/i.test(
+            typeof rawSettings === "string" ? rawSettings : ""
+          );
         appEmbedEnabled = embedEnabledMatch;
       }
 
       if (!appBlockAdded) {
         const blockMatch = /shopify:\/\/apps\/menucraft\/blocks\/(?!app-embed)[^"\\]+/i.test(
-          rawSettings
+          typeof rawSettings === "string" ? rawSettings : ""
         );
         appBlockAdded = blockMatch;
       }

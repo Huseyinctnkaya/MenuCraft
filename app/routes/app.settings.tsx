@@ -1,17 +1,64 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { CreditCard, Globe, User } from "lucide-react";
-import { useLocation, useNavigate } from "@remix-run/react";
+import { useLoaderData, useLocation, useNavigate } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import prisma from "../db.server";
+import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { billing, session } = await authenticate.admin(request);
+  const shop = session.shop;
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES],
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+  if (activeSubscription) {
+    await prisma.billingSubscription.upsert({
+      where: { shop },
+      update: {
+        subscriptionId: activeSubscription.id,
+        planName: activeSubscription.name,
+        status: activeSubscription.status,
+        test: activeSubscription.test,
+        trialDays: activeSubscription.trialDays,
+        currentPeriodEnd: new Date(activeSubscription.currentPeriodEnd),
+      },
+      create: {
+        shop,
+        subscriptionId: activeSubscription.id,
+        planName: activeSubscription.name,
+        status: activeSubscription.status,
+        test: activeSubscription.test,
+        trialDays: activeSubscription.trialDays,
+        currentPeriodEnd: new Date(activeSubscription.currentPeriodEnd),
+      },
+    });
+  } else {
+    await prisma.billingSubscription.deleteMany({ where: { shop } });
+  }
+
+  const record = await prisma.billingSubscription.findUnique({ where: { shop } });
+  const selection = getPlanSelection(record?.planName) ?? {
+    id: "free",
+    period: null,
+  };
+
+  return json({
+    selection,
+    currentPeriodEnd: record?.currentPeriodEnd?.toISOString() ?? null,
+  });
 };
 
 export default function AccountSettings() {
+  const { selection, currentPeriodEnd } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -33,8 +80,16 @@ export default function AccountSettings() {
             <div className="flex-1">
               <h2 className="text-lg text-gray-900">Current Plan</h2>
               <div className="flex items-center gap-3 mt-2">
-                <Badge variant="pro">Pro Plan</Badge>
-                <span className="text-sm text-gray-600">$12/month</span>
+                <Badge variant={selection.id === "pro" ? "pro" : "default"}>
+                  {selection.id === "free" ? "Free Plan" : `${selection.id} Plan`.replace(/^./, (c) => c.toUpperCase())}
+                </Badge>
+                <span className="text-sm text-gray-600">
+                  {selection.id === "free"
+                    ? "$0/month"
+                    : selection.period === "yearly"
+                      ? "Billed yearly"
+                      : "Billed monthly"}
+                </span>
               </div>
             </div>
             <Button variant="outline" onClick={() => navigate(withSearch("/app/pricing"))}>
@@ -45,11 +100,19 @@ export default function AccountSettings() {
           <div className="pt-6 border-t border-gray-200 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Next billing date</span>
-              <span className="text-gray-900">January 17, 2026</span>
+              <span className="text-gray-900">
+                {currentPeriodEnd
+                  ? new Date(currentPeriodEnd).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "—"}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Payment method</span>
-              <span className="text-gray-900">**** 4242</span>
+              <span className="text-gray-900">Managed in Shopify</span>
             </div>
           </div>
         </Card>

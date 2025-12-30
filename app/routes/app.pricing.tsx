@@ -20,9 +20,11 @@ import {
   getPlanSelection,
   type BillingPeriod,
 } from "../config/billing";
+import prisma from "../db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { billing } = await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
+  const shop = session.shop;
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
   const { appSubscriptions } = await billing.check({
@@ -32,6 +34,30 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );
+  if (activeSubscription) {
+    await prisma.billingSubscription.upsert({
+      where: { shop },
+      update: {
+        subscriptionId: activeSubscription.id,
+        planName: activeSubscription.name,
+        status: activeSubscription.status,
+        test: activeSubscription.test,
+        trialDays: activeSubscription.trialDays,
+        currentPeriodEnd: new Date(activeSubscription.currentPeriodEnd),
+      },
+      create: {
+        shop,
+        subscriptionId: activeSubscription.id,
+        planName: activeSubscription.name,
+        status: activeSubscription.status,
+        test: activeSubscription.test,
+        trialDays: activeSubscription.trialDays,
+        currentPeriodEnd: new Date(activeSubscription.currentPeriodEnd),
+      },
+    });
+  } else {
+    await prisma.billingSubscription.deleteMany({ where: { shop } });
+  }
   const selection = getPlanSelection(activeSubscription?.name) ?? {
     id: "free",
     period: null,

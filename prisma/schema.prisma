@@ -62,3 +62,16 @@ model MenuEvent {
   @@index([menuId])
   @@index([createdAt])
 }
+
+model BillingSubscription {
+  id               Int      @id @default(autoincrement())
+  shop             String   @unique
+  subscriptionId   String?
+  planName         String?
+  status           String?
+  test             Boolean  @default(false)
+  trialDays        Int?
+  currentPeriodEnd DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

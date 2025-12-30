@@ -45,3 +45,20 @@ model Menu {
 
   @@index([shop])
 }
+
+model MenuEvent {
+  id        Int      @id @default(autoincrement())
+  shop      String
+  menuId    Int?
+  menuName  String?
+  itemId    String?
+  itemLabel String?
+  itemType  String?
+  eventType String
+  source    String   @default("storefront")
+  createdAt DateTime @default(now())
+
+  @@index([shop])
+  @@index([menuId])
+  @@index([createdAt])
+}

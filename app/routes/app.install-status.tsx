@@ -10,7 +10,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
   let themeName = "Unknown";
-  let integrationStatus: "active" | "pending" = "pending";
+  let appEmbedEnabled = false;
+  let appBlockAdded = false;
 
   try {
     const response = await admin.graphql(
@@ -37,7 +38,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           theme(id: $id) {
             files(first: 1, filenames: ["config/settings_data.json"]) {
               nodes {
-                body
+                body {
+                  ... on OnlineStoreThemeFileBodyText {
+                    content
+                  }
+                  ... on OnlineStoreThemeFileBodyJson {
+                    value
+                  }
+                }
               }
             }
           }
@@ -56,8 +64,60 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       } else if (body) {
         rawSettings = JSON.stringify(body);
       }
-      if (rawSettings.toLowerCase().includes("menucraft")) {
-        integrationStatus = "active";
+      try {
+        const parsed = JSON.parse(rawSettings);
+        const currentSettings = parsed?.current ?? parsed;
+        const presetName = parsed?.current?.preset ?? parsed?.preset;
+        const appEmbeds =
+          currentSettings?.app_embeds ??
+          parsed?.app_embeds ??
+          (presetName ? parsed?.presets?.[presetName]?.app_embeds : null) ??
+          {};
+        const appEmbedEntries = Object.entries(appEmbeds ?? {});
+        appEmbedEnabled = appEmbedEntries.some(([key, value]) => {
+          const matches = key.toLowerCase().includes("menucraft-embed") || key.toLowerCase().includes("menucraft");
+          const enabled = typeof value === "object" ? Boolean(value?.enabled) : Boolean(value);
+          return matches && enabled;
+        });
+
+        const embedBlocks =
+          currentSettings?.blocks ??
+          parsed?.blocks ??
+          (presetName ? parsed?.presets?.[presetName]?.blocks : null) ??
+          {};
+        if (!appEmbedEnabled) {
+          appEmbedEnabled = Object.values(embedBlocks).some((block: any) => {
+            const type = typeof block?.type === "string" ? block.type.toLowerCase() : "";
+            const enabled = block?.disabled === undefined ? true : block?.disabled === false;
+            return type.includes("menucraft") && type.includes("app-embed") && enabled;
+          });
+        }
+
+        const sections = currentSettings?.sections ?? parsed?.sections ?? {};
+        appBlockAdded = Object.values(sections).some((section: any) => {
+          const blocks = section?.blocks ?? {};
+          return Object.values(blocks).some((block: any) => {
+            const type = typeof block?.type === "string" ? block.type.toLowerCase() : "";
+            return type.includes("menucraft") && !type.includes("app-embed");
+          });
+        });
+      } catch {
+        const fallback = rawSettings.toLowerCase();
+        appEmbedEnabled = fallback.includes("menucraft-embed") || fallback.includes("menucraft");
+      }
+
+      if (!appEmbedEnabled) {
+        const embedEnabledMatch = /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"disabled"\s*:\s*false/i.test(
+          rawSettings
+        );
+        appEmbedEnabled = embedEnabledMatch;
+      }
+
+      if (!appBlockAdded) {
+        const blockMatch = /shopify:\/\/apps\/menucraft\/blocks\/(?!app-embed)[^"\\]+/i.test(
+          rawSettings
+        );
+        appBlockAdded = blockMatch;
       }
     }
   } catch (error) {
@@ -68,24 +128,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return json({
     themeName,
-    integrationStatus,
+    appEmbedEnabled,
+    appBlockAdded,
     themeEditorUrl,
   });
 };
 
 export default function InstallStatus() {
-  const { themeName, integrationStatus, themeEditorUrl } = useLoaderData<typeof loader>();
+  const { themeName, appEmbedEnabled, appBlockAdded, themeEditorUrl } =
+    useLoaderData<typeof loader>();
   const checks = [
     { label: "Shopify Online Store 2.0", status: "success", message: "Theme is compatible" },
     {
       label: "App Block Added",
-      status: "warning",
-      message: "Action required",
+      status: appBlockAdded ? "success" : "warning",
+      message: appBlockAdded ? "Enabled" : "Action required",
     },
     {
       label: "App Embed Enabled",
-      status: integrationStatus === "active" ? "success" : "warning",
-      message: integrationStatus === "active" ? "Enabled" : "Action required",
+      status: appEmbedEnabled ? "success" : "warning",
+      message: appEmbedEnabled ? "Enabled" : "Enable in theme editor",
     },
   ];
 

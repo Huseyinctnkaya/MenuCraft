@@ -21,7 +21,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
   let themeName = "Unknown";
-  let integrationStatus: "active" | "pending" = "pending";
+  let appEmbedEnabled = false;
+  let appBlockAdded = false;
 
   try {
     const response = await admin.graphql(
@@ -48,7 +49,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           theme(id: $id) {
             files(first: 1, filenames: ["config/settings_data.json"]) {
               nodes {
-                body
+                body {
+                  ... on OnlineStoreThemeFileBodyText {
+                    content
+                  }
+                  ... on OnlineStoreThemeFileBodyJson {
+                    value
+                  }
+                }
               }
             }
           }
@@ -67,8 +75,60 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       } else if (body) {
         rawSettings = JSON.stringify(body);
       }
-      if (rawSettings.toLowerCase().includes("menucraft")) {
-        integrationStatus = "active";
+      try {
+        const parsed = JSON.parse(rawSettings);
+        const currentSettings = parsed?.current ?? parsed;
+        const presetName = parsed?.current?.preset ?? parsed?.preset;
+        const appEmbeds =
+          currentSettings?.app_embeds ??
+          parsed?.app_embeds ??
+          (presetName ? parsed?.presets?.[presetName]?.app_embeds : null) ??
+          {};
+        const appEmbedEntries = Object.entries(appEmbeds ?? {});
+        appEmbedEnabled = appEmbedEntries.some(([key, value]) => {
+          const matches = key.toLowerCase().includes("menucraft-embed") || key.toLowerCase().includes("menucraft");
+          const enabled = typeof value === "object" ? Boolean(value?.enabled) : Boolean(value);
+          return matches && enabled;
+        });
+
+        const embedBlocks =
+          currentSettings?.blocks ??
+          parsed?.blocks ??
+          (presetName ? parsed?.presets?.[presetName]?.blocks : null) ??
+          {};
+        if (!appEmbedEnabled) {
+          appEmbedEnabled = Object.values(embedBlocks).some((block: any) => {
+            const type = typeof block?.type === "string" ? block.type.toLowerCase() : "";
+            const enabled = block?.disabled === undefined ? true : block?.disabled === false;
+            return type.includes("menucraft") && type.includes("app-embed") && enabled;
+          });
+        }
+
+        const sections = currentSettings?.sections ?? parsed?.sections ?? {};
+        appBlockAdded = Object.values(sections).some((section: any) => {
+          const blocks = section?.blocks ?? {};
+          return Object.values(blocks).some((block: any) => {
+            const type = typeof block?.type === "string" ? block.type.toLowerCase() : "";
+            return type.includes("menucraft") && !type.includes("app-embed");
+          });
+        });
+      } catch {
+        const fallback = rawSettings.toLowerCase();
+        appEmbedEnabled = fallback.includes("menucraft-embed") || fallback.includes("menucraft");
+      }
+
+      if (!appEmbedEnabled) {
+        const embedEnabledMatch = /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"disabled"\s*:\s*false/i.test(
+          rawSettings
+        );
+        appEmbedEnabled = embedEnabledMatch;
+      }
+
+      if (!appBlockAdded) {
+        const blockMatch = /shopify:\/\/apps\/menucraft\/blocks\/(?!app-embed)[^"\\]+/i.test(
+          rawSettings
+        );
+        appBlockAdded = blockMatch;
       }
     }
   } catch (error) {
@@ -77,15 +137,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const themeEditorUrl = `https://${shop}/admin/themes/current/editor?context=apps`;
 
+  const integrationStatus: "active" | "pending" = appEmbedEnabled ? "active" : "pending";
+
   return json({
     themeName,
     integrationStatus,
+    appEmbedEnabled,
+    appBlockAdded,
     themeEditorUrl,
   });
 };
 
 export default function Dashboard() {
-  const { themeName, integrationStatus, themeEditorUrl } = useLoaderData<typeof loader>();
+  const { themeName, integrationStatus, appEmbedEnabled, themeEditorUrl } =
+    useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -187,10 +252,15 @@ export default function Dashboard() {
                   {integrationStatus === "active" ? (
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                   ) : (
-                    <AlertCircle className="w-5 h-5 text-amber-500" />
+                    <AlertCircle className="w-5 h-5 text-rose-600" />
                   )}
                   <div>
-                    <p className="text-sm text-gray-900">Installation Status</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-900">Installation Status</p>
+                      <Badge variant={integrationStatus === "active" ? "success" : "warning"}>
+                        {integrationStatus === "active" ? "Active" : "Pending"}
+                      </Badge>
+                    </div>
                     <p className="text-xs text-gray-600">
                       {integrationStatus === "active"
                         ? "Theme integration active"

@@ -4,10 +4,10 @@ import {
   CreditCard,
   Download,
   HelpCircle,
+  History,
   LayoutDashboard,
   LayoutTemplate,
   Menu,
-  Palette,
   Settings,
 } from "lucide-react";
 
@@ -18,7 +18,7 @@ const navItems = [
   { path: "/app/templates", icon: LayoutTemplate, label: "Templates" },
   { path: "/app/install-status", icon: Download, label: "Install & Theme Status" },
   { path: "/app/pricing", icon: CreditCard, label: "Pricing & Plans" },
-  { path: "/app/appearance", icon: Palette, label: "Appearance" },
+  { path: "/app/updates", icon: History, label: "Updates" },
   { path: "/app/support", icon: HelpCircle, label: "Support" },
   { path: "/app/settings", icon: Settings, label: "Settings" },
 ];

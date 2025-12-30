@@ -429,6 +429,7 @@ export default function AccountSettings() {
             <Button
               variant="outline"
               className="w-full justify-start"
+              disabled
               onClick={() => {
                 if (typeof window !== "undefined") {
                   window.open(links.staffUrl, "_blank", "noopener,noreferrer");
@@ -440,15 +441,6 @@ export default function AccountSettings() {
           </Card>
         </div>
 
-        <Card className="p-6">
-          <h2 className="text-lg text-gray-900 mb-3">Danger Zone</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Uninstalling MenuCraft will remove all menus and settings. This action cannot be undone.
-          </p>
-          <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50">
-            Uninstall App
-          </Button>
-        </Card>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "@remix-run/react";
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData, useLocation, useNavigate } from "@remix-run/react";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import {
   AlertCircle,
   CheckCircle2,
@@ -18,11 +18,74 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { admin, session } = await authenticate.admin(request);
+  const shop = session.shop;
+  let themeName = "Unknown";
+  let integrationStatus: "active" | "pending" = "pending";
+
+  try {
+    const response = await admin.graphql(
+      `query ThemeStatus {
+        themes(first: 50) {
+          nodes {
+            id
+            name
+            role
+          }
+        }
+      }`
+    );
+    const data = await response.json();
+    const themes = data?.data?.themes?.nodes ?? [];
+    const mainTheme = themes.find((theme: { role?: string }) => theme.role === "MAIN") ?? themes[0];
+    if (mainTheme?.name) {
+      themeName = mainTheme.name;
+    }
+
+    if (mainTheme?.id) {
+      const settingsResponse = await admin.graphql(
+        `query ThemeSettings($id: ID!) {
+          theme(id: $id) {
+            files(first: 1, filenames: ["config/settings_data.json"]) {
+              nodes {
+                body
+              }
+            }
+          }
+        }`,
+        { variables: { id: mainTheme.id } }
+      );
+      const settingsData = await settingsResponse.json();
+      const body = settingsData?.data?.theme?.files?.nodes?.[0]?.body;
+      let rawSettings = "";
+      if (typeof body === "string") {
+        rawSettings = body;
+      } else if (body?.value) {
+        rawSettings = body.value;
+      } else if (body?.content) {
+        rawSettings = body.content;
+      } else if (body) {
+        rawSettings = JSON.stringify(body);
+      }
+      if (rawSettings.toLowerCase().includes("menucraft")) {
+        integrationStatus = "active";
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load theme status", error);
+  }
+
+  const themeEditorUrl = `https://${shop}/admin/themes/current/editor?context=apps`;
+
+  return json({
+    themeName,
+    integrationStatus,
+    themeEditorUrl,
+  });
 };
 
 export default function Dashboard() {
+  const { themeName, integrationStatus, themeEditorUrl } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -37,7 +100,7 @@ export default function Dashboard() {
       icon: Menu,
       title: "Create Mega Menu",
       description: "Build powerful navigation menus with unlimited depth and customization",
-      action: () => navigate(withSearch("/app/menu-builder")),
+      action: () => navigate(withSearch("/app/mega-menus")),
     },
     {
       icon: Smartphone,
@@ -121,16 +184,28 @@ export default function Dashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-500" />
+                  {integrationStatus === "active" ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-amber-500" />
+                  )}
                   <div>
                     <p className="text-sm text-gray-900">Installation Status</p>
-                    <p className="text-xs text-gray-600">Theme integration pending</p>
+                    <p className="text-xs text-gray-600">
+                      {integrationStatus === "active"
+                        ? "Theme integration active"
+                        : "Theme integration pending"}
+                    </p>
                   </div>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigate(withSearch("/app/install-status"))}
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
+                    }
+                  }}
                 >
                   Configure
                 </Button>
@@ -138,7 +213,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="text-sm text-gray-900">Connected Theme</p>
-                  <p className="text-xs text-gray-600">Dawn 10.0.0</p>
+                  <p className="text-xs text-gray-600">{themeName}</p>
                 </div>
                 <Badge variant="success">Active</Badge>
               </div>

@@ -1,4 +1,5 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import { AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
 import { authenticate } from "../shopify.server";
 import Badge from "../components/ui/Badge";
@@ -6,15 +7,86 @@ import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { admin, session } = await authenticate.admin(request);
+  const shop = session.shop;
+  let themeName = "Unknown";
+  let integrationStatus: "active" | "pending" = "pending";
+
+  try {
+    const response = await admin.graphql(
+      `query ThemeStatus {
+        themes(first: 50) {
+          nodes {
+            id
+            name
+            role
+          }
+        }
+      }`
+    );
+    const data = await response.json();
+    const themes = data?.data?.themes?.nodes ?? [];
+    const mainTheme = themes.find((theme: { role?: string }) => theme.role === "MAIN") ?? themes[0];
+    if (mainTheme?.name) {
+      themeName = mainTheme.name;
+    }
+
+    if (mainTheme?.id) {
+      const settingsResponse = await admin.graphql(
+        `query ThemeSettings($id: ID!) {
+          theme(id: $id) {
+            files(first: 1, filenames: ["config/settings_data.json"]) {
+              nodes {
+                body
+              }
+            }
+          }
+        }`,
+        { variables: { id: mainTheme.id } }
+      );
+      const settingsData = await settingsResponse.json();
+      const body = settingsData?.data?.theme?.files?.nodes?.[0]?.body;
+      let rawSettings = "";
+      if (typeof body === "string") {
+        rawSettings = body;
+      } else if (body?.value) {
+        rawSettings = body.value;
+      } else if (body?.content) {
+        rawSettings = body.content;
+      } else if (body) {
+        rawSettings = JSON.stringify(body);
+      }
+      if (rawSettings.toLowerCase().includes("menucraft")) {
+        integrationStatus = "active";
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load theme status", error);
+  }
+
+  const themeEditorUrl = `https://${shop}/admin/themes/current/editor?context=apps`;
+
+  return json({
+    themeName,
+    integrationStatus,
+    themeEditorUrl,
+  });
 };
 
 export default function InstallStatus() {
+  const { themeName, integrationStatus, themeEditorUrl } = useLoaderData<typeof loader>();
   const checks = [
     { label: "Shopify Online Store 2.0", status: "success", message: "Theme is compatible" },
-    { label: "App Block Added", status: "warning", message: "Action required" },
-    { label: "App Embed Enabled", status: "warning", message: "Action required" },
+    {
+      label: "App Block Added",
+      status: "warning",
+      message: "Action required",
+    },
+    {
+      label: "App Embed Enabled",
+      status: integrationStatus === "active" ? "success" : "warning",
+      message: integrationStatus === "active" ? "Enabled" : "Action required",
+    },
   ];
 
   return (
@@ -56,7 +128,15 @@ export default function InstallStatus() {
               <p className="text-sm text-gray-600 mb-3">
                 Open your theme editor and add the MenuCraft block to your header section
               </p>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
                 <ExternalLink className="w-4 h-4" />
                 Open Theme Editor
               </Button>
@@ -67,7 +147,15 @@ export default function InstallStatus() {
               <p className="text-sm text-gray-600 mb-3">
                 In theme settings, enable the MenuCraft app embed under Theme Extensions
               </p>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
                 <ExternalLink className="w-4 h-4" />
                 Theme Settings
               </Button>
@@ -80,7 +168,7 @@ export default function InstallStatus() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Current Theme:</span>
-              <span className="text-gray-900">Dawn</span>
+              <span className="text-gray-900">{themeName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Version:</span>

@@ -13,6 +13,7 @@ import {
   Star,
 } from "lucide-react";
 import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -23,6 +24,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let themeName = "Unknown";
   let appEmbedEnabled = false;
   let appBlockAdded = false;
+  let hasMenu = false;
+  let hasActiveMenu = false;
 
   try {
     const response = await admin.graphql(
@@ -132,6 +135,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         appBlockAdded = blockMatch;
       }
     }
+    const menuCount = await prisma.menu.count({ where: { shop } });
+    hasMenu = menuCount > 0;
+    const activeMenuCount = await prisma.menu.count({ where: { shop, status: "active" } });
+    hasActiveMenu = activeMenuCount > 0;
   } catch (error) {
     console.error("Failed to load theme status", error);
   }
@@ -145,12 +152,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     integrationStatus,
     appEmbedEnabled,
     appBlockAdded,
+    hasMenu,
+    hasActiveMenu,
     themeEditorUrl,
   });
 };
 
 export default function Dashboard() {
-  const { themeName, integrationStatus, appEmbedEnabled, themeEditorUrl } =
+  const { themeName, integrationStatus, appEmbedEnabled, appBlockAdded, hasMenu, hasActiveMenu, themeEditorUrl } =
     useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -185,10 +194,36 @@ export default function Dashboard() {
   ];
 
   const setupSteps = [
-    { title: "Create your first menu", completed: false },
-    { title: "Add menu block to your theme", completed: false },
-    { title: "Publish and go live", completed: false },
+    { title: "Create your first menu", completed: hasMenu },
+    { title: "Enable app embed", completed: appEmbedEnabled },
+    { title: "Add menu block to your theme", completed: appBlockAdded },
+    { title: "Publish and go live", completed: hasActiveMenu },
   ];
+
+  const setupButtonLabel = hasMenu ? "Continue Setup" : "Start Setup";
+  const handleSetupClick = () => {
+    if (!hasMenu) {
+      navigate(withSearch("/app/mega-menus"));
+      return;
+    }
+    if (!appEmbedEnabled) {
+      if (typeof window !== "undefined") {
+        window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
+      }
+      return;
+    }
+    if (!appBlockAdded) {
+      if (typeof window !== "undefined") {
+        window.open(`${themeEditorUrl}&template=index`, "_blank", "noopener,noreferrer");
+      }
+      return;
+    }
+    if (!hasActiveMenu) {
+      navigate(withSearch("/app/mega-menus"));
+      return;
+    }
+    navigate(withSearch("/app/mega-menus"));
+  };
 
   const faqs = [
     {
@@ -312,9 +347,9 @@ export default function Dashboard() {
                 variant="outline"
                 size="sm"
                 className="w-full mt-4"
-                onClick={() => navigate(withSearch("/app/menu-builder"))}
+                onClick={handleSetupClick}
               >
-                Continue Setup
+                {setupButtonLabel}
               </Button>
             </div>
           </Card>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useActionData, useLoaderData } from "@remix-run/react";
 import {
   ArrowRight,
   Check,
@@ -82,18 +82,61 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const planName = BILLING_PLANS[plan][billingPeriod];
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const appUrl = process.env.SHOPIFY_APP_URL || new URL(request.url).origin;
+  const returnUrl = new URL(request.url);
+  returnUrl.pathname = "/app/pricing";
+  returnUrl.searchParams.delete("plan");
+  returnUrl.searchParams.delete("billingPeriod");
 
-  return await billing.request({
-    plan: planName,
-    isTest: billingTestMode,
-    returnUrl: new URL("/app/pricing", appUrl).toString(),
-  });
+  try {
+    return await billing.request({
+      plan: planName,
+      isTest: billingTestMode,
+      returnUrl: returnUrl.toString(),
+    });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Billing request failed.";
+    const errorData = (error as { errorData?: unknown })?.errorData;
+    const graphQlErrors = (error as { response?: { body?: { errors?: unknown } } })?.response?.body?.errors;
+    let details = "";
+    if (Array.isArray(errorData) && errorData.length > 0) {
+      details = errorData
+        .map((item) => {
+          if (item && typeof item === "object" && "message" in item) {
+            return String((item as { message?: string }).message);
+          }
+          return String(item);
+        })
+        .join("; ");
+    } else if (Array.isArray(graphQlErrors) && graphQlErrors.length > 0) {
+      details = graphQlErrors
+        .map((item) => {
+          if (item && typeof item === "object" && "message" in item) {
+            return String((item as { message?: string }).message);
+          }
+          return String(item);
+        })
+        .join("; ");
+    }
+
+    console.error("Billing request failed", {
+      error: errorMessage,
+      details,
+      errorData,
+      graphQlErrors,
+    });
+
+    return json(
+      { billingError: details ? `${errorMessage}: ${details}` : errorMessage },
+      { status: 400 }
+    );
+  }
 };
 
 export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const { currentPlan } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
 
   const plans = [
     {
@@ -203,6 +246,11 @@ export default function Pricing() {
             </button>
           </div>
         </div>
+        {actionData?.billingError && (
+          <div className="max-w-3xl mx-auto rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {actionData.billingError}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {plans.map((plan) => {

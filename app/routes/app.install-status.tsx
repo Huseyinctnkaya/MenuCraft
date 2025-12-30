@@ -68,48 +68,52 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         const parsed = JSON.parse(rawSettings);
         const currentSettings = parsed?.current ?? parsed;
         const presetName = parsed?.current?.preset ?? parsed?.preset;
+        const presetSettings = presetName ? parsed?.presets?.[presetName] : null;
         const appEmbeds =
           currentSettings?.app_embeds ??
           parsed?.app_embeds ??
-          (presetName ? parsed?.presets?.[presetName]?.app_embeds : null) ??
+          presetSettings?.app_embeds ??
           {};
         const appEmbedEntries = Object.entries(appEmbeds ?? {});
         appEmbedEnabled = appEmbedEntries.some(([key, value]) => {
           const matches = key.toLowerCase().includes("menucraft-embed") || key.toLowerCase().includes("menucraft");
-          const enabled = typeof value === "object" ? Boolean(value?.enabled) : Boolean(value);
+          const enabled =
+            typeof value === "object"
+              ? value?.enabled === true || value?.disabled === false || (value?.enabled === undefined && value?.disabled === undefined)
+              : Boolean(value);
           return matches && enabled;
         });
 
-        const embedBlocks =
-          currentSettings?.blocks ??
-          parsed?.blocks ??
-          (presetName ? parsed?.presets?.[presetName]?.blocks : null) ??
-          {};
-        if (!appEmbedEnabled) {
-          appEmbedEnabled = Object.values(embedBlocks).some((block: any) => {
-            const type = typeof block?.type === "string" ? block.type.toLowerCase() : "";
-            const enabled = block?.disabled === undefined ? true : block?.disabled === false;
-            return type.includes("menucraft") && type.includes("app-embed") && enabled;
-          });
-        }
+        const scanNode = (node: unknown) => {
+          if (!node) return;
+          if (Array.isArray(node)) {
+            node.forEach(scanNode);
+            return;
+          }
+          if (typeof node !== "object") return;
+          const record = node as Record<string, any>;
+          if (typeof record.type === "string") {
+            const type = record.type.toLowerCase();
+            if (type.includes("shopify://apps/menucraft/blocks/app-embed")) {
+              const enabled = record.disabled === undefined ? true : record.disabled === false;
+              if (enabled) appEmbedEnabled = true;
+            } else if (type.includes("shopify://apps/menucraft/blocks/")) {
+              appBlockAdded = true;
+            }
+          }
+          Object.values(record).forEach(scanNode);
+        };
 
-        const sections = currentSettings?.sections ?? parsed?.sections ?? {};
-        appBlockAdded = Object.values(sections).some((section: any) => {
-          const blocks = section?.blocks ?? {};
-          return Object.values(blocks).some((block: any) => {
-            const type = typeof block?.type === "string" ? block.type.toLowerCase() : "";
-            return type.includes("menucraft") && !type.includes("app-embed");
-          });
-        });
+        scanNode(parsed);
       } catch {
         const fallback = rawSettings.toLowerCase();
         appEmbedEnabled = fallback.includes("menucraft-embed") || fallback.includes("menucraft");
       }
 
       if (!appEmbedEnabled) {
-        const embedEnabledMatch = /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"disabled"\s*:\s*false/i.test(
-          rawSettings
-        );
+        const embedEnabledMatch =
+          /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"disabled"\s*:\s*false/i.test(rawSettings) ||
+          /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"enabled"\s*:\s*true/i.test(rawSettings);
         appEmbedEnabled = embedEnabledMatch;
       }
 

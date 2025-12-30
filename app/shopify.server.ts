@@ -2,10 +2,12 @@ import "@shopify/shopify-app-remix/adapters/node";
 import {
   ApiVersion,
   AppDistribution,
+  BillingInterval,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
+import { BILLING_PLANS } from "./config/billing";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -16,6 +18,48 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
+  billing: {
+    [BILLING_PLANS.pro.monthly]: {
+      lineItems: [
+        {
+          amount: 19.99,
+          currencyCode: "USD",
+          interval: BillingInterval.Every30Days,
+        },
+      ],
+      trialDays: 14,
+    },
+    [BILLING_PLANS.pro.yearly]: {
+      lineItems: [
+        {
+          amount: 15.99,
+          currencyCode: "USD",
+          interval: BillingInterval.Annual,
+        },
+      ],
+      trialDays: 14,
+    },
+    [BILLING_PLANS.plus.monthly]: {
+      lineItems: [
+        {
+          amount: 49.99,
+          currencyCode: "USD",
+          interval: BillingInterval.Every30Days,
+        },
+      ],
+      trialDays: 14,
+    },
+    [BILLING_PLANS.plus.yearly]: {
+      lineItems: [
+        {
+          amount: 39.99,
+          currencyCode: "USD",
+          interval: BillingInterval.Annual,
+        },
+      ],
+      trialDays: 14,
+    },
+  },
   future: {
     unstable_newEmbeddedAuthStrategy: true,
     removeRest: true,

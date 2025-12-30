@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import {
   ArrowRight,
   Check,
@@ -13,14 +14,60 @@ import { authenticate } from "../shopify.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import {
+  ALL_BILLING_PLAN_NAMES,
+  BILLING_PLANS,
+  getPlanSelection,
+  type BillingPeriod,
+} from "../config/billing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { billing } = await authenticate.admin(request);
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES],
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+  const selection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free",
+    period: null,
+  };
+
+  return json({
+    currentPlan: selection,
+  });
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { billing } = await authenticate.admin(request);
+  const formData = await request.formData();
+  const plan = formData.get("plan");
+  const period = formData.get("billingPeriod");
+
+  if (plan !== "pro" && plan !== "plus") {
+    return redirect("/app/pricing");
+  }
+
+  const billingPeriod: BillingPeriod = period === "yearly" ? "yearly" : "monthly";
+  const planName = BILLING_PLANS[plan][billingPeriod];
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const appUrl = process.env.SHOPIFY_APP_URL || new URL(request.url).origin;
+
+  return await billing.request({
+    plan: planName,
+    isTest: billingTestMode,
+    returnUrl: new URL("/app/pricing", appUrl).toString(),
+  });
 };
 
 export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const { currentPlan } = useLoaderData<typeof loader>();
 
   const plans = [
     {
@@ -31,10 +78,7 @@ export default function Pricing() {
       description: "Perfect for testing and small stores",
       priceMonthly: "$0",
       priceYearly: "$0",
-      features: ["1 mega menu", "Basic styling", "Basic support"],
-      cta: "Current Plan",
-      ctaVariant: "outline" as const,
-      disabled: true,
+      features: ["1 mega menu", "Basic styling", "7-day analytics", "Basic support"],
       popular: false,
     },
     {
@@ -47,14 +91,12 @@ export default function Pricing() {
       priceYearly: "$15.99",
       features: [
         "Unlimited mega menus",
+        "Full design controls (typography, colors, spacing)",
         "Template library access",
-        "Design settings (colors, spacing)",
+        "Analytics (30/90 days)",
         "Mobile menu features",
         "Priority support",
       ],
-      cta: "Upgrade to Pro",
-      ctaVariant: "primary" as const,
-      disabled: false,
       popular: true,
       trial: "Includes 14-day trial",
     },
@@ -68,14 +110,12 @@ export default function Pricing() {
       priceYearly: "$39.99",
       features: [
         "Everything in Pro",
-        "Multi-store / client-friendly management",
-        "Advanced template packs",
-        "Variant-level / menu targeting rules",
-        "Dedicated support / onboarding",
+        "Multi-store / client management",
+        "Advanced targeting (segment, device, geo)",
+        "A/B testing & heatmaps",
+        "Import / export tools",
+        "Dedicated support & onboarding",
       ],
-      cta: "Upgrade to Plus",
-      ctaVariant: "primary" as const,
-      disabled: false,
       popular: false,
     },
   ];
@@ -83,9 +123,12 @@ export default function Pricing() {
   const comparisonFeatures = [
     { name: "Mega Menus", free: "1", pro: "Unlimited", plus: "Unlimited" },
     { name: "Template Library", free: false, pro: true, plus: true },
-    { name: "Design Settings", free: false, pro: true, plus: true },
-    { name: "Mobile Menu", free: false, pro: true, plus: true },
-    { name: "Advanced Templates", free: false, pro: false, plus: true },
+    { name: "Design Controls (Typography/Colors/Spacing)", free: "Basic", pro: "Full", plus: "Full" },
+    { name: "Analytics Range", free: "7 days", pro: "30/90 days", plus: "All + Advanced" },
+    { name: "Mobile Menu Features", free: false, pro: true, plus: true },
+    { name: "Advanced Targeting (Segment/Device/Geo)", free: false, pro: false, plus: true },
+    { name: "A/B Testing & Heatmaps", free: false, pro: false, plus: true },
+    { name: "Import / Export", free: false, pro: false, plus: true },
     { name: "Multi-store Management", free: false, pro: false, plus: true },
     { name: "Support Level", free: "Basic", pro: "Priority", plus: "Dedicated" },
   ];
@@ -139,6 +182,16 @@ export default function Pricing() {
           {plans.map((plan) => {
             const Icon = plan.icon;
             const price = billingPeriod === "monthly" ? plan.priceMonthly : plan.priceYearly;
+            const planIsCurrent =
+              currentPlan.id === plan.id &&
+              (plan.id === "free" || currentPlan.period === billingPeriod);
+            const isUpgradeDisabled = plan.id === "free" || planIsCurrent;
+            const ctaLabel = planIsCurrent
+              ? "Current Plan"
+              : plan.id === "pro"
+                ? "Upgrade to Pro"
+                : "Upgrade to Plus";
+            const ctaVariant = planIsCurrent || plan.id === "free" ? "outline" : "primary";
 
             return (
               <Card
@@ -179,9 +232,18 @@ export default function Pricing() {
                   ))}
                 </ul>
 
-                <Button variant={plan.ctaVariant} className="w-full" disabled={plan.disabled}>
-                  {plan.cta}
-                </Button>
+                <form method="post">
+                  <input type="hidden" name="plan" value={plan.id} />
+                  <input type="hidden" name="billingPeriod" value={billingPeriod} />
+                  <Button
+                    variant={ctaVariant}
+                    className="w-full"
+                    disabled={isUpgradeDisabled}
+                    type="submit"
+                  >
+                    {ctaLabel}
+                  </Button>
+                </form>
               </Card>
             );
           })}

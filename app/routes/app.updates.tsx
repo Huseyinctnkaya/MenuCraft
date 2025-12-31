@@ -22,7 +22,7 @@ export default function DesignSettings() {
             </div>
             <p className="text-gray-600 mt-1">See what’s new in MenuCraft and what’s coming next</p>
           </div>
-          <Button>View Roadmap</Button>
+          <Button disabled>Coming soon</Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

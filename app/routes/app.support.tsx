@@ -1,7 +1,9 @@
 import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
+import { useLocation, useNavigate } from "@remix-run/react";
 import { ChevronDown, ChevronUp, FileText, Mail, MessageCircle } from "lucide-react";
 import { authenticate } from "../shopify.server";
+import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
@@ -12,27 +14,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Support() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const withSearch = (path: string) => ({ pathname: path, search: location.search });
 
   const faqs = [
     {
       q: "How do I create my first mega menu?",
-      a: "Navigate to the Menu Builder, click 'Create New Menu', and use the visual editor to add items and configure your layout.",
+      a: "Navigate to the Mega Menus page, click 'Create New Menu', and use the visual editor to add items and configure your layout.",
     },
     {
       q: "Can I use MenuCraft with my custom theme?",
-      a: "Yes! MenuCraft works with all Shopify 2.0 themes and most legacy themes. Check our compatibility guide for details.",
+      a: "Yes. MenuCraft works with all Shopify 2.0 themes and most legacy themes. Check the Install & Theme Status page for compatibility.",
     },
     {
       q: "How do I upgrade to Pro?",
-      a: "Go to Settings > Pricing and select your desired plan. You can upgrade anytime with just a few clicks.",
+      a: "Go to Pricing & Plans and select your desired plan. You can upgrade anytime with a few clicks.",
     },
     {
       q: "Is there a limit on menu items?",
-      a: "Free plan allows up to 10 items per menu. Pro and Plus plans have unlimited items.",
+      a: "Free plan allows one menu. Pro and Plus plans include unlimited menus and more advanced styling options.",
     },
     {
       q: "Can I import my existing Shopify menu?",
-      a: "Yes! Pro and Plus plans include menu import functionality. Go to Menu Builder > Import to get started.",
+      a: "Yes. Pro and Plus plans include menu import functionality. Go to the Menu Builder and choose Import.",
     },
   ];
 
@@ -51,7 +57,12 @@ export default function Support() {
             </div>
             <h3 className="text-sm text-gray-900">Documentation</h3>
             <p className="text-xs text-gray-600">Detailed guides and tutorials</p>
-            <Button variant="outline" size="sm" className="w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => navigate(withSearch("/app/documentation"))}
+            >
               View Docs
             </Button>
           </Card>
@@ -60,9 +71,12 @@ export default function Support() {
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
               <MessageCircle className="w-6 h-6 text-green-600" />
             </div>
-            <h3 className="text-sm text-gray-900">Live Chat</h3>
-            <p className="text-xs text-gray-600">Chat with our support team</p>
-            <Button variant="outline" size="sm" className="w-full">
+            <div className="flex items-center justify-center gap-2">
+              <h3 className="text-sm text-gray-900">Live Chat</h3>
+              <Badge variant="new">Soon</Badge>
+            </div>
+            <p className="text-xs text-gray-600">In-app chat is coming soon</p>
+            <Button variant="outline" size="sm" className="w-full" disabled>
               Start Chat
             </Button>
           </Card>
@@ -71,9 +85,12 @@ export default function Support() {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
               <Mail className="w-6 h-6 text-blue-600" />
             </div>
-            <h3 className="text-sm text-gray-900">Email Support</h3>
-            <p className="text-xs text-gray-600">Get help via email</p>
-            <Button variant="outline" size="sm" className="w-full">
+            <div className="flex items-center justify-center gap-2">
+              <h3 className="text-sm text-gray-900">Email Support</h3>
+              <Badge variant="new">Soon</Badge>
+            </div>
+            <p className="text-xs text-gray-600">We will add email support shortly</p>
+            <Button variant="outline" size="sm" className="w-full" disabled>
               Send Email
             </Button>
           </Card>
@@ -83,7 +100,7 @@ export default function Support() {
           <h2 className="text-xl text-gray-900 mb-2">Frequently Asked Questions</h2>
           <div className="space-y-3">
             {faqs.map((faq, index) => (
-              <div key={index} className="border-b border-gray-200 last:border-0 pb-3">
+              <div key={faq.q} className="border-b border-gray-200 last:border-0 pb-3">
                 <button
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   className="w-full flex items-center justify-between text-left py-2"
@@ -104,11 +121,16 @@ export default function Support() {
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg text-gray-900">Need More Help?</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg text-gray-900">Need More Help?</h3>
+            <Badge variant="new">Coming soon</Badge>
+          </div>
           <p className="text-sm text-gray-600 mb-2">
             Our support team is available Monday-Friday, 9am-5pm EST. We typically respond within 24 hours.
           </p>
-          <Button variant="primary">Contact Support</Button>
+          <Button variant="primary" disabled>
+            Contact Support
+          </Button>
         </Card>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData, useSearchParams } from "@remix-run/react";
+import { useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
 import {
   BarChart3,
   Calendar,
@@ -308,6 +308,10 @@ export default function Analytics() {
   const { range, stats, impressionsClicksData, engagementData, avgImpact, topMenus, topLinks } =
     useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const pricingHref = searchParams.toString()
+    ? `/app/pricing?${searchParams.toString()}`
+    : "/app/pricing";
   const currentRange =
     rangeOptions.find((option) => option.value === range) ?? rangeOptions[0];
   const statCards = useMemo(
@@ -544,11 +548,11 @@ export default function Analytics() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">
-                Advanced analytics (heatmaps, A/B testing) coming soon
+                Advanced analytics (heatmaps, A/B testing) are available on the Plus plan.
               </p>
             </div>
-            <Button variant="outline" size="sm">
-              Join Waitlist
+            <Button variant="primary" size="sm" onClick={() => navigate(pricingHref)}>
+              Upgrade to Plus
             </Button>
           </div>
         </Card>

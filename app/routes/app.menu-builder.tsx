@@ -23,6 +23,7 @@ import {
   TextField,
   Icon,
 } from "@shopify/polaris";
+import type { IconSource } from "@shopify/polaris";
 import {
   ArrowLeftIcon,
   BlogIcon,
@@ -135,6 +136,13 @@ const LINK_SUGGESTIONS = [
   { label: "Pages", url: "/pages", icon: PageIcon },
   { label: "Blogs", url: "/blogs", icon: BlogIcon },
   { label: "Blog posts", url: "/blogs/news", icon: BlogIcon },
+];
+
+const SUBMENU_TEMPLATES: Array<{ id: SubmenuTemplateId; label: string; icon: IconSource }> = [
+  { id: "custom", label: "Custom menu", icon: MenuIcon },
+  { id: "tabs", label: "Tabs", icon: CollectionListIcon },
+  { id: "mega", label: "Mega menu", icon: ProductListIcon },
+  { id: "dropdown", label: "Dropdown (flyout)", icon: ChevronDownIcon },
 ];
 
 const EXCLUDED_LUCIDE_EXPORTS = new Set(["Icon", "LucideIcon"]);
@@ -316,12 +324,15 @@ type MenuItem = {
   customBackgroundColor?: string;
   customTextHoverColor?: string;
   customBackgroundHoverColor?: string;
+  submenuTemplate?: SubmenuTemplateId;
   submenuType?: "mega" | "dropdown";
   submenuWidth?: "full" | "content";
   submenuContentAlign?: "left" | "center" | "right";
   submenuBackgroundColor?: string;
   submenuBackgroundImage?: string;
 };
+
+type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
 
 type AddableItem = {
   id: string;
@@ -846,6 +857,7 @@ export default function MenuBuilder() {
   const [submenuImagePickerOpen, setSubmenuImagePickerOpen] = useState(false);
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
+  const [submenuTemplateTargetId, setSubmenuTemplateTargetId] = useState<string | null>(null);
   const [openColorPicker, setOpenColorPicker] = useState<keyof BuilderSettings | null>(null);
   const [colorPickerHsb, setColorPickerHsb] = useState<HsbColor | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -1016,6 +1028,44 @@ export default function MenuBuilder() {
           </div>
         </div>
       </Card>
+    );
+  };
+
+  const renderSubmenuTemplatePicker = () => {
+    if (!submenuTemplateTargetId) return null;
+    return (
+      <div className="absolute right-0 top-0 z-30 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <Text as="h2" variant="headingSm">
+            Select template
+          </Text>
+          <button
+            type="button"
+            aria-label="Close template picker"
+            onClick={() => setSubmenuTemplateTargetId(null)}
+            className="text-xl text-gray-400 hover:text-gray-600"
+          >
+            ×
+          </button>
+        </div>
+        <div className="px-3 py-3">
+          <BlockStack gap="200">
+            {SUBMENU_TEMPLATES.map((template) => (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => handleApplySubmenuTemplate(template.id)}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-gray-600">
+                  <Icon source={template.icon} tone="subdued" />
+                </span>
+                <span className="font-medium text-gray-800">{template.label}</span>
+              </button>
+            ))}
+          </BlockStack>
+        </div>
+      </div>
     );
   };
 
@@ -1432,6 +1482,17 @@ export default function MenuBuilder() {
   };
 
   const handleAddChild = (parentId: string, role: "group" | "item") => {
+    const parentItem = findItemPath(menuItems, parentId)?.slice(-1)[0] ?? null;
+    const isFirstSubmenu =
+      role === "group" &&
+      parentItem?.role === "menu" &&
+      !parentItem.children?.length &&
+      !parentItem.submenuTemplate;
+    if (isFirstSubmenu) {
+      setOpenMenuId(parentId);
+      setSubmenuTemplateTargetId(parentId);
+      return;
+    }
     const newItem: MenuItem = {
       id: buildId(),
       label: role === "group" ? "New group" : "New item",
@@ -1441,6 +1502,31 @@ export default function MenuBuilder() {
       children: role === "group" ? [] : undefined,
     };
     setMenuItems((items) => addChildById(items, parentId, newItem));
+  };
+
+  const handleApplySubmenuTemplate = (templateId: SubmenuTemplateId) => {
+    if (!submenuTemplateTargetId) return;
+    const newGroup: MenuItem = {
+      id: buildId(),
+      label: templateId === "tabs" ? "New tab" : "New group",
+      url: "",
+      role: "group",
+      expanded: true,
+      children: [],
+    };
+    setMenuItems((items) =>
+      updateItemById(items, submenuTemplateTargetId, (item) => {
+        const hasChildren = Boolean(item.children?.length);
+        return {
+          ...item,
+          expanded: true,
+          submenuTemplate: templateId,
+          submenuType: templateId === "dropdown" ? "dropdown" : "mega",
+          children: hasChildren ? item.children : [newGroup],
+        };
+      })
+    );
+    setSubmenuTemplateTargetId(null);
   };
 
   const resetAddItemsState = () => {
@@ -3371,6 +3457,7 @@ export default function MenuBuilder() {
     setBuilderSettings({ ...DEFAULT_BUILDER_SETTINGS, ...menuSettings });
     setRequiresExplicitSave(false);
     setActiveSaveAction(null);
+    setSubmenuTemplateTargetId(null);
     setSavedFingerprint(
       JSON.stringify({
         status: menu.status,
@@ -3436,7 +3523,7 @@ export default function MenuBuilder() {
         </InlineStack>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2">
           {[
             { id: "menu", icon: MenuIcon, label: "Menu" },
@@ -4006,6 +4093,7 @@ export default function MenuBuilder() {
             </Card>
           </div>
         </main>
+        {renderSubmenuTemplatePicker()}
       </div>
     </div>
   );

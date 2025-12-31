@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLocation, useNavigate, useLoaderData } from "@remix-run/react";
@@ -33,11 +34,15 @@ import {
   CollectionIcon,
   CollectionListIcon,
   DesktopIcon,
+  FormsIcon,
   DragHandleIcon,
   DuplicateIcon,
   EditIcon,
   DeleteIcon,
   HomeIcon,
+  ImageIcon,
+  LayoutBlockIcon,
+  ListBulletedIcon,
   MenuIcon,
   MobileIcon,
   PaintBrushRoundIcon,
@@ -143,6 +148,18 @@ const SUBMENU_TEMPLATES: Array<{ id: SubmenuTemplateId; label: string; icon: Ico
   { id: "tabs", label: "Tabs", icon: CollectionListIcon },
   { id: "mega", label: "Mega menu", icon: ProductListIcon },
   { id: "dropdown", label: "Dropdown (flyout)", icon: ChevronDownIcon },
+];
+
+const BLOCK_TEMPLATES: Array<{ id: BlockTemplateId; label: string; icon: IconSource }> = [
+  { id: "multi", label: "Multi block", icon: LayoutBlockIcon },
+  { id: "tabs", label: "Tabs", icon: CollectionListIcon },
+  { id: "image", label: "Image", icon: ImageIcon },
+  { id: "links", label: "Link list", icon: ListBulletedIcon },
+  { id: "product", label: "Product", icon: ProductIcon },
+  { id: "collection", label: "Collection", icon: CollectionIcon },
+  { id: "blogs", label: "Blogs", icon: BlogIcon },
+  { id: "contact", label: "Contact form", icon: FormsIcon },
+  { id: "html", label: "Custom HTML", icon: CodeIcon },
 ];
 
 const EXCLUDED_LUCIDE_EXPORTS = new Set(["Icon", "LucideIcon"]);
@@ -324,6 +341,7 @@ type MenuItem = {
   customBackgroundColor?: string;
   customTextHoverColor?: string;
   customBackgroundHoverColor?: string;
+  blockTemplate?: BlockTemplateId;
   submenuTemplate?: SubmenuTemplateId;
   submenuType?: "mega" | "dropdown";
   submenuWidth?: "full" | "content";
@@ -333,6 +351,16 @@ type MenuItem = {
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
+type BlockTemplateId =
+  | "multi"
+  | "tabs"
+  | "image"
+  | "links"
+  | "product"
+  | "collection"
+  | "blogs"
+  | "contact"
+  | "html";
 
 type AddableItem = {
   id: string;
@@ -858,6 +886,13 @@ export default function MenuBuilder() {
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
   const [submenuTemplateTargetId, setSubmenuTemplateTargetId] = useState<string | null>(null);
+  const [submenuTemplateHoverId, setSubmenuTemplateHoverId] = useState<SubmenuTemplateId | null>(null);
+  const [submenuTemplatePanelHover, setSubmenuTemplatePanelHover] = useState(false);
+  const submenuTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [blockTemplateTargetId, setBlockTemplateTargetId] = useState<string | null>(null);
+  const [blockTemplateHoverId, setBlockTemplateHoverId] = useState<BlockTemplateId | null>(null);
+  const [blockTemplatePanelHover, setBlockTemplatePanelHover] = useState(false);
+  const blockTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [openColorPicker, setOpenColorPicker] = useState<keyof BuilderSettings | null>(null);
   const [colorPickerHsb, setColorPickerHsb] = useState<HsbColor | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -1031,10 +1066,435 @@ export default function MenuBuilder() {
     );
   };
 
-  const renderSubmenuTemplatePicker = () => {
-    if (!submenuTemplateTargetId) return null;
+  const clearSubmenuTemplateHoverTimeout = () => {
+    if (!submenuTemplateHoverTimeoutRef.current) return;
+    clearTimeout(submenuTemplateHoverTimeoutRef.current);
+    submenuTemplateHoverTimeoutRef.current = null;
+  };
+
+  const scheduleSubmenuTemplateHoverClear = () => {
+    clearSubmenuTemplateHoverTimeout();
+    submenuTemplateHoverTimeoutRef.current = setTimeout(() => {
+      if (!submenuTemplatePanelHover) {
+        setSubmenuTemplateHoverId(null);
+      }
+    }, 80);
+  };
+
+  const clearBlockTemplateHoverTimeout = () => {
+    if (!blockTemplateHoverTimeoutRef.current) return;
+    clearTimeout(blockTemplateHoverTimeoutRef.current);
+    blockTemplateHoverTimeoutRef.current = null;
+  };
+
+  const scheduleBlockTemplateHoverClear = () => {
+    clearBlockTemplateHoverTimeout();
+    blockTemplateHoverTimeoutRef.current = setTimeout(() => {
+      if (!blockTemplatePanelHover) {
+        setBlockTemplateHoverId(null);
+      }
+    }, 80);
+  };
+
+  const renderTemplatePreviewCard = ({
+    title,
+    preview,
+    onSelect,
+  }: {
+    title: string;
+    preview: ReactNode;
+    onSelect: () => void;
+  }) => (
+    <div className="group relative rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+      <div className="rounded-lg bg-white p-3 shadow-inner">{preview}</div>
+      <div className="mt-3 text-center text-sm font-medium text-gray-700">{title}</div>
+      <button
+        type="button"
+        onClick={onSelect}
+        className="pointer-events-none absolute inset-x-6 bottom-3 rounded-full bg-gray-900 py-1.5 text-sm font-semibold text-white opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+      >
+        Select
+      </button>
+    </div>
+  );
+
+  const renderSubmenuTemplatePreviewPanel = () => {
+    const isOpen = Boolean(submenuTemplateTargetId);
+    const activeTemplate = SUBMENU_TEMPLATES.find((template) => template.id === submenuTemplateHoverId);
+    const showPanel = isOpen && Boolean(activeTemplate || submenuTemplatePanelHover);
+    const previewTitle = activeTemplate?.label ?? "Template preview";
+
+    const renderPreviewForTemplate = () => {
+      if (!activeTemplate) return null;
+      const selectTemplate = () => handleApplySubmenuTemplate(activeTemplate.id);
+      switch (activeTemplate.id) {
+        case "dropdown":
+          return (
+            <BlockStack gap="400">
+              {renderTemplatePreviewCard({
+                title: "Vertical flyout menu",
+                onSelect: selectTemplate,
+                preview: (
+                  <div className="flex h-28 gap-2 rounded-lg bg-[#a7b2c0] p-2">
+                    <div className="flex w-20 flex-col gap-2 rounded-md bg-white/80 p-2">
+                      <div className="h-3 rounded bg-gray-400" />
+                      <div className="h-3 rounded bg-gray-400" />
+                      <div className="h-3 rounded bg-gray-400" />
+                    </div>
+                    <div className="flex flex-1 items-center justify-center rounded-md bg-white/70">
+                      <div className="h-16 w-20 rounded bg-gray-300" />
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Horizontal flyout menu",
+                onSelect: selectTemplate,
+                preview: (
+                  <div className="flex h-28 flex-col gap-2 rounded-lg bg-[#a7b2c0] p-2">
+                    <div className="flex items-center justify-between rounded-md bg-white/80 px-3 py-1 text-[10px] text-gray-500">
+                      <span className="h-2 w-10 rounded bg-gray-300" />
+                      <span className="h-2 w-10 rounded bg-gray-300" />
+                      <span className="h-2 w-10 rounded bg-gray-300" />
+                    </div>
+                    <div className="flex flex-1 items-center justify-center rounded-md bg-white/70">
+                      <div className="h-10 w-32 rounded bg-gray-300" />
+                    </div>
+                  </div>
+                ),
+              })}
+            </BlockStack>
+          );
+        case "tabs":
+          return renderTemplatePreviewCard({
+            title: "Tabs",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="h-28 rounded-lg bg-[#a7b2c0] p-2">
+                <div className="flex gap-2 rounded-md bg-white/80 px-2 py-1">
+                  <div className="h-2 w-10 rounded-full bg-gray-400" />
+                  <div className="h-2 w-10 rounded-full bg-gray-300" />
+                  <div className="h-2 w-10 rounded-full bg-gray-300" />
+                </div>
+                <div className="mt-3 h-14 rounded-md bg-white/70" />
+              </div>
+            ),
+          });
+        case "mega":
+          return renderTemplatePreviewCard({
+            title: "Mega menu",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="grid h-28 grid-cols-3 gap-2 rounded-lg bg-[#a7b2c0] p-2">
+                <div className="rounded-md bg-white/80 p-2">
+                  <div className="h-2 w-12 rounded bg-gray-400" />
+                  <div className="mt-2 h-2 w-10 rounded bg-gray-300" />
+                  <div className="mt-2 h-2 w-8 rounded bg-gray-300" />
+                </div>
+                <div className="rounded-md bg-white/80 p-2">
+                  <div className="h-2 w-12 rounded bg-gray-400" />
+                  <div className="mt-2 h-2 w-10 rounded bg-gray-300" />
+                  <div className="mt-2 h-2 w-8 rounded bg-gray-300" />
+                </div>
+                <div className="rounded-md bg-white/80 p-2">
+                  <div className="h-2 w-12 rounded bg-gray-400" />
+                  <div className="mt-2 h-2 w-10 rounded bg-gray-300" />
+                  <div className="mt-2 h-2 w-8 rounded bg-gray-300" />
+                </div>
+              </div>
+            ),
+          });
+        case "custom":
+        default:
+          return renderTemplatePreviewCard({
+            title: "Custom menu",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="h-28 rounded-lg bg-[#a7b2c0] p-2">
+                <div className="h-6 rounded-md bg-white/80" />
+                <div className="mt-2 h-4 w-2/3 rounded-md bg-white/70" />
+                <div className="mt-2 h-4 w-1/2 rounded-md bg-white/70" />
+              </div>
+            ),
+          });
+      }
+    };
+
     return (
-      <div className="absolute right-0 top-0 z-30 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl">
+      <div
+        className={`absolute right-80 top-0 z-20 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${
+          showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!showPanel}
+        onMouseEnter={() => {
+          clearSubmenuTemplateHoverTimeout();
+          setSubmenuTemplatePanelHover(true);
+        }}
+        onMouseLeave={() => {
+          setSubmenuTemplatePanelHover(false);
+          setSubmenuTemplateHoverId(null);
+        }}
+      >
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <Text as="h2" variant="headingSm">
+            {previewTitle}
+          </Text>
+          <button
+            type="button"
+            aria-label="Close template preview"
+            onClick={() => {
+              setSubmenuTemplateHoverId(null);
+              setSubmenuTemplatePanelHover(false);
+            }}
+            className="text-xl text-gray-400 hover:text-gray-600"
+          >
+            ×
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-4">{renderPreviewForTemplate()}</div>
+      </div>
+    );
+  };
+
+  const renderBlockTemplatePreviewPanel = () => {
+    const isOpen = Boolean(blockTemplateTargetId);
+    const activeTemplate = BLOCK_TEMPLATES.find((template) => template.id === blockTemplateHoverId);
+    const showPanel = isOpen && Boolean(activeTemplate || blockTemplatePanelHover);
+    const previewTitle = activeTemplate?.label ?? "Block preview";
+
+    const renderPreviewForTemplate = () => {
+      if (!activeTemplate) return null;
+      const selectTemplate = () => handleApplyBlockTemplate(activeTemplate.id);
+      switch (activeTemplate.id) {
+        case "multi":
+          return renderTemplatePreviewCard({
+            title: "Multi block",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="grid h-28 grid-cols-3 gap-2 rounded-lg bg-[#f3f4f6] p-2">
+                <div className="rounded-md bg-white p-2">
+                  <div className="h-2 w-12 rounded bg-gray-300" />
+                  <div className="mt-2 h-2 w-10 rounded bg-gray-200" />
+                </div>
+                <div className="rounded-md bg-white p-2">
+                  <div className="h-2 w-12 rounded bg-gray-300" />
+                  <div className="mt-2 h-2 w-10 rounded bg-gray-200" />
+                </div>
+                <div className="rounded-md bg-white p-2">
+                  <div className="h-2 w-12 rounded bg-gray-300" />
+                  <div className="mt-2 h-2 w-10 rounded bg-gray-200" />
+                </div>
+              </div>
+            ),
+          });
+        case "tabs":
+          return renderTemplatePreviewCard({
+            title: "Tabs",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2">
+                <div className="flex gap-2 rounded-md bg-white px-2 py-1">
+                  <div className="h-2 w-10 rounded-full bg-gray-300" />
+                  <div className="h-2 w-10 rounded-full bg-gray-200" />
+                  <div className="h-2 w-10 rounded-full bg-gray-200" />
+                </div>
+                <div className="mt-3 h-14 rounded-md bg-white" />
+              </div>
+            ),
+          });
+        case "image":
+          return renderTemplatePreviewCard({
+            title: "Image",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="flex h-28 items-center justify-center rounded-lg bg-[#f3f4f6] p-2">
+                <div className="h-16 w-24 rounded-md bg-white shadow-sm" />
+              </div>
+            ),
+          });
+        case "links":
+          return renderTemplatePreviewCard({
+            title: "Link list",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2">
+                <div className="h-3 w-16 rounded bg-gray-300" />
+                <div className="mt-2 h-2 w-24 rounded bg-gray-200" />
+                <div className="mt-2 h-2 w-20 rounded bg-gray-200" />
+                <div className="mt-2 h-2 w-28 rounded bg-gray-200" />
+              </div>
+            ),
+          });
+        case "product":
+          return renderTemplatePreviewCard({
+            title: "Product",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="flex h-28 gap-3 rounded-lg bg-[#f3f4f6] p-2">
+                <div className="h-16 w-16 rounded-md bg-white" />
+                <div className="flex flex-col justify-center gap-2">
+                  <div className="h-2 w-20 rounded bg-gray-300" />
+                  <div className="h-2 w-16 rounded bg-gray-200" />
+                </div>
+              </div>
+            ),
+          });
+        case "collection":
+          return renderTemplatePreviewCard({
+            title: "Collection",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="flex h-28 flex-col gap-2 rounded-lg bg-[#f3f4f6] p-2">
+                <div className="h-14 rounded-md bg-white" />
+                <div className="h-2 w-20 rounded bg-gray-300" />
+              </div>
+            ),
+          });
+        case "blogs":
+          return renderTemplatePreviewCard({
+            title: "Blogs",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2">
+                <div className="h-2 w-20 rounded bg-gray-300" />
+                <div className="mt-2 h-2 w-24 rounded bg-gray-200" />
+                <div className="mt-2 h-2 w-16 rounded bg-gray-200" />
+              </div>
+            ),
+          });
+        case "contact":
+          return renderTemplatePreviewCard({
+            title: "Contact form",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="h-5 rounded bg-white" />
+                  <div className="h-5 rounded bg-white" />
+                </div>
+                <div className="mt-2 h-6 rounded bg-white" />
+                <div className="mt-2 h-4 w-12 rounded bg-gray-300" />
+              </div>
+            ),
+          });
+        case "html":
+        default:
+          return renderTemplatePreviewCard({
+            title: "Custom HTML",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2 font-mono text-[10px] text-gray-500">
+                <div className="h-2 w-20 rounded bg-gray-300" />
+                <div className="mt-2 h-2 w-24 rounded bg-gray-200" />
+                <div className="mt-2 h-2 w-28 rounded bg-gray-200" />
+              </div>
+            ),
+          });
+      }
+    };
+
+    return (
+      <div
+        className={`absolute right-80 top-0 z-20 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${
+          showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!showPanel}
+        onMouseEnter={() => {
+          clearBlockTemplateHoverTimeout();
+          setBlockTemplatePanelHover(true);
+        }}
+        onMouseLeave={() => {
+          setBlockTemplatePanelHover(false);
+          setBlockTemplateHoverId(null);
+        }}
+      >
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <Text as="h2" variant="headingSm">
+            {previewTitle}
+          </Text>
+          <button
+            type="button"
+            aria-label="Close block preview"
+            onClick={() => {
+              setBlockTemplateHoverId(null);
+              setBlockTemplatePanelHover(false);
+            }}
+            className="text-xl text-gray-400 hover:text-gray-600"
+          >
+            ×
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-4">{renderPreviewForTemplate()}</div>
+      </div>
+    );
+  };
+
+  const renderBlockTemplatePicker = () => {
+    const isOpen = Boolean(blockTemplateTargetId);
+    return (
+      <div
+        className={`absolute right-0 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${
+          isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!isOpen}
+      >
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+          <Text as="h2" variant="headingSm">
+            Select block
+          </Text>
+          <button
+            type="button"
+            aria-label="Close block picker"
+            onClick={() => setBlockTemplateTargetId(null)}
+            className="text-xl text-gray-400 hover:text-gray-600"
+          >
+            ×
+          </button>
+        </div>
+        <div
+          className="px-3 py-3"
+          onMouseEnter={() => clearBlockTemplateHoverTimeout()}
+          onMouseLeave={() => scheduleBlockTemplateHoverClear()}
+        >
+          <BlockStack gap="200">
+            {BLOCK_TEMPLATES.map((template) => {
+              const isHovered = blockTemplateHoverId === template.id;
+              return (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => handleApplyBlockTemplate(template.id)}
+                  onMouseEnter={() => {
+                    clearBlockTemplateHoverTimeout();
+                    setBlockTemplateHoverId(template.id);
+                  }}
+                  onMouseLeave={() => scheduleBlockTemplateHoverClear()}
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors ${
+                    isHovered ? "bg-gray-100" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-gray-600">
+                    <Icon source={template.icon} tone="subdued" />
+                  </span>
+                  <span className="font-medium text-gray-800">{template.label}</span>
+                </button>
+              );
+            })}
+          </BlockStack>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSubmenuTemplatePicker = () => {
+    const isOpen = Boolean(submenuTemplateTargetId);
+    return (
+      <div
+        className={`absolute right-0 top-0 z-30 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${
+          isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!isOpen}
+      >
         <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <Text as="h2" variant="headingSm">
             Select template
@@ -1048,21 +1508,35 @@ export default function MenuBuilder() {
             ×
           </button>
         </div>
-        <div className="px-3 py-3">
+        <div
+          className="px-3 py-3"
+          onMouseEnter={() => clearSubmenuTemplateHoverTimeout()}
+          onMouseLeave={() => scheduleSubmenuTemplateHoverClear()}
+        >
           <BlockStack gap="200">
-            {SUBMENU_TEMPLATES.map((template) => (
-              <button
-                key={template.id}
-                type="button"
-                onClick={() => handleApplySubmenuTemplate(template.id)}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-gray-600">
-                  <Icon source={template.icon} tone="subdued" />
-                </span>
-                <span className="font-medium text-gray-800">{template.label}</span>
-              </button>
-            ))}
+            {SUBMENU_TEMPLATES.map((template) => {
+              const isHovered = submenuTemplateHoverId === template.id;
+              return (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => handleApplySubmenuTemplate(template.id)}
+                  onMouseEnter={() => {
+                    clearSubmenuTemplateHoverTimeout();
+                    setSubmenuTemplateHoverId(template.id);
+                  }}
+                  onMouseLeave={() => scheduleSubmenuTemplateHoverClear()}
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors ${
+                    isHovered ? "bg-gray-100" : "hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-gray-600">
+                    <Icon source={template.icon} tone="subdued" />
+                  </span>
+                  <span className="font-medium text-gray-800">{template.label}</span>
+                </button>
+              );
+            })}
           </BlockStack>
         </div>
       </div>
@@ -1491,6 +1965,7 @@ export default function MenuBuilder() {
     if (isFirstSubmenu) {
       setOpenMenuId(parentId);
       setSubmenuTemplateTargetId(parentId);
+      setBlockTemplateTargetId(null);
       return;
     }
     const newItem: MenuItem = {
@@ -1502,6 +1977,44 @@ export default function MenuBuilder() {
       children: role === "group" ? [] : undefined,
     };
     setMenuItems((items) => addChildById(items, parentId, newItem));
+  };
+
+  const handleOpenBlockTemplatePicker = (menuId: string) => {
+    setOpenMenuId(menuId);
+    setBlockTemplateTargetId(menuId);
+    setSubmenuTemplateTargetId(null);
+  };
+
+  const handleApplyBlockTemplate = (templateId: BlockTemplateId) => {
+    if (!blockTemplateTargetId) return;
+    const labelMap: Record<BlockTemplateId, string> = {
+      multi: "Multi block",
+      tabs: "Tabs",
+      image: "Image",
+      links: "Link list",
+      product: "Product",
+      collection: "Collection",
+      blogs: "Blogs",
+      contact: "Contact form",
+      html: "Custom HTML",
+    };
+    const newBlock: MenuItem = {
+      id: buildId(),
+      label: labelMap[templateId],
+      url: "",
+      role: "group",
+      expanded: true,
+      children: [],
+      blockTemplate: templateId,
+    };
+    setMenuItems((items) =>
+      updateItemById(items, blockTemplateTargetId, (item) => ({
+        ...item,
+        expanded: true,
+        children: item.children ? [...item.children, newBlock] : [newBlock],
+      }))
+    );
+    setBlockTemplateTargetId(null);
   };
 
   const handleApplySubmenuTemplate = (templateId: SubmenuTemplateId) => {
@@ -1805,7 +2318,13 @@ export default function MenuBuilder() {
                 {item.role === "menu" ? (
                   <button
                     type="button"
-                    onClick={() => handleAddChild(item.id, "group")}
+                    onClick={() => {
+                      if (hasChildren) {
+                        handleOpenBlockTemplatePicker(item.id);
+                      } else {
+                        handleAddChild(item.id, "group");
+                      }
+                    }}
                     className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
                   >
                     <span className="h-5 w-5" />
@@ -3458,6 +3977,7 @@ export default function MenuBuilder() {
     setRequiresExplicitSave(false);
     setActiveSaveAction(null);
     setSubmenuTemplateTargetId(null);
+    setBlockTemplateTargetId(null);
     setSavedFingerprint(
       JSON.stringify({
         status: menu.status,
@@ -3466,6 +3986,26 @@ export default function MenuBuilder() {
       })
     );
   }, [menu.id, menuSettings, initialMenuItems]);
+
+  useEffect(() => {
+    if (submenuTemplateTargetId) return;
+    if (submenuTemplateHoverTimeoutRef.current) {
+      clearTimeout(submenuTemplateHoverTimeoutRef.current);
+      submenuTemplateHoverTimeoutRef.current = null;
+    }
+    setSubmenuTemplateHoverId(null);
+    setSubmenuTemplatePanelHover(false);
+  }, [submenuTemplateTargetId]);
+
+  useEffect(() => {
+    if (blockTemplateTargetId) return;
+    if (blockTemplateHoverTimeoutRef.current) {
+      clearTimeout(blockTemplateHoverTimeoutRef.current);
+      blockTemplateHoverTimeoutRef.current = null;
+    }
+    setBlockTemplateHoverId(null);
+    setBlockTemplatePanelHover(false);
+  }, [blockTemplateTargetId]);
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
@@ -4056,7 +4596,7 @@ export default function MenuBuilder() {
                       <Button
                         variant="secondary"
                         icon={PlusIcon}
-                        onClick={() => activeMenu && handleAddChild(activeMenu.id, "group")}
+                        onClick={() => activeMenu && handleOpenBlockTemplatePicker(activeMenu.id)}
                         style={{ color: previewColors.submenuDescription, ...descriptionTypography }}
                         onMouseEnter={(event) => {
                           event.currentTarget.style.color = previewColors.submenuDescriptionHover;
@@ -4093,6 +4633,9 @@ export default function MenuBuilder() {
             </Card>
           </div>
         </main>
+        {renderBlockTemplatePreviewPanel()}
+        {renderBlockTemplatePicker()}
+        {renderSubmenuTemplatePreviewPanel()}
         {renderSubmenuTemplatePicker()}
       </div>
     </div>

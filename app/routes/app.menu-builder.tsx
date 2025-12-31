@@ -1105,13 +1105,15 @@ export default function MenuBuilder() {
     preview: ReactNode;
     onSelect: () => void;
   }) => (
-    <div className="group relative rounded-xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
-      <div className="rounded-lg bg-white p-3 shadow-inner">{preview}</div>
-      <div className="mt-3 text-center text-sm font-medium text-gray-700">{title}</div>
+    <div className="group relative rounded-xl border border-gray-200 bg-gray-100 p-4 shadow-sm transition-all duration-150 ease-out hover:-translate-y-1 hover:border-gray-300 hover:bg-gray-200 hover:shadow-md">
+      <div className="flex h-36 items-center justify-center overflow-hidden rounded-lg bg-white p-3 shadow-inner">
+        <div className="h-full w-full">{preview}</div>
+      </div>
+      <div className="mt-3 text-center text-sm font-semibold text-gray-800">{title}</div>
       <button
         type="button"
         onClick={onSelect}
-        className="pointer-events-none absolute inset-x-6 bottom-3 rounded-full bg-gray-900 py-1.5 text-sm font-semibold text-white opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+        className="pointer-events-none absolute inset-x-6 bottom-4 rounded-full border border-gray-800 bg-gradient-to-b from-[#2b2f36] to-[#0f1115] py-2 text-sm font-semibold text-white shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
       >
         Select
       </button>
@@ -1268,21 +1270,23 @@ export default function MenuBuilder() {
       switch (activeTemplate.id) {
         case "multi":
           return renderTemplatePreviewCard({
-            title: "Multi block",
+            title: "2 columns",
             onSelect: selectTemplate,
             preview: (
-              <div className="grid h-28 grid-cols-3 gap-2 rounded-lg bg-[#f3f4f6] p-2">
-                <div className="rounded-md bg-white p-2">
-                  <div className="h-2 w-12 rounded bg-gray-300" />
-                  <div className="mt-2 h-2 w-10 rounded bg-gray-200" />
-                </div>
-                <div className="rounded-md bg-white p-2">
-                  <div className="h-2 w-12 rounded bg-gray-300" />
-                  <div className="mt-2 h-2 w-10 rounded bg-gray-200" />
-                </div>
-                <div className="rounded-md bg-white p-2">
-                  <div className="h-2 w-12 rounded bg-gray-300" />
-                  <div className="mt-2 h-2 w-10 rounded bg-gray-200" />
+              <div className="h-28 rounded-lg bg-white p-3">
+                <div className="text-[11px] font-semibold text-red-600">Brands</div>
+                <div className="mt-2 h-px bg-gray-200" />
+                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-gray-700">
+                  <span>Nike</span>
+                  <span>Adidas</span>
+                  <span>ASCII</span>
+                  <span>Vans</span>
+                  <span>MLB</span>
+                  <span>Gucci</span>
+                  <span>Mira</span>
+                  <span>Puma</span>
+                  <span>Reebok</span>
+                  <span>Promax</span>
                 </div>
               </div>
             ),

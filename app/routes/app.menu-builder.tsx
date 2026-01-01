@@ -4070,6 +4070,8 @@ export default function MenuBuilder() {
     setBlockTemplatePanelHover(false);
   }, [blockTemplateTargetId]);
 
+  const isTemplatePickerOpen = Boolean(submenuTemplateTargetId || blockTemplateTargetId);
+
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
       <Modal
@@ -4157,6 +4159,12 @@ export default function MenuBuilder() {
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
+        <div
+          className={`pointer-events-none absolute inset-0 z-10 bg-gray-900/40 transition-opacity duration-200 ${
+            isTemplatePickerOpen ? "opacity-100" : "opacity-0"
+          }`}
+          aria-hidden="true"
+        />
         <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2">
           {[
             { id: "menu", icon: MenuIcon, label: "Menu" },

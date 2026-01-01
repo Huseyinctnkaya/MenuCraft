@@ -1104,10 +1104,14 @@ export default function MenuBuilder() {
     title,
     preview,
     onSelect,
+    showSelectButton = true,
+    titleHiddenOnHover = false,
   }: {
     title: string;
     preview: ReactNode;
     onSelect: () => void;
+    showSelectButton?: boolean;
+    titleHiddenOnHover?: boolean;
   }) => (
     <div className="group relative transition-transform duration-150 ease-out hover:-translate-y-1">
       <Card padding="300">
@@ -1116,23 +1120,31 @@ export default function MenuBuilder() {
             <div className="rounded-xl bg-gray-100 p-3">
               <div className="h-36 w-full">{preview}</div>
             </div>
-            <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
-              {title}
-            </Text>
+            <div
+              className={
+                titleHiddenOnHover ? "transition-opacity duration-150 group-hover:opacity-0" : undefined
+              }
+            >
+              <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
+                {title}
+              </Text>
+            </div>
           </BlockStack>
         </div>
       </Card>
-      <div className="pointer-events-none absolute inset-x-6 bottom-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-        <Button
-          fullWidth
-          onClick={onSelect}
-          size="slim"
-          variant="primary"
-          style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-        >
-          Select
-        </Button>
-      </div>
+      {showSelectButton ? (
+        <div className="pointer-events-none absolute inset-x-6 bottom-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+          <Button
+            fullWidth
+            onClick={onSelect}
+            size="slim"
+            variant="primary"
+            style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+          >
+            Select
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 
@@ -1246,10 +1258,25 @@ export default function MenuBuilder() {
               {renderTemplatePreviewCard({
                 title: "Space",
                 onSelect: selectTemplate,
+                showSelectButton: false,
+                titleHiddenOnHover: true,
                 preview: (
-                  <div className="flex h-28 items-center justify-center rounded-lg bg-gray-200 p-3">
-                    <div className="flex h-full w-full items-center justify-center rounded-md border border-dashed border-gray-300 bg-white text-[11px] font-medium text-gray-500">
-                      + Add block
+                  <div className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/space.png"
+                      alt="Space template"
+                      className="max-h-full max-w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={selectTemplate}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
                     </div>
                   </div>
                 ),
@@ -2282,6 +2309,9 @@ export default function MenuBuilder() {
   };
 
   const renderMenuTree = (item: MenuItem, depth: number = 0) => {
+    if (item.blockTemplate === "space") {
+      return null;
+    }
     const isSelected = selectedItemId === item.id;
     const hasChildren = Boolean(item.children?.length);
     const isExpanded = item.expanded ?? item.role !== "item";
@@ -4608,8 +4638,8 @@ export default function MenuBuilder() {
                     border: builderSettings.submenuShowBorder
                       ? `1px solid ${previewColors.submenuBorder}`
                       : "none",
-                    borderRadius: 12,
-                    marginTop: 16,
+                    borderRadius: 0,
+                    marginTop: 0,
                     padding: "20px 24px",
                     boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
                     maxWidth: submenuMaxWidth ?? "none",
@@ -4749,24 +4779,6 @@ export default function MenuBuilder() {
                       );
                     })}
                   </div>
-                  <Box paddingBlockStart="400">
-                    <ButtonGroup>
-                      <Button
-                        variant="secondary"
-                        icon={PlusIcon}
-                        onClick={() => activeMenu && handleOpenBlockTemplatePicker(activeMenu.id)}
-                        style={{ color: previewColors.submenuDescription, ...descriptionTypography }}
-                        onMouseEnter={(event) => {
-                          event.currentTarget.style.color = previewColors.submenuDescriptionHover;
-                        }}
-                        onMouseLeave={(event) => {
-                          event.currentTarget.style.color = previewColors.submenuDescription;
-                        }}
-                      >
-                        Add block
-                      </Button>
-                    </ButtonGroup>
-                  </Box>
                 </div>
               )}
             </div>

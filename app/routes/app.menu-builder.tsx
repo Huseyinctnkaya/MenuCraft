@@ -18,6 +18,7 @@ import {
   ChoiceList,
   Divider,
   InlineStack,
+  Modal,
   RangeSlider,
   Select,
   Text,
@@ -893,6 +894,8 @@ export default function MenuBuilder() {
   const [blockTemplateHoverId, setBlockTemplateHoverId] = useState<BlockTemplateId | null>(null);
   const [blockTemplatePanelHover, setBlockTemplatePanelHover] = useState(false);
   const blockTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
+  const [pendingDeleteItemLabel, setPendingDeleteItemLabel] = useState<string>("");
   const [openColorPicker, setOpenColorPicker] = useState<keyof BuilderSettings | null>(null);
   const [colorPickerHsb, setColorPickerHsb] = useState<HsbColor | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -1120,6 +1123,48 @@ export default function MenuBuilder() {
     </div>
   );
 
+  const renderBlockTemplatePreviewCard = ({
+    title,
+    preview,
+    onSelect,
+    badge,
+  }: {
+    title: string;
+    preview: ReactNode;
+    onSelect: () => void;
+    badge?: string;
+  }) => (
+    <div className="group relative transition-transform duration-150 ease-out hover:-translate-y-1">
+      <Card padding="300">
+        <div className="pb-10">
+          <BlockStack gap="300">
+            <InlineStack align="space-between" blockAlign="center">
+              <span />
+              {badge ? <Badge tone="warning">{badge}</Badge> : null}
+            </InlineStack>
+            <div className="rounded-xl bg-gray-100 p-3">
+              <div className="h-40 w-full">{preview}</div>
+            </div>
+            <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
+              {title}
+            </Text>
+          </BlockStack>
+        </div>
+      </Card>
+      <div className="pointer-events-none absolute inset-x-6 bottom-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+        <Button
+          fullWidth
+          onClick={onSelect}
+          size="slim"
+          variant="primary"
+          style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+        >
+          Select
+        </Button>
+      </div>
+    </div>
+  );
+
   const renderSubmenuTemplatePreviewPanel = () => {
     const isOpen = Boolean(submenuTemplateTargetId);
     const activeTemplate = SUBMENU_TEMPLATES.find((template) => template.id === submenuTemplateHoverId);
@@ -1269,7 +1314,7 @@ export default function MenuBuilder() {
       const selectTemplate = () => handleApplyBlockTemplate(activeTemplate.id);
       switch (activeTemplate.id) {
         case "multi":
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "2 columns",
             onSelect: selectTemplate,
             preview: (
@@ -1292,7 +1337,7 @@ export default function MenuBuilder() {
             ),
           });
         case "tabs":
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "Tabs",
             onSelect: selectTemplate,
             preview: (
@@ -1307,7 +1352,7 @@ export default function MenuBuilder() {
             ),
           });
         case "image":
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "Image",
             onSelect: selectTemplate,
             preview: (
@@ -1317,7 +1362,7 @@ export default function MenuBuilder() {
             ),
           });
         case "links":
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "Link list",
             onSelect: selectTemplate,
             preview: (
@@ -1330,7 +1375,7 @@ export default function MenuBuilder() {
             ),
           });
         case "product":
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "Product",
             onSelect: selectTemplate,
             preview: (
@@ -1344,7 +1389,7 @@ export default function MenuBuilder() {
             ),
           });
         case "collection":
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "Collection",
             onSelect: selectTemplate,
             preview: (
@@ -1355,7 +1400,7 @@ export default function MenuBuilder() {
             ),
           });
         case "blogs":
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "Blogs",
             onSelect: selectTemplate,
             preview: (
@@ -1367,7 +1412,7 @@ export default function MenuBuilder() {
             ),
           });
         case "contact":
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "Contact form",
             onSelect: selectTemplate,
             preview: (
@@ -1383,9 +1428,10 @@ export default function MenuBuilder() {
           });
         case "html":
         default:
-          return renderTemplatePreviewCard({
+          return renderBlockTemplatePreviewCard({
             title: "Custom HTML",
             onSelect: selectTemplate,
+            badge: "Professional",
             preview: (
               <div className="h-28 rounded-lg bg-[#f3f4f6] p-2 font-mono text-[10px] text-gray-500">
                 <div className="h-2 w-20 rounded bg-gray-300" />
@@ -2159,6 +2205,19 @@ export default function MenuBuilder() {
     });
   };
 
+  const openDeleteItemDialog = (id: string) => {
+    const item = findItemPath(menuItems, id)?.slice(-1)[0];
+    setPendingDeleteItemId(id);
+    setPendingDeleteItemLabel(item?.label ?? "");
+  };
+
+  const confirmDeleteItem = () => {
+    if (!pendingDeleteItemId) return;
+    handleDeleteItem(pendingDeleteItemId);
+    setPendingDeleteItemId(null);
+    setPendingDeleteItemLabel("");
+  };
+
   const findParentId = (items: MenuItem[], id: string, parentId: string | null = null): string | null | undefined => {
     for (const item of items) {
       if (item.id === id) return parentId;
@@ -2303,7 +2362,7 @@ export default function MenuBuilder() {
               </button>
               <button
                 type="button"
-                onClick={() => handleDeleteItem(item.id)}
+                onClick={() => openDeleteItemDialog(item.id)}
                 aria-label="Delete item"
                 className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-red-600 hover:bg-gray-100 hover:text-red-700"
               >
@@ -4013,6 +4072,36 @@ export default function MenuBuilder() {
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
+      <Modal
+        open={Boolean(pendingDeleteItemId)}
+        onClose={() => {
+          setPendingDeleteItemId(null);
+          setPendingDeleteItemLabel("");
+        }}
+        title="Remove this menu item and its submenus"
+        primaryAction={{
+          content: "Delete",
+          destructive: true,
+          onAction: confirmDeleteItem,
+        }}
+        secondaryActions={[
+          {
+            content: "Cancel",
+            onAction: () => {
+              setPendingDeleteItemId(null);
+              setPendingDeleteItemLabel("");
+            },
+          },
+        ]}
+      >
+        <Modal.Section>
+          <Text as="p" variant="bodySm">
+            {pendingDeleteItemLabel
+              ? `Are you sure you want to remove "${pendingDeleteItemLabel}" and all of its submenus?`
+              : "Are you sure you want to remove this menu item and all of its submenus?"}
+          </Text>
+        </Modal.Section>
+      </Modal>
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <InlineStack align="space-between" blockAlign="center" gap="400">
           <InlineStack gap="300" blockAlign="center">
@@ -4204,7 +4293,7 @@ export default function MenuBuilder() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => {}}
+                              onClick={() => handleDuplicateItem(item.id)}
                               aria-label="Duplicate item"
                               className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
                             >
@@ -4212,7 +4301,7 @@ export default function MenuBuilder() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => {}}
+                              onClick={() => openDeleteItemDialog(item.id)}
                               aria-label="Delete item"
                               className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
                             >

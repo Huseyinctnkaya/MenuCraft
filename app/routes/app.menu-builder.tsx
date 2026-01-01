@@ -353,6 +353,7 @@ type MenuItem = {
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
 type BlockTemplateId =
+  | "space"
   | "multi"
   | "tabs"
   | "image"
@@ -1108,18 +1109,30 @@ export default function MenuBuilder() {
     preview: ReactNode;
     onSelect: () => void;
   }) => (
-    <div className="group relative rounded-xl border border-gray-200 bg-gray-100 p-4 shadow-sm transition-all duration-150 ease-out hover:-translate-y-1 hover:border-gray-300 hover:bg-gray-200 hover:shadow-md">
-      <div className="flex h-36 items-center justify-center overflow-hidden rounded-lg bg-white p-3 shadow-inner">
-        <div className="h-full w-full">{preview}</div>
+    <div className="group relative transition-transform duration-150 ease-out hover:-translate-y-1">
+      <Card padding="300">
+        <div className="pb-10">
+          <BlockStack gap="300">
+            <div className="rounded-xl bg-gray-100 p-3">
+              <div className="h-36 w-full">{preview}</div>
+            </div>
+            <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
+              {title}
+            </Text>
+          </BlockStack>
+        </div>
+      </Card>
+      <div className="pointer-events-none absolute inset-x-6 bottom-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+        <Button
+          fullWidth
+          onClick={onSelect}
+          size="slim"
+          variant="primary"
+          style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+        >
+          Select
+        </Button>
       </div>
-      <div className="mt-3 text-center text-sm font-semibold text-gray-800">{title}</div>
-      <button
-        type="button"
-        onClick={onSelect}
-        className="pointer-events-none absolute inset-x-6 bottom-4 rounded-full border border-gray-800 bg-gradient-to-b from-[#2b2f36] to-[#0f1115] py-2 text-sm font-semibold text-white shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
-      >
-        Select
-      </button>
     </div>
   );
 
@@ -1228,29 +1241,21 @@ export default function MenuBuilder() {
             ),
           });
         case "mega":
-          return renderTemplatePreviewCard({
-            title: "Mega menu",
-            onSelect: selectTemplate,
-            preview: (
-              <div className="grid h-28 grid-cols-3 gap-2 rounded-lg bg-[#a7b2c0] p-2">
-                <div className="rounded-md bg-white/80 p-2">
-                  <div className="h-2 w-12 rounded bg-gray-400" />
-                  <div className="mt-2 h-2 w-10 rounded bg-gray-300" />
-                  <div className="mt-2 h-2 w-8 rounded bg-gray-300" />
-                </div>
-                <div className="rounded-md bg-white/80 p-2">
-                  <div className="h-2 w-12 rounded bg-gray-400" />
-                  <div className="mt-2 h-2 w-10 rounded bg-gray-300" />
-                  <div className="mt-2 h-2 w-8 rounded bg-gray-300" />
-                </div>
-                <div className="rounded-md bg-white/80 p-2">
-                  <div className="h-2 w-12 rounded bg-gray-400" />
-                  <div className="mt-2 h-2 w-10 rounded bg-gray-300" />
-                  <div className="mt-2 h-2 w-8 rounded bg-gray-300" />
-                </div>
-              </div>
-            ),
-          });
+          return (
+            <BlockStack gap="400">
+              {renderTemplatePreviewCard({
+                title: "Space",
+                onSelect: selectTemplate,
+                preview: (
+                  <div className="flex h-28 items-center justify-center rounded-lg bg-gray-200 p-3">
+                    <div className="flex h-full w-full items-center justify-center rounded-md border border-dashed border-gray-300 bg-white text-[11px] font-medium text-gray-500">
+                      + Add block
+                    </div>
+                  </div>
+                ),
+              })}
+            </BlockStack>
+          );
         case "custom":
         default:
           return renderTemplatePreviewCard({
@@ -1313,6 +1318,18 @@ export default function MenuBuilder() {
       if (!activeTemplate) return null;
       const selectTemplate = () => handleApplyBlockTemplate(activeTemplate.id);
       switch (activeTemplate.id) {
+        case "space":
+          return renderBlockTemplatePreviewCard({
+            title: "Space",
+            onSelect: selectTemplate,
+            preview: (
+              <div className="flex h-28 items-center justify-center rounded-lg bg-gray-200 p-3">
+                <div className="flex h-full w-full items-center justify-center rounded-md border border-dashed border-gray-300 bg-white text-[11px] font-medium text-gray-500">
+                  + Add block
+                </div>
+              </div>
+            ),
+          });
         case "multi":
           return renderBlockTemplatePreviewCard({
             title: "2 columns",
@@ -2038,6 +2055,7 @@ export default function MenuBuilder() {
   const handleApplyBlockTemplate = (templateId: BlockTemplateId) => {
     if (!blockTemplateTargetId) return;
     const labelMap: Record<BlockTemplateId, string> = {
+      space: "Space",
       multi: "Multi block",
       tabs: "Tabs",
       image: "Image",
@@ -2077,6 +2095,15 @@ export default function MenuBuilder() {
       expanded: true,
       children: [],
     };
+    const spaceBlock: MenuItem = {
+      id: buildId(),
+      label: "Space",
+      url: "",
+      role: "group",
+      expanded: true,
+      children: [],
+      blockTemplate: "space",
+    };
     setMenuItems((items) =>
       updateItemById(items, submenuTemplateTargetId, (item) => {
         const hasChildren = Boolean(item.children?.length);
@@ -2085,7 +2112,8 @@ export default function MenuBuilder() {
           expanded: true,
           submenuTemplate: templateId,
           submenuType: templateId === "dropdown" ? "dropdown" : "mega",
-          children: hasChildren ? item.children : [newGroup],
+          children:
+            hasChildren ? item.children : templateId === "mega" ? [spaceBlock] : [newGroup],
         };
       })
     );
@@ -4607,6 +4635,35 @@ export default function MenuBuilder() {
                   >
                     {dropdownGroups.map((group) => {
                       const isGroupSelected = selectedItemId === group.id;
+                      if (group.blockTemplate === "space") {
+                        return (
+                          <div
+                            key={group.id}
+                            style={{
+                              gridColumn: "1 / -1",
+                              border: isGroupSelected
+                                ? `2px dashed ${themeSettings.menuActive}`
+                                : "1px dashed #cbd5e1",
+                              borderRadius: 10,
+                              padding: "16px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              background: previewColors.submenuBackground,
+                              minHeight: 80,
+                            }}
+                          >
+                            <Button
+                              variant="secondary"
+                              icon={PlusIcon}
+                              size="slim"
+                              onClick={() => handleOpenBlockTemplatePicker(previewMenu?.id ?? group.id)}
+                            >
+                              Add block
+                            </Button>
+                          </div>
+                        );
+                      }
                       return (
                         <div
                           key={group.id}

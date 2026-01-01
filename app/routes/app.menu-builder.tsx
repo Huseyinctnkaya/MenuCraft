@@ -1106,20 +1106,43 @@ export default function MenuBuilder() {
     onSelect,
     showSelectButton = true,
     titleHiddenOnHover = false,
+    showTitle = true,
+    previewHeightClassName = "h-36",
+    previewContainerClassName,
   }: {
     title: string;
     preview: ReactNode;
     onSelect: () => void;
     showSelectButton?: boolean;
     titleHiddenOnHover?: boolean;
+    showTitle?: boolean;
+    previewHeightClassName?: string;
+    previewContainerClassName?: string;
   }) => (
     <div className="group relative transition-transform duration-150 ease-out hover:-translate-y-1">
       <Card padding="300">
-        <div className="pb-10">
-          <BlockStack gap="300">
-            <div className="rounded-xl bg-gray-100 p-3">
-              <div className="h-36 w-full">{preview}</div>
-            </div>
+        <BlockStack gap="300">
+          <div
+            className={
+              previewContainerClassName ?? "relative rounded-xl bg-gray-100 p-3"
+            }
+          >
+            <div className={`${previewHeightClassName} w-full`}>{preview}</div>
+            {showSelectButton ? (
+              <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                <Button
+                  fullWidth
+                  onClick={onSelect}
+                  size="slim"
+                  variant="primary"
+                  style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                >
+                  Select
+                </Button>
+              </div>
+            ) : null}
+          </div>
+          {showTitle ? (
             <div
               className={
                 titleHiddenOnHover ? "transition-opacity duration-150 group-hover:opacity-0" : undefined
@@ -1129,22 +1152,9 @@ export default function MenuBuilder() {
                 {title}
               </Text>
             </div>
-          </BlockStack>
-        </div>
+          ) : null}
+        </BlockStack>
       </Card>
-      {showSelectButton ? (
-        <div className="pointer-events-none absolute inset-x-6 bottom-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-          <Button
-            fullWidth
-            onClick={onSelect}
-            size="slim"
-            variant="primary"
-            style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-          >
-            Select
-          </Button>
-        </div>
-      ) : null}
     </div>
   );
 
@@ -1161,32 +1171,30 @@ export default function MenuBuilder() {
   }) => (
     <div className="group relative transition-transform duration-150 ease-out hover:-translate-y-1">
       <Card padding="300">
-        <div className="pb-10">
-          <BlockStack gap="300">
-            <InlineStack align="space-between" blockAlign="center">
-              <span />
-              {badge ? <Badge tone="warning">{badge}</Badge> : null}
-            </InlineStack>
-            <div className="rounded-xl bg-gray-100 p-3">
-              <div className="h-40 w-full">{preview}</div>
+        <BlockStack gap="300">
+          <InlineStack align="space-between" blockAlign="center">
+            <span />
+            {badge ? <Badge tone="warning">{badge}</Badge> : null}
+          </InlineStack>
+          <div className="relative rounded-xl bg-gray-100 p-3">
+            <div className="h-40 w-full">{preview}</div>
+            <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+              <Button
+                fullWidth
+                onClick={onSelect}
+                size="slim"
+                variant="primary"
+                style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+              >
+                Select
+              </Button>
             </div>
-            <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
-              {title}
-            </Text>
-          </BlockStack>
-        </div>
+          </div>
+          <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
+            {title}
+          </Text>
+        </BlockStack>
       </Card>
-      <div className="pointer-events-none absolute inset-x-6 bottom-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-        <Button
-          fullWidth
-          onClick={onSelect}
-          size="slim"
-          variant="primary"
-          style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-        >
-          Select
-        </Button>
-      </div>
     </div>
   );
 
@@ -1256,17 +1264,22 @@ export default function MenuBuilder() {
           return (
             <BlockStack gap="400">
               {renderTemplatePreviewCard({
-                title: "Space",
+                title: "Boşluk",
                 onSelect: selectTemplate,
                 showSelectButton: false,
-                titleHiddenOnHover: true,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
-                      src="/space.png"
+                      src="/Space.png"
                       alt="Space template"
-                      className="max-h-full max-w-full object-contain"
+                      className="h-full w-full object-contain"
                     />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Boşluk
+                    </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
@@ -1330,7 +1343,7 @@ export default function MenuBuilder() {
             ×
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 py-4">{renderPreviewForTemplate()}</div>
+        <div className="flex-1 overflow-y-auto">{renderPreviewForTemplate()}</div>
       </div>
     );
   };

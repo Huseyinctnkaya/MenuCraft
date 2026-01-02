@@ -349,6 +349,9 @@ type MenuItem = {
   submenuContentAlign?: "left" | "center" | "right";
   submenuBackgroundColor?: string;
   submenuBackgroundImage?: string;
+  imageUrl?: string;
+  imageWidth?: number;
+  imageNoFill?: boolean;
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -885,6 +888,7 @@ export default function MenuBuilder() {
   const [iconPickerState, setIconPickerState] = useState<IconPickerState | null>(null);
   const [iconPickerSearch, setIconPickerSearch] = useState("");
   const [submenuImagePickerOpen, setSubmenuImagePickerOpen] = useState(false);
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
   const [submenuTemplateTargetId, setSubmenuTemplateTargetId] = useState<string | null>(null);
@@ -1011,6 +1015,17 @@ export default function MenuBuilder() {
     reader.readAsDataURL(file);
   };
 
+  const handleImageUpload = (file?: File | null) => {
+    if (!selectedItemId || !file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      if (!result) return;
+      updateEditDraft("imageUrl", result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const renderSubmenuImagePickerPanel = () => {
     if (!submenuImagePickerOpen) return null;
     return (
@@ -1061,6 +1076,65 @@ export default function MenuBuilder() {
                 onChange={(event) => {
                   handleSubmenuBackgroundUpload(event.target.files?.[0] ?? null);
                   setSubmenuImagePickerOpen(false);
+                }}
+              />
+            </label>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  const renderImagePickerPanel = () => {
+    if (!imagePickerOpen) return null;
+    return (
+      <Card padding="0">
+        <div className="flex min-h-[560px] flex-col">
+          <div className="border-b border-gray-200 px-4 py-3">
+            <InlineStack gap="200" blockAlign="center">
+              <Button
+                variant="tertiary"
+                icon={ArrowLeftIcon}
+                onClick={() => setImagePickerOpen(false)}
+                accessibilityLabel="Back"
+              />
+              <Text as="h2" variant="headingSm">
+                Images
+              </Text>
+            </InlineStack>
+          </div>
+          <div className="flex-1 px-4 py-4">
+            <label
+              className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                handleImageUpload(event.dataTransfer.files?.[0]);
+                setImagePickerOpen(false);
+              }}
+            >
+              <Button
+                variant="tertiary"
+                onClick={(event) => {
+                  event.preventDefault();
+                  const input = event.currentTarget
+                    .closest("label")
+                    ?.querySelector("input[type=file]") as HTMLInputElement | null;
+                  input?.click();
+                }}
+              >
+                Add image
+              </Button>
+              <Text as="p" variant="bodySm" tone="subdued">
+                Drag and drop your image
+              </Text>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                  handleImageUpload(event.target.files?.[0] ?? null);
+                  setImagePickerOpen(false);
                 }}
               />
             </label>
@@ -2180,6 +2254,10 @@ export default function MenuBuilder() {
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
       image: "Sample description",
     };
+    const imageDefaults =
+      templateId === "image"
+        ? { imageWidth: 3, imageNoFill: false }
+        : {};
     const newBlock: MenuItem = {
       id: buildId(),
       label: labelMap[templateId],
@@ -2190,6 +2268,7 @@ export default function MenuBuilder() {
       blockTemplate: templateId,
       icon: iconMap[templateId],
       description: descriptionMap[templateId],
+      ...imageDefaults,
     };
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -2570,12 +2649,16 @@ export default function MenuBuilder() {
   const renderMenuPanel = () => {
     if (menuView === "edit" && selectedItem) {
       const editingItem = editDraft ?? selectedItem;
+      const isImageBlock = editingItem.blockTemplate === "image";
       if (iconPickerState?.target === "edit") {
         return (
           <Card padding="0">
             {iconPickerState.mode === "library" ? renderIconLibraryPanel() : renderIconUploadPanel()}
           </Card>
         );
+      }
+      if (imagePickerOpen) {
+        return renderImagePickerPanel();
       }
       if (submenuImagePickerOpen) {
         return renderSubmenuImagePickerPanel();
@@ -2605,39 +2688,41 @@ export default function MenuBuilder() {
                 <Text as="h3" variant="headingSm">
                   General
                 </Text>
-                <BlockStack gap="200">
-                  <Text as="h4" variant="headingSm">
-                    Icon
-                  </Text>
-                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      {editingItem.icon ? (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                          {resolveCustomIconPreview(editingItem.icon)}
-                        </div>
-                      ) : null}
-                      <InlineStack align="center" blockAlign="center" gap="200">
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("edit", editingItem.id, "library")}
-                        >
-                          Select icon
-                        </button>
-                        <Text as="span" variant="bodySm" tone="subdued">
-                          or
-                        </Text>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("edit", editingItem.id, "upload")}
-                        >
-                          Upload icon
-                        </button>
-                      </InlineStack>
+                {!isImageBlock ? (
+                  <BlockStack gap="200">
+                    <Text as="h4" variant="headingSm">
+                      Icon
+                    </Text>
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        {editingItem.icon ? (
+                          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                            {resolveCustomIconPreview(editingItem.icon)}
+                          </div>
+                        ) : null}
+                        <InlineStack align="center" blockAlign="center" gap="200">
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("edit", editingItem.id, "library")}
+                          >
+                            Select icon
+                          </button>
+                          <Text as="span" variant="bodySm" tone="subdued">
+                            or
+                          </Text>
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("edit", editingItem.id, "upload")}
+                          >
+                            Upload icon
+                          </button>
+                        </InlineStack>
+                      </div>
                     </div>
-                  </div>
-                </BlockStack>
+                  </BlockStack>
+                ) : null}
                 <TextField
                   label="Title"
                   value={editingItem.label}
@@ -2676,199 +2761,202 @@ export default function MenuBuilder() {
                 />
               </BlockStack>
 
-              <Divider />
-
-              <BlockStack gap="300">
-                <InlineStack align="space-between" blockAlign="center">
-                  <Text as="h3" variant="headingSm">
-                    Colors
-                  </Text>
-                  <button
-                    type="button"
-                    className="text-sm text-gray-400"
-                    disabled
-                  >
-                    Clear settings
-                  </button>
-                </InlineStack>
-                <div className="relative rounded-lg border border-gray-200 p-3">
-                  <div className="pointer-events-none opacity-50">
-                    {[
-                      "Text color",
-                      "Background color",
-                      "Hover text color",
-                      "Hover background color",
-                    ].map((label) => (
-                      <div key={label} className="flex items-center justify-between py-2">
-                        <div className="flex items-center gap-3">
-                          <span className="h-6 w-6 rounded-full border border-gray-300 bg-white" />
-                          <Text as="span" variant="bodySm">
-                            {label}
-                          </Text>
-                        </div>
-                        <Text as="span" variant="bodySm" tone="subdued">
-                          Transparent
-                        </Text>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="pt-2 text-sm text-gray-500">Available on the Pro plan</p>
-                </div>
-              </BlockStack>
-
-              <Divider />
-
-              <BlockStack gap="300">
-                <InlineStack align="space-between" blockAlign="center">
-                  <Text as="h3" variant="headingSm">
-                    Badge
-                  </Text>
-                  <div className="flex h-6 w-10 items-center rounded-full bg-gray-200 px-0.5">
-                    <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
-                  </div>
-                </InlineStack>
-                <Text as="p" variant="bodySm" tone="subdued">
-                  Available on the Pro plan
-                </Text>
-              </BlockStack>
-
-              {editingItem.role === "menu" && editingItem.children?.length ? (
+              {!isImageBlock ? (
                 <>
                   <Divider />
                   <BlockStack gap="300">
-                    <Text as="h3" variant="headingSm">
-                      Submenu
-                    </Text>
-                    <Select
-                      label="Type"
-                      options={[
-                        { label: "Mega", value: "mega" },
-                        { label: "Dropdown", value: "dropdown" },
-                      ]}
-                      value={editingItem.submenuType ?? "mega"}
-                      onChange={(value) => updateEditDraft("submenuType", value as MenuItem["submenuType"])}
-                    />
-                    <Select
-                      label="Width + alignment"
-                      options={[
-                        { label: "Full width", value: "full" },
-                        { label: "Content width", value: "content" },
-                      ]}
-                      value={editingItem.submenuWidth ?? "full"}
-                      onChange={(value) =>
-                        updateEditDraft("submenuWidth", value as MenuItem["submenuWidth"])
-                      }
-                    />
-                    <Select
-                      label="Content alignment"
-                      options={[
-                        { label: "Left", value: "left" },
-                        { label: "Center", value: "center" },
-                        { label: "Right", value: "right" },
-                      ]}
-                      value={editingItem.submenuContentAlign ?? "center"}
-                      onChange={(value) =>
-                        updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"])
-                      }
-                    />
-                    <div className="relative">
-                      <InlineStack gap="400" blockAlign="center">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSubmenuColorPickerOpen((prev) => {
-                              const next = !prev;
-                              if (next) {
-                                const current = editingItem.submenuBackgroundColor || "#FFFFFF";
-                                setSubmenuColorPickerHsb(hexToHsb(current));
-                              } else {
-                                setSubmenuColorPickerHsb(null);
-                              }
-                              return next;
-                            });
-                          }}
-                          className={`h-10 w-10 rounded-full border-2 shadow-sm ${
-                            submenuColorPickerOpen
-                              ? "border-blue-500 ring-2 ring-blue-500/30"
-                              : "border-gray-300"
-                          }`}
-                          style={{
-                            backgroundColor: editingItem.submenuBackgroundColor || "transparent",
-                            backgroundImage: editingItem.submenuBackgroundColor
-                              ? undefined
-                              : "linear-gradient(45deg,#e5e7eb 25%,transparent 25%),linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e7eb 75%),linear-gradient(-45deg,transparent 75%,#e5e7eb 75%)",
-                            backgroundSize: "10px 10px",
-                            backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
-                          }}
-                          aria-label="Background color"
-                        />
-                        <BlockStack gap="100">
-                          <Text as="p" variant="bodyMd">
-                            Background color
-                          </Text>
-                          <Text as="p" variant="bodySm" tone="subdued">
-                            {editingItem.submenuBackgroundColor
-                              ? editingItem.submenuBackgroundColor.toUpperCase()
-                              : "Transparent"}
-                          </Text>
-                        </BlockStack>
-                      </InlineStack>
-                      {submenuColorPickerOpen && (
-                        <div
-                          className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
-                          onMouseDown={(event) => event.stopPropagation()}
-                        >
-                          <BlockStack gap="200">
-                            <ColorPicker
-                              color={submenuColorPickerHsb ?? hexToHsb("#FFFFFF")}
-                              onChange={(color) => {
-                                setSubmenuColorPickerHsb({ ...color });
-                                updateEditDraft("submenuBackgroundColor", hsbToHex(color));
-                              }}
-                            />
-                            <TextField
-                              label="Hex"
-                              labelHidden
-                              value={
-                                submenuColorPickerHsb
-                                  ? hsbToHex(submenuColorPickerHsb)
-                                  : editingItem.submenuBackgroundColor || "#FFFFFF"
-                              }
-                              onChange={(next) => {
-                                const normalized = normalizeHexInput(next);
-                                updateEditDraft("submenuBackgroundColor", normalized);
-                                setSubmenuColorPickerHsb(hexToHsb(normalized));
-                              }}
-                              autoComplete="off"
-                            />
-                          </BlockStack>
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <Text as="p" variant="bodySm" tone="subdued">
-                        Background image
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text as="h3" variant="headingSm">
+                        Colors
                       </Text>
                       <button
                         type="button"
-                        onClick={() => setSubmenuImagePickerOpen(true)}
-                        className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50"
+                        className="text-sm text-gray-400"
+                        disabled
                       >
-                        <span className="rounded-full border border-gray-900 bg-gray-900 px-4 py-1 text-sm font-medium text-white shadow-sm">
-                          Select photo
-                        </span>
+                        Clear settings
                       </button>
-                      {editingItem.submenuBackgroundImage ? (
-                        <div className="mt-2">
-                          <img
-                            src={editingItem.submenuBackgroundImage}
-                            alt=""
-                            className="h-20 w-full rounded-md object-cover"
-                          />
-                        </div>
-                      ) : null}
+                    </InlineStack>
+                    <div className="relative rounded-lg border border-gray-200 p-3">
+                      <div className="pointer-events-none opacity-50">
+                        {[
+                          "Text color",
+                          "Background color",
+                          "Hover text color",
+                          "Hover background color",
+                        ].map((label) => (
+                          <div key={label} className="flex items-center justify-between py-2">
+                            <div className="flex items-center gap-3">
+                              <span className="h-6 w-6 rounded-full border border-gray-300 bg-white" />
+                              <Text as="span" variant="bodySm">
+                                {label}
+                              </Text>
+                            </div>
+                            <Text as="span" variant="bodySm" tone="subdued">
+                              Transparent
+                            </Text>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="pt-2 text-sm text-gray-500">Available on the Pro plan</p>
                     </div>
                   </BlockStack>
+
+                  <Divider />
+
+                  <BlockStack gap="300">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text as="h3" variant="headingSm">
+                        Badge
+                      </Text>
+                      <div className="flex h-6 w-10 items-center rounded-full bg-gray-200 px-0.5">
+                        <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
+                      </div>
+                    </InlineStack>
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      Available on the Pro plan
+                    </Text>
+                  </BlockStack>
+
+                  {editingItem.role === "menu" && editingItem.children?.length ? (
+                    <>
+                      <Divider />
+                      <BlockStack gap="300">
+                        <Text as="h3" variant="headingSm">
+                          Submenu
+                        </Text>
+                        <Select
+                          label="Type"
+                          options={[
+                            { label: "Mega", value: "mega" },
+                            { label: "Dropdown", value: "dropdown" },
+                          ]}
+                          value={editingItem.submenuType ?? "mega"}
+                          onChange={(value) => updateEditDraft("submenuType", value as MenuItem["submenuType"])}
+                        />
+                        <Select
+                          label="Width + alignment"
+                          options={[
+                            { label: "Full width", value: "full" },
+                            { label: "Content width", value: "content" },
+                          ]}
+                          value={editingItem.submenuWidth ?? "full"}
+                          onChange={(value) =>
+                            updateEditDraft("submenuWidth", value as MenuItem["submenuWidth"])
+                          }
+                        />
+                        <Select
+                          label="Content alignment"
+                          options={[
+                            { label: "Left", value: "left" },
+                            { label: "Center", value: "center" },
+                            { label: "Right", value: "right" },
+                          ]}
+                          value={editingItem.submenuContentAlign ?? "center"}
+                          onChange={(value) =>
+                            updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"])
+                          }
+                        />
+                        <div className="relative">
+                          <InlineStack gap="400" blockAlign="center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSubmenuColorPickerOpen((prev) => {
+                                  const next = !prev;
+                                  if (next) {
+                                    const current = editingItem.submenuBackgroundColor || "#FFFFFF";
+                                    setSubmenuColorPickerHsb(hexToHsb(current));
+                                  } else {
+                                    setSubmenuColorPickerHsb(null);
+                                  }
+                                  return next;
+                                });
+                              }}
+                              className={`h-10 w-10 rounded-full border-2 shadow-sm ${
+                                submenuColorPickerOpen
+                                  ? "border-blue-500 ring-2 ring-blue-500/30"
+                                  : "border-gray-300"
+                              }`}
+                              style={{
+                                backgroundColor: editingItem.submenuBackgroundColor || "transparent",
+                                backgroundImage: editingItem.submenuBackgroundColor
+                                  ? undefined
+                                  : "linear-gradient(45deg,#e5e7eb 25%,transparent 25%),linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e7eb 75%),linear-gradient(-45deg,transparent 75%,#e5e7eb 75%)",
+                                backgroundSize: "10px 10px",
+                                backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
+                              }}
+                              aria-label="Background color"
+                            />
+                            <BlockStack gap="100">
+                              <Text as="p" variant="bodyMd">
+                                Background color
+                              </Text>
+                              <Text as="p" variant="bodySm" tone="subdued">
+                                {editingItem.submenuBackgroundColor
+                                  ? editingItem.submenuBackgroundColor.toUpperCase()
+                                  : "Transparent"}
+                              </Text>
+                            </BlockStack>
+                          </InlineStack>
+                          {submenuColorPickerOpen && (
+                            <div
+                              className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
+                              onMouseDown={(event) => event.stopPropagation()}
+                            >
+                              <BlockStack gap="200">
+                                <ColorPicker
+                                  color={submenuColorPickerHsb ?? hexToHsb("#FFFFFF")}
+                                  onChange={(color) => {
+                                    setSubmenuColorPickerHsb({ ...color });
+                                    updateEditDraft("submenuBackgroundColor", hsbToHex(color));
+                                  }}
+                                />
+                                <TextField
+                                  label="Hex"
+                                  labelHidden
+                                  value={
+                                    submenuColorPickerHsb
+                                      ? hsbToHex(submenuColorPickerHsb)
+                                      : editingItem.submenuBackgroundColor || "#FFFFFF"
+                                  }
+                                  onChange={(next) => {
+                                    const normalized = normalizeHexInput(next);
+                                    updateEditDraft("submenuBackgroundColor", normalized);
+                                    setSubmenuColorPickerHsb(hexToHsb(normalized));
+                                  }}
+                                  autoComplete="off"
+                                />
+                              </BlockStack>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <Text as="p" variant="bodySm" tone="subdued">
+                            Background image
+                          </Text>
+                          <button
+                            type="button"
+                            onClick={() => setSubmenuImagePickerOpen(true)}
+                            className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50"
+                          >
+                            <span className="rounded-full border border-gray-900 bg-gray-900 px-4 py-1 text-sm font-medium text-white shadow-sm">
+                              Select photo
+                            </span>
+                          </button>
+                          {editingItem.submenuBackgroundImage ? (
+                            <div className="mt-2">
+                              <img
+                                src={editingItem.submenuBackgroundImage}
+                                alt=""
+                                className="h-20 w-full rounded-md object-cover"
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      </BlockStack>
+                    </>
+                  ) : null}
                 </>
               ) : null}
 
@@ -2918,6 +3006,72 @@ export default function MenuBuilder() {
                   autoComplete="off"
                 />
               </BlockStack>
+
+              {isImageBlock ? (
+                <>
+                  <Divider />
+                  <BlockStack gap="300">
+                    <Text as="h3" variant="headingSm">
+                      Image
+                    </Text>
+                    <div>
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        Image
+                      </Text>
+                      <button
+                        type="button"
+                        onClick={() => setImagePickerOpen(true)}
+                        className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50"
+                      >
+                        <span className="rounded-full border border-gray-900 bg-gray-900 px-4 py-1 text-sm font-medium text-white shadow-sm">
+                          Select photo
+                        </span>
+                      </button>
+                      {editingItem.imageUrl ? (
+                        <div className="mt-2">
+                          <img
+                            src={editingItem.imageUrl}
+                            alt=""
+                            className="h-20 w-full rounded-md object-cover"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                    <InlineStack gap="200" blockAlign="center">
+                      <div style={{ flex: 1 }}>
+                        <RangeSlider
+                          label="Width"
+                          value={editingItem.imageWidth ?? 3}
+                          min={1}
+                          max={12}
+                          onChange={(value) => updateEditDraft("imageWidth", value)}
+                        />
+                      </div>
+                      <div style={{ width: 90 }}>
+                        <TextField
+                          label="Width"
+                          labelHidden
+                          type="number"
+                          value={String(editingItem.imageWidth ?? 3)}
+                          onChange={(value) => {
+                            const next = Number(value);
+                            if (!Number.isFinite(next)) return;
+                            const clamped = Math.max(1, Math.min(12, next));
+                            updateEditDraft("imageWidth", clamped);
+                          }}
+                          suffix="/12"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </InlineStack>
+                    <Checkbox
+                      label="No fill"
+                      checked={Boolean(editingItem.imageNoFill)}
+                      onChange={(value) => updateEditDraft("imageNoFill", value)}
+                    />
+                  </BlockStack>
+                </>
+              ) : null}
             </BlockStack>
 
             <Divider />
@@ -4784,6 +4938,9 @@ export default function MenuBuilder() {
                         );
                       }
                       if (group.blockTemplate === "image") {
+                        const imageWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
+                        const imageScale = `${Math.round((imageWidth / 12) * 100)}%`;
+                        const imageFill = !group.imageNoFill;
                         return (
                           <div
                             key={group.id}
@@ -4808,8 +4965,8 @@ export default function MenuBuilder() {
                               <div
                                 style={{
                                   borderRadius: 12,
-                                  background: "#ffffff",
-                                  border: "1px solid #e5e7eb",
+                                  background: imageFill ? "#ffffff" : "transparent",
+                                  border: imageFill ? "1px solid #e5e7eb" : "1px solid transparent",
                                   height: 150,
                                   display: "flex",
                                   alignItems: "center",
@@ -4817,9 +4974,9 @@ export default function MenuBuilder() {
                                 }}
                               >
                                 <img
-                                  src="/image-block.svg"
+                                  src={group.imageUrl || "/image-block.svg"}
                                   alt={group.label}
-                                  style={{ maxWidth: "100%", maxHeight: "100%" }}
+                                  style={{ width: imageScale, maxWidth: "100%", maxHeight: "100%" }}
                                 />
                               </div>
                               <div

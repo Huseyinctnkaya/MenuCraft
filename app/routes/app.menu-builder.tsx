@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLocation, useNavigate, useLoaderData } from "@remix-run/react";
@@ -4965,16 +4965,6 @@ export default function MenuBuilder() {
                         const imageScale = `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
                         const imageFill = !group.imageNoFill;
                         const imagePreviewHeight = useImageSpaceLayout ? 220 : 150;
-                        const toolbarButtonStyle = {
-                          color: "#f9fafb",
-                          "--pc-button-text": "#f9fafb",
-                          "--pc-button-icon-fill": "#f9fafb",
-                        } as CSSProperties;
-                        const toolbarDeleteStyle = {
-                          color: "#f87171",
-                          "--pc-button-text": "#f87171",
-                          "--pc-button-icon-fill": "#f87171",
-                        } as CSSProperties;
                         return (
                           <div
                             key={group.id}
@@ -4988,68 +4978,55 @@ export default function MenuBuilder() {
                               padding: "6px",
                             }}
                           >
-                            <Box
-                              shadow="200"
-                              className="pointer-events-none absolute right-4 top-3 z-10 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
-                              style={{
-                                backgroundColor: "#111827",
-                                borderRadius: 999,
-                                padding: "6px 8px",
-                              }}
+                            <div
+                              className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
                             >
-                              <InlineStack gap="100" align="center" blockAlign="center">
-                                <ButtonGroup>
-                                  <Button
-                                    icon={TextAlignLeftIcon}
-                                    variant="tertiary"
-                                    size="slim"
-                                    accessibilityLabel="Align left"
-                                    style={toolbarButtonStyle}
-                                  />
-                                  <Button
-                                    icon={TextAlignCenterIcon}
-                                    variant="tertiary"
-                                    size="slim"
-                                    accessibilityLabel="Align center"
-                                    style={toolbarButtonStyle}
-                                  />
-                                  <Button
-                                    icon={TextAlignRightIcon}
-                                    variant="tertiary"
-                                    size="slim"
-                                    accessibilityLabel="Align right"
-                                    style={toolbarButtonStyle}
-                                  />
-                                </ButtonGroup>
-                                <ButtonGroup>
-                                  <Button
-                                    icon={EditIcon}
-                                    variant="tertiary"
-                                    size="slim"
-                                    accessibilityLabel="Edit item"
-                                    onClick={() => handleSelectItem(group.id, true)}
-                                    style={toolbarButtonStyle}
-                                  />
-                                  <Button
-                                    icon={DuplicateIcon}
-                                    variant="tertiary"
-                                    size="slim"
-                                    accessibilityLabel="Duplicate item"
-                                    onClick={() => handleDuplicateItem(group.id)}
-                                    style={toolbarButtonStyle}
-                                  />
-                                  <Button
-                                    icon={DeleteIcon}
-                                    variant="tertiary"
-                                    tone="critical"
-                                    size="slim"
-                                    accessibilityLabel="Delete item"
-                                    onClick={() => openDeleteItemDialog(group.id)}
-                                    style={toolbarDeleteStyle}
-                                  />
-                                </ButtonGroup>
-                              </InlineStack>
-                            </Box>
+                              <button
+                                type="button"
+                                aria-label="Align left"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={TextAlignLeftIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Align center"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={TextAlignCenterIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Align right"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={TextAlignRightIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSelectItem(group.id, true)}
+                                aria-label="Edit item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={EditIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateItem(group.id)}
+                                aria-label="Duplicate item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={DuplicateIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDeleteItemDialog(group.id)}
+                                aria-label="Delete item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                              >
+                                <Icon source={DeleteIcon} />
+                              </button>
+                            </div>
                             <div
                               style={{
                                 borderRadius: 16,

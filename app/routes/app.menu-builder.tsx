@@ -2601,49 +2601,58 @@ export default function MenuBuilder() {
             </div>
           </div>
 
-          {item.role !== "item" && isExpanded && (
-            <Box>
-              <div className="ml-1 border-l border-dashed border-gray-300/70 pl-5">
-                <BlockStack>
-                  {hasChildren
-                    ? item.children?.map((child) => renderMenuTree(child, depth + 1))
-                    : null}
-                {item.role === "menu" ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (hasChildren) {
-                        handleOpenBlockTemplatePicker(item.id);
-                      } else {
-                        handleAddChild(item.id, "group");
-                      }
-                    }}
-                    className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
-                  >
-                    <span className="h-5 w-5" />
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
-                      +
-                    </span>
-                    {hasChildren ? "Add block" : "Add submenu"}
-                  </button>
-                ) : null}
-                {item.role === "group" ? (
-                  <button
-                    type="button"
-                    onClick={() => handleAddChild(item.id, "item")}
-                    className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
-                  >
-                    <span className="h-5 w-5" />
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
-                      +
-                    </span>
-                    Add item
-                  </button>
-                ) : null}
-                </BlockStack>
-              </div>
-            </Box>
-          )}
+          {item.role !== "item" ? (
+            <div
+              style={{
+                maxHeight: isExpanded ? 9999 : 0,
+                opacity: isExpanded ? 1 : 0,
+                overflow: "hidden",
+                transition: "max-height 140ms ease, opacity 140ms ease",
+              }}
+            >
+              <Box>
+                <div className="ml-1 border-l border-dashed border-gray-300/70 pl-5">
+                  <BlockStack>
+                    {hasChildren
+                      ? item.children?.map((child) => renderMenuTree(child, depth + 1))
+                      : null}
+                  {item.role === "menu" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (hasChildren) {
+                          handleOpenBlockTemplatePicker(item.id);
+                        } else {
+                          handleAddChild(item.id, "group");
+                        }
+                      }}
+                      className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
+                    >
+                      <span className="h-5 w-5" />
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                        +
+                      </span>
+                      {hasChildren ? "Add block" : "Add submenu"}
+                    </button>
+                  ) : null}
+                  {item.role === "group" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleAddChild(item.id, "item")}
+                      className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
+                    >
+                      <span className="h-5 w-5" />
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                        +
+                      </span>
+                      Add item
+                    </button>
+                  ) : null}
+                  </BlockStack>
+                </div>
+              </Box>
+            </div>
+          ) : null}
           </div>
         </Box>
       </div>

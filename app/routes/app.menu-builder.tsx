@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLocation, useNavigate, useLoaderData } from "@remix-run/react";
@@ -53,6 +53,9 @@ import {
   PageIcon,
   SearchIcon,
   SettingsIcon,
+  TextAlignCenterIcon,
+  TextAlignLeftIcon,
+  TextAlignRightIcon,
   TextFontListIcon,
   TextIcon,
 } from "@shopify/polaris-icons";
@@ -1539,8 +1542,8 @@ export default function MenuBuilder() {
             preview: (
               <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                 <img
-                  src="/image-block.svg"
-                  alt="Image block"
+                  src="/image%201.png"
+                  alt="Image 1 template"
                   className="h-full w-full object-contain"
                 />
                 <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
@@ -4195,6 +4198,9 @@ export default function MenuBuilder() {
   );
 
   const dropdownGroups = previewMenu?.children ?? [];
+  const imageBlockCount = dropdownGroups.filter((group) => group.blockTemplate === "image").length;
+  const hasSpaceBlock = dropdownGroups.some((group) => group.blockTemplate === "space");
+  const useImageSpaceLayout = imageBlockCount === 1 && hasSpaceBlock && dropdownGroups.length === 2;
   const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
     left: "flex-start",
     right: "flex-end",
@@ -4898,22 +4904,39 @@ export default function MenuBuilder() {
                     transition: `opacity ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms, transform ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms`,
                   }}
                 >
+                  {(() => {
+                    const orderedDropdownGroups = useImageSpaceLayout
+                      ? [...dropdownGroups].sort((a, b) => {
+                          const aPriority = a.blockTemplate === "image" ? 0 : 1;
+                          const bPriority = b.blockTemplate === "image" ? 0 : 1;
+                          return aPriority - bPriority;
+                        })
+                      : dropdownGroups;
+
+                    return (
                     <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
-                      gap: 24,
-                      color: previewColors.submenuText,
-                    }}
-                  >
-                    {dropdownGroups.map((group) => {
+                      style={{
+                        display: useImageSpaceLayout ? "flex" : "grid",
+                        gridTemplateColumns: useImageSpaceLayout
+                          ? undefined
+                          : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
+                        gap: 24,
+                        alignItems: useImageSpaceLayout ? "flex-start" : undefined,
+                        color: previewColors.submenuText,
+                      }}
+                    >
+                    {orderedDropdownGroups.map((group) => {
                       const isGroupSelected = selectedItemId === group.id;
                       if (group.blockTemplate === "space") {
+                        const spaceGridColumn = useImageSpaceLayout ? undefined : "1 / -1";
+                        const spaceMinHeight = useImageSpaceLayout ? 120 : 80;
                         return (
                           <div
                             key={group.id}
                             style={{
-                              gridColumn: "1 / -1",
+                              gridColumn: spaceGridColumn,
+                              flex: useImageSpaceLayout ? "1 1 auto" : undefined,
+                              order: useImageSpaceLayout ? 1 : undefined,
                               border: isGroupSelected
                                 ? `2px dashed ${themeSettings.menuActive}`
                                 : "1px dashed #cbd5e1",
@@ -4923,7 +4946,7 @@ export default function MenuBuilder() {
                               alignItems: "center",
                               justifyContent: "center",
                               background: previewColors.submenuBackground,
-                              minHeight: 80,
+                              minHeight: spaceMinHeight,
                             }}
                           >
                             <Button
@@ -4939,19 +4962,94 @@ export default function MenuBuilder() {
                       }
                       if (group.blockTemplate === "image") {
                         const imageWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
-                        const imageScale = `${Math.round((imageWidth / 12) * 100)}%`;
+                        const imageScale = `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
                         const imageFill = !group.imageNoFill;
+                        const imagePreviewHeight = useImageSpaceLayout ? 220 : 150;
+                        const toolbarButtonStyle = {
+                          color: "#f9fafb",
+                          "--pc-button-text": "#f9fafb",
+                          "--pc-button-icon-fill": "#f9fafb",
+                        } as CSSProperties;
+                        const toolbarDeleteStyle = {
+                          color: "#f87171",
+                          "--pc-button-text": "#f87171",
+                          "--pc-button-icon-fill": "#f87171",
+                        } as CSSProperties;
                         return (
                           <div
                             key={group.id}
+                            className="group relative rounded-2xl border-2 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
                             style={{
-                              border: isGroupSelected
-                                ? `2px dashed ${themeSettings.menuActive}`
-                                : "2px solid transparent",
-                              borderRadius: 16,
+                              gridColumn: useImageSpaceLayout ? undefined : undefined,
+                              flex: useImageSpaceLayout ? "0 0 320px" : undefined,
+                              minHeight: useImageSpaceLayout ? 240 : undefined,
+                              order: useImageSpaceLayout ? 0 : undefined,
+                              border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",
                             }}
                           >
+                            <Box
+                              shadow="200"
+                              className="pointer-events-none absolute right-4 top-3 z-10 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+                              style={{
+                                backgroundColor: "#111827",
+                                borderRadius: 999,
+                                padding: "6px 8px",
+                              }}
+                            >
+                              <InlineStack gap="100" align="center" blockAlign="center">
+                                <ButtonGroup>
+                                  <Button
+                                    icon={TextAlignLeftIcon}
+                                    variant="tertiary"
+                                    size="slim"
+                                    accessibilityLabel="Align left"
+                                    style={toolbarButtonStyle}
+                                  />
+                                  <Button
+                                    icon={TextAlignCenterIcon}
+                                    variant="tertiary"
+                                    size="slim"
+                                    accessibilityLabel="Align center"
+                                    style={toolbarButtonStyle}
+                                  />
+                                  <Button
+                                    icon={TextAlignRightIcon}
+                                    variant="tertiary"
+                                    size="slim"
+                                    accessibilityLabel="Align right"
+                                    style={toolbarButtonStyle}
+                                  />
+                                </ButtonGroup>
+                                <ButtonGroup>
+                                  <Button
+                                    icon={EditIcon}
+                                    variant="tertiary"
+                                    size="slim"
+                                    accessibilityLabel="Edit item"
+                                    onClick={() => handleSelectItem(group.id, true)}
+                                    style={toolbarButtonStyle}
+                                  />
+                                  <Button
+                                    icon={DuplicateIcon}
+                                    variant="tertiary"
+                                    size="slim"
+                                    accessibilityLabel="Duplicate item"
+                                    onClick={() => handleDuplicateItem(group.id)}
+                                    style={toolbarButtonStyle}
+                                  />
+                                  <Button
+                                    icon={DeleteIcon}
+                                    variant="tertiary"
+                                    tone="critical"
+                                    size="slim"
+                                    accessibilityLabel="Delete item"
+                                    onClick={() => openDeleteItemDialog(group.id)}
+                                    style={toolbarDeleteStyle}
+                                  />
+                                </ButtonGroup>
+                              </InlineStack>
+                            </Box>
                             <div
                               style={{
                                 borderRadius: 16,
@@ -4967,7 +5065,7 @@ export default function MenuBuilder() {
                                   borderRadius: 12,
                                   background: imageFill ? "#ffffff" : "transparent",
                                   border: imageFill ? "1px solid #e5e7eb" : "1px solid transparent",
-                                  height: 150,
+                                  height: imagePreviewHeight,
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
@@ -5087,7 +5185,9 @@ export default function MenuBuilder() {
                         </div>
                       );
                     })}
-                  </div>
+                    </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>

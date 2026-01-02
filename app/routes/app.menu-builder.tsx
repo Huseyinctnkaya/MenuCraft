@@ -355,6 +355,7 @@ type MenuItem = {
   imageUrl?: string;
   imageWidth?: number;
   imageNoFill?: boolean;
+  imageTextAlign?: "left" | "center" | "right";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -4889,7 +4890,7 @@ export default function MenuBuilder() {
                       : "none",
                     borderRadius: 0,
                     marginTop: 0,
-                    padding: "20px 24px",
+                    padding: "10px",
                     boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
                     maxWidth: submenuMaxWidth ?? "none",
                     overflowY: dropdownOverflowY ? "auto" : "visible",
@@ -4946,7 +4947,6 @@ export default function MenuBuilder() {
                               alignItems: "center",
                               justifyContent: "center",
                               background: previewColors.submenuBackground,
-                              minHeight: spaceMinHeight,
                             }}
                           >
                             <Button
@@ -4965,17 +4965,25 @@ export default function MenuBuilder() {
                         const imageScale = `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
                         const imageFill = !group.imageNoFill;
                         const imagePreviewHeight = useImageSpaceLayout ? 220 : 150;
+                        const imageTextAlign = group.imageTextAlign ?? "left";
+                        const imageTextAlignItems =
+                          imageTextAlign === "center"
+                            ? "center"
+                            : imageTextAlign === "right"
+                              ? "flex-end"
+                              : "flex-start";
                         return (
                           <div
                             key={group.id}
-                            className="group relative rounded-2xl border-2 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                            className="group relative border-2 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
                             style={{
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
-                              flex: useImageSpaceLayout ? "0 0 320px" : undefined,
+                              flex: useImageSpaceLayout ? "0 0 280px" : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",
+                              borderRadius: 0,
                             }}
                           >
                             <div
@@ -4985,6 +4993,14 @@ export default function MenuBuilder() {
                                 type="button"
                                 aria-label="Align left"
                                 className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, group.id, () => ({
+                                      ...group,
+                                      imageTextAlign: "left",
+                                    })),
+                                  )
+                                }
                               >
                                 <Icon source={TextAlignLeftIcon} />
                               </button>
@@ -4992,6 +5008,14 @@ export default function MenuBuilder() {
                                 type="button"
                                 aria-label="Align center"
                                 className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, group.id, () => ({
+                                      ...group,
+                                      imageTextAlign: "center",
+                                    })),
+                                  )
+                                }
                               >
                                 <Icon source={TextAlignCenterIcon} />
                               </button>
@@ -4999,6 +5023,14 @@ export default function MenuBuilder() {
                                 type="button"
                                 aria-label="Align right"
                                 className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, group.id, () => ({
+                                      ...group,
+                                      imageTextAlign: "right",
+                                    })),
+                                  )
+                                }
                               >
                                 <Icon source={TextAlignRightIcon} />
                               </button>
@@ -5030,8 +5062,8 @@ export default function MenuBuilder() {
                             <div
                               style={{
                                 borderRadius: 16,
-                                background: "#f1f1f1",
-                                padding: "12px",
+                                background: "transparent",
+                                padding: "5px",
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: 10,
@@ -5039,20 +5071,42 @@ export default function MenuBuilder() {
                             >
                               <div
                                 style={{
-                                  borderRadius: 12,
+                                  borderRadius: 0,
                                   background: imageFill ? "#ffffff" : "transparent",
-                                  border: imageFill ? "1px solid #e5e7eb" : "1px solid transparent",
+                                  border: imageFill && group.imageUrl ? "1px solid #e5e7eb" : "1px solid transparent",
                                   height: imagePreviewHeight,
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
                                 }}
                               >
-                                <img
-                                  src={group.imageUrl || "/image-block.svg"}
-                                  alt={group.label}
-                                  style={{ width: imageScale, maxWidth: "100%", maxHeight: "100%" }}
-                                />
+                                {group.imageUrl ? (
+                                  <img
+                                    src={group.imageUrl}
+                                    alt={group.label}
+                                    style={{ width: imageScale, maxWidth: "100%", maxHeight: "100%" }}
+                                  />
+                                ) : (
+                                  <svg
+                                    className="gm-placeholder-svg"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 525.5 525.5"
+                                    style={{
+                                      display: "block",
+                                      width: "100%",
+                                      height: "100%",
+                                      maxWidth: "100%",
+                                      maxHeight: "100%",
+                                      fill: "rgba(133, 133, 133, 0.35)",
+                                      backgroundColor: "rgba(133, 133, 133, 0.1)",
+                                      border: "1px solid rgba(133, 133, 133, 0.2)",
+                                    }}
+                                  >
+                                    <path d="M324.5 212.7H203c-1.6 0-2.8 1.3-2.8 2.8V308c0 1.6 1.3 2.8 2.8 2.8h121.6c1.6 0 2.8-1.3 2.8-2.8v-92.5c0-1.6-1.3-2.8-2.9-2.8zm1.1 95.3c0 .6-.5 1.1-1.1 1.1H203c-.6 0-1.1-.5-1.1-1.1v-92.5c0-.6.5-1.1 1.1-1.1h121.6c.6 0 1.1.5 1.1 1.1V308z" />
+                                    <path d="M210.4 299.5H240v.1s.1 0 .2-.1h75.2v-76.2h-105v76.2zm1.8-7.2l20-20c1.6-1.6 3.8-2.5 6.1-2.5s4.5.9 6.1 2.5l11.5 11.5 16.8 16.8c-12.9 3.3-20.7 6.3-22.8 7.2h-27.7v-5.5zm101.5-10.1c-20.1 1.7-36.7 4.8-49.1 7.9l-16.9-16.9 26.3-26.3c1.6-1.6 3.8-2.5 6.1-2.5s4.5.9 6.1 2.5l27.5 27.5v7.8zm-68.9 15.5c9.7-3.5 33.9-10.9 68.9-13.8v13.8h-68.9zm68.9-72.7v46.8l-26.2-26.2c-1.9-1.9-4.5-3-7.3-3s-5.4 1.1-7.3 3l-18.8 18.8V225h101.4z" />
+                                    <path d="M232.8 254c4.6 0 8.3-3.7 8.3-8.3s-3.7-8.3-8.3-8.3-8.3 3.7-8.3 8.3 3.7 8.3 8.3 8.3zm0-14.9c3.6 0 6.6 2.9 6.6 6.6s-2.9 6.6-6.6 6.6-6.6-2.9-6.6-6.6 3-6.6 6.6-6.6z" />
+                                  </svg>
+                                )}
                               </div>
                               <div
                                 style={{
@@ -5060,6 +5114,8 @@ export default function MenuBuilder() {
                                   fontWeight: 600,
                                   ...subheadingTypography,
                                   lineHeight: 1.2,
+                                  textAlign: imageTextAlign,
+                                  alignSelf: imageTextAlignItems,
                                 }}
                               >
                                 {group.label}
@@ -5070,6 +5126,8 @@ export default function MenuBuilder() {
                                   fontSize: 12,
                                   ...descriptionTypography,
                                   lineHeight: 1.2,
+                                  textAlign: imageTextAlign,
+                                  alignSelf: imageTextAlignItems,
                                 }}
                               >
                                 {group.description || "Sample description"}

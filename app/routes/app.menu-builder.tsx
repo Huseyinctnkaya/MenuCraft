@@ -1163,11 +1163,21 @@ export default function MenuBuilder() {
     preview,
     onSelect,
     badge,
+    showSelectButton = true,
+    titleHiddenOnHover = false,
+    showTitle = true,
+    previewHeightClassName = "h-40",
+    previewContainerClassName,
   }: {
     title: string;
     preview: ReactNode;
     onSelect: () => void;
     badge?: string;
+    showSelectButton?: boolean;
+    titleHiddenOnHover?: boolean;
+    showTitle?: boolean;
+    previewHeightClassName?: string;
+    previewContainerClassName?: string;
   }) => (
     <div className="group relative transition-transform duration-150 ease-out hover:-translate-y-1">
       <Card padding="300">
@@ -1176,23 +1186,39 @@ export default function MenuBuilder() {
             <span />
             {badge ? <Badge tone="warning">{badge}</Badge> : null}
           </InlineStack>
-          <div className="relative rounded-xl bg-gray-100 p-3">
-            <div className="h-40 w-full">{preview}</div>
-            <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-              <Button
-                fullWidth
-                onClick={onSelect}
-                size="slim"
-                variant="primary"
-                style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-              >
-                Select
-              </Button>
-            </div>
+          <div
+            className={
+              previewContainerClassName ?? "relative rounded-xl bg-gray-100 p-3"
+            }
+          >
+            <div className={`${previewHeightClassName} w-full`}>{preview}</div>
+            {showSelectButton ? (
+              <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                <Button
+                  fullWidth
+                  onClick={onSelect}
+                  size="slim"
+                  variant="primary"
+                  style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                >
+                  Select
+                </Button>
+              </div>
+            ) : null}
           </div>
-          <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
-            {title}
-          </Text>
+          {showTitle ? (
+            <Text
+              as="p"
+              variant="bodySm"
+              alignment="center"
+              fontWeight="semibold"
+              className={
+                titleHiddenOnHover ? "transition-opacity duration-150 group-hover:opacity-0" : undefined
+              }
+            >
+              {title}
+            </Text>
+          ) : null}
         </BlockStack>
       </Card>
     </div>
@@ -1362,10 +1388,30 @@ export default function MenuBuilder() {
           return renderBlockTemplatePreviewCard({
             title: "Space",
             onSelect: selectTemplate,
+            showSelectButton: false,
+            showTitle: false,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="flex h-28 items-center justify-center rounded-lg bg-gray-200 p-3">
-                <div className="flex h-full w-full items-center justify-center rounded-md border border-dashed border-gray-300 bg-white text-[11px] font-medium text-gray-500">
-                  + Add block
+              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/Space.png"
+                  alt="Space template"
+                  className="h-full w-full object-contain"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Space
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={selectTemplate}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    Select
+                  </Button>
                 </div>
               </div>
             ),
@@ -1410,11 +1456,33 @@ export default function MenuBuilder() {
           });
         case "image":
           return renderBlockTemplatePreviewCard({
-            title: "Image",
+            title: "Image 1",
             onSelect: selectTemplate,
+            showSelectButton: false,
+            showTitle: false,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="flex h-28 items-center justify-center rounded-lg bg-[#f3f4f6] p-2">
-                <div className="h-16 w-24 rounded-md bg-white shadow-sm" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/image-block.svg"
+                  alt="Image block"
+                  className="h-full w-full object-contain"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Image 1
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={selectTemplate}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    Select
+                  </Button>
+                </div>
               </div>
             ),
           });
@@ -2098,13 +2166,19 @@ export default function MenuBuilder() {
       space: "Space",
       multi: "Multi block",
       tabs: "Tabs",
-      image: "Image",
+      image: "Image 1",
       links: "Link list",
       product: "Product",
       collection: "Collection",
       blogs: "Blogs",
       contact: "Contact form",
       html: "Custom HTML",
+    };
+    const iconMap: Partial<Record<BlockTemplateId, string>> = {
+      image: `${ICON_PREFIX}image`,
+    };
+    const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
+      image: "Sample description",
     };
     const newBlock: MenuItem = {
       id: buildId(),
@@ -2114,6 +2188,8 @@ export default function MenuBuilder() {
       expanded: true,
       children: [],
       blockTemplate: templateId,
+      icon: iconMap[templateId],
+      description: descriptionMap[templateId],
     };
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -4704,6 +4780,69 @@ export default function MenuBuilder() {
                             >
                               Add block
                             </Button>
+                          </div>
+                        );
+                      }
+                      if (group.blockTemplate === "image") {
+                        return (
+                          <div
+                            key={group.id}
+                            style={{
+                              border: isGroupSelected
+                                ? `2px dashed ${themeSettings.menuActive}`
+                                : "2px solid transparent",
+                              borderRadius: 16,
+                              padding: "6px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                borderRadius: 16,
+                                background: "#f1f1f1",
+                                padding: "12px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 10,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  borderRadius: 12,
+                                  background: "#ffffff",
+                                  border: "1px solid #e5e7eb",
+                                  height: 150,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <img
+                                  src="/image-block.svg"
+                                  alt={group.label}
+                                  style={{ maxWidth: "100%", maxHeight: "100%" }}
+                                />
+                              </div>
+                              <div
+                                style={{
+                                  color: previewColors.submenuText,
+                                  fontWeight: 600,
+                                  ...subheadingTypography,
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {group.label}
+                              </div>
+                              <div
+                                style={{
+                                  color: previewColors.submenuDescription,
+                                  fontSize: 12,
+                                  ...descriptionTypography,
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {group.description || "Sample description"}
+                              </div>
+                            </div>
                           </div>
                         );
                       }

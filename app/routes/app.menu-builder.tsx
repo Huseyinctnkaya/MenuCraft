@@ -1055,59 +1055,57 @@ export default function MenuBuilder() {
   const renderSubmenuImagePickerPanel = () => {
     if (!submenuImagePickerOpen) return null;
     return (
-      <Card padding="0">
-        <div className="flex min-h-[560px] flex-col">
-          <div className="border-b border-gray-200 px-4 py-3">
-            <InlineStack gap="200" blockAlign="center">
-              <Button
-                variant="tertiary"
-                icon={ArrowLeftIcon}
-                onClick={() => setSubmenuImagePickerOpen(false)}
-                accessibilityLabel="Back"
-              />
-              <Text as="h2" variant="headingSm">
-                Images
-              </Text>
-            </InlineStack>
-          </div>
-          <div className="flex-1 px-4 py-4">
-            <label
-              className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => {
+      <div className="flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-200 px-4 py-3">
+          <InlineStack gap="200" blockAlign="center">
+            <Button
+              variant="tertiary"
+              icon={ArrowLeftIcon}
+              onClick={() => setSubmenuImagePickerOpen(false)}
+              accessibilityLabel="Back"
+            />
+            <Text as="h2" variant="headingSm">
+              Images
+            </Text>
+          </InlineStack>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+          <label
+            className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              handleSubmenuBackgroundUpload(event.dataTransfer.files?.[0]);
+              setSubmenuImagePickerOpen(false);
+            }}
+          >
+            <Button
+              variant="tertiary"
+              onClick={(event) => {
                 event.preventDefault();
-                handleSubmenuBackgroundUpload(event.dataTransfer.files?.[0]);
-                setSubmenuImagePickerOpen(false);
+                const input = event.currentTarget
+                  .closest("label")
+                  ?.querySelector("input[type=file]") as HTMLInputElement | null;
+                input?.click();
               }}
             >
-              <Button
-                variant="tertiary"
-                onClick={(event) => {
-                  event.preventDefault();
-                  const input = event.currentTarget
-                    .closest("label")
-                    ?.querySelector("input[type=file]") as HTMLInputElement | null;
-                  input?.click();
-                }}
-              >
-                Add image
-              </Button>
-              <Text as="p" variant="bodySm" tone="subdued">
-                Drag and drop your image
-              </Text>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => {
-                  handleSubmenuBackgroundUpload(event.target.files?.[0] ?? null);
-                  setSubmenuImagePickerOpen(false);
-                }}
-              />
-            </label>
-          </div>
+              Add image
+            </Button>
+            <Text as="p" variant="bodySm" tone="subdued">
+              Drag and drop your image
+            </Text>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                handleSubmenuBackgroundUpload(event.target.files?.[0] ?? null);
+                setSubmenuImagePickerOpen(false);
+              }}
+            />
+          </label>
         </div>
-      </Card>
+      </div>
     );
   };
 
@@ -1116,125 +1114,123 @@ export default function MenuBuilder() {
     const imageLibrary = builderSettings.imageLibrary ?? [];
     const hasSelection = Boolean(imagePickerSelection);
     return (
-      <Card padding="0">
-        <div className="flex min-h-[560px] flex-col">
-          <div className="border-b border-gray-200 px-4 py-3">
-            <InlineStack gap="200" blockAlign="center">
-              <Button
-                variant="tertiary"
-                icon={ArrowLeftIcon}
-                onClick={() => setImagePickerOpen(false)}
-                accessibilityLabel="Back"
-              />
-              <Text as="h2" variant="headingSm">
-                Images
-              </Text>
-            </InlineStack>
-          </div>
-          <div className="flex-1 px-4 py-4">
-            <label
-              className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => {
+      <div className="flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-200 px-4 py-3">
+          <InlineStack gap="200" blockAlign="center">
+            <Button
+              variant="tertiary"
+              icon={ArrowLeftIcon}
+              onClick={() => setImagePickerOpen(false)}
+              accessibilityLabel="Back"
+            />
+            <Text as="h2" variant="headingSm">
+              Images
+            </Text>
+          </InlineStack>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+          <label
+            className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              handleImageUpload(event.dataTransfer.files?.[0]);
+            }}
+          >
+            <Button
+              variant="tertiary"
+              onClick={(event) => {
                 event.preventDefault();
-                handleImageUpload(event.dataTransfer.files?.[0]);
+                const input = event.currentTarget
+                  .closest("label")
+                  ?.querySelector("input[type=file]") as HTMLInputElement | null;
+                input?.click();
               }}
             >
-              <Button
-                variant="tertiary"
-                onClick={(event) => {
-                  event.preventDefault();
-                  const input = event.currentTarget
-                    .closest("label")
-                    ?.querySelector("input[type=file]") as HTMLInputElement | null;
-                  input?.click();
-                }}
-              >
-                Add image
-              </Button>
-              <Text as="p" variant="bodySm" tone="subdued">
-                Drag and drop your image
-              </Text>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => {
-                  handleImageUpload(event.target.files?.[0] ?? null);
-                }}
-              />
-            </label>
-            {imageLibrary.length === 0 ? (
-              <Text as="p" variant="bodySm" tone="subdued" alignment="center" className="mt-4">
-                No images uploaded yet.
-              </Text>
-            ) : (
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {imageLibrary.map((image) => {
-                  const isSelected = imagePickerSelection === image;
-                  return (
-                    <button
-                      key={image}
-                      type="button"
-                      onClick={() => setImagePickerSelection(image)}
-                      className={`relative overflow-hidden rounded-lg border p-2 text-left transition ${
-                        isSelected ? "border-gray-300 bg-gray-50" : "border-gray-200"
+              Add image
+            </Button>
+            <Text as="p" variant="bodySm" tone="subdued">
+              Drag and drop your image
+            </Text>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                handleImageUpload(event.target.files?.[0] ?? null);
+              }}
+            />
+          </label>
+          {imageLibrary.length === 0 ? (
+            <Text as="p" variant="bodySm" tone="subdued" alignment="center" className="mt-4">
+              No images uploaded yet.
+            </Text>
+          ) : (
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {imageLibrary.map((image) => {
+                const isSelected = imagePickerSelection === image;
+                return (
+                  <button
+                    key={image}
+                    type="button"
+                    onClick={() => setImagePickerSelection(image)}
+                    className={`relative overflow-hidden rounded-lg border p-2 text-left transition ${
+                      isSelected ? "border-gray-300 bg-gray-50" : "border-gray-200"
+                    }`}
+                  >
+                    <span
+                      className={`absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded border text-xs font-semibold ${
+                        isSelected ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white text-transparent"
                       }`}
+                      aria-hidden="true"
                     >
-                      <span
-                        className={`absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded border text-xs font-semibold ${
-                          isSelected ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white text-transparent"
-                        }`}
-                        aria-hidden="true"
-                      >
-                        ✓
-                      </span>
-                      <img
-                        src={image}
-                        alt=""
-                        className="aspect-square w-full rounded-md border border-gray-100 object-cover"
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          <div className="border-t border-gray-200 bg-white px-4 py-3">
-            <InlineStack gap="200" align="end">
-              <Button
-                variant="tertiary"
-                disabled={!hasSelection}
-                onClick={() => {
-                  if (!imagePickerSelection) return;
-                  const nextSelection = imagePickerSelection;
-                  setBuilderSettings((prev) => ({
-                    ...prev,
-                    imageLibrary: (prev.imageLibrary ?? []).filter((image) => image !== nextSelection),
-                  }));
-                  if (currentImageUrl === nextSelection) {
-                    updateEditDraft("imageUrl", "");
-                  }
-                  setImagePickerSelection(null);
-                }}
-              >
-                Delete
-              </Button>
-              <Button
-                variant="primary"
-                disabled={!hasSelection}
-                onClick={() => {
-                  if (!imagePickerSelection) return;
-                  updateEditDraft("imageUrl", imagePickerSelection);
-                  setImagePickerOpen(false);
-                }}
-              >
-                Select
-              </Button>
-            </InlineStack>
-          </div>
+                      ✓
+                    </span>
+                    <img
+                      src={image}
+                      alt=""
+                      className="aspect-square w-full rounded-md border border-gray-100 object-cover"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
-      </Card>
+        <div className="mt-auto border-t border-gray-200 bg-white px-4 py-3">
+          <InlineStack gap="200" align="end">
+            <Button
+              variant="tertiary"
+              disabled={!hasSelection}
+              onClick={() => {
+                if (!imagePickerSelection) return;
+                const nextSelection = imagePickerSelection;
+                setBuilderSettings((prev) => ({
+                  ...prev,
+                  imageLibrary: (prev.imageLibrary ?? []).filter((image) => image !== nextSelection),
+                }));
+                if (currentImageUrl === nextSelection) {
+                  updateEditDraft("imageUrl", "");
+                }
+                setImagePickerSelection(null);
+              }}
+            >
+              Delete
+            </Button>
+            <Button
+              variant="primary"
+              disabled={!hasSelection}
+              onClick={() => {
+                if (!imagePickerSelection) return;
+                updateEditDraft("imageUrl", imagePickerSelection);
+                setImagePickerOpen(false);
+              }}
+            >
+              Select
+            </Button>
+          </InlineStack>
+        </div>
+      </div>
     );
   };
 
@@ -4628,7 +4624,7 @@ export default function MenuBuilder() {
 
         <aside className="w-80 bg-white border-r border-gray-200 flex flex-col">
           <div className="flex-1 overflow-y-auto">
-            <BlockStack gap="400" className="min-h-full">
+            <BlockStack gap="400" className="min-h-full h-full">
               {activePanel === "menu" && renderMenuPanel()}
               {activePanel === "settings" && renderSettingsPanel()}
               {activePanel === "typography" && renderTypographyPanel()}
@@ -5094,7 +5090,7 @@ export default function MenuBuilder() {
                         return (
                           <div
                             key={group.id}
-                            className="group relative border-2 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                            className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
                             style={{
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
                               flex: useImageSpaceLayout ? "0 0 280px" : undefined,

@@ -1055,7 +1055,7 @@ export default function MenuBuilder() {
   const renderSubmenuImagePickerPanel = () => {
     if (!submenuImagePickerOpen) return null;
     return (
-      <div className="flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-200 px-4 py-3">
           <InlineStack gap="200" blockAlign="center">
             <Button
@@ -1114,7 +1114,7 @@ export default function MenuBuilder() {
     const imageLibrary = builderSettings.imageLibrary ?? [];
     const hasSelection = Boolean(imagePickerSelection);
     return (
-      <div className="flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
         <div className="border-b border-gray-200 px-4 py-3">
           <InlineStack gap="200" blockAlign="center">
             <Button
@@ -2763,8 +2763,8 @@ export default function MenuBuilder() {
         return renderSubmenuImagePickerPanel();
       }
       return (
-        <Card padding="400">
-          <BlockStack gap="400">
+        <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 px-4 py-3">
             <InlineStack gap="200" blockAlign="center">
               <Button
                 variant="plain"
@@ -2779,9 +2779,9 @@ export default function MenuBuilder() {
                 Edit item
               </Text>
             </InlineStack>
+          </div>
 
-            <Divider />
-
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
             <BlockStack gap="400">
               <BlockStack gap="300">
                 <Text as="h3" variant="headingSm">
@@ -3192,9 +3192,9 @@ export default function MenuBuilder() {
                 </>
               ) : null}
             </BlockStack>
+          </div>
 
-            <Divider />
-
+          <div className="border-t border-gray-200 bg-white px-4 py-3">
             <InlineStack align="end" gap="200">
               <Button
                 variant="tertiary"
@@ -3220,8 +3220,8 @@ export default function MenuBuilder() {
                 Apply changes
               </Button>
             </InlineStack>
-          </BlockStack>
-        </Card>
+          </div>
+        </div>
       );
     }
 
@@ -5093,7 +5093,6 @@ export default function MenuBuilder() {
                             className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
                             style={{
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
-                              flex: useImageSpaceLayout ? "0 0 280px" : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,

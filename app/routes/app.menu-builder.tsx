@@ -4316,7 +4316,12 @@ export default function MenuBuilder() {
   const dropdownGroups = previewMenu?.children ?? [];
   const imageBlockCount = dropdownGroups.filter((group) => group.blockTemplate === "image").length;
   const hasSpaceBlock = dropdownGroups.some((group) => group.blockTemplate === "space");
-  const useImageSpaceLayout = imageBlockCount === 1 && hasSpaceBlock && dropdownGroups.length === 2;
+  const useImageSpaceLayout =
+    imageBlockCount > 0 &&
+    hasSpaceBlock &&
+    dropdownGroups.every(
+      (group) => group.blockTemplate === "image" || group.blockTemplate === "space"
+    );
   const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
     left: "flex-start",
     right: "flex-end",
@@ -5036,8 +5041,9 @@ export default function MenuBuilder() {
                         gridTemplateColumns: useImageSpaceLayout
                           ? undefined
                           : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
-                        gap: 24,
+                        gap: useImageSpaceLayout ? 0 : 24,
                         alignItems: useImageSpaceLayout ? "flex-start" : undefined,
+                        flexWrap: useImageSpaceLayout ? "wrap" : undefined,
                         color: previewColors.submenuText,
                       }}
                     >
@@ -5091,9 +5097,44 @@ export default function MenuBuilder() {
                           <div
                             key={group.id}
                             className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                            draggable
+                            onDragStart={(event) => {
+                              event.dataTransfer.effectAllowed = "move";
+                              event.dataTransfer.setData("text/plain", group.id);
+                              setDraggedItemId(group.id);
+                              const parentId = findParentId(menuItems, group.id);
+                              setDraggedParentId(parentId ?? null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragOver={(event) => {
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              if (draggedItemId === group.id) return;
+                              event.preventDefault();
+                              if (lastDragOverIdRef.current === group.id) return;
+                              lastDragOverIdRef.current = group.id;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragEnd={() => {
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
                             style={{
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
+                              flex: useImageSpaceLayout ? "0 0 280px" : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",

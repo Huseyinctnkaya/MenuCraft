@@ -483,6 +483,7 @@ type BuilderSettings = {
   colorButtonBackgroundHover: string;
   colorButtonTextHover: string;
   customCss: string;
+  imageLibrary: string[];
 };
 
 type FontPickerState = {
@@ -569,6 +570,7 @@ const DEFAULT_BUILDER_SETTINGS: BuilderSettings = {
   colorButtonBackgroundHover: "#000000",
   colorButtonTextHover: "#FFFFFF",
   customCss: "",
+  imageLibrary: [],
 };
 
 const FONT_OPTIONS = [
@@ -893,6 +895,7 @@ export default function MenuBuilder() {
   const [iconPickerSearch, setIconPickerSearch] = useState("");
   const [submenuImagePickerOpen, setSubmenuImagePickerOpen] = useState(false);
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [imagePickerSelection, setImagePickerSelection] = useState<string | null>(null);
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
   const [submenuTemplateTargetId, setSubmenuTemplateTargetId] = useState<string | null>(null);
@@ -932,6 +935,7 @@ export default function MenuBuilder() {
   const selectedPath = useMemo(() => findItemPath(menuItems, selectedItemId), [menuItems, selectedItemId]);
   const selectedItem = selectedPath?.[selectedPath.length - 1] ?? null;
   const activeMenu = selectedPath?.[0] ?? null;
+  const currentImageUrl = editDraft?.imageUrl ?? selectedItem?.imageUrl ?? null;
   const previewMenu = useMemo(
     () => (openMenuId ? menuItems.find((item) => item.id === openMenuId) ?? null : null),
     [menuItems, openMenuId]
@@ -948,6 +952,17 @@ export default function MenuBuilder() {
     }
     setEditDraft((prev) => (prev?.id === selectedItem.id ? prev : { ...selectedItem }));
   }, [menuView, selectedItem?.id]);
+
+  useEffect(() => {
+    if (!imagePickerOpen) return;
+    setImagePickerSelection(currentImageUrl);
+    if (!currentImageUrl) return;
+    setBuilderSettings((prev) => {
+      const existing = prev.imageLibrary ?? [];
+      if (existing.includes(currentImageUrl)) return prev;
+      return { ...prev, imageLibrary: [currentImageUrl, ...existing] };
+    });
+  }, [imagePickerOpen, currentImageUrl]);
 
   const updateBuilderSetting = <K extends keyof BuilderSettings>(
     key: K,
@@ -1025,7 +1040,14 @@ export default function MenuBuilder() {
     reader.onload = () => {
       const result = typeof reader.result === "string" ? reader.result : "";
       if (!result) return;
-      updateEditDraft("imageUrl", result);
+      setBuilderSettings((prev) => {
+        const existing = prev.imageLibrary ?? [];
+        if (existing.includes(result)) {
+          return prev;
+        }
+        return { ...prev, imageLibrary: [result, ...existing] };
+      });
+      setImagePickerSelection(result);
     };
     reader.readAsDataURL(file);
   };
@@ -1091,6 +1113,8 @@ export default function MenuBuilder() {
 
   const renderImagePickerPanel = () => {
     if (!imagePickerOpen) return null;
+    const imageLibrary = builderSettings.imageLibrary ?? [];
+    const hasSelection = Boolean(imagePickerSelection);
     return (
       <Card padding="0">
         <div className="flex min-h-[560px] flex-col">
@@ -1114,7 +1138,6 @@ export default function MenuBuilder() {
               onDrop={(event) => {
                 event.preventDefault();
                 handleImageUpload(event.dataTransfer.files?.[0]);
-                setImagePickerOpen(false);
               }}
             >
               <Button
@@ -1138,10 +1161,77 @@ export default function MenuBuilder() {
                 className="hidden"
                 onChange={(event) => {
                   handleImageUpload(event.target.files?.[0] ?? null);
-                  setImagePickerOpen(false);
                 }}
               />
             </label>
+            {imageLibrary.length === 0 ? (
+              <Text as="p" variant="bodySm" tone="subdued" alignment="center" className="mt-4">
+                No images uploaded yet.
+              </Text>
+            ) : (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {imageLibrary.map((image) => {
+                  const isSelected = imagePickerSelection === image;
+                  return (
+                    <button
+                      key={image}
+                      type="button"
+                      onClick={() => setImagePickerSelection(image)}
+                      className={`relative overflow-hidden rounded-lg border p-2 text-left transition ${
+                        isSelected ? "border-gray-300 bg-gray-50" : "border-gray-200"
+                      }`}
+                    >
+                      <span
+                        className={`absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded border text-xs font-semibold ${
+                          isSelected ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white text-transparent"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        ✓
+                      </span>
+                      <img
+                        src={image}
+                        alt=""
+                        className="aspect-square w-full rounded-md border border-gray-100 object-cover"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div className="border-t border-gray-200 bg-white px-4 py-3">
+            <InlineStack gap="200" align="end">
+              <Button
+                variant="tertiary"
+                disabled={!hasSelection}
+                onClick={() => {
+                  if (!imagePickerSelection) return;
+                  const nextSelection = imagePickerSelection;
+                  setBuilderSettings((prev) => ({
+                    ...prev,
+                    imageLibrary: (prev.imageLibrary ?? []).filter((image) => image !== nextSelection),
+                  }));
+                  if (currentImageUrl === nextSelection) {
+                    updateEditDraft("imageUrl", "");
+                  }
+                  setImagePickerSelection(null);
+                }}
+              >
+                Delete
+              </Button>
+              <Button
+                variant="primary"
+                disabled={!hasSelection}
+                onClick={() => {
+                  if (!imagePickerSelection) return;
+                  updateEditDraft("imageUrl", imagePickerSelection);
+                  setImagePickerOpen(false);
+                }}
+              >
+                Select
+              </Button>
+            </InlineStack>
           </div>
         </div>
       </Card>
@@ -3031,24 +3121,44 @@ export default function MenuBuilder() {
                       <Text as="p" variant="bodySm" tone="subdued">
                         Image
                       </Text>
-                      <button
-                        type="button"
-                        onClick={() => setImagePickerOpen(true)}
-                        className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50"
-                      >
-                        <span className="rounded-full border border-gray-900 bg-gray-900 px-4 py-1 text-sm font-medium text-white shadow-sm">
-                          Select photo
-                        </span>
-                      </button>
                       {editingItem.imageUrl ? (
-                        <div className="mt-2">
-                          <img
-                            src={editingItem.imageUrl}
-                            alt=""
-                            className="h-20 w-full rounded-md object-cover"
-                          />
+                        <div className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                          <div className="bg-gray-50 px-4 py-5">
+                            <img
+                              src={editingItem.imageUrl}
+                              alt=""
+                              className="mx-auto h-40 w-full object-contain"
+                            />
+                          </div>
+                          <div className="flex border-t border-gray-200">
+                            <button
+                              type="button"
+                              onClick={() => setImagePickerOpen(true)}
+                              className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                              Change
+                            </button>
+                            <div className="w-px bg-gray-200" />
+                            <button
+                              type="button"
+                              onClick={() => updateEditDraft("imageUrl", "")}
+                              className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
-                      ) : null}
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setImagePickerOpen(true)}
+                          className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50"
+                        >
+                          <span className="rounded-full border border-gray-900 bg-gray-900 px-4 py-1 text-sm font-medium text-white shadow-sm">
+                            Select photo
+                          </span>
+                        </button>
+                      )}
                     </div>
                     <InlineStack gap="200" blockAlign="center">
                       <div style={{ flex: 1 }}>
@@ -4990,7 +5100,7 @@ export default function MenuBuilder() {
                               flex: useImageSpaceLayout ? "0 0 280px" : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
-                              border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : undefined,
+                              border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",
                               borderRadius: 0,
                             }}

@@ -1772,7 +1772,7 @@ export default function MenuBuilder() {
     const isOpen = Boolean(blockTemplateTargetId);
     return (
       <div
-        className={`absolute right-0 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${
+        className={`absolute right-0 top-0 z-40 flex h-full w-80 min-h-0 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${
           isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
         }`}
         aria-hidden={!isOpen}
@@ -1791,7 +1791,7 @@ export default function MenuBuilder() {
           </button>
         </div>
         <div
-          className="px-3 py-3"
+          className="flex-1 min-h-0 overflow-y-auto px-3 py-3"
           onMouseEnter={() => clearBlockTemplateHoverTimeout()}
           onMouseLeave={() => scheduleBlockTemplateHoverClear()}
         >
@@ -1829,7 +1829,7 @@ export default function MenuBuilder() {
     const isOpen = Boolean(submenuTemplateTargetId);
     return (
       <div
-        className={`absolute right-0 top-0 z-30 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${
+        className={`absolute right-0 top-0 z-30 flex h-full w-80 min-h-0 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${
           isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
         }`}
         aria-hidden={!isOpen}
@@ -1848,7 +1848,7 @@ export default function MenuBuilder() {
           </button>
         </div>
         <div
-          className="px-3 py-3"
+          className="flex-1 min-h-0 overflow-y-auto px-3 py-3"
           onMouseEnter={() => clearSubmenuTemplateHoverTimeout()}
           onMouseLeave={() => scheduleSubmenuTemplateHoverClear()}
         >

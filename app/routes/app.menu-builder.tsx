@@ -364,6 +364,7 @@ type BlockTemplateId =
   | "multi"
   | "tabs"
   | "image"
+  | "image2"
   | "links"
   | "product"
   | "collection"
@@ -1283,7 +1284,7 @@ export default function MenuBuilder() {
     previewHeightClassName?: string;
     previewContainerClassName?: string;
   }) => (
-    <div className="group relative transition-transform duration-150 ease-out hover:-translate-y-1">
+    <div className="group relative transition-transform duration-150 ease-out">
       <Card padding="300">
         <BlockStack gap="300">
           <div
@@ -1343,7 +1344,7 @@ export default function MenuBuilder() {
     previewHeightClassName?: string;
     previewContainerClassName?: string;
   }) => (
-    <div className="group relative transition-transform duration-150 ease-out hover:-translate-y-1">
+    <div className="group relative transition-transform duration-150 ease-out">
       <Card padding="300">
         <BlockStack gap="300">
           <InlineStack align="space-between" blockAlign="center">
@@ -1400,7 +1401,7 @@ export default function MenuBuilder() {
       switch (activeTemplate.id) {
         case "dropdown":
           return (
-            <BlockStack gap="400">
+            <div className="flex flex-col gap-1">
               {renderTemplatePreviewCard({
                 title: "Vertical flyout menu",
                 onSelect: selectTemplate,
@@ -1433,7 +1434,7 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
-            </BlockStack>
+            </div>
           );
         case "tabs":
           return renderTemplatePreviewCard({
@@ -1619,37 +1620,72 @@ export default function MenuBuilder() {
             ),
           });
         case "image":
-          return renderBlockTemplatePreviewCard({
-            title: "Image 1",
-            onSelect: selectTemplate,
-            showSelectButton: false,
-            showTitle: false,
-            previewHeightClassName: "h-44",
-            previewContainerClassName: "bg-transparent p-0",
-            preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <img
-                  src="/image%201.png"
-                  alt="Image 1 template"
-                  className="h-full w-full object-contain"
-                />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Image 1
-                </div>
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                  <Button
-                    fullWidth
-                    onClick={selectTemplate}
-                    size="slim"
-                    variant="primary"
-                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                  >
-                    Select
-                  </Button>
-                </div>
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {renderBlockTemplatePreviewCard({
+                title: "Image 1",
+                onSelect: () => handleApplyBlockTemplate("image"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/image%201.png"
+                      alt="Image 1 template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Image 1
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("image")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Image 2",
+                onSelect: () => handleApplyBlockTemplate("image2"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/I%CC%87mage%202.png"
+                      alt="Image 2 template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Image 2
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("image2")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+            </div>
+          );
         case "links":
           return renderBlockTemplatePreviewCard({
             title: "Link list",
@@ -1763,7 +1799,7 @@ export default function MenuBuilder() {
             ×
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 py-4">{renderPreviewForTemplate()}</div>
+        <div className="flex-1 overflow-y-auto">{renderPreviewForTemplate()}</div>
       </div>
     );
   };
@@ -2331,6 +2367,7 @@ export default function MenuBuilder() {
       multi: "Multi block",
       tabs: "Tabs",
       image: "Image 1",
+      image2: "Image 2",
       links: "Link list",
       product: "Product",
       collection: "Collection",
@@ -2340,12 +2377,14 @@ export default function MenuBuilder() {
     };
     const iconMap: Partial<Record<BlockTemplateId, string>> = {
       image: `${ICON_PREFIX}image`,
+      image2: `${ICON_PREFIX}image`,
     };
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
       image: "Sample description",
+      image2: "Sample description",
     };
     const imageDefaults =
-      templateId === "image"
+      templateId === "image" || templateId === "image2"
         ? { imageWidth: 3, imageNoFill: false }
         : {};
     const newBlock: MenuItem = {
@@ -2748,7 +2787,8 @@ export default function MenuBuilder() {
   const renderMenuPanel = () => {
     if (menuView === "edit" && selectedItem) {
       const editingItem = editDraft ?? selectedItem;
-      const isImageBlock = editingItem.blockTemplate === "image";
+      const isImageBlock =
+        editingItem.blockTemplate === "image" || editingItem.blockTemplate === "image2";
       if (iconPickerState?.target === "edit") {
         return (
           <Card padding="0">
@@ -3489,7 +3529,7 @@ export default function MenuBuilder() {
               draggedItemId ? "border-blue-500 bg-blue-50/40 p-2" : "border-transparent"
             }`}
           >
-            <BlockStack gap="200">
+            <BlockStack gap="100">
               {menuItems.map((item) => renderMenuTree(item))}
             </BlockStack>
           </div>
@@ -4314,13 +4354,18 @@ export default function MenuBuilder() {
   );
 
   const dropdownGroups = previewMenu?.children ?? [];
-  const imageBlockCount = dropdownGroups.filter((group) => group.blockTemplate === "image").length;
+  const imageBlockCount = dropdownGroups.filter(
+    (group) => group.blockTemplate === "image" || group.blockTemplate === "image2"
+  ).length;
   const hasSpaceBlock = dropdownGroups.some((group) => group.blockTemplate === "space");
   const useImageSpaceLayout =
     imageBlockCount > 0 &&
     hasSpaceBlock &&
     dropdownGroups.every(
-      (group) => group.blockTemplate === "image" || group.blockTemplate === "space"
+      (group) =>
+        group.blockTemplate === "image" ||
+        group.blockTemplate === "image2" ||
+        group.blockTemplate === "space"
     );
   const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
     left: "flex-start",
@@ -5028,8 +5073,10 @@ export default function MenuBuilder() {
                   {(() => {
                     const orderedDropdownGroups = useImageSpaceLayout
                       ? [...dropdownGroups].sort((a, b) => {
-                          const aPriority = a.blockTemplate === "image" ? 0 : 1;
-                          const bPriority = b.blockTemplate === "image" ? 0 : 1;
+                          const aPriority =
+                            a.blockTemplate === "image" || a.blockTemplate === "image2" ? 0 : 1;
+                          const bPriority =
+                            b.blockTemplate === "image" || b.blockTemplate === "image2" ? 0 : 1;
                           return aPriority - bPriority;
                         })
                       : dropdownGroups;
@@ -5081,7 +5128,8 @@ export default function MenuBuilder() {
                           </div>
                         );
                       }
-                      if (group.blockTemplate === "image") {
+                      if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
+                        const isOverlayImage = group.blockTemplate === "image2";
                         const imageWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
                         const imageScale = `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
                         const imageFill = !group.imageNoFill;
@@ -5230,6 +5278,8 @@ export default function MenuBuilder() {
                                   background: imageFill ? "#ffffff" : "transparent",
                                   border: imageFill && group.imageUrl ? "1px solid #e5e7eb" : "1px solid transparent",
                                   height: imagePreviewHeight,
+                                  position: "relative",
+                                  overflow: "hidden",
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
@@ -5262,31 +5312,69 @@ export default function MenuBuilder() {
                                     <path d="M232.8 254c4.6 0 8.3-3.7 8.3-8.3s-3.7-8.3-8.3-8.3-8.3 3.7-8.3 8.3 3.7 8.3 8.3 8.3zm0-14.9c3.6 0 6.6 2.9 6.6 6.6s-2.9 6.6-6.6 6.6-6.6-2.9-6.6-6.6 3-6.6 6.6-6.6z" />
                                   </svg>
                                 )}
+                                {isOverlayImage ? (
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      left: 16,
+                                      right: 16,
+                                      bottom: 16,
+                                      background: "#3f3f3f",
+                                      color: "#ffffff",
+                                      padding: "10px 12px",
+                                      textAlign: imageTextAlign,
+                                    }}
+                                  >
+                                    <div
+                                      style={{
+                                        fontWeight: 600,
+                                        ...subheadingTypography,
+                                        lineHeight: 1.2,
+                                      }}
+                                    >
+                                      {group.label}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: 12,
+                                        ...descriptionTypography,
+                                        lineHeight: 1.2,
+                                        color: "#e5e7eb",
+                                      }}
+                                    >
+                                      {group.description || "Sample description"}
+                                    </div>
+                                  </div>
+                                ) : null}
                               </div>
-                              <div
-                                style={{
-                                  color: previewColors.submenuText,
-                                  fontWeight: 600,
-                                  ...subheadingTypography,
-                                  lineHeight: 1.2,
-                                  textAlign: imageTextAlign,
-                                  alignSelf: imageTextAlignItems,
-                                }}
-                              >
-                                {group.label}
-                              </div>
-                              <div
-                                style={{
-                                  color: previewColors.submenuDescription,
-                                  fontSize: 12,
-                                  ...descriptionTypography,
-                                  lineHeight: 1.2,
-                                  textAlign: imageTextAlign,
-                                  alignSelf: imageTextAlignItems,
-                                }}
-                              >
-                                {group.description || "Sample description"}
-                              </div>
+                              {!isOverlayImage ? (
+                                <>
+                                  <div
+                                    style={{
+                                      color: previewColors.submenuText,
+                                      fontWeight: 600,
+                                      ...subheadingTypography,
+                                      lineHeight: 1.2,
+                                      textAlign: imageTextAlign,
+                                      alignSelf: imageTextAlignItems,
+                                    }}
+                                  >
+                                    {group.label}
+                                  </div>
+                                  <div
+                                    style={{
+                                      color: previewColors.submenuDescription,
+                                      fontSize: 12,
+                                      ...descriptionTypography,
+                                      lineHeight: 1.2,
+                                      textAlign: imageTextAlign,
+                                      alignSelf: imageTextAlignItems,
+                                    }}
+                                  >
+                                    {group.description || "Sample description"}
+                                  </div>
+                                </>
+                              ) : null}
                             </div>
                           </div>
                         );

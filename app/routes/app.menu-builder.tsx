@@ -2614,7 +2614,7 @@ export default function MenuBuilder() {
     const isImageBlock =
       item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
     const isExpanded = item.expanded ?? item.role !== "item";
-    const showToggle = item.role !== "item";
+    const showToggle = item.role !== "item" && !isImageBlock;
     const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
 
     return (

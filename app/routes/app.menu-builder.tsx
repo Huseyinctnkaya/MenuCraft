@@ -2611,6 +2611,8 @@ export default function MenuBuilder() {
     }
     const isSelected = selectedItemId === item.id;
     const hasChildren = Boolean(item.children?.length);
+    const isImageBlock =
+      item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item";
     const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
@@ -2760,7 +2762,7 @@ export default function MenuBuilder() {
                       {hasChildren ? "Add block" : "Add submenu"}
                     </button>
                   ) : null}
-                  {item.role === "group" ? (
+                  {item.role === "group" && !isImageBlock ? (
                     <button
                       type="button"
                       onClick={() => handleAddChild(item.id, "item")}
@@ -5182,7 +5184,7 @@ export default function MenuBuilder() {
                             style={{
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
-                              flex: useImageSpaceLayout ? "0 0 280px" : undefined,
+                              flex: useImageSpaceLayout ? "0 0 25%" : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",

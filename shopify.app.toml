@@ -2,7 +2,7 @@
 
 client_id = "e458d01dd187d4941bb99548a78e9421"
 name = "MenuCraft"
-application_url = "https://constitutes-nirvana-penalty-atlantic.trycloudflare.com"
+application_url = "https://toll-reaches-wellness-impressed.trycloudflare.com"
 embedded = true
 
 [build]
@@ -33,5 +33,5 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://constitutes-nirvana-penalty-atlantic.trycloudflare.com/auth/callback"
+  "https://toll-reaches-wellness-impressed.trycloudflare.com/auth/callback"
 ]

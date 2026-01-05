@@ -356,6 +356,14 @@ type MenuItem = {
   imageWidth?: number;
   imageNoFill?: boolean;
   imageTextAlign?: "left" | "center" | "right";
+  contactTitle?: string;
+  contactDescription?: string;
+  contactNameLabel?: string;
+  contactEmailLabel?: string;
+  contactPhoneLabel?: string;
+  contactMessageLabel?: string;
+  contactSubmitLabel?: string;
+  contactSuccessMessage?: string;
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -1740,14 +1748,31 @@ export default function MenuBuilder() {
           return renderBlockTemplatePreviewCard({
             title: "Contact form",
             onSelect: selectTemplate,
+            showSelectButton: false,
+            showTitle: false,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="h-5 rounded bg-white" />
-                  <div className="h-5 rounded bg-white" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/contact%20form.png"
+                  alt="Contact form template"
+                  className="h-full w-full object-contain"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Contact form
                 </div>
-                <div className="mt-2 h-6 rounded bg-white" />
-                <div className="mt-2 h-4 w-12 rounded bg-gray-300" />
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={selectTemplate}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    Select
+                  </Button>
+                </div>
               </div>
             ),
           });
@@ -2387,6 +2412,20 @@ export default function MenuBuilder() {
       templateId === "image" || templateId === "image2"
         ? { imageWidth: 3, imageNoFill: false }
         : {};
+    const contactDefaults =
+      templateId === "contact"
+        ? {
+            contactTitle: "Contact",
+            contactDescription: "",
+            contactNameLabel: "Name",
+            contactEmailLabel: "Email",
+            contactPhoneLabel: "Phone number",
+            contactMessageLabel: "Message",
+            contactSubmitLabel: "Send",
+            contactSuccessMessage: "Thanks for contacting us. We'll get back to you soon.",
+            imageWidth: 6,
+          }
+        : {};
     const newBlock: MenuItem = {
       id: buildId(),
       label: labelMap[templateId],
@@ -2398,6 +2437,7 @@ export default function MenuBuilder() {
       icon: iconMap[templateId],
       description: descriptionMap[templateId],
       ...imageDefaults,
+      ...contactDefaults,
     };
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -2613,8 +2653,10 @@ export default function MenuBuilder() {
     const hasChildren = Boolean(item.children?.length);
     const isImageBlock =
       item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
+    const isContactBlock = item.role === "group" && item.blockTemplate === "contact";
+    const isVisualBlock = isImageBlock || isContactBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
-    const showToggle = item.role !== "item" && !isImageBlock;
+    const showToggle = item.role !== "item" && !isVisualBlock;
     const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
 
     return (
@@ -2762,7 +2804,7 @@ export default function MenuBuilder() {
                       {hasChildren ? "Add block" : "Add submenu"}
                     </button>
                   ) : null}
-                  {item.role === "group" && !isImageBlock ? (
+                  {item.role === "group" && !isVisualBlock ? (
                     <button
                       type="button"
                       onClick={() => handleAddChild(item.id, "item")}
@@ -2791,6 +2833,8 @@ export default function MenuBuilder() {
       const editingItem = editDraft ?? selectedItem;
       const isImageBlock =
         editingItem.blockTemplate === "image" || editingItem.blockTemplate === "image2";
+      const isContactBlock = editingItem.blockTemplate === "contact";
+      const isVisualBlock = isImageBlock || isContactBlock;
       if (iconPickerState?.target === "edit") {
         return (
           <Card padding="0">
@@ -2829,7 +2873,7 @@ export default function MenuBuilder() {
                 <Text as="h3" variant="headingSm">
                   General
                 </Text>
-                {!isImageBlock ? (
+                {!isVisualBlock ? (
                   <BlockStack gap="200">
                     <Text as="h4" variant="headingSm">
                       Icon
@@ -2864,45 +2908,127 @@ export default function MenuBuilder() {
                     </div>
                   </BlockStack>
                 ) : null}
-                <TextField
-                  label="Title"
-                  value={editingItem.label}
-                  onChange={(value) => updateEditDraft("label", value)}
-                  autoComplete="off"
-                />
-                <div dir="ltr" className="flex items-end gap-2">
-                  <div className="flex-1">
+                {isContactBlock ? (
+                  <>
+                    <InlineStack gap="200" blockAlign="center">
+                      <div style={{ flex: 1 }}>
+                        <RangeSlider
+                          label="Width"
+                          value={editingItem.imageWidth ?? 6}
+                          min={1}
+                          max={12}
+                          onChange={(value) => updateEditDraft("imageWidth", value)}
+                        />
+                      </div>
+                      <div style={{ width: 90 }}>
+                        <TextField
+                          label="Width"
+                          labelHidden
+                          type="number"
+                          value={String(editingItem.imageWidth ?? 6)}
+                          onChange={(value) => {
+                            const next = Number(value);
+                            if (!Number.isFinite(next)) return;
+                            const clamped = Math.max(1, Math.min(12, next));
+                            updateEditDraft("imageWidth", clamped);
+                          }}
+                          suffix="/12"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </InlineStack>
                     <TextField
-                      label="Link"
-                      value={editingItem.url}
-                      onChange={(value) => updateEditDraft("url", value)}
+                      label="Title"
+                      value={editingItem.contactTitle ?? ""}
+                      onChange={(value) => updateEditDraft("contactTitle", value)}
                       autoComplete="off"
-                      placeholder="Search or paste a link"
                     />
-                  </div>
-                  <button
-                    type="button"
-                    aria-label="Clear link"
-                    onClick={() => updateEditDraft("url", "")}
-                    className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
-                  >
-                    <span className="text-base leading-none">×</span>
-                  </button>
-                </div>
-                <Checkbox
-                  label="Open in new tab"
-                  checked={Boolean(editingItem.openInNewTab)}
-                  onChange={(value) => updateEditDraft("openInNewTab", value)}
-                />
-                <TextField
-                  label="Description"
-                  value={editingItem.description ?? ""}
-                  onChange={(value) => updateEditDraft("description", value)}
-                  autoComplete="off"
-                />
+                    <TextField
+                      label="Description"
+                      value={editingItem.contactDescription ?? ""}
+                      onChange={(value) => updateEditDraft("contactDescription", value)}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="Name"
+                      value={editingItem.contactNameLabel ?? ""}
+                      onChange={(value) => updateEditDraft("contactNameLabel", value)}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="Email"
+                      value={editingItem.contactEmailLabel ?? ""}
+                      onChange={(value) => updateEditDraft("contactEmailLabel", value)}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="Phone number"
+                      value={editingItem.contactPhoneLabel ?? ""}
+                      onChange={(value) => updateEditDraft("contactPhoneLabel", value)}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="Message"
+                      value={editingItem.contactMessageLabel ?? ""}
+                      onChange={(value) => updateEditDraft("contactMessageLabel", value)}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="Send"
+                      value={editingItem.contactSubmitLabel ?? ""}
+                      onChange={(value) => updateEditDraft("contactSubmitLabel", value)}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="Success message"
+                      value={editingItem.contactSuccessMessage ?? ""}
+                      onChange={(value) => updateEditDraft("contactSuccessMessage", value)}
+                      autoComplete="off"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <TextField
+                      label="Title"
+                      value={editingItem.label}
+                      onChange={(value) => updateEditDraft("label", value)}
+                      autoComplete="off"
+                    />
+                    <div dir="ltr" className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <TextField
+                          label="Link"
+                          value={editingItem.url}
+                          onChange={(value) => updateEditDraft("url", value)}
+                          autoComplete="off"
+                          placeholder="Search or paste a link"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="Clear link"
+                        onClick={() => updateEditDraft("url", "")}
+                        className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      >
+                        <span className="text-base leading-none">×</span>
+                      </button>
+                    </div>
+                    <Checkbox
+                      label="Open in new tab"
+                      checked={Boolean(editingItem.openInNewTab)}
+                      onChange={(value) => updateEditDraft("openInNewTab", value)}
+                    />
+                    <TextField
+                      label="Description"
+                      value={editingItem.description ?? ""}
+                      onChange={(value) => updateEditDraft("description", value)}
+                      autoComplete="off"
+                    />
+                  </>
+                )}
               </BlockStack>
 
-              {!isImageBlock ? (
+              {!isVisualBlock ? (
                 <>
                   <Divider />
                   <BlockStack gap="300">
@@ -4357,7 +4483,10 @@ export default function MenuBuilder() {
 
   const dropdownGroups = previewMenu?.children ?? [];
   const imageBlockCount = dropdownGroups.filter(
-    (group) => group.blockTemplate === "image" || group.blockTemplate === "image2"
+    (group) =>
+      group.blockTemplate === "image" ||
+      group.blockTemplate === "image2" ||
+      group.blockTemplate === "contact"
   ).length;
   const hasSpaceBlock = dropdownGroups.some((group) => group.blockTemplate === "space");
   const useImageSpaceLayout =
@@ -4367,6 +4496,7 @@ export default function MenuBuilder() {
       (group) =>
         group.blockTemplate === "image" ||
         group.blockTemplate === "image2" ||
+        group.blockTemplate === "contact" ||
         group.blockTemplate === "space"
     );
   const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
@@ -5076,9 +5206,17 @@ export default function MenuBuilder() {
                     const orderedDropdownGroups = useImageSpaceLayout
                       ? [...dropdownGroups].sort((a, b) => {
                           const aPriority =
-                            a.blockTemplate === "image" || a.blockTemplate === "image2" ? 0 : 1;
+                            a.blockTemplate === "image" ||
+                            a.blockTemplate === "image2" ||
+                            a.blockTemplate === "contact"
+                              ? 0
+                              : 1;
                           const bPriority =
-                            b.blockTemplate === "image" || b.blockTemplate === "image2" ? 0 : 1;
+                            b.blockTemplate === "image" ||
+                            b.blockTemplate === "image2" ||
+                            b.blockTemplate === "contact"
+                              ? 0
+                              : 1;
                           return aPriority - bPriority;
                         })
                       : dropdownGroups;
@@ -5143,6 +5281,7 @@ export default function MenuBuilder() {
                             : imageTextAlign === "right"
                               ? "flex-end"
                               : "flex-start";
+                        const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
                         return (
                           <div
                             key={group.id}
@@ -5184,7 +5323,7 @@ export default function MenuBuilder() {
                             style={{
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
-                              flex: useImageSpaceLayout ? "0 0 25%" : undefined,
+                              flex: useImageSpaceLayout ? `0 0 ${imageFlexBasis}` : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",
@@ -5377,6 +5516,195 @@ export default function MenuBuilder() {
                                   </div>
                                 </>
                               ) : null}
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (group.blockTemplate === "contact") {
+                        const contactWidth = Math.max(1, Math.min(12, group.imageWidth ?? 6));
+                        const contactFlexBasis = `${Math.round((contactWidth / 12) * 100)}%`;
+                        const contactNamePlaceholder = group.contactNameLabel || "Name";
+                        const contactEmailPlaceholder = group.contactEmailLabel || "Email";
+                        const contactPhonePlaceholder = group.contactPhoneLabel || "Phone number";
+                        const contactMessagePlaceholder = group.contactMessageLabel || "Message";
+                        const contactSubmitLabel = group.contactSubmitLabel || "Send";
+                        return (
+                          <div
+                            key={group.id}
+                            className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                            draggable
+                            onDragStart={(event) => {
+                              event.dataTransfer.effectAllowed = "move";
+                              event.dataTransfer.setData("text/plain", group.id);
+                              setDraggedItemId(group.id);
+                              const parentId = findParentId(menuItems, group.id);
+                              setDraggedParentId(parentId ?? null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragOver={(event) => {
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              if (draggedItemId === group.id) return;
+                              event.preventDefault();
+                              if (lastDragOverIdRef.current === group.id) return;
+                              lastDragOverIdRef.current = group.id;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragEnd={() => {
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            style={{
+                              minHeight: useImageSpaceLayout ? 240 : undefined,
+                              flex: useImageSpaceLayout ? `0 0 ${contactFlexBasis}` : undefined,
+                              order: useImageSpaceLayout ? 0 : undefined,
+                              border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
+                              padding: "6px",
+                              borderRadius: 0,
+                            }}
+                          >
+                            <div
+                              className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleSelectItem(group.id, true)}
+                                aria-label="Edit item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={EditIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateItem(group.id)}
+                                aria-label="Duplicate item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={DuplicateIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDeleteItemDialog(group.id)}
+                                aria-label="Delete item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                              >
+                                <Icon source={DeleteIcon} />
+                              </button>
+                            </div>
+                            <div
+                              style={{
+                                border: "1px solid #e5e7eb",
+                                background: "#ffffff",
+                                padding: "16px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 12,
+                              }}
+                            >
+                              <div>
+                                <div
+                                  style={{
+                                    color: previewColors.submenuHeading,
+                                    fontWeight: 600,
+                                    ...subheadingTypography,
+                                    lineHeight: 1.2,
+                                  }}
+                                >
+                                  {group.contactTitle || "Contact"}
+                                </div>
+                                {group.contactDescription ? (
+                                  <div
+                                    style={{
+                                      marginTop: 4,
+                                      color: previewColors.submenuDescription,
+                                      ...descriptionTypography,
+                                      lineHeight: 1.3,
+                                    }}
+                                  >
+                                    {group.contactDescription}
+                                  </div>
+                                ) : null}
+                              </div>
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                                  gap: 10,
+                                }}
+                              >
+                                <input
+                                  type="text"
+                                  placeholder={contactNamePlaceholder}
+                                  disabled
+                                  style={{
+                                    height: 34,
+                                    border: "1px solid #e5e7eb",
+                                    padding: "6px 10px",
+                                    fontSize: 12,
+                                    color: "#111827",
+                                  }}
+                                />
+                                <input
+                                  type="email"
+                                  placeholder={contactEmailPlaceholder}
+                                  disabled
+                                  style={{
+                                    height: 34,
+                                    border: "1px solid #e5e7eb",
+                                    padding: "6px 10px",
+                                    fontSize: 12,
+                                    color: "#111827",
+                                  }}
+                                />
+                              </div>
+                              <input
+                                type="text"
+                                placeholder={contactPhonePlaceholder}
+                                disabled
+                                style={{
+                                  height: 34,
+                                  border: "1px solid #e5e7eb",
+                                  padding: "6px 10px",
+                                  fontSize: 12,
+                                  color: "#111827",
+                                }}
+                              />
+                              <textarea
+                                placeholder={contactMessagePlaceholder}
+                                disabled
+                                style={{
+                                  height: 80,
+                                  border: "1px solid #e5e7eb",
+                                  padding: "6px 10px",
+                                  fontSize: 12,
+                                  color: "#111827",
+                                  resize: "none",
+                                }}
+                              />
+                              <div style={{ display: "flex" }}>
+                                <div
+                                  style={{
+                                    border: "1px solid #94a3b8",
+                                    padding: "6px 16px",
+                                    fontSize: 12,
+                                    color: "#111827",
+                                  }}
+                                >
+                                  {contactSubmitLabel}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         );

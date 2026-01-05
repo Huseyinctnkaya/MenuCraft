@@ -3758,7 +3758,7 @@ export default function MenuBuilder() {
     };
 
     return (
-      <Card>
+      <Card padding="400">
         <BlockStack gap="400">
           <Text as="h2" variant="headingMd">
             Typography settings

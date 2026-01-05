@@ -85,3 +85,19 @@ model ShopPreference {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
+
+model ContactSubmission {
+  id         Int      @id @default(autoincrement())
+  shop       String
+  menuId     Int?
+  menuItemId String?
+  name       String?
+  email      String?
+  phone      String?
+  message    String?
+  createdAt  DateTime @default(now())
+
+  @@index([shop])
+  @@index([menuId])
+  @@index([createdAt])
+}

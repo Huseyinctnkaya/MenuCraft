@@ -63,6 +63,7 @@ import {
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import { sendContactEmail } from "../email.server";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: polarisStyles },
@@ -276,6 +277,56 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const shop = session.shop;
   const formData = await request.formData();
   const intent = formData.get("intent");
+
+  if (intent === "contact-submit") {
+    const menuIdValue = Number(formData.get("menuId"));
+    const menuId = Number.isFinite(menuIdValue) && menuIdValue > 0 ? menuIdValue : null;
+    const menuItemId =
+      typeof formData.get("menuItemId") === "string" ? String(formData.get("menuItemId")) : null;
+    const name = typeof formData.get("name") === "string" ? formData.get("name").trim() : null;
+    const email = typeof formData.get("email") === "string" ? formData.get("email").trim() : null;
+    const phone = typeof formData.get("phone") === "string" ? formData.get("phone").trim() : null;
+    const message =
+      typeof formData.get("message") === "string" ? formData.get("message").trim() : null;
+
+    const submission = await prisma.contactSubmission.create({
+      data: {
+        shop,
+        menuId,
+        menuItemId,
+        name: name || null,
+        email: email || null,
+        phone: phone || null,
+        message: message || null,
+      },
+    });
+
+    let menuName: string | null = null;
+    if (menuId) {
+      const menu = await prisma.menu.findFirst({
+        where: { id: menuId, shop },
+        select: { name: true },
+      });
+      menuName = menu?.name ?? null;
+    }
+
+    try {
+      await sendContactEmail({
+        shop,
+        menuId,
+        menuName,
+        menuItemId,
+        name,
+        email,
+        phone,
+        message,
+      });
+    } catch (error) {
+      console.error("Failed to send contact email", error);
+    }
+
+    return json({ ok: true, menuItemId: submission.menuItemId ?? null });
+  }
 
   if (intent !== "save") {
     return json({ ok: false, error: "Unknown intent" }, { status: 400 });
@@ -851,6 +902,7 @@ export default function MenuBuilder() {
   const navigate = useNavigate();
   const location = useLocation();
   const saveFetcher = useFetcher<typeof action>();
+  const contactFetcher = useFetcher<typeof action>();
   const [activePanel, setActivePanel] = useState<RailPanel>("menu");
   const [menuView, setMenuView] = useState<"list" | "edit" | "add-root">("list");
   const [menuStatus, setMenuStatus] = useState<"active" | "draft">(
@@ -5534,6 +5586,15 @@ export default function MenuBuilder() {
                         const contactPhonePlaceholder = group.contactPhoneLabel || "Phone number";
                         const contactMessagePlaceholder = group.contactMessageLabel || "Message";
                         const contactSubmitLabel = group.contactSubmitLabel || "Send";
+                        const contactSuccessMessage =
+                          group.contactSuccessMessage ||
+                          "Thanks for contacting us. We'll get back to you soon.";
+                        const activeContactItemId =
+                          contactFetcher.submission?.formData.get("menuItemId");
+                        const isContactSubmitting =
+                          contactFetcher.state !== "idle" && activeContactItemId === group.id;
+                        const contactSuccess =
+                          contactFetcher.data?.ok && contactFetcher.data?.menuItemId === group.id;
                         return (
                           <div
                             key={group.id}
@@ -5609,7 +5670,8 @@ export default function MenuBuilder() {
                                 <Icon source={DeleteIcon} />
                               </button>
                             </div>
-                            <div
+                            <contactFetcher.Form
+                              method="post"
                               style={{
                                 border: "1px solid #e5e7eb",
                                 background: "#ffffff",
@@ -5619,6 +5681,9 @@ export default function MenuBuilder() {
                                 gap: 12,
                               }}
                             >
+                              <input type="hidden" name="intent" value="contact-submit" />
+                              <input type="hidden" name="menuId" value={menu.id} />
+                              <input type="hidden" name="menuItemId" value={group.id} />
                               <div>
                                 <div
                                   style={{
@@ -5652,8 +5717,9 @@ export default function MenuBuilder() {
                               >
                                 <input
                                   type="text"
+                                  name="name"
                                   placeholder={contactNamePlaceholder}
-                                  disabled
+                                  draggable={false}
                                   style={{
                                     height: 34,
                                     border: "1px solid #e5e7eb",
@@ -5664,8 +5730,9 @@ export default function MenuBuilder() {
                                 />
                                 <input
                                   type="email"
+                                  name="email"
                                   placeholder={contactEmailPlaceholder}
-                                  disabled
+                                  draggable={false}
                                   style={{
                                     height: 34,
                                     border: "1px solid #e5e7eb",
@@ -5677,8 +5744,9 @@ export default function MenuBuilder() {
                               </div>
                               <input
                                 type="text"
+                                name="phone"
                                 placeholder={contactPhonePlaceholder}
-                                disabled
+                                draggable={false}
                                 style={{
                                   height: 34,
                                   border: "1px solid #e5e7eb",
@@ -5688,8 +5756,9 @@ export default function MenuBuilder() {
                                 }}
                               />
                               <textarea
+                                name="message"
                                 placeholder={contactMessagePlaceholder}
-                                disabled
+                                draggable={false}
                                 style={{
                                   height: 80,
                                   border: "1px solid #e5e7eb",
@@ -5699,19 +5768,34 @@ export default function MenuBuilder() {
                                   resize: "none",
                                 }}
                               />
-                              <div style={{ display: "flex" }}>
-                                <div
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <button
+                                  type="submit"
+                                  disabled={isContactSubmitting}
                                   style={{
                                     border: "1px solid #94a3b8",
                                     padding: "6px 16px",
                                     fontSize: 12,
                                     color: "#111827",
+                                    background: isContactSubmitting ? "#f1f5f9" : "#ffffff",
+                                    cursor: isContactSubmitting ? "not-allowed" : "pointer",
                                   }}
                                 >
                                   {contactSubmitLabel}
-                                </div>
+                                </button>
+                                {contactSuccess ? (
+                                  <span
+                                    style={{
+                                      fontSize: 12,
+                                      color: "#16a34a",
+                                      ...descriptionTypography,
+                                    }}
+                                  >
+                                    {contactSuccessMessage}
+                                  </span>
+                                ) : null}
                               </div>
-                            </div>
+                            </contactFetcher.Form>
                           </div>
                         );
                       }

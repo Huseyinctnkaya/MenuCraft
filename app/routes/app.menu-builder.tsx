@@ -35,6 +35,7 @@ import {
   CollectionIcon,
   CollectionListIcon,
   DesktopIcon,
+  EmailIcon,
   FormsIcon,
   DragHandleIcon,
   DuplicateIcon,
@@ -162,7 +163,7 @@ const BLOCK_TEMPLATES: Array<{ id: BlockTemplateId; label: string; icon: IconSou
   { id: "product", label: "Product", icon: ProductIcon },
   { id: "collection", label: "Collection", icon: CollectionIcon },
   { id: "blogs", label: "Blogs", icon: BlogIcon },
-  { id: "contact", label: "Contact form", icon: FormsIcon },
+  { id: "contact", label: "Contact form", icon: EmailIcon },
   { id: "html", label: "Custom HTML", icon: CodeIcon },
 ];
 
@@ -2657,7 +2658,12 @@ export default function MenuBuilder() {
     const isVisualBlock = isImageBlock || isContactBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item" && !isVisualBlock;
-    const itemIcon = item.role === "group" ? TextFontListIcon : TextIcon;
+    const itemIcon =
+      item.role === "group"
+        ? item.blockTemplate === "contact"
+          ? FormsIcon
+          : TextFontListIcon
+        : TextIcon;
 
     return (
       <div key={item.id} className="mt-0">

@@ -10,6 +10,11 @@ automatically_update_urls_on_dev = true
 dev_store_url = "mega-menu-test-2.myshopify.com"
 include_config_on_deploy = true
 
+[app_proxy]
+url = "https://toll-reaches-wellness-impressed.trycloudflare.com/proxy"
+subpath = "menucraft"
+prefix = "apps"
+
 [webhooks]
 api_version = "2026-01"
 

@@ -6,6 +6,8 @@ import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
+const appBlockCache = new Map<string, { value: boolean; expiresAt: number }>();
+
 const hasAppBlockInThemeAssets = async (
   shop: string,
   themeId: string,
@@ -16,6 +18,12 @@ const hasAppBlockInThemeAssets = async (
     "sections/header.json",
     "templates/index.json",
   ];
+  const cacheKey = `${shop}:${themeId}:menu-block`;
+  const now = Date.now();
+  const cached = appBlockCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
   const readAssetValue = (assetData: any) => {
     if (typeof assetData?.asset?.value === "string") {
       return assetData.asset.value;
@@ -31,42 +39,31 @@ const hasAppBlockInThemeAssets = async (
   };
   const appBlockPattern = /shopify:\/\/apps\/[^/]+\/blocks\/menu-block[^"\\]*/i;
   try {
-    const listResponse = await fetch(
-      `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?fields=key`,
-      { headers: restHeaders }
-    );
-    if (!listResponse.ok) {
-      console.error("Theme assets list request failed", listResponse.status, listResponse.statusText);
-    }
-    const listData = await listResponse.json().catch(() => ({}));
-    const assetKeys = (listData?.assets ?? [])
-      .map((asset: { key?: string }) => asset.key)
-      .filter((key: string | undefined): key is string => Boolean(key));
-
-    const preferredKeys = defaultKeys.filter((key) => assetKeys.includes(key));
-    const templateKeys = assetKeys.filter((key) => /^(sections|templates)\/.+\.json$/.test(key));
-    const keysToScan = assetKeys.length
-      ? Array.from(new Set([...preferredKeys, ...templateKeys]))
-      : defaultKeys;
-
-    for (const key of keysToScan) {
+    for (const key of defaultKeys) {
       const assetResponse = await fetch(
         `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=${encodeURIComponent(key)}`,
         { headers: restHeaders }
       );
       if (!assetResponse.ok) {
+        if (assetResponse.status !== 404 && assetResponse.status !== 429) {
+          console.error("Theme asset request failed", assetResponse.status, assetResponse.statusText);
+        }
         continue;
       }
       const assetData = await assetResponse.json().catch(() => ({}));
       const value = readAssetValue(assetData);
       if (typeof value === "string") {
         const hasBlock = appBlockPattern.test(value);
-        if (hasBlock) return true;
+        if (hasBlock) {
+          appBlockCache.set(cacheKey, { value: true, expiresAt: now + 30_000 });
+          return true;
+        }
       }
     }
   } catch (error) {
     console.error("Failed to scan theme assets for app block", error);
   }
+  appBlockCache.set(cacheKey, { value: false, expiresAt: now + 10_000 });
   return false;
 };
 

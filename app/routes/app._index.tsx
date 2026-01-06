@@ -41,6 +41,7 @@ const hasAppBlockInThemeAssets = async (
     }
     return "";
   };
+  const appBlockPattern = /shopify:\/\/apps\/[^/]+\/blocks\/menu-block[^"\\]*/i;
   try {
     const listResponse = await fetch(
       `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?fields=key`,
@@ -71,7 +72,7 @@ const hasAppBlockInThemeAssets = async (
       const assetData = await assetResponse.json().catch(() => ({}));
       const value = readAssetValue(assetData);
       if (typeof value === "string") {
-        const hasBlock = /shopify:\/\/apps\/menucraft\/blocks\/(?!app-embed)[^"\\]+/i.test(value);
+        const hasBlock = appBlockPattern.test(value);
         if (hasBlock) return true;
       }
     }
@@ -84,6 +85,8 @@ const hasAppBlockInThemeAssets = async (
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
+  const appEmbedPattern = /shopify:\/\/apps\/[^/]+\/blocks\/app-embed[^"\\]*/i;
+  const appBlockPattern = /shopify:\/\/apps\/[^/]+\/blocks\/menu-block[^"\\]*/i;
   const restHeaders = session.accessToken
     ? {
         "X-Shopify-Access-Token": session.accessToken,
@@ -165,10 +168,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           const record = node as Record<string, any>;
           if (typeof record.type === "string") {
             const type = record.type.toLowerCase();
-            if (type.includes("shopify://apps/menucraft/blocks/app-embed")) {
+            if (appEmbedPattern.test(type)) {
               const enabled = record.disabled === undefined ? true : record.disabled === false;
               if (enabled) appEmbedEnabled = true;
-            } else if (type.includes("shopify://apps/menucraft/blocks/")) {
+            } else if (appBlockPattern.test(type)) {
               appBlockAdded = true;
             }
           }
@@ -178,22 +181,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         scanNode(parsed);
       } catch {
         const fallback = typeof rawSettings === "string" ? rawSettings.toLowerCase() : "";
-        appEmbedEnabled = fallback.includes("menucraft-embed") || fallback.includes("menucraft");
+        appEmbedEnabled = appEmbedPattern.test(fallback) || fallback.includes("menucraft-embed");
       }
 
       if (!appEmbedEnabled) {
         const embedEnabledMatch =
-          /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"disabled"\s*:\s*false/i.test(
+          /shopify:\/\/apps\/[^/]+\/blocks\/app-embed[\s\S]*?"disabled"\s*:\s*false/i.test(
             typeof rawSettings === "string" ? rawSettings : ""
           ) ||
-          /shopify:\/\/apps\/menucraft\/blocks\/app-embed[\s\S]*?"enabled"\s*:\s*true/i.test(
+          /shopify:\/\/apps\/[^/]+\/blocks\/app-embed[\s\S]*?"enabled"\s*:\s*true/i.test(
             typeof rawSettings === "string" ? rawSettings : ""
           );
         appEmbedEnabled = embedEnabledMatch;
       }
 
       if (!appBlockAdded) {
-        const blockMatch = /shopify:\/\/apps\/menucraft\/blocks\/(?!app-embed)[^"\\]+/i.test(
+        const blockMatch = appBlockPattern.test(
           typeof rawSettings === "string" ? rawSettings : ""
         );
         appBlockAdded = blockMatch;

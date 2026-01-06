@@ -2,14 +2,22 @@
   if (window.__menucraftEmbedLoaded) return;
   window.__menucraftEmbedLoaded = true;
 
-  const ROOT_ID = "menucraft-embed-root";
+  const ROOT_IDS = ["menucraft-block-root", "menucraft-embed-root"];
   const PROXY_URL = "/apps/menucraft/menu";
 
-  const root = document.getElementById(ROOT_ID);
+  const getRoot = () => {
+    for (const id of ROOT_IDS) {
+      const el = document.getElementById(id);
+      if (el) return el;
+    }
+    return null;
+  };
+
+  const root = getRoot();
   if (!root) return;
 
   const DEFAULT_SETTINGS = {
-    layoutLocation: "auto",
+    layoutLocation: "replaceNavigation",
     layoutOrientation: "horizontal",
     layoutAlignment: "left",
     layoutMaxWidth: "",
@@ -87,7 +95,7 @@
     return list;
   };
 
-  const hideExistingNavigation = () => {
+  const hideExistingNavigation = (rootId) => {
     const selectors = [
       "#HeaderMenu",
       ".header__inline-menu",
@@ -97,11 +105,18 @@
       ".main-menu",
       ".header__menu",
       "header nav",
+      ".header__menu-item",
+      ".header__menu-items",
+      ".header__menu-wrapper",
+      ".site-header__menu",
+      ".header-nav",
+      ".navigation",
+      ".nav-bar",
     ];
 
     selectors.forEach((selector) => {
       const el = document.querySelector(selector);
-      if (el) {
+      if (el && !el.closest(`#${rootId}`)) {
         el.setAttribute("data-menucraft-hidden", "true");
         el.style.display = "none";
       }
@@ -109,8 +124,13 @@
   };
 
   const getMountTarget = (settings) => {
-    if (settings.layoutLocation === "replaceNavigation") {
-      hideExistingNavigation();
+    const rootId = root.id;
+    const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
+    if (shouldReplace) {
+      hideExistingNavigation(rootId);
+    }
+    if (rootId === "menucraft-block-root" && root.parentElement) {
+      return root.parentElement;
     }
     const header =
       document.querySelector("header") ||
@@ -153,8 +173,9 @@
     container.appendChild(inner);
 
     const styleTag = document.createElement("style");
+    const rootId = root.id;
     styleTag.textContent = `
-      #${ROOT_ID} { width: 100%; }
+      #${rootId} { width: 100%; }
       .menucraft-menu { width: 100%; position: relative; z-index: 50; }
       .menucraft-menu-inner { width: 100%; margin: 0 auto; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; }
       .menucraft-menu-list {

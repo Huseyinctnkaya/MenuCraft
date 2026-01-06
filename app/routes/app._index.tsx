@@ -18,9 +18,78 @@ import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
+const hasAppBlockInThemeAssets = async (
+  shop: string,
+  themeId: string,
+  restHeaders: Record<string, string>
+) => {
+  const defaultKeys = [
+    "sections/header-group.json",
+    "sections/header.json",
+    "templates/index.json",
+  ];
+  const readAssetValue = (assetData: any) => {
+    if (typeof assetData?.asset?.value === "string") {
+      return assetData.asset.value;
+    }
+    if (typeof assetData?.asset?.attachment === "string") {
+      try {
+        return Buffer.from(assetData.asset.attachment, "base64").toString("utf8");
+      } catch {
+        return "";
+      }
+    }
+    return "";
+  };
+  try {
+    const listResponse = await fetch(
+      `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?fields=key`,
+      { headers: restHeaders }
+    );
+    if (!listResponse.ok) {
+      console.error("Theme assets list request failed", listResponse.status, listResponse.statusText);
+    }
+    const listData = await listResponse.json().catch(() => ({}));
+    const assetKeys = (listData?.assets ?? [])
+      .map((asset: { key?: string }) => asset.key)
+      .filter((key: string | undefined): key is string => Boolean(key));
+
+    const preferredKeys = defaultKeys.filter((key) => assetKeys.includes(key));
+    const templateKeys = assetKeys.filter((key) => /^(sections|templates)\/.+\.json$/.test(key));
+    const keysToScan = assetKeys.length
+      ? Array.from(new Set([...preferredKeys, ...templateKeys]))
+      : defaultKeys;
+
+    for (const key of keysToScan) {
+      const assetResponse = await fetch(
+        `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=${encodeURIComponent(key)}`,
+        { headers: restHeaders }
+      );
+      if (!assetResponse.ok) {
+        continue;
+      }
+      const assetData = await assetResponse.json().catch(() => ({}));
+      const value = readAssetValue(assetData);
+      if (typeof value === "string") {
+        const hasBlock = /shopify:\/\/apps\/menucraft\/blocks\/(?!app-embed)[^"\\]+/i.test(value);
+        if (hasBlock) return true;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to scan theme assets for app block", error);
+  }
+  return false;
+};
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = session.shop;
+  const restHeaders = session.accessToken
+    ? {
+        "X-Shopify-Access-Token": session.accessToken,
+        "Content-Type": "application/json",
+      }
+    : null;
   let themeName = "Unknown";
   let appEmbedEnabled = false;
   let appBlockAdded = false;
@@ -47,28 +116,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     if (mainTheme?.id) {
+      const themeIdMatch = mainTheme.id.match(/\/(\d+)$/);
+      const themeId = themeIdMatch?.[1];
       let rawSettings: unknown = "";
-      if (session.accessToken) {
-        const themeIdMatch = mainTheme.id.match(/\/(\d+)$/);
-        const themeId = themeIdMatch?.[1];
-        if (themeId) {
-          try {
-            const restResponse = await fetch(
-              `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=config/settings_data.json`,
-              {
-                headers: {
-                  "X-Shopify-Access-Token": session.accessToken,
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-            const restData = await restResponse.json();
-            if (restData?.asset?.value) {
-              rawSettings = restData.asset.value;
+      if (themeId && restHeaders) {
+        try {
+          const restResponse = await fetch(
+            `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=config/settings_data.json`,
+            {
+              headers: restHeaders,
             }
-          } catch (error) {
-            console.error("Failed to load settings_data.json via REST", error);
+          );
+          const restData = await restResponse.json();
+          if (restData?.asset?.value) {
+            rawSettings = restData.asset.value;
           }
+        } catch (error) {
+          console.error("Failed to load settings_data.json via REST", error);
         }
       }
       try {
@@ -133,6 +197,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           typeof rawSettings === "string" ? rawSettings : ""
         );
         appBlockAdded = blockMatch;
+      }
+
+      if (!appBlockAdded && themeId && restHeaders) {
+        appBlockAdded = await hasAppBlockInThemeAssets(shop, themeId, restHeaders);
+      }
+    }
+
+    if (!appBlockAdded && restHeaders) {
+      for (const theme of themes) {
+        if (!theme?.id) continue;
+        const themeIdMatch = theme.id.match(/\/(\d+)$/);
+        const themeId = themeIdMatch?.[1];
+        if (!themeId) continue;
+        const found = await hasAppBlockInThemeAssets(shop, themeId, restHeaders);
+        if (found) {
+          appBlockAdded = true;
+          break;
+        }
       }
     }
     const menuCount = await prisma.menu.count({ where: { shop } });

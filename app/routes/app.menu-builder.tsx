@@ -241,6 +241,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
               url
               altText
             }
+            priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+            }
           }
         }
       }`,
@@ -458,6 +464,9 @@ type ProductSummary = {
   title: string;
   handle: string;
   featuredImage?: { url: string; altText?: string | null } | null;
+  priceRange?: {
+    minVariantPrice: { amount: string; currencyCode: string };
+  } | null;
 };
 
 type AddableItem = {
@@ -6212,6 +6221,72 @@ export default function MenuBuilder() {
                                   const imageAlt = product?.featuredImage?.altText ?? title;
                                   const hasImage = Boolean(imageSrc);
                                   const isImageLeft = productLayout === "image-left";
+                                  const priceAmount = product?.priceRange?.minVariantPrice?.amount;
+                                  const priceCurrency = product?.priceRange?.minVariantPrice?.currencyCode;
+                                  const fallbackCurrency = priceCurrency || "USD";
+                                  let priceLabel =
+                                    fallbackCurrency === "TRY"
+                                      ? "₺ 19,99"
+                                      : fallbackCurrency === "USD"
+                                        ? "$ 19,99"
+                                        : "$19.99";
+                                  if (priceAmount) {
+                                    const rawAmount = priceAmount.trim();
+                                    const value = Number(rawAmount.replace(",", "."));
+                                    if (Number.isFinite(value)) {
+                                      const decimalSeparator = rawAmount.includes(".")
+                                        ? "."
+                                        : rawAmount.includes(",")
+                                          ? ","
+                                          : null;
+                                      const [wholePartRaw, decimalPartRaw = ""] = decimalSeparator
+                                        ? rawAmount.split(decimalSeparator)
+                                        : [rawAmount, ""];
+                                      const wholePart = (wholePartRaw ?? "").replace(/^0+/, "");
+                                      const decimalPart = decimalPartRaw.replace(/\s+/g, "");
+                                      const hasOnlyZeros = decimalPart.length > 0 && /^0+$/.test(decimalPart);
+                                      const shouldNormalize =
+                                        (!decimalSeparator && wholePart.length > 4) || (hasOnlyZeros && wholePart.length > 4);
+                                      const normalizedValue = shouldNormalize ? value / 100 : value;
+                                      try {
+                                        if (fallbackCurrency === "USD") {
+                                          priceLabel = `$ ${normalizedValue.toLocaleString("tr-TR", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                          })}`;
+                                        } else if (fallbackCurrency === "TRY") {
+                                          const locale = "tr-TR";
+                                          const parts = new Intl.NumberFormat(locale, {
+                                            style: "currency",
+                                            currency: fallbackCurrency,
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                          }).formatToParts(normalizedValue);
+                                          const currencyPart = parts.find((part) => part.type === "currency")?.value ?? "₺";
+                                          const numberPart = parts
+                                            .filter((part) => part.type !== "currency")
+                                            .map((part) => part.value)
+                                            .join("")
+                                            .trim();
+                                          priceLabel = `${currencyPart} ${numberPart}`;
+                                        } else {
+                                          priceLabel = new Intl.NumberFormat("en-US", {
+                                            style: "currency",
+                                            currency: fallbackCurrency,
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                          }).format(normalizedValue);
+                                        }
+                                      } catch {
+                                        priceLabel =
+                                          fallbackCurrency === "TRY"
+                                            ? `₺ ${normalizedValue.toFixed(2).replace(".", ",")}`
+                                            : fallbackCurrency === "USD"
+                                              ? `$ ${normalizedValue.toFixed(2).replace(".", ",")}`
+                                              : `$${normalizedValue.toFixed(2)}`;
+                                      }
+                                    }
+                                  }
                                   return (
                                     <div
                                       key={product?.id ?? `placeholder-${index}`}
@@ -6290,7 +6365,7 @@ export default function MenuBuilder() {
                                             lineHeight: 1.2,
                                           }}
                                         >
-                                          $19.99
+                                          {priceLabel}
                                         </div>
                                       </div>
                                     </div>

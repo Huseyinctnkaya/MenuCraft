@@ -357,20 +357,34 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ ok: false, error: "Menu not found" }, { status: 404 });
   }
 
-  await prisma.menu.update({
-    where: { id: menuId },
-    data: {
-      items,
-      status,
-    },
+  await prisma.$transaction(async (tx) => {
+    if (status === "active") {
+      await tx.menu.updateMany({
+        where: {
+          shop,
+          status: "active",
+          id: { not: menuId },
+        },
+        data: { status: "draft" },
+      });
+    }
+
+    await tx.menu.update({
+      where: { id: menuId },
+      data: {
+        items,
+        status,
+      },
+    });
+
+    if (settings) {
+      await tx.$executeRaw`
+        UPDATE Menu
+        SET settings = ${JSON.stringify(settings)}
+        WHERE id = ${menuId} AND shop = ${shop}
+      `;
+    }
   });
-  if (settings) {
-    await prisma.$executeRaw`
-      UPDATE Menu
-      SET settings = ${JSON.stringify(settings)}
-      WHERE id = ${menuId} AND shop = ${shop}
-    `;
-  }
 
   return json({ ok: true });
 };

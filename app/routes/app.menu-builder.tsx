@@ -2470,6 +2470,7 @@ export default function MenuBuilder() {
     const iconMap: Partial<Record<BlockTemplateId, string>> = {
       image: `${ICON_PREFIX}image`,
       image2: `${ICON_PREFIX}image`,
+      contact: `${ICON_PREFIX}mail`,
     };
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
       image: "Sample description",
@@ -2724,6 +2725,7 @@ export default function MenuBuilder() {
     const isVisualBlock = isImageBlock || isContactBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item" && !isVisualBlock;
+    const resolvedIcon = item.icon ?? (isContactBlock ? `${ICON_PREFIX}mail` : undefined);
     const itemIcon =
       item.role === "group"
         ? item.blockTemplate === "contact"
@@ -2776,8 +2778,8 @@ export default function MenuBuilder() {
             )}
             <div className="flex flex-1 items-center gap-2 text-left text-sm text-gray-700">
               <span className="flex items-center group-hover:hidden">
-                {item.icon
-                  ? renderMenuIcon(item.icon, { size: 16, className: "text-gray-500" })
+                {resolvedIcon
+                  ? renderMenuIcon(resolvedIcon, { size: 16, className: "text-gray-500" })
                   : <Icon source={itemIcon} tone="subdued" />}
               </span>
               <span

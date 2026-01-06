@@ -219,8 +219,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
   }
 
-  let collections: Array<{ id: string; title: string; handle: string }> = [];
-  let products: Array<{ id: string; title: string; handle: string }> = [];
+  let collections: CollectionSummary[] = [];
+  let products: ProductSummary[] = [];
 
   try {
     const response = await admin.graphql(
@@ -237,6 +237,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             id
             title
             handle
+            featuredImage {
+              url
+              altText
+            }
+            priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            compareAtPriceRange {
+              maxVariantPrice {
+                amount
+                currencyCode
+              }
+            }
           }
         }
       }`,
@@ -430,6 +446,9 @@ type MenuItem = {
   contactMessageLabel?: string;
   contactSubmitLabel?: string;
   contactSuccessMessage?: string;
+  productIds?: string[];
+  productLayout?: "image-top" | "image-left";
+  productWidth?: number;
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -445,6 +464,25 @@ type BlockTemplateId =
   | "blogs"
   | "contact"
   | "html";
+
+type CollectionSummary = {
+  id: string;
+  title: string;
+  handle: string;
+};
+
+type ProductSummary = {
+  id: string;
+  title: string;
+  handle: string;
+  featuredImage?: { url: string; altText?: string | null } | null;
+  priceRange?: {
+    minVariantPrice: { amount: string; currencyCode: string };
+  } | null;
+  compareAtPriceRange?: {
+    maxVariantPrice: { amount: string; currencyCode: string };
+  } | null;
+};
 
 type AddableItem = {
   id: string;
@@ -972,6 +1010,9 @@ export default function MenuBuilder() {
   const [submenuImagePickerOpen, setSubmenuImagePickerOpen] = useState(false);
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [imagePickerSelection, setImagePickerSelection] = useState<string | null>(null);
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const [productPickerSearch, setProductPickerSearch] = useState("");
+  const [productPickerSelection, setProductPickerSelection] = useState<Record<string, boolean>>({});
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
   const [submenuTemplateTargetId, setSubmenuTemplateTargetId] = useState<string | null>(null);
@@ -1016,10 +1057,15 @@ export default function MenuBuilder() {
     () => (openMenuId ? menuItems.find((item) => item.id === openMenuId) ?? null : null),
     [menuItems, openMenuId]
   );
+  const productsById = useMemo(
+    () => new Map(products.map((product) => [product.id, product])),
+    [products]
+  );
 
   useEffect(() => {
     if (menuView !== "edit") {
       setEditDraft(null);
+      setProductPickerOpen(false);
       return;
     }
     if (!selectedItem) {
@@ -1128,6 +1174,47 @@ export default function MenuBuilder() {
     reader.readAsDataURL(file);
   };
 
+  const openProductPicker = () => {
+    const activeIds = editDraft?.productIds ?? selectedItem?.productIds ?? [];
+    const selection = activeIds.reduce<Record<string, boolean>>((acc, id) => {
+      acc[id] = true;
+      return acc;
+    }, {});
+    setProductPickerSelection(selection);
+    setProductPickerSearch("");
+    setProductPickerOpen(true);
+  };
+
+  const toggleProductSelection = (id: string) => {
+    setProductPickerSelection((prev) => {
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = true;
+      }
+      return next;
+    });
+  };
+
+  const applyProductSelection = () => {
+    const selectedIds = Object.keys(productPickerSelection);
+    const selectedProducts = selectedIds
+      .map((id) => productsById.get(id))
+      .filter((product): product is ProductSummary => Boolean(product));
+    const label =
+      selectedProducts.length === 1
+        ? selectedProducts[0].title
+        : selectedProducts.length > 1
+          ? "Products"
+          : selectedIds.length
+            ? editDraft?.label ?? selectedItem?.label ?? "Product"
+            : "Product";
+    updateEditDraft("productIds", selectedIds);
+    updateEditDraft("label", label);
+    setProductPickerOpen(false);
+  };
+
   const renderSubmenuImagePickerPanel = () => {
     if (!submenuImagePickerOpen) return null;
     return (
@@ -1180,6 +1267,90 @@ export default function MenuBuilder() {
               }}
             />
           </label>
+        </div>
+      </div>
+    );
+  };
+
+  const renderProductPickerPanel = () => {
+    if (!productPickerOpen) return null;
+    const searchValue = productPickerSearch.trim().toLowerCase();
+    const filteredProducts = searchValue
+      ? products.filter((product) => product.title.toLowerCase().includes(searchValue))
+      : products;
+    return (
+      <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-200 px-4 py-3">
+          <InlineStack gap="200" blockAlign="center">
+            <Button
+              variant="tertiary"
+              icon={ArrowLeftIcon}
+              onClick={() => setProductPickerOpen(false)}
+              accessibilityLabel="Back"
+            />
+            <Text as="h2" variant="headingSm">
+              Select products
+            </Text>
+          </InlineStack>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+          <BlockStack gap="300">
+            <TextField
+              label="Search"
+              labelHidden
+              value={productPickerSearch}
+              onChange={setProductPickerSearch}
+              placeholder="Search"
+              autoComplete="off"
+              prefix={<Icon source={SearchIcon} tone="subdued" />}
+            />
+            <BlockStack gap="200">
+              {filteredProducts.length ? (
+                filteredProducts.map((product) => {
+                  const isSelected = Boolean(productPickerSelection[product.id]);
+                  return (
+                    <label
+                      key={product.id}
+                      className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                        isSelected
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-gray-200 text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleProductSelection(product.id)}
+                        className="h-4 w-4"
+                      />
+                      <div className="h-10 w-10 overflow-hidden rounded-md border border-gray-200 bg-white">
+                        <img
+                          src={product.featuredImage?.url ?? "/product.png"}
+                          alt={product.featuredImage?.altText ?? product.title}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <span className="flex-1">{product.title}</span>
+                    </label>
+                  );
+                })
+              ) : (
+                <Text as="p" variant="bodySm" tone="subdued">
+                  No products found.
+                </Text>
+              )}
+            </BlockStack>
+          </BlockStack>
+        </div>
+        <div className="border-t border-gray-200 bg-white px-4 py-3">
+          <InlineStack align="end" gap="200">
+            <Button variant="tertiary" onClick={() => setProductPickerOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={applyProductSelection}>
+              Apply
+            </Button>
+          </InlineStack>
         </div>
       </div>
     );
@@ -1778,12 +1949,30 @@ export default function MenuBuilder() {
           return renderBlockTemplatePreviewCard({
             title: "Product",
             onSelect: selectTemplate,
+            showSelectButton: false,
+            showTitle: false,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="flex h-28 gap-3 rounded-lg bg-[#f3f4f6] p-2">
-                <div className="h-16 w-16 rounded-md bg-white" />
-                <div className="flex flex-col justify-center gap-2">
-                  <div className="h-2 w-20 rounded bg-gray-300" />
-                  <div className="h-2 w-16 rounded bg-gray-200" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/product.png"
+                  alt="Product template"
+                  className="h-full w-full object-contain"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Product
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={selectTemplate}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    Select
+                  </Button>
                 </div>
               </div>
             ),
@@ -2471,6 +2660,7 @@ export default function MenuBuilder() {
       image: `${ICON_PREFIX}image`,
       image2: `${ICON_PREFIX}image`,
       contact: `${ICON_PREFIX}mail`,
+      product: `${ICON_PREFIX}tag`,
     };
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
       image: "Sample description",
@@ -2494,6 +2684,14 @@ export default function MenuBuilder() {
             imageWidth: 6,
           }
         : {};
+    const productDefaults =
+      templateId === "product"
+        ? {
+            productLayout: "image-top",
+            productWidth: 3,
+            productIds: [],
+          }
+        : {};
     const newBlock: MenuItem = {
       id: buildId(),
       label: labelMap[templateId],
@@ -2506,6 +2704,7 @@ export default function MenuBuilder() {
       description: descriptionMap[templateId],
       ...imageDefaults,
       ...contactDefaults,
+      ...productDefaults,
     };
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -2722,10 +2921,17 @@ export default function MenuBuilder() {
     const isImageBlock =
       item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
     const isContactBlock = item.role === "group" && item.blockTemplate === "contact";
-    const isVisualBlock = isImageBlock || isContactBlock;
+    const isProductBlock = item.role === "group" && item.blockTemplate === "product";
+    const isVisualBlock = isImageBlock || isContactBlock || isProductBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item" && !isVisualBlock;
-    const resolvedIcon = item.icon ?? (isContactBlock ? `${ICON_PREFIX}mail` : undefined);
+    const resolvedIcon =
+      item.icon ??
+      (isContactBlock
+        ? `${ICON_PREFIX}mail`
+        : isProductBlock
+          ? `${ICON_PREFIX}tag`
+          : undefined);
     const itemIcon =
       item.role === "group"
         ? item.blockTemplate === "contact"
@@ -2908,7 +3114,8 @@ export default function MenuBuilder() {
       const isImageBlock =
         editingItem.blockTemplate === "image" || editingItem.blockTemplate === "image2";
       const isContactBlock = editingItem.blockTemplate === "contact";
-      const isVisualBlock = isImageBlock || isContactBlock;
+      const isProductBlock = editingItem.blockTemplate === "product";
+      const isVisualBlock = isImageBlock || isContactBlock || isProductBlock;
       if (iconPickerState?.target === "edit") {
         return (
           <Card padding="0">
@@ -2921,6 +3128,9 @@ export default function MenuBuilder() {
       }
       if (submenuImagePickerOpen) {
         return renderSubmenuImagePickerPanel();
+      }
+      if (productPickerOpen) {
+        return renderProductPickerPanel();
       }
       return (
         <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
@@ -3060,6 +3270,65 @@ export default function MenuBuilder() {
                       autoComplete="off"
                     />
                   </>
+                ) : isProductBlock ? (
+                  <>
+                    <InlineStack gap="200" blockAlign="center">
+                      <div style={{ flex: 1 }}>
+                        <RangeSlider
+                          label="Width"
+                          value={editingItem.productWidth ?? 3}
+                          min={1}
+                          max={12}
+                          onChange={(value) => updateEditDraft("productWidth", value)}
+                        />
+                      </div>
+                      <div style={{ width: 90 }}>
+                        <TextField
+                          label="Width"
+                          labelHidden
+                          type="number"
+                          value={String(editingItem.productWidth ?? 3)}
+                          onChange={(value) => {
+                            const next = Number(value);
+                            if (!Number.isFinite(next)) return;
+                            const clamped = Math.max(1, Math.min(12, next));
+                            updateEditDraft("productWidth", clamped);
+                          }}
+                          suffix="/12"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </InlineStack>
+                    <BlockStack gap="200">
+                      <Text as="h4" variant="headingSm">
+                        Layout
+                      </Text>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateEditDraft("productLayout", "image-top")}
+                          className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                            (editingItem.productLayout ?? "image-top") === "image-top"
+                              ? "border-blue-600 bg-blue-50 text-blue-700"
+                              : "border-gray-300 text-gray-600 hover:border-gray-400"
+                          }`}
+                        >
+                          Image on top
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateEditDraft("productLayout", "image-left")}
+                          className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                            editingItem.productLayout === "image-left"
+                              ? "border-blue-600 bg-blue-50 text-blue-700"
+                              : "border-gray-300 text-gray-600 hover:border-gray-400"
+                          }`}
+                        >
+                          Image on left
+                        </button>
+                      </div>
+                    </BlockStack>
+                  </>
                 ) : (
                   <>
                     <TextField
@@ -3101,6 +3370,25 @@ export default function MenuBuilder() {
                   </>
                 )}
               </BlockStack>
+
+              {isProductBlock ? (
+                <>
+                  <Divider />
+                  <BlockStack gap="300">
+                    <Text as="h3" variant="headingSm">
+                      Product
+                    </Text>
+                    <Button fullWidth variant="tertiary" onClick={openProductPicker}>
+                      Select products
+                    </Button>
+                    {editingItem.productIds?.length ? (
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        {editingItem.productIds.length} selected
+                      </Text>
+                    ) : null}
+                  </BlockStack>
+                </>
+              ) : null}
 
               {!isVisualBlock ? (
                 <>
@@ -4555,6 +4843,45 @@ export default function MenuBuilder() {
     </Card>
   );
 
+  const formatMoney = (amount?: string, currencyCode?: string) => {
+    if (!amount) return null;
+    const value = Number(amount);
+    if (!Number.isFinite(value)) return null;
+    const code = currencyCode || "USD";
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: code,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    } catch {
+      return `$${value.toFixed(2)}`;
+    }
+  };
+
+  const resolveProductPricing = (product?: ProductSummary | null) => {
+    const priceAmount = product?.priceRange?.minVariantPrice?.amount;
+    const priceCurrency = product?.priceRange?.minVariantPrice?.currencyCode;
+    if (!priceAmount) {
+      return { price: "$19.99", compareAt: "$29.99", isOnSale: true };
+    }
+    const price = formatMoney(priceAmount, priceCurrency) ?? "$0.00";
+    const compareAmount = product?.compareAtPriceRange?.maxVariantPrice?.amount;
+    const compareCurrency =
+      product?.compareAtPriceRange?.maxVariantPrice?.currencyCode ?? priceCurrency;
+    if (!compareAmount) {
+      return { price, compareAt: null, isOnSale: false };
+    }
+    const priceValue = Number(priceAmount);
+    const compareValue = Number(compareAmount);
+    if (!Number.isFinite(priceValue) || !Number.isFinite(compareValue) || compareValue <= priceValue) {
+      return { price, compareAt: null, isOnSale: false };
+    }
+    const compareAt = formatMoney(compareAmount, compareCurrency);
+    return { price, compareAt, isOnSale: Boolean(compareAt) };
+  };
+
   const dropdownGroups = previewMenu?.children ?? [];
   const imageBlockCount = dropdownGroups.filter(
     (group) =>
@@ -5812,6 +6139,207 @@ export default function MenuBuilder() {
                                 ) : null}
                               </div>
                             </contactFetcher.Form>
+                          </div>
+                        );
+                      }
+                      if (group.blockTemplate === "product") {
+                        const productWidth = Math.max(1, Math.min(12, group.productWidth ?? 3));
+                        const productLayout = group.productLayout ?? "image-top";
+                        const imageScale = `${Math.max(60, Math.round((productWidth / 12) * 100))}%`;
+                        const imageColumnWidth = `${Math.max(
+                          30,
+                          Math.round((productWidth / 12) * 100)
+                        )}%`;
+                        const selectedProductIds = group.productIds ?? [];
+                        const selectedProducts = selectedProductIds
+                          .map((id) => productsById.get(id))
+                          .filter((product): product is ProductSummary => Boolean(product));
+                        const displayProducts = selectedProducts.length ? selectedProducts : [null];
+                        const cardGridStyle =
+                          productLayout === "image-top" && displayProducts.length > 1
+                            ? {
+                                display: "grid",
+                                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                                gap: 16,
+                              }
+                            : { display: "grid", gap: 16 };
+                        return (
+                          <div
+                            key={group.id}
+                            className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                            draggable
+                            onDragStart={(event) => {
+                              event.dataTransfer.effectAllowed = "move";
+                              event.dataTransfer.setData("text/plain", group.id);
+                              setDraggedItemId(group.id);
+                              const parentId = findParentId(menuItems, group.id);
+                              setDraggedParentId(parentId ?? null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragOver={(event) => {
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              if (draggedItemId === group.id) return;
+                              event.preventDefault();
+                              if (lastDragOverIdRef.current === group.id) return;
+                              lastDragOverIdRef.current = group.id;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragEnd={() => {
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            style={{
+                              border: isGroupSelected
+                                ? `1px dashed ${themeSettings.menuActive}`
+                                : undefined,
+                              padding: "6px",
+                              borderRadius: 0,
+                            }}
+                          >
+                            <div className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                              <button
+                                type="button"
+                                onClick={() => handleSelectItem(group.id, true)}
+                                aria-label="Edit item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={EditIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateItem(group.id)}
+                                aria-label="Duplicate item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={DuplicateIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDeleteItemDialog(group.id)}
+                                aria-label="Delete item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                              >
+                                <Icon source={DeleteIcon} />
+                              </button>
+                            </div>
+                            <div style={cardGridStyle}>
+                              {displayProducts.map((product, index) => {
+                                const isPlaceholder = !product;
+                                const { price, compareAt, isOnSale } = isPlaceholder
+                                  ? { price: "$19.99", compareAt: "$29.99", isOnSale: true }
+                                  : resolveProductPricing(product);
+                                const imageSrc = product?.featuredImage?.url ?? "/product.png";
+                                const imageAlt = product?.featuredImage?.altText ?? product?.title ?? "Product image";
+                                const title = product?.title ?? "Example Product Title";
+                                const imageBoxStyles =
+                                  productLayout === "image-left"
+                                    ? {
+                                        flex: `0 0 ${imageColumnWidth}`,
+                                        position: "relative" as const,
+                                        background: "#f8fafc",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        padding: "10px",
+                                      }
+                                    : {
+                                        position: "relative" as const,
+                                        background: "#f8fafc",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        padding: "10px",
+                                      };
+                                return (
+                                  <div
+                                    key={product?.id ?? `placeholder-${index}`}
+                                    style={{
+                                      border: "1px solid #e5e7eb",
+                                      background: "#ffffff",
+                                      overflow: "hidden",
+                                      display: "flex",
+                                      flexDirection: productLayout === "image-left" ? "row" : "column",
+                                    }}
+                                  >
+                                    <div style={imageBoxStyles}>
+                                      <img
+                                        src={imageSrc}
+                                        alt={imageAlt}
+                                        style={{
+                                          width: productLayout === "image-left" ? "100%" : imageScale,
+                                          maxWidth: "100%",
+                                          maxHeight: 140,
+                                          objectFit: "cover",
+                                        }}
+                                      />
+                                      {isOnSale ? (
+                                        <span
+                                          style={{
+                                            position: "absolute",
+                                            right: 10,
+                                            top: 10,
+                                            background: "#ef4444",
+                                            color: "#ffffff",
+                                            padding: "2px 6px",
+                                            fontSize: 10,
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          SALE
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                    <div
+                                      style={{
+                                        padding: "10px 12px 12px",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 6,
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          color: previewColors.submenuHeading,
+                                          ...subheadingTypography,
+                                          lineHeight: 1.2,
+                                        }}
+                                      >
+                                        {title}
+                                      </div>
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 8,
+                                          color: previewColors.submenuText,
+                                          ...subtextTypography,
+                                        }}
+                                      >
+                                        <span style={{ fontWeight: 600 }}>{price}</span>
+                                        {compareAt ? (
+                                          <span style={{ color: "#9ca3af", textDecoration: "line-through" }}>
+                                            {compareAt}
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
                         );
                       }

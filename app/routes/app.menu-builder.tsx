@@ -5895,7 +5895,7 @@ export default function MenuBuilder() {
                               style={{
                                 borderRadius: 16,
                                 background: "transparent",
-                                padding: "5px",
+                                padding: productLayout === "image-left" ? 0 : "5px",
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: 10,
@@ -6239,7 +6239,7 @@ export default function MenuBuilder() {
                           (group.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
                         const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
                         const resolvedProductFlexBasis =
-                          group.blockTemplate === "product-horizontal" ? "40%" : productFlexBasis;
+                          group.blockTemplate === "product-horizontal" ? "33%" : productFlexBasis;
                         const productPreviewHeight = useImageSpaceLayout ? 220 : 150;
                         const selectedProductIds = group.productIds ?? [];
                         const selectedProducts = selectedProductIds
@@ -6343,7 +6343,7 @@ export default function MenuBuilder() {
                                   const imageAlt = product?.featuredImage?.altText ?? title;
                                   const hasImage = Boolean(imageSrc);
                                   const isImageLeft = productLayout === "image-left";
-                                  const productImageSize = isImageLeft ? 96 : undefined;
+                                  const productImageSize = isImageLeft ? 74 : undefined;
                                   const priceAmount = product?.priceRange?.minVariantPrice?.amount;
                                   const priceCurrency = product?.priceRange?.minVariantPrice?.currencyCode;
                                   const fallbackCurrency = priceCurrency || "USD";
@@ -6417,22 +6417,24 @@ export default function MenuBuilder() {
                                         display: "flex",
                                         flexDirection: isImageLeft ? "row" : "column",
                                         gap: 12,
+                                        alignItems: isImageLeft ? "center" : undefined,
                                       }}
                                     >
-                                      <div
-                                        style={{
-                                          border: "1px solid #e5e7eb",
-                                          background: "#f3f4f4",
-                                          width: isImageLeft ? productImageSize : "100%",
-                                          height: isImageLeft ? productImageSize : "auto",
-                                          maxHeight: isImageLeft ? undefined : productPreviewHeight,
-                                          aspectRatio: isImageLeft ? undefined : "1 / 1",
-                                          flex: isImageLeft ? `0 0 ${productImageSize}px` : undefined,
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          overflow: "hidden",
-                                        }}
+                                    <div
+                                      style={{
+                                        border: "1px solid #e5e7eb",
+                                        background: "#f3f4f4",
+                                        width: isImageLeft ? productImageSize : "100%",
+                                        height: isImageLeft ? productImageSize : "auto",
+                                        maxHeight: isImageLeft ? undefined : productPreviewHeight,
+                                        aspectRatio: isImageLeft ? undefined : "1 / 1",
+                                        flex: isImageLeft ? `0 0 ${productImageSize}px` : undefined,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        overflow: "hidden",
+                                        boxSizing: "border-box",
+                                      }}
                                       >
                                         {hasImage ? (
                                           <img
@@ -6469,6 +6471,7 @@ export default function MenuBuilder() {
                                           display: "flex",
                                           flexDirection: "column",
                                           gap: 6,
+                                          justifyContent: "center",
                                         }}
                                       >
                                         <div

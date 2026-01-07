@@ -5811,7 +5811,7 @@ export default function MenuBuilder() {
                             style={{
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
-                              flex: useImageSpaceLayout ? `0 0 ${imageFlexBasis}` : undefined,
+                              flex: useImageSpaceLayout ? "0 0 30%" : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",
@@ -5895,7 +5895,7 @@ export default function MenuBuilder() {
                               style={{
                                 borderRadius: 16,
                                 background: "transparent",
-                                padding: productLayout === "image-left" ? 0 : "5px",
+                                padding: isOverlayImage ? "0" : "5px",
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: 10,

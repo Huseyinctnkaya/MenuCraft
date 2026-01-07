@@ -446,6 +446,7 @@ type MenuItem = {
   productIds?: string[];
   productLayout?: "image-top" | "image-left";
   productWidth?: number;
+  linkColumns?: number;
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -456,6 +457,7 @@ type BlockTemplateId =
   | "image"
   | "image2"
   | "links"
+  | "links-two-column"
   | "product"
   | "product-horizontal"
   | "collection"

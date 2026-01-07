@@ -2,10 +2,12 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useFetcher, useLocation, useNavigate, useLoaderData } from "@remix-run/react";
+import { useFetcher, useLocation, useNavigate, useLoaderData, useRouteLoaderData } from "@remix-run/react";
 import { createPortal } from "react-dom";
 import type { LucideIcon } from "lucide-react";
 import * as LucideIcons from "lucide-react";
+import createApp from "@shopify/app-bridge";
+import { Fullscreen } from "@shopify/app-bridge/actions";
 import {
   Badge,
   BlockStack,
@@ -64,6 +66,7 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { sendContactEmail } from "../email.server";
+import type { loader as appLoader } from "./app";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: polarisStyles },
@@ -937,6 +940,8 @@ const removeItemById = (items: MenuItem[], id: string): MenuItem[] => {
 export default function MenuBuilder() {
   const { menu, menuItems: initialMenuItems, menuSettings, collections, products } =
     useLoaderData<typeof loader>();
+  const appData = useRouteLoaderData<typeof appLoader>("routes/app");
+  const apiKey = appData?.apiKey ?? "";
   const navigate = useNavigate();
   const location = useLocation();
   const saveFetcher = useFetcher<typeof action>();
@@ -965,6 +970,12 @@ export default function MenuBuilder() {
   const customItemsScrollRef = useRef<HTMLDivElement | null>(null);
   const linkPickerAnchorRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
   const linkPickerDropdownRef = useRef<HTMLDivElement | null>(null);
+  const appBridgeRef = useRef<ReturnType<typeof createApp> | null>(null);
+  const fullscreenExitRequestedRef = useRef(false);
+  const fullscreenExitArmedRef = useRef(false);
+  const fullscreenExitArmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fullscreenExitNavigateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [fullscreenPhase, setFullscreenPhase] = useState<"entering" | "ready" | "exiting">("entering");
 
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
     fontFamily: "Inter, system-ui, sans-serif",
@@ -977,6 +988,70 @@ export default function MenuBuilder() {
     canvasBackground: "#9fb1c4",
     menuItemSpacing: 28,
   });
+
+  const returnToPath = useMemo(() => {
+    const search = new URLSearchParams(location.search);
+    const value = search.get("returnTo");
+    return value && value.startsWith("/") ? value : "/app/mega-menus";
+  }, [location.search]);
+
+  const returnToSearch = useMemo(() => {
+    const search = new URLSearchParams(location.search);
+    search.delete("id");
+    search.delete("returnTo");
+    search.delete("template");
+    const next = search.toString();
+    return next ? `?${next}` : "";
+  }, [location.search]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const host = new URLSearchParams(location.search).get("host");
+    if (!apiKey || !host) return;
+    if (!appBridgeRef.current) {
+      appBridgeRef.current = createApp({ apiKey, host, forceRedirect: true });
+    }
+    setFullscreenPhase("entering");
+    fullscreenExitRequestedRef.current = false;
+    fullscreenExitArmedRef.current = false;
+    if (fullscreenExitArmTimeoutRef.current) {
+      clearTimeout(fullscreenExitArmTimeoutRef.current);
+      fullscreenExitArmTimeoutRef.current = null;
+    }
+    if (fullscreenExitNavigateTimeoutRef.current) {
+      clearTimeout(fullscreenExitNavigateTimeoutRef.current);
+      fullscreenExitNavigateTimeoutRef.current = null;
+    }
+    const appBridge = appBridgeRef.current;
+    const unsubscribe = appBridge.subscribe(Fullscreen.Action.EXIT, () => {
+      if (fullscreenExitRequestedRef.current || !fullscreenExitArmedRef.current) return;
+      fullscreenExitRequestedRef.current = true;
+      setFullscreenPhase("exiting");
+      fullscreenExitNavigateTimeoutRef.current = setTimeout(() => {
+        fullscreenExitNavigateTimeoutRef.current = null;
+        navigate({ pathname: returnToPath, search: returnToSearch });
+      }, 120);
+    });
+    appBridge.dispatch(Fullscreen.enter());
+    fullscreenExitArmTimeoutRef.current = setTimeout(() => {
+      fullscreenExitArmedRef.current = true;
+      setFullscreenPhase("ready");
+      fullscreenExitArmTimeoutRef.current = null;
+    }, 300);
+    return () => {
+      if (fullscreenExitArmTimeoutRef.current) {
+        clearTimeout(fullscreenExitArmTimeoutRef.current);
+        fullscreenExitArmTimeoutRef.current = null;
+      }
+      if (fullscreenExitNavigateTimeoutRef.current) {
+        clearTimeout(fullscreenExitNavigateTimeoutRef.current);
+        fullscreenExitNavigateTimeoutRef.current = null;
+      }
+      fullscreenExitRequestedRef.current = true;
+      unsubscribe();
+      appBridge.dispatch(Fullscreen.exit());
+    };
+  }, [apiKey, location.search, navigate, returnToPath, returnToSearch]);
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [builderSettings, setBuilderSettings] = useState<BuilderSettings>({
@@ -2534,13 +2609,6 @@ export default function MenuBuilder() {
       return key;
     });
   };
-
-  const backSearch = useMemo(() => {
-    const search = new URLSearchParams(location.search);
-    search.delete("id");
-    const next = search.toString();
-    return next ? `?${next}` : "";
-  }, [location.search]);
 
   const registerItemRow = (id: string) => (node: HTMLDivElement | null) => {
     if (node) {
@@ -5092,6 +5160,9 @@ export default function MenuBuilder() {
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
+      {fullscreenPhase !== "ready" ? (
+        <div className="fixed inset-0 z-50 bg-gray-100" />
+      ) : null}
       <Modal
         open={Boolean(pendingDeleteItemId)}
         onClose={() => {
@@ -5129,7 +5200,7 @@ export default function MenuBuilder() {
               variant="tertiary"
               icon={ArrowLeftIcon}
               disabled={backDisabled}
-              onClick={() => navigate({ pathname: "/app/mega-menus", search: backSearch })}
+              onClick={() => navigate({ pathname: returnToPath, search: returnToSearch })}
             >
               Back
             </Button>

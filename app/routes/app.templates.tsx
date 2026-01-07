@@ -15,7 +15,20 @@ export default function Templates() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const withSearch = (path: string) => ({ pathname: path, search: location.search });
+  const withSearch = (path: string, extra?: Record<string, string>) => {
+    const search = new URLSearchParams(location.search);
+    if (extra) {
+      Object.entries(extra).forEach(([key, value]) => {
+        if (value) {
+          search.set(key, value);
+        } else {
+          search.delete(key);
+        }
+      });
+    }
+    const output = search.toString();
+    return { pathname: path, search: output ? `?${output}` : "" };
+  };
 
   const templates = [
     { id: 1, name: "Minimal Fashion", category: "Fashion", pro: false, new: true },
@@ -68,7 +81,12 @@ export default function Templates() {
                     if (template.pro) {
                       navigate(withSearch("/app/pricing"));
                     } else {
-                      navigate(withSearch(`/app/menu-builder?template=${template.id}`));
+                      navigate(
+                        withSearch("/app/menu-builder", {
+                          template: String(template.id),
+                          returnTo: location.pathname,
+                        })
+                      );
                     }
                   }}
                 >

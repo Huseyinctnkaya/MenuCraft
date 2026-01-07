@@ -176,7 +176,11 @@ export default function MegaMenusList() {
             <h1 className="text-3xl text-gray-900">Mega Menus</h1>
             <p className="text-gray-600 mt-1">Manage all your navigation menus</p>
           </div>
-          <Button onClick={() => navigate(withSearch("/app/menu-builder", { id: "" }))}>
+          <Button
+            onClick={() =>
+              navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname }))
+            }
+          >
             <Plus className="w-4 h-4" />
             Create New Menu
           </Button>
@@ -200,7 +204,14 @@ export default function MegaMenusList() {
                     <td className="px-6 py-4">
                       <button
                         className="text-sm text-gray-900 hover:text-indigo-600"
-                        onClick={() => navigate(withSearch("/app/menu-builder", { id: String(menu.id) }))}
+                        onClick={() =>
+                          navigate(
+                            withSearch("/app/menu-builder", {
+                              id: String(menu.id),
+                              returnTo: location.pathname,
+                            })
+                          )
+                        }
                       >
                         {menu.name}
                       </button>
@@ -227,7 +238,14 @@ export default function MegaMenusList() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => navigate(withSearch("/app/menu-builder", { id: String(menu.id) }))}
+                          onClick={() =>
+                            navigate(
+                              withSearch("/app/menu-builder", {
+                                id: String(menu.id),
+                                returnTo: location.pathname,
+                              })
+                            )
+                          }
                         >
                         Customize
                       </Button>
@@ -272,7 +290,12 @@ export default function MegaMenusList() {
                                 <div className="py-1">
                                   <button
                                     onClick={() => {
-                                      navigate(withSearch("/app/menu-builder", { id: String(menu.id) }));
+                                      navigate(
+                                        withSearch("/app/menu-builder", {
+                                          id: String(menu.id),
+                                          returnTo: location.pathname,
+                                        })
+                                      );
                                       setOpenMenuId(null);
                                     }}
                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
@@ -312,7 +335,11 @@ export default function MegaMenusList() {
           {menus.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-600 mb-4">No menus yet. Create your first one!</p>
-              <Button onClick={() => navigate(withSearch("/app/menu-builder", { id: "" }))}>
+              <Button
+                onClick={() =>
+                  navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname }))
+                }
+              >
                 <Plus className="w-4 h-4" />
                 Create Menu
               </Button>

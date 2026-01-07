@@ -16,7 +16,20 @@ export default function TemplateDetail() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const withSearch = (path: string) => ({ pathname: path, search: location.search });
+  const withSearch = (path: string, extra?: Record<string, string>) => {
+    const search = new URLSearchParams(location.search);
+    if (extra) {
+      Object.entries(extra).forEach(([key, value]) => {
+        if (value) {
+          search.set(key, value);
+        } else {
+          search.delete(key);
+        }
+      });
+    }
+    const output = search.toString();
+    return { pathname: path, search: output ? `?${output}` : "" };
+  };
 
   const template = {
     name: "Minimal Fashion",
@@ -74,7 +87,17 @@ export default function TemplateDetail() {
                   <p className="text-sm text-gray-600">{template.category}</p>
                 </div>
 
-                <Button className="w-full" onClick={() => navigate(withSearch(`/app/menu-builder?template=${id}`))}>
+                <Button
+                  className="w-full"
+                  onClick={() =>
+                    navigate(
+                      withSearch("/app/menu-builder", {
+                        template: id ?? "",
+                        returnTo: location.pathname,
+                      })
+                    )
+                  }
+                >
                   Use This Template
                 </Button>
 

@@ -5514,7 +5514,7 @@ export default function MenuBuilder() {
                                 position: "absolute",
                                 left: 0,
                                 top: "100%",
-                                marginTop: 10,
+                                marginTop: 0,
                                 zIndex: 15,
                               }}
                             >

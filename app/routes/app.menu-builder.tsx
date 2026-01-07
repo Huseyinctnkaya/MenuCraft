@@ -454,6 +454,7 @@ type BlockTemplateId =
   | "image2"
   | "links"
   | "product"
+  | "product-horizontal"
   | "collection"
   | "blogs"
   | "contact"
@@ -1915,37 +1916,72 @@ export default function MenuBuilder() {
             ),
           });
         case "product":
-          return renderBlockTemplatePreviewCard({
-            title: "Product",
-            onSelect: selectTemplate,
-            showSelectButton: false,
-            showTitle: false,
-            previewHeightClassName: "h-44",
-            previewContainerClassName: "bg-transparent p-0",
-            preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <img
-                  src="/product.png"
-                  alt="Product template"
-                  className="h-full w-full object-contain"
-                />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Product
-                </div>
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                  <Button
-                    fullWidth
-                    onClick={selectTemplate}
-                    size="slim"
-                    variant="primary"
-                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                  >
-                    Select
-                  </Button>
-                </div>
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {renderBlockTemplatePreviewCard({
+                title: "Product",
+                onSelect: () => handleApplyBlockTemplate("product"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product.png"
+                      alt="Product template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Product
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("product")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Product (Horizontal)",
+                onSelect: () => handleApplyBlockTemplate("product-horizontal"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product-yatay.png"
+                      alt="Product horizontal template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Product horizontal
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("product-horizontal")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+            </div>
+          );
         case "collection":
           return renderBlockTemplatePreviewCard({
             title: "Collection",
@@ -2620,6 +2656,7 @@ export default function MenuBuilder() {
       image2: "Image 2",
       links: "Link list",
       product: "Product",
+      "product-horizontal": "Product horizontal",
       collection: "Collection",
       blogs: "Blogs",
       contact: "Contact form",
@@ -2630,6 +2667,7 @@ export default function MenuBuilder() {
       image2: `${ICON_PREFIX}image`,
       contact: `${ICON_PREFIX}mail`,
       product: `${ICON_PREFIX}tag`,
+      "product-horizontal": `${ICON_PREFIX}tag`,
     };
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
       image: "Sample description",
@@ -2654,9 +2692,9 @@ export default function MenuBuilder() {
           }
         : {};
     const productDefaults =
-      templateId === "product"
+      templateId === "product" || templateId === "product-horizontal"
         ? {
-            productLayout: "image-top",
+            productLayout: templateId === "product-horizontal" ? "image-left" : "image-top",
             productWidth: 3,
             productIds: [],
           }
@@ -2890,7 +2928,9 @@ export default function MenuBuilder() {
     const isImageBlock =
       item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
     const isContactBlock = item.role === "group" && item.blockTemplate === "contact";
-    const isProductBlock = item.role === "group" && item.blockTemplate === "product";
+    const isProductBlock =
+      item.role === "group" &&
+      (item.blockTemplate === "product" || item.blockTemplate === "product-horizontal");
     const isVisualBlock = isImageBlock || isContactBlock || isProductBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item" && !isVisualBlock;
@@ -3083,7 +3123,8 @@ export default function MenuBuilder() {
       const isImageBlock =
         editingItem.blockTemplate === "image" || editingItem.blockTemplate === "image2";
       const isContactBlock = editingItem.blockTemplate === "contact";
-      const isProductBlock = editingItem.blockTemplate === "product";
+      const isProductBlock =
+        editingItem.blockTemplate === "product" || editingItem.blockTemplate === "product-horizontal";
       const isVisualBlock = isImageBlock || isContactBlock || isProductBlock;
       if (iconPickerState?.target === "edit") {
         return (
@@ -4855,7 +4896,8 @@ export default function MenuBuilder() {
       group.blockTemplate === "image" ||
       group.blockTemplate === "image2" ||
       group.blockTemplate === "contact" ||
-      group.blockTemplate === "product"
+      group.blockTemplate === "product" ||
+      group.blockTemplate === "product-horizontal"
   ).length;
   const hasSpaceBlock = dropdownGroups.some((group) => group.blockTemplate === "space");
   const useImageSpaceLayout =
@@ -4867,6 +4909,7 @@ export default function MenuBuilder() {
         group.blockTemplate === "image2" ||
         group.blockTemplate === "contact" ||
         group.blockTemplate === "product" ||
+        group.blockTemplate === "product-horizontal" ||
         group.blockTemplate === "space"
     );
   const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
@@ -5579,14 +5622,16 @@ export default function MenuBuilder() {
                             a.blockTemplate === "image" ||
                             a.blockTemplate === "image2" ||
                             a.blockTemplate === "contact" ||
-                            a.blockTemplate === "product"
+                            a.blockTemplate === "product" ||
+                            a.blockTemplate === "product-horizontal"
                               ? 0
                               : 1;
                           const bPriority =
                             b.blockTemplate === "image" ||
                             b.blockTemplate === "image2" ||
                             b.blockTemplate === "contact" ||
-                            b.blockTemplate === "product"
+                            b.blockTemplate === "product" ||
+                            b.blockTemplate === "product-horizontal"
                               ? 0
                               : 1;
                           return aPriority - bPriority;
@@ -6113,10 +6158,17 @@ export default function MenuBuilder() {
                           </div>
                         );
                       }
-                      if (group.blockTemplate === "product") {
+                      if (
+                        group.blockTemplate === "product" ||
+                        group.blockTemplate === "product-horizontal"
+                      ) {
                         const productWidth = Math.max(1, Math.min(12, group.productWidth ?? 3));
-                        const productLayout = group.productLayout ?? "image-top";
+                        const productLayout =
+                          group.productLayout ??
+                          (group.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
                         const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
+                        const resolvedProductFlexBasis =
+                          group.blockTemplate === "product-horizontal" ? "40%" : productFlexBasis;
                         const productPreviewHeight = useImageSpaceLayout ? 220 : 150;
                         const selectedProductIds = group.productIds ?? [];
                         const selectedProducts = selectedProductIds
@@ -6170,8 +6222,7 @@ export default function MenuBuilder() {
                               lastDragOverIdRef.current = null;
                             }}
                             style={{
-                              minHeight: useImageSpaceLayout ? 240 : undefined,
-                              flex: useImageSpaceLayout ? `0 0 ${productFlexBasis}` : undefined,
+                              flex: useImageSpaceLayout ? `0 0 ${resolvedProductFlexBasis}` : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",
@@ -6221,6 +6272,7 @@ export default function MenuBuilder() {
                                   const imageAlt = product?.featuredImage?.altText ?? title;
                                   const hasImage = Boolean(imageSrc);
                                   const isImageLeft = productLayout === "image-left";
+                                  const productImageSize = isImageLeft ? 96 : undefined;
                                   const priceAmount = product?.priceRange?.minVariantPrice?.amount;
                                   const priceCurrency = product?.priceRange?.minVariantPrice?.currencyCode;
                                   const fallbackCurrency = priceCurrency || "USD";
@@ -6300,11 +6352,11 @@ export default function MenuBuilder() {
                                         style={{
                                           border: "1px solid #e5e7eb",
                                           background: "#f3f4f4",
-                                          width: isImageLeft ? 120 : "100%",
-                                          height: isImageLeft ? 120 : "auto",
+                                          width: isImageLeft ? productImageSize : "100%",
+                                          height: isImageLeft ? productImageSize : "auto",
                                           maxHeight: isImageLeft ? undefined : productPreviewHeight,
                                           aspectRatio: isImageLeft ? undefined : "1 / 1",
-                                          flex: isImageLeft ? "0 0 120px" : undefined,
+                                          flex: isImageLeft ? `0 0 ${productImageSize}px` : undefined,
                                           display: "flex",
                                           alignItems: "center",
                                           justifyContent: "center",

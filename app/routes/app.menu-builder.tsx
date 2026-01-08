@@ -460,6 +460,7 @@ type BlockTemplateId =
   | "image"
   | "image2"
   | "links"
+  | "links-easy"
   | "links-3"
   | "product"
   | "product-horizontal"
@@ -2047,6 +2048,37 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "Easy column",
+                onSelect: () => handleApplyBlockTemplate("links-easy"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/easy-column.png"
+                      alt="Easy column template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Easy column
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("links-easy")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "product":
@@ -2831,6 +2863,27 @@ export default function MenuBuilder() {
     ];
   };
 
+  const buildEasyColumnLinkItems = () => {
+    const defaultItemLabels = ["Menu item 1", "Menu item 2"];
+    return [
+      {
+        id: buildId(),
+        label: "Heading",
+        url: "",
+        role: "item",
+        isHeading: true,
+        description: "",
+      },
+      ...defaultItemLabels.map((label) => ({
+        id: buildId(),
+        label,
+        url: "/",
+        role: "item",
+        description: "Description",
+      })),
+    ];
+  };
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -2864,11 +2917,13 @@ export default function MenuBuilder() {
 
   const handleApplyBlockTemplate = (templateId: BlockTemplateId) => {
     if (!blockTemplateTargetId) return;
-    const isLinkListTemplate = templateId === "links" || templateId === "links-3";
+    const isLinkListTemplate =
+      templateId === "links" || templateId === "links-3" || templateId === "links-easy";
     const resolvedBlockTemplate: BlockTemplateId =
-      templateId === "links-3" ? "links" : templateId;
-    const linkColumnCount = templateId === "links-3" ? 3 : 2;
-    const linkWidthDefault = templateId === "links-3" ? 4 : 6;
+      templateId === "links-3" || templateId === "links-easy" ? "links" : templateId;
+    const linkColumnCount = templateId === "links-3" ? 3 : templateId === "links-easy" ? 1 : 2;
+    const linkWidthDefault =
+      templateId === "links-3" ? 4 : templateId === "links-easy" ? 3 : 6;
     const labelMap: Record<BlockTemplateId, string> = {
       space: "Space",
       multi: "Multi block",
@@ -2876,6 +2931,7 @@ export default function MenuBuilder() {
       image: "Image 1",
       image2: "Image 2",
       links: "Link list",
+      "links-easy": "Easy column",
       "links-3": "Link list (3 columns)",
       product: "Product",
       "product-horizontal": "Product horizontal",
@@ -2930,7 +2986,9 @@ export default function MenuBuilder() {
       children: isLinkListTemplate
         ? templateId === "links-3"
           ? buildThreeColumnLinkItems()
-          : buildTwoColumnLinkItems()
+          : templateId === "links-easy"
+            ? buildEasyColumnLinkItems()
+            : buildTwoColumnLinkItems()
         : [],
       blockTemplate: resolvedBlockTemplate,
       icon: iconMap[templateId],
@@ -3488,7 +3546,7 @@ export default function MenuBuilder() {
                         <RangeSlider
                           label="Column count"
                           value={editingItem.linkColumns ?? 2}
-                          min={2}
+                          min={1}
                           max={4}
                           onChange={(value) => updateEditDraft("linkColumns", value)}
                         />
@@ -3502,7 +3560,7 @@ export default function MenuBuilder() {
                           onChange={(value) => {
                             const next = Number(value);
                             if (!Number.isFinite(next)) return;
-                            const clamped = Math.max(2, Math.min(4, next));
+                            const clamped = Math.max(1, Math.min(4, next));
                             updateEditDraft("linkColumns", clamped);
                           }}
                           autoComplete="off"
@@ -6431,7 +6489,7 @@ export default function MenuBuilder() {
                       if (group.blockTemplate === "links") {
                         const headingItem = group.children?.find((child) => child.isHeading);
                         const linkItems = (group.children ?? []).filter((child) => !child.isHeading);
-                        const columnCount = Math.max(2, group.linkColumns ?? 2);
+                        const columnCount = Math.max(1, group.linkColumns ?? 2);
                         const itemsPerColumn = linkItems.length
                           ? Math.ceil(linkItems.length / columnCount)
                           : 0;
@@ -6440,7 +6498,7 @@ export default function MenuBuilder() {
                         );
                         const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 6));
                         const linkFlexBasis =
-                          columnCount === 3 ? "65%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                          columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
                         const linkTextAlign = group.linkTextAlign ?? "left";
                         const linkJustify =
                           linkTextAlign === "center"

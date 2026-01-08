@@ -3187,7 +3187,7 @@ export default function MenuBuilder() {
               }}
             >
               <Box>
-                <div className="ml-1 border-l border-dashed border-gray-300/70 pl-5">
+                <div className="ml-1 border-l border-dashed border-gray-300/70">
                   <BlockStack>
                     {hasChildren
                       ? item.children?.map((child) => renderMenuTree(child, depth + 1))
@@ -5013,6 +5013,7 @@ export default function MenuBuilder() {
     (group) =>
       group.blockTemplate === "image" ||
       group.blockTemplate === "image2" ||
+      group.blockTemplate === "links" ||
       group.blockTemplate === "contact" ||
       group.blockTemplate === "product" ||
       group.blockTemplate === "product-horizontal"
@@ -5025,6 +5026,7 @@ export default function MenuBuilder() {
       (group) =>
         group.blockTemplate === "image" ||
         group.blockTemplate === "image2" ||
+        group.blockTemplate === "links" ||
         group.blockTemplate === "contact" ||
         group.blockTemplate === "product" ||
         group.blockTemplate === "product-horizontal" ||
@@ -6170,13 +6172,15 @@ export default function MenuBuilder() {
                               />
                               <div
                                 style={{
-                                  display: "grid",
-                                  gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
-                                  gap: 16,
+                                  display: "flex",
+                                  gap: 32,
                                 }}
                               >
                                 {columnsItems.map((column, columnIndex) => (
-                                  <div key={`column-${columnIndex}`} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                  <div
+                                    key={`column-${columnIndex}`}
+                                    style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 0" }}
+                                  >
                                     {column.map((child) => {
                                       const isChildSelected = selectedItemId === child.id;
                                       return (

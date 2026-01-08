@@ -460,6 +460,7 @@ type BlockTemplateId =
   | "image"
   | "image2"
   | "links"
+  | "links-3"
   | "product"
   | "product-horizontal"
   | "collection"
@@ -1982,37 +1983,72 @@ export default function MenuBuilder() {
             </div>
           );
         case "links":
-          return renderBlockTemplatePreviewCard({
-            title: "Link list (2 columns)",
-            onSelect: selectTemplate,
-            showSelectButton: false,
-            showTitle: false,
-            previewHeightClassName: "h-44",
-            previewContainerClassName: "bg-transparent p-0",
-            preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <img
-                  src="/two-columns.png"
-                  alt="Link list (2 columns) template"
-                  className="h-full w-full object-contain"
-                />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Link list (2 columns)
-                </div>
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                  <Button
-                    fullWidth
-                    onClick={selectTemplate}
-                    size="slim"
-                    variant="primary"
-                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                  >
-                    Select
-                  </Button>
-                </div>
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {renderBlockTemplatePreviewCard({
+                title: "Link list (2 columns)",
+                onSelect: () => handleApplyBlockTemplate("links"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/two-columns.png"
+                      alt="Link list (2 columns) template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Link list (2 columns)
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("links")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Link list (3 columns)",
+                onSelect: () => handleApplyBlockTemplate("links-3"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/3-columns.png"
+                      alt="Link list (3 columns) template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Link list (3 columns)
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("links-3")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+            </div>
+          );
         case "product":
           return (
             <div className="flex flex-col gap-0">
@@ -2795,8 +2831,44 @@ export default function MenuBuilder() {
     ];
   };
 
+  const buildThreeColumnLinkItems = () => {
+    const defaultItemLabels = [
+      "Menu item 1",
+      "Menu item 2",
+      "Menu item 3",
+      "Menu item 4",
+      "Menu item 5",
+      "Menu item 6",
+      "Menu item 7",
+      "Menu item 8",
+      "Menu item 9",
+    ];
+    return [
+      {
+        id: buildId(),
+        label: "Heading",
+        url: "",
+        role: "item",
+        isHeading: true,
+        description: "",
+      },
+      ...defaultItemLabels.map((label) => ({
+        id: buildId(),
+        label,
+        url: "/",
+        role: "item",
+        description: "Description",
+      })),
+    ];
+  };
+
   const handleApplyBlockTemplate = (templateId: BlockTemplateId) => {
     if (!blockTemplateTargetId) return;
+    const isLinkListTemplate = templateId === "links" || templateId === "links-3";
+    const resolvedBlockTemplate: BlockTemplateId =
+      templateId === "links-3" ? "links" : templateId;
+    const linkColumnCount = templateId === "links-3" ? 3 : 2;
+    const linkWidthDefault = templateId === "links-3" ? 4 : 6;
     const labelMap: Record<BlockTemplateId, string> = {
       space: "Space",
       multi: "Multi block",
@@ -2804,6 +2876,7 @@ export default function MenuBuilder() {
       image: "Image 1",
       image2: "Image 2",
       links: "Link list",
+      "links-3": "Link list (3 columns)",
       product: "Product",
       "product-horizontal": "Product horizontal",
       collection: "Collection",
@@ -2854,14 +2927,20 @@ export default function MenuBuilder() {
       url: "",
       role: "group",
       expanded: true,
-      children: templateId === "links" ? buildTwoColumnLinkItems() : [],
-      blockTemplate: templateId,
+      children: isLinkListTemplate
+        ? templateId === "links-3"
+          ? buildThreeColumnLinkItems()
+          : buildTwoColumnLinkItems()
+        : [],
+      blockTemplate: resolvedBlockTemplate,
       icon: iconMap[templateId],
       description: descriptionMap[templateId],
       ...imageDefaults,
       ...contactDefaults,
       ...productDefaults,
-      ...(templateId === "links" ? { linkColumns: 2, linkWidth: 6, linkTextAlign: "left" } : {}),
+      ...(isLinkListTemplate
+        ? { linkColumns: linkColumnCount, linkWidth: linkWidthDefault, linkTextAlign: "left" }
+        : {}),
     };
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -6324,7 +6403,8 @@ export default function MenuBuilder() {
                           linkItems.slice(columnIndex * itemsPerColumn, (columnIndex + 1) * itemsPerColumn),
                         );
                         const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 6));
-                        const linkFlexBasis = `${Math.round((linkWidth / 12) * 100)}%`;
+                        const linkFlexBasis =
+                          columnCount === 3 ? "65%" : `${Math.round((linkWidth / 12) * 100)}%`;
                         const linkTextAlign = group.linkTextAlign ?? "left";
                         const headingLabel = headingItem?.label ?? "Heading";
                         const headingSelected = headingItem ? selectedItemId === headingItem.id : false;

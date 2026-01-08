@@ -447,6 +447,7 @@ type MenuItem = {
   productLayout?: "image-top" | "image-left";
   productWidth?: number;
   linkColumns?: number;
+  isHeading?: boolean;
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -457,7 +458,6 @@ type BlockTemplateId =
   | "image"
   | "image2"
   | "links"
-  | "links-two-column"
   | "product"
   | "product-horizontal"
   | "collection"
@@ -1983,12 +1983,31 @@ export default function MenuBuilder() {
           return renderBlockTemplatePreviewCard({
             title: "Link list",
             onSelect: selectTemplate,
+            showSelectButton: false,
+            showTitle: false,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2">
-                <div className="h-3 w-16 rounded bg-gray-300" />
-                <div className="mt-2 h-2 w-24 rounded bg-gray-200" />
-                <div className="mt-2 h-2 w-20 rounded bg-gray-200" />
-                <div className="mt-2 h-2 w-28 rounded bg-gray-200" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/two-columns.png"
+                  alt="Link list template"
+                  className="h-full w-full object-contain"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Link list
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={selectTemplate}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    Select
+                  </Button>
+                </div>
               </div>
             ),
           });
@@ -2716,6 +2735,34 @@ export default function MenuBuilder() {
     setSubmenuTemplateTargetId(null);
   };
 
+  const buildTwoColumnLinkItems = () => {
+    const defaultItemLabels = [
+      "Menu item 1",
+      "Menu item 2",
+      "Menu item 3",
+      "Menu item 4",
+      "Menu item 5",
+      "Menu item 6",
+    ];
+    return [
+      {
+        id: buildId(),
+        label: "Heading",
+        url: "",
+        role: "item",
+        isHeading: true,
+        description: "",
+      },
+      ...defaultItemLabels.map((label) => ({
+        id: buildId(),
+        label,
+        url: "/",
+        role: "item",
+        description: "Description",
+      })),
+    ];
+  };
+
   const handleApplyBlockTemplate = (templateId: BlockTemplateId) => {
     if (!blockTemplateTargetId) return;
     const labelMap: Record<BlockTemplateId, string> = {
@@ -2775,13 +2822,14 @@ export default function MenuBuilder() {
       url: "",
       role: "group",
       expanded: true,
-      children: [],
+      children: templateId === "links" ? buildTwoColumnLinkItems() : [],
       blockTemplate: templateId,
       icon: iconMap[templateId],
       description: descriptionMap[templateId],
       ...imageDefaults,
       ...contactDefaults,
       ...productDefaults,
+      ...(templateId === "links" ? { linkColumns: 2 } : {}),
     };
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -6006,6 +6054,195 @@ export default function MenuBuilder() {
                                   </div>
                                 </>
                               ) : null}
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (group.blockTemplate === "links") {
+                        const headingItem = group.children?.find((child) => child.isHeading);
+                        const linkItems = (group.children ?? []).filter((child) => !child.isHeading);
+                        const columnCount = Math.max(2, group.linkColumns ?? 2);
+                        const itemsPerColumn = linkItems.length
+                          ? Math.ceil(linkItems.length / columnCount)
+                          : 0;
+                        const columnsItems = Array.from({ length: columnCount }, (_, columnIndex) =>
+                          linkItems.slice(columnIndex * itemsPerColumn, (columnIndex + 1) * itemsPerColumn),
+                        );
+                        return (
+                          <div
+                            key={group.id}
+                            className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                            draggable
+                            onDragStart={(event) => {
+                              event.dataTransfer.effectAllowed = "move";
+                              event.dataTransfer.setData("text/plain", group.id);
+                              setDraggedItemId(group.id);
+                              const parentId = findParentId(menuItems, group.id);
+                              setDraggedParentId(parentId ?? null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragOver={(event) => {
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              if (draggedItemId === group.id) return;
+                              event.preventDefault();
+                              if (lastDragOverIdRef.current === group.id) return;
+                              lastDragOverIdRef.current = group.id;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragEnd={() => {
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            style={{
+                              flex: useImageSpaceLayout ? `0 0 40%` : undefined,
+                              order: useImageSpaceLayout ? 0 : undefined,
+                              border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
+                              padding: "6px",
+                              borderRadius: 0,
+                            }}
+                          >
+                            <div
+                              className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleSelectItem(group.id, true)}
+                                aria-label="Edit item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={EditIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateItem(group.id)}
+                                aria-label="Duplicate item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={DuplicateIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDeleteItemDialog(group.id)}
+                                aria-label="Delete item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                              >
+                                <Icon source={DeleteIcon} />
+                              </button>
+                            </div>
+                            <div
+                              style={{
+                                borderRadius: 16,
+                                background: "transparent",
+                                padding: "6px 12px 12px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 12,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  color: previewColors.submenuHeading,
+                                  fontWeight: 600,
+                                  ...subheadingTypography,
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {headingItem?.label ?? "Heading"}
+                              </div>
+                              <div
+                                style={{
+                                  borderTop: `1px solid ${previewColors.submenuHeading}`,
+                                  opacity: 0.5,
+                                }}
+                              />
+                              <div
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
+                                  gap: 16,
+                                }}
+                              >
+                                {columnsItems.map((column, columnIndex) => (
+                                  <div key={`column-${columnIndex}`} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                    {column.map((child) => {
+                                      const isChildSelected = selectedItemId === child.id;
+                                      return (
+                                        <button
+                                          key={child.id}
+                                          type="button"
+                                          onClick={() => handleSelectItem(child.id)}
+                                          onMouseEnter={(event) => {
+                                            event.currentTarget.style.color = previewColors.submenuTextHover;
+                                          }}
+                                          onMouseLeave={(event) => {
+                                            event.currentTarget.style.color = previewColors.submenuText;
+                                          }}
+                                          style={{
+                                            textAlign: "left",
+                                            border: isChildSelected
+                                              ? `2px dashed ${themeSettings.menuActive}`
+                                              : "2px solid transparent",
+                                            borderRadius: 8,
+                                            padding: "6px 8px",
+                                            background: "transparent",
+                                            color: previewColors.submenuText,
+                                            ...subtextTypography,
+                                            lineHeight: 1.2,
+                                          }}
+                                        >
+                                          <div style={{ fontWeight: 600, ...subheadingTypography, lineHeight: 1.2 }}>
+                                            {child.label}
+                                          </div>
+                                          {child.description ? (
+                                            <div
+                                              style={{
+                                                fontSize: 12,
+                                                ...descriptionTypography,
+                                                lineHeight: 1.3,
+                                                color: previewColors.submenuDescription,
+                                              }}
+                                            >
+                                              {child.description}
+                                            </div>
+                                          ) : null}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                ))}
+                              </div>
+                              <Button
+                                variant="plain"
+                                icon={PlusIcon}
+                                size="slim"
+                                onClick={() => handleAddChild(group.id, "item")}
+                                style={{
+                                  minHeight: builderSettings.spacingLinkListRowHeight,
+                                  color: previewColors.submenuDescription,
+                                  ...descriptionTypography,
+                                }}
+                                onMouseEnter={(event) => {
+                                  event.currentTarget.style.color = previewColors.submenuDescriptionHover;
+                                }}
+                                onMouseLeave={(event) => {
+                                  event.currentTarget.style.color = previewColors.submenuDescription;
+                                }}
+                              >
+                                Add item
+                              </Button>
                             </div>
                           </div>
                         );

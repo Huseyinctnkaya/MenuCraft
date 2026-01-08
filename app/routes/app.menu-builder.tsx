@@ -447,6 +447,7 @@ type MenuItem = {
   productLayout?: "image-top" | "image-left";
   productWidth?: number;
   linkColumns?: number;
+  linkWidth?: number;
   isHeading?: boolean;
 };
 
@@ -2377,15 +2378,7 @@ export default function MenuBuilder() {
       if (target === "custom") {
         updateCustomItem(itemId, { icon: result });
       } else {
-        setEditDraft((prev) => {
-          if (prev && prev.id === itemId) {
-            return { ...prev, icon: result };
-          }
-          if (selectedItem?.id === itemId) {
-            return { ...selectedItem, icon: result };
-          }
-          return prev;
-        });
+        updateEditDraftItemById(itemId, (item) => ({ ...item, icon: result }));
       }
       closeIconPicker();
     };
@@ -2394,12 +2387,12 @@ export default function MenuBuilder() {
 
   const renderIconLibraryPanel = () => {
     if (!iconPickerState || iconPickerState.mode !== "library") return null;
+    const editableItem =
+      iconPickerState.target === "custom" ? null : findEditableItemById(iconPickerState.itemId);
     const selectedItemIcon =
       iconPickerState.target === "custom"
         ? customItems.find((entry) => entry.id === iconPickerState.itemId)?.icon
-        : editDraft?.id === iconPickerState.itemId
-          ? editDraft.icon
-          : findItemPath(menuItems, iconPickerState.itemId)?.slice(-1)[0]?.icon;
+        : editableItem?.icon ?? findItemPath(menuItems, iconPickerState.itemId)?.slice(-1)[0]?.icon;
     const selectedIconId = selectedItemIcon?.startsWith(ICON_PREFIX)
       ? selectedItemIcon.slice(ICON_PREFIX.length)
       : null;
@@ -2411,15 +2404,7 @@ export default function MenuBuilder() {
       if (iconPickerState.target === "custom") {
         updateCustomItem(iconPickerState.itemId, { icon: iconValue });
       } else {
-        setEditDraft((prev) => {
-          if (prev && prev.id === iconPickerState.itemId) {
-            return { ...prev, icon: iconValue };
-          }
-          if (selectedItem?.id === iconPickerState.itemId) {
-            return { ...selectedItem, icon: iconValue };
-          }
-          return prev;
-        });
+        updateEditDraftItemById(iconPickerState.itemId, (item) => ({ ...item, icon: iconValue }));
       }
     };
 
@@ -2536,6 +2521,14 @@ export default function MenuBuilder() {
     );
   };
 
+  const applyLinkSelection = (itemId: string, url: string) => {
+    if (customItems.some((item) => item.id === itemId)) {
+      updateCustomItem(itemId, { url });
+      return;
+    }
+    updateEditDraftItemById(itemId, (item) => ({ ...item, url }));
+  };
+
   const renderLinkPickerDropdown = () => {
     if (!linkPickerOpenId || !linkPickerRect || typeof document === "undefined") {
       return null;
@@ -2558,7 +2551,7 @@ export default function MenuBuilder() {
             type="button"
             className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
             onClick={() => {
-              updateCustomItem(linkPickerOpenId, { url: option.url });
+              applyLinkSelection(linkPickerOpenId, option.url);
               setLinkPickerOpenId(null);
             }}
           >
@@ -2688,6 +2681,44 @@ export default function MenuBuilder() {
       }
       if (!selectedItem) return prev;
       return { ...selectedItem, [key]: value };
+    });
+  };
+
+  const findEditableItemById = (id: string) => {
+    const base = editDraft ?? selectedItem;
+    if (!base) return null;
+    return findItemPath([base], id)?.slice(-1)[0] ?? null;
+  };
+
+  const updateEditDraftItemById = (id: string, updater: (item: MenuItem) => MenuItem) => {
+    setEditDraft((prev) => {
+      const base = prev ?? selectedItem;
+      if (!base) return prev;
+      if (base.id === id) {
+        return updater(base);
+      }
+      if (!base.children?.length) {
+        return base;
+      }
+      const nextChildren = updateItemById(base.children, id, updater);
+      if (nextChildren === base.children) {
+        return base;
+      }
+      return { ...base, children: nextChildren };
+    });
+  };
+
+  const removeEditDraftItemById = (id: string) => {
+    setEditDraft((prev) => {
+      const base = prev ?? selectedItem;
+      if (!base || base.id === id || !base.children?.length) {
+        return prev ?? base;
+      }
+      const nextChildren = removeItemById(base.children, id);
+      if (nextChildren === base.children) {
+        return base;
+      }
+      return { ...base, children: nextChildren };
     });
   };
 
@@ -2829,7 +2860,7 @@ export default function MenuBuilder() {
       ...imageDefaults,
       ...contactDefaults,
       ...productDefaults,
-      ...(templateId === "links" ? { linkColumns: 2 } : {}),
+      ...(templateId === "links" ? { linkColumns: 2, linkWidth: 6 } : {}),
     };
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -3250,9 +3281,11 @@ export default function MenuBuilder() {
       const isImageBlock =
         editingItem.blockTemplate === "image" || editingItem.blockTemplate === "image2";
       const isContactBlock = editingItem.blockTemplate === "contact";
+      const isLinkListBlock = editingItem.blockTemplate === "links";
       const isProductBlock =
         editingItem.blockTemplate === "product" || editingItem.blockTemplate === "product-horizontal";
       const isVisualBlock = isImageBlock || isContactBlock || isProductBlock;
+      const linkListItems = isLinkListBlock ? editingItem.children ?? [] : [];
       if (iconPickerState?.target === "edit") {
         return (
           <Card padding="0">
@@ -3294,7 +3327,7 @@ export default function MenuBuilder() {
                 <Text as="h3" variant="headingSm">
                   General
                 </Text>
-                {!isVisualBlock ? (
+                {!isVisualBlock && !isLinkListBlock ? (
                   <BlockStack gap="200">
                     <Text as="h4" variant="headingSm">
                       Icon
@@ -3329,7 +3362,63 @@ export default function MenuBuilder() {
                     </div>
                   </BlockStack>
                 ) : null}
-                {isContactBlock ? (
+                {isLinkListBlock ? (
+                  <>
+                    <InlineStack gap="200" blockAlign="center">
+                      <div style={{ flex: 1 }}>
+                        <RangeSlider
+                          label="Width"
+                          value={editingItem.linkWidth ?? 6}
+                          min={1}
+                          max={12}
+                          onChange={(value) => updateEditDraft("linkWidth", value)}
+                        />
+                      </div>
+                      <div style={{ width: 90 }}>
+                        <TextField
+                          label="Width"
+                          labelHidden
+                          type="number"
+                          value={String(editingItem.linkWidth ?? 6)}
+                          onChange={(value) => {
+                            const next = Number(value);
+                            if (!Number.isFinite(next)) return;
+                            const clamped = Math.max(1, Math.min(12, next));
+                            updateEditDraft("linkWidth", clamped);
+                          }}
+                          suffix="/12"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </InlineStack>
+                    <InlineStack gap="200" blockAlign="center">
+                      <div style={{ flex: 1 }}>
+                        <RangeSlider
+                          label="Column count"
+                          value={editingItem.linkColumns ?? 2}
+                          min={2}
+                          max={4}
+                          onChange={(value) => updateEditDraft("linkColumns", value)}
+                        />
+                      </div>
+                      <div style={{ width: 90 }}>
+                        <TextField
+                          label="Column count"
+                          labelHidden
+                          type="number"
+                          value={String(editingItem.linkColumns ?? 2)}
+                          onChange={(value) => {
+                            const next = Number(value);
+                            if (!Number.isFinite(next)) return;
+                            const clamped = Math.max(2, Math.min(4, next));
+                            updateEditDraft("linkColumns", clamped);
+                          }}
+                          autoComplete="off"
+                        />
+                      </div>
+                    </InlineStack>
+                  </>
+                ) : isContactBlock ? (
                   <>
                     <InlineStack gap="200" blockAlign="center">
                       <div style={{ flex: 1 }}>
@@ -3508,6 +3597,149 @@ export default function MenuBuilder() {
                 )}
               </BlockStack>
 
+              {isLinkListBlock ? (
+                <>
+                  <Divider />
+                  <BlockStack gap="400">
+                    {linkListItems.length ? (
+                      linkListItems.map((child, index) => {
+                        const isHeadingItem = Boolean(child.isHeading);
+                        const itemTitle = isHeadingItem ? "Heading" : child.label || "Menu item";
+                        return (
+                          <BlockStack key={child.id} gap="300">
+                            <InlineStack align="space-between" blockAlign="center">
+                              <Text as="h3" variant="headingSm">
+                                {itemTitle}
+                              </Text>
+                              <button
+                                type="button"
+                                onClick={() => removeEditDraftItemById(child.id)}
+                                className="text-sm text-red-600 hover:text-red-700"
+                              >
+                                Remove
+                              </button>
+                            </InlineStack>
+                            <Checkbox
+                              label="Use as heading"
+                              checked={isHeadingItem}
+                              onChange={(value) => {
+                                setEditDraft((prev) => {
+                                  const base = prev ?? selectedItem;
+                                  if (!base || !base.children?.length) return prev ?? base;
+                                  const nextChildren = base.children.map((item) => ({
+                                    ...item,
+                                    isHeading: value ? item.id === child.id : false,
+                                  }));
+                                  return { ...base, children: nextChildren };
+                                });
+                              }}
+                            />
+                            <Text as="p" variant="bodySm" tone="subdued">
+                              Icon
+                            </Text>
+                            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center">
+                              <div className="flex flex-col items-center gap-3">
+                                {child.icon ? (
+                                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                                    {resolveCustomIconPreview(child.icon)}
+                                  </div>
+                                ) : null}
+                                <InlineStack align="center" blockAlign="center" gap="200">
+                                  <button
+                                    type="button"
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                    onClick={() => openIconPicker("edit", child.id, "library")}
+                                  >
+                                    Select icon
+                                  </button>
+                                  <Text as="span" variant="bodySm" tone="subdued">
+                                    or
+                                  </Text>
+                                  <button
+                                    type="button"
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                    onClick={() => openIconPicker("edit", child.id, "upload")}
+                                  >
+                                    Upload icon
+                                  </button>
+                                </InlineStack>
+                              </div>
+                            </div>
+                            <TextField
+                              label="Title"
+                              value={child.label}
+                              onChange={(value) =>
+                                updateEditDraftItemById(child.id, (item) => ({ ...item, label: value }))
+                              }
+                              autoComplete="off"
+                            />
+                            <div dir="ltr" className="flex items-end gap-2">
+                              <div
+                                className="flex-1"
+                                ref={(node) => {
+                                  if (node) {
+                                    linkPickerAnchorRefs.current.set(child.id, node);
+                                  } else {
+                                    linkPickerAnchorRefs.current.delete(child.id);
+                                  }
+                                }}
+                              >
+                                <TextField
+                                  label="Link"
+                                  value={child.url}
+                                  onChange={(value) =>
+                                    updateEditDraftItemById(child.id, (item) => ({ ...item, url: value }))
+                                  }
+                                  autoComplete="off"
+                                  placeholder="Search or paste a link"
+                                  onFocus={() => openLinkPicker(child.id)}
+                                  onClick={() => openLinkPicker(child.id)}
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                aria-label="Clear link"
+                                onClick={() =>
+                                  updateEditDraftItemById(child.id, (item) => ({ ...item, url: "" }))
+                                }
+                                className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
+                              >
+                                <span className="text-base leading-none">×</span>
+                              </button>
+                            </div>
+                            <TextField
+                              label="Description"
+                              value={child.description ?? ""}
+                              onChange={(value) =>
+                                updateEditDraftItemById(child.id, (item) => ({ ...item, description: value }))
+                              }
+                              autoComplete="off"
+                            />
+                            <InlineStack align="space-between" blockAlign="center">
+                              <Text as="p" variant="bodySm">
+                                Badge
+                              </Text>
+                              <div className="flex h-6 w-10 items-center rounded-full bg-gray-200 px-0.5">
+                                <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
+                              </div>
+                            </InlineStack>
+                            <Text as="p" variant="bodySm" tone="subdued">
+                              This option is available on the{" "}
+                              <span className="text-blue-600">Pro plan</span>
+                            </Text>
+                            {index < linkListItems.length - 1 ? <Divider /> : null}
+                          </BlockStack>
+                        );
+                      })
+                    ) : (
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        No items yet.
+                      </Text>
+                    )}
+                  </BlockStack>
+                </>
+              ) : null}
+
               {isProductBlock ? (
                 <>
                   <Divider />
@@ -3564,7 +3796,7 @@ export default function MenuBuilder() {
                 </>
               ) : null}
 
-              {!isVisualBlock ? (
+              {!isVisualBlock && !isLinkListBlock ? (
                 <>
                   <Divider />
                   <BlockStack gap="300">
@@ -6089,6 +6321,8 @@ export default function MenuBuilder() {
                         const columnsItems = Array.from({ length: columnCount }, (_, columnIndex) =>
                           linkItems.slice(columnIndex * itemsPerColumn, (columnIndex + 1) * itemsPerColumn),
                         );
+                        const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 6));
+                        const linkFlexBasis = `${Math.round((linkWidth / 12) * 100)}%`;
                         return (
                           <div
                             key={group.id}
@@ -6128,7 +6362,7 @@ export default function MenuBuilder() {
                               lastDragOverIdRef.current = null;
                             }}
                             style={{
-                              flex: useImageSpaceLayout ? `0 0 50%` : undefined,
+                              flex: useBlockFlexLayout ? `0 0 ${linkFlexBasis}` : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",

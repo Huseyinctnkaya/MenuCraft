@@ -954,6 +954,7 @@ export default function MenuBuilder() {
   const contactFetcher = useFetcher<typeof action>();
   const [activePanel, setActivePanel] = useState<RailPanel>("menu");
   const [menuView, setMenuView] = useState<"list" | "edit" | "add-root">("list");
+  const [addItemsTargetId, setAddItemsTargetId] = useState<string | null>(null);
   const [menuStatus, setMenuStatus] = useState<"active" | "draft">(
     menu.status === "active" ? "active" : "draft"
   );
@@ -3055,14 +3056,16 @@ export default function MenuBuilder() {
     setIconPickerSearch("");
   };
 
-  const handleOpenAddRoot = () => {
+  const handleOpenAddRoot = (targetId?: string | null) => {
     setActivePanel("menu");
     setMenuView("add-root");
+    setAddItemsTargetId(targetId ?? null);
     resetAddItemsState();
   };
 
   const handleCloseAddRoot = () => {
     setMenuView("list");
+    setAddItemsTargetId(null);
     resetAddItemsState();
   };
 
@@ -3081,14 +3084,26 @@ export default function MenuBuilder() {
   const handleAddSelectedItems = () => {
     const items = Object.values(selectedAddItems);
     if (!items.length) return;
+    const itemRole: MenuItem["role"] = addItemsTargetId ? "item" : "menu";
     const nextItems = items.map((item) => ({
       id: buildId(),
       label: item.label,
       url: item.url,
-      role: "menu" as const,
+      role: itemRole,
     }));
-    setMenuItems((prev) => [...prev, ...nextItems]);
+    if (addItemsTargetId) {
+      setMenuItems((prev) =>
+        updateItemById(prev, addItemsTargetId, (item) => ({
+          ...item,
+          expanded: true,
+          children: item.children ? [...item.children, ...nextItems] : nextItems,
+        }))
+      );
+    } else {
+      setMenuItems((prev) => [...prev, ...nextItems]);
+    }
     setMenuView("list");
+    setAddItemsTargetId(null);
     resetAddItemsState();
   };
 
@@ -3101,6 +3116,7 @@ export default function MenuBuilder() {
   };
 
   const handleAddCustomItems = () => {
+    const itemRole: MenuItem["role"] = addItemsTargetId ? "item" : "menu";
     const nextItems = customItems
       .map((item) => ({
         title: item.title.trim(),
@@ -3113,7 +3129,7 @@ export default function MenuBuilder() {
         id: buildId(),
         label: item.title,
         url: item.url || "/",
-        role: "menu" as const,
+        role: itemRole,
         description: item.description || undefined,
         icon: item.icon || undefined,
       }));
@@ -3122,8 +3138,19 @@ export default function MenuBuilder() {
       return;
     }
 
-    setMenuItems((prev) => [...prev, ...nextItems]);
+    if (addItemsTargetId) {
+      setMenuItems((prev) =>
+        updateItemById(prev, addItemsTargetId, (item) => ({
+          ...item,
+          expanded: true,
+          children: item.children ? [...item.children, ...nextItems] : nextItems,
+        }))
+      );
+    } else {
+      setMenuItems((prev) => [...prev, ...nextItems]);
+    }
     setMenuView("list");
+    setAddItemsTargetId(null);
     resetAddItemsState();
   };
 
@@ -3393,7 +3420,11 @@ export default function MenuBuilder() {
                   {item.role === "group" && !isVisualBlock ? (
                     <button
                       type="button"
-                      onClick={() => handleAddChild(item.id, "item")}
+                      onClick={() =>
+                        item.blockTemplate === "links"
+                          ? handleOpenAddRoot(item.id)
+                          : handleAddChild(item.id, "item")
+                      }
                       className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
                     >
                       <span className="h-5 w-5" />
@@ -4346,6 +4377,10 @@ export default function MenuBuilder() {
         searchValue ? items.filter((item) => item.label.toLowerCase().includes(searchValue)) : items;
       const selectedCount = Object.keys(selectedAddItems).length;
       const hasCustomItems = customItems.some((item) => item.title.trim().length > 0);
+      const isSelectTab = addItemsTab === "select";
+      const showFooter = !iconPickerState;
+      const footerDisabled = isSelectTab ? selectedCount === 0 : !hasCustomItems;
+      const handleFooterAction = isSelectTab ? handleAddSelectedItems : handleAddCustomItems;
 
       const renderCheckboxItem = (item: AddableItem) => (
         <Checkbox
@@ -4358,225 +4393,219 @@ export default function MenuBuilder() {
 
       return (
         <Card padding="0">
-          <BlockStack gap="0">
-            <Box padding="400">
-              <InlineStack gap="200" blockAlign="center">
-                <Button
-                  variant="plain"
-                  icon={ArrowLeftIcon}
-                  onClick={handleCloseAddRoot}
-                  accessibilityLabel="Back"
-                />
-                <Text as="h2" variant="headingMd">
-                  Create menu items
-                </Text>
-              </InlineStack>
-            </Box>
-            <Divider />
-            <Box padding="400">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAddItemsTab("select")}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    addItemsTab === "select"
-                      ? "border-blue-600 bg-blue-50 text-blue-700"
-                      : "border-gray-300 text-gray-600 hover:border-gray-400"
-                  }`}
-                >
-                  Select items
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddItemsTab("custom")}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    addItemsTab === "custom"
-                      ? "border-blue-600 bg-blue-50 text-blue-700"
-                      : "border-gray-300 text-gray-600 hover:border-gray-400"
-                  }`}
-                >
-                  Add item
-                </button>
-              </div>
-            </Box>
-            <Divider />
-            {addItemsTab === "select" ? (
-              <>
-                <Box padding="400">
-                  <TextField
-                    label="Search"
-                    labelHidden
-                    value={addItemsSearch}
-                    onChange={setAddItemsSearch}
-                    placeholder="Search"
-                    autoComplete="off"
-                    prefix={<Icon source={SearchIcon} tone="subdued" />}
+          <div className="flex h-[calc(100vh-220px)] min-h-[520px] max-h-[780px] flex-col">
+            <div className="border-b border-gray-200 bg-white">
+              <Box padding="400">
+                <InlineStack gap="200" blockAlign="center">
+                  <Button
+                    variant="plain"
+                    icon={ArrowLeftIcon}
+                    onClick={handleCloseAddRoot}
+                    accessibilityLabel="Back"
                   />
-                </Box>
-                <Divider />
-                <div className="max-h-[420px] overflow-auto px-4 py-4">
-                  <BlockStack gap="300">
-                    <BlockStack gap="200">{filterItems(staticItems).map(renderCheckboxItem)}</BlockStack>
-                    <Divider />
-                    <BlockStack gap="200">
-                      <Text as="h3" variant="headingSm">
-                        Collections
-                      </Text>
-                      <BlockStack gap="200">
-                        {filterItems(collectionItems).map(renderCheckboxItem)}
-                      </BlockStack>
-                    </BlockStack>
-                    <Divider />
-                    <BlockStack gap="200">
-                      <Text as="h3" variant="headingSm">
-                        Products
-                      </Text>
-                      <BlockStack gap="200">
-                        {filterItems(productItems).map(renderCheckboxItem)}
-                      </BlockStack>
-                    </BlockStack>
-                  </BlockStack>
+                  <Text as="h2" variant="headingMd">
+                    Create menu items
+                  </Text>
+                </InlineStack>
+              </Box>
+              <Divider />
+              <Box padding="400">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAddItemsTab("select")}
+                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      addItemsTab === "select"
+                        ? "border-blue-600 bg-blue-50 text-blue-700"
+                        : "border-gray-300 text-gray-600 hover:border-gray-400"
+                    }`}
+                  >
+                    Select items
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddItemsTab("custom")}
+                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      addItemsTab === "custom"
+                        ? "border-blue-600 bg-blue-50 text-blue-700"
+                        : "border-gray-300 text-gray-600 hover:border-gray-400"
+                    }`}
+                  >
+                    Add item
+                  </button>
                 </div>
-                <Divider />
-                <Box padding="300">
-                  <InlineStack align="end" gap="200">
-                    <Button variant="tertiary" onClick={handleCloseAddRoot}>
-                      Cancel
-                    </Button>
-                    <Button variant="primary" disabled={selectedCount === 0} onClick={handleAddSelectedItems}>
-                      Add
-                    </Button>
-                  </InlineStack>
-                </Box>
-              </>
-            ) : iconPickerState ? (
-              iconPickerState.mode === "library" ? renderIconLibraryPanel() : renderIconUploadPanel()
-            ) : (
-              <>
-                <div className="flex h-[calc(100vh-220px)] min-h-[500px] max-h-[780px] flex-col">
-                  <div ref={customItemsScrollRef} className="flex-1 overflow-auto px-4 py-4 pb-2">
-                    <BlockStack gap="400">
-                      {customItems.map((item, index) => (
-                        <div
-                          key={item.id}
-                          className={linkPickerOpenId === item.id ? "relative z-[120]" : "relative"}
-                        >
-                          <BlockStack gap="300">
-                            <BlockStack gap="200">
-                              <Text as="h3" variant="headingSm">
-                                Icon
-                              </Text>
-                              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center">
-                                <div className="flex flex-col items-center gap-3">
-                                  {item.icon ? (
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                                      {resolveCustomIconPreview(item.icon)}
-                                    </div>
-                                  ) : null}
-                                  <InlineStack align="center" blockAlign="center" gap="200">
+              </Box>
+            </div>
+            <div ref={customItemsScrollRef} className="flex-1 overflow-y-auto">
+              {isSelectTab ? (
+                <>
+                  <Box padding="400">
+                    <TextField
+                      label="Search"
+                      labelHidden
+                      value={addItemsSearch}
+                      onChange={setAddItemsSearch}
+                      placeholder="Search"
+                      autoComplete="off"
+                      prefix={<Icon source={SearchIcon} tone="subdued" />}
+                    />
+                  </Box>
+                  <Divider />
+                  <div className="px-4 py-4">
+                    <BlockStack gap="300">
+                      <BlockStack gap="200">
+                        {filterItems(staticItems).map(renderCheckboxItem)}
+                      </BlockStack>
+                      <Divider />
+                      <BlockStack gap="200">
+                        <Text as="h3" variant="headingSm">
+                          Collections
+                        </Text>
+                        <BlockStack gap="200">
+                          {filterItems(collectionItems).map(renderCheckboxItem)}
+                        </BlockStack>
+                      </BlockStack>
+                      <Divider />
+                      <BlockStack gap="200">
+                        <Text as="h3" variant="headingSm">
+                          Products
+                        </Text>
+                        <BlockStack gap="200">
+                          {filterItems(productItems).map(renderCheckboxItem)}
+                        </BlockStack>
+                      </BlockStack>
+                    </BlockStack>
+                  </div>
+                </>
+              ) : iconPickerState ? (
+                iconPickerState.mode === "library"
+                  ? renderIconLibraryPanel()
+                  : renderIconUploadPanel()
+              ) : (
+                <div className="px-4 py-4 pb-2">
+                  <BlockStack gap="400">
+                    {customItems.map((item, index) => (
+                      <div
+                        key={item.id}
+                        className={linkPickerOpenId === item.id ? "relative z-[120]" : "relative"}
+                      >
+                        <BlockStack gap="300">
+                          <BlockStack gap="200">
+                            <Text as="h3" variant="headingSm">
+                              Icon
+                            </Text>
+                            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center">
+                              <div className="flex flex-col items-center gap-3">
+                                {item.icon ? (
+                                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                                    {resolveCustomIconPreview(item.icon)}
+                                  </div>
+                                ) : null}
+                                <InlineStack align="center" blockAlign="center" gap="200">
+                                  <button
+                                    type="button"
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                    onClick={() => openIconPicker("custom", item.id, "library")}
+                                  >
+                                    Select icon
+                                  </button>
+                                  <Text as="span" variant="bodySm" tone="subdued">
+                                    or
+                                  </Text>
+                                  <button
+                                    type="button"
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                    onClick={() => openIconPicker("custom", item.id, "upload")}
+                                  >
+                                    Upload icon
+                                  </button>
+                                </InlineStack>
+                                {item.icon ? (
+                                  <div className="flex justify-center">
                                     <button
                                       type="button"
-                                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                                      onClick={() => openIconPicker("custom", item.id, "library")}
+                                      className="text-sm font-medium text-red-600 hover:text-red-700"
+                                      onClick={() => updateCustomItem(item.id, { icon: "" })}
                                     >
-                                      Select icon
+                                      Remove icon
                                     </button>
-                                    <Text as="span" variant="bodySm" tone="subdued">
-                                      or
-                                    </Text>
-                                    <button
-                                      type="button"
-                                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                                      onClick={() => openIconPicker("custom", item.id, "upload")}
-                                    >
-                                      Upload icon
-                                    </button>
-                                  </InlineStack>
-                                  {item.icon ? (
-                                    <div className="flex justify-center">
-                                      <button
-                                        type="button"
-                                        className="text-sm font-medium text-red-600 hover:text-red-700"
-                                        onClick={() => updateCustomItem(item.id, { icon: "" })}
-                                      >
-                                        Remove icon
-                                      </button>
-                                    </div>
-                                  ) : null}
-                                </div>
-                              </div>
-                            </BlockStack>
-                            <TextField
-                              label="Title"
-                              value={item.title}
-                              onChange={(value) => updateCustomItem(item.id, { title: value })}
-                              autoComplete="off"
-                            />
-                            <div className={linkPickerOpenId === item.id ? "relative z-[120]" : "relative"}>
-                              <div dir="ltr" className="flex items-end gap-2">
-                                <div
-                                  className="relative flex-1"
-                                  ref={(node) => {
-                                    if (node) {
-                                      linkPickerAnchorRefs.current.set(item.id, node);
-                                    } else {
-                                      linkPickerAnchorRefs.current.delete(item.id);
-                                    }
-                                  }}
-                                >
-                                  <TextField
-                                    label="Link"
-                                    value={item.url}
-                                    onChange={(value) => updateCustomItem(item.id, { url: value })}
-                                    autoComplete="off"
-                                    placeholder="Search or paste a link"
-                                    onFocus={() => openLinkPicker(item.id)}
-                                    onClick={() => openLinkPicker(item.id)}
-                                  />
-                                </div>
-                                <button
-                                  type="button"
-                                  aria-label="Clear link"
-                                  onClick={() => updateCustomItem(item.id, { url: "" })}
-                                  className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
-                                >
-                                  <span className="text-base leading-none">×</span>
-                                </button>
+                                  </div>
+                                ) : null}
                               </div>
                             </div>
-                            <TextField
-                              label="Description"
-                              value={item.description}
-                              onChange={(value) => updateCustomItem(item.id, { description: value })}
-                              autoComplete="off"
-                            />
-                            {index < customItems.length - 1 ? <Divider /> : null}
                           </BlockStack>
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={addCustomItemRow}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                      >
-                        + New item
-                      </button>
-                    </BlockStack>
-                  </div>
-                  <div className="border-t border-gray-200 px-4 py-1">
-                    <InlineStack align="end" gap="200">
-                      <Button variant="tertiary" onClick={handleCloseAddRoot}>
-                        Cancel
-                      </Button>
-                      <Button variant="primary" onClick={handleAddCustomItems} disabled={!hasCustomItems}>
-                        Add
-                      </Button>
-                    </InlineStack>
-                  </div>
+                          <TextField
+                            label="Title"
+                            value={item.title}
+                            onChange={(value) => updateCustomItem(item.id, { title: value })}
+                            autoComplete="off"
+                          />
+                          <div className={linkPickerOpenId === item.id ? "relative z-[120]" : "relative"}>
+                            <div dir="ltr" className="flex items-end gap-2">
+                              <div
+                                className="relative flex-1"
+                                ref={(node) => {
+                                  if (node) {
+                                    linkPickerAnchorRefs.current.set(item.id, node);
+                                  } else {
+                                    linkPickerAnchorRefs.current.delete(item.id);
+                                  }
+                                }}
+                              >
+                                <TextField
+                                  label="Link"
+                                  value={item.url}
+                                  onChange={(value) => updateCustomItem(item.id, { url: value })}
+                                  autoComplete="off"
+                                  placeholder="Search or paste a link"
+                                  onFocus={() => openLinkPicker(item.id)}
+                                  onClick={() => openLinkPicker(item.id)}
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                aria-label="Clear link"
+                                onClick={() => updateCustomItem(item.id, { url: "" })}
+                                className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
+                              >
+                                <span className="text-base leading-none">×</span>
+                              </button>
+                            </div>
+                          </div>
+                          <TextField
+                            label="Description"
+                            value={item.description}
+                            onChange={(value) => updateCustomItem(item.id, { description: value })}
+                            autoComplete="off"
+                          />
+                          {index < customItems.length - 1 ? <Divider /> : null}
+                        </BlockStack>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addCustomItemRow}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    >
+                      + New item
+                    </button>
+                  </BlockStack>
                 </div>
-              </>
-            )}
-          </BlockStack>
+              )}
+            </div>
+            {showFooter ? (
+              <div className="border-t border-gray-200 bg-white px-4 py-3">
+                <InlineStack align="end" gap="200">
+                  <Button variant="tertiary" onClick={handleCloseAddRoot}>
+                    Cancel
+                  </Button>
+                  <Button variant="primary" onClick={handleFooterAction} disabled={footerDisabled}>
+                    Add
+                  </Button>
+                </InlineStack>
+              </div>
+            ) : null}
+          </div>
           {addItemsTab === "custom" ? renderLinkPickerDropdown() : null}
         </Card>
       );
@@ -6794,7 +6823,7 @@ export default function MenuBuilder() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => handleAddChild(group.id, "item")}
+                                onClick={() => handleOpenAddRoot(group.id)}
                                 className="flex items-center gap-2 text-sm font-medium"
                                 style={{
                                   alignSelf: "flex-start",

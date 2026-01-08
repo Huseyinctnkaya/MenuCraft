@@ -6617,7 +6617,6 @@ export default function MenuBuilder() {
                                             : "2px solid transparent",
                                           borderRadius: 8,
                                           padding: "4px 8px",
-                                          paddingRight: 80,
                                           background: "transparent",
                                           color: previewColors.submenuHeading,
                                           fontWeight: 600,
@@ -6653,7 +6652,7 @@ export default function MenuBuilder() {
                                           <span style={{ textAlign: linkTextAlign }}>{headingLabel}</span>
                                         </span>
                                       </button>
-                                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/heading:pointer-events-auto group-hover/heading:opacity-100">
+                                      <div className="pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/heading:pointer-events-auto group-hover/heading:opacity-100">
                                         <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
                                           <button
                                             type="button"
@@ -6722,7 +6721,6 @@ export default function MenuBuilder() {
                                               : "2px solid transparent",
                                             borderRadius: 8,
                                             padding: "6px 8px",
-                                              paddingRight: 80,
                                               background: "transparent",
                                               color: previewColors.submenuText,
                                               width: "100%",
@@ -6787,7 +6785,7 @@ export default function MenuBuilder() {
                                               </div>
                                             </div>
                                           </button>
-                                          <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                          <div className="pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
                                             <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
                                               <button
                                                 type="button"
@@ -6824,14 +6822,20 @@ export default function MenuBuilder() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenAddRoot(group.id)}
-                                className="flex items-center gap-2 text-sm font-medium"
+                                className="text-sm font-medium"
                                 style={{
-                                  alignSelf: "flex-start",
+                                  alignSelf: "stretch",
                                   minHeight: builderSettings.spacingLinkListRowHeight,
+                                  textAlign: linkTextAlign,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: linkJustify,
+                                  gap: 8,
+                                  width: "100%",
+                                  padding: "6px 8px",
                                   color: themeSettings.menuActive,
                                   background: "transparent",
                                   border: "none",
-                                  padding: 0,
                                   ...descriptionTypography,
                                 }}
                                 onMouseEnter={(event) => {

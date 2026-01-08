@@ -3176,6 +3176,7 @@ export default function MenuBuilder() {
           ? FormsIcon
           : TextFontListIcon
         : TextIcon;
+    const depthIndent = depth === 0 ? 0 : depth * 16;
 
     const dragHandle = (
       <span
@@ -3210,7 +3211,7 @@ export default function MenuBuilder() {
 
     return (
       <div key={item.id} className="mt-0">
-        <Box paddingInlineStart={depth === 0 ? "0" : "200"}>
+        <Box paddingInlineStart="0" style={{ paddingInlineStart: depthIndent }}>
           <div>
             <div
               className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-colors ${
@@ -3239,8 +3240,8 @@ export default function MenuBuilder() {
               lastDragOverIdRef.current = null;
             }}
           >
-            <span className="relative flex h-5 w-5 items-center justify-center text-gray-500">
-              {showToggle ? (
+            {showToggle ? (
+              <span className="relative flex h-5 w-5 items-center justify-center text-gray-500">
                 <button
                   type="button"
                   onClick={() => handleToggleExpand(item.id)}
@@ -3249,8 +3250,8 @@ export default function MenuBuilder() {
                 >
                   <Icon source={isExpanded ? ChevronDownIcon : ChevronRightIcon} tone="subdued" />
                 </button>
-              ) : null}
-            </span>
+              </span>
+            ) : null}
             <div className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm text-gray-700">
               <span className="relative flex h-5 w-5 items-center justify-center text-gray-500">
                 <span className="pointer-events-none transition-opacity group-hover:opacity-0">
@@ -6203,7 +6204,7 @@ export default function MenuBuilder() {
                             }}
                           >
                             <div
-                              className="pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+                              className="pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
                             >
                               <button
                                 type="button"
@@ -6481,7 +6482,7 @@ export default function MenuBuilder() {
                                         : "2px solid transparent",
                                       borderRadius: 8,
                                       padding: "4px 8px",
-                                      paddingRight: 56,
+                                      paddingRight: 80,
                                       background: "transparent",
                                       color: previewColors.submenuHeading,
                                       fontWeight: 600,
@@ -6560,7 +6561,7 @@ export default function MenuBuilder() {
                                               : "2px solid transparent",
                                             borderRadius: 8,
                                             padding: "6px 8px",
-                                              paddingRight: 56,
+                                              paddingRight: 80,
                                               background: "transparent",
                                               color: previewColors.submenuText,
                                               width: "100%",

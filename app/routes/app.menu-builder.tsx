@@ -3066,6 +3066,37 @@ export default function MenuBuilder() {
           : TextFontListIcon
         : TextIcon;
 
+    const dragHandle = (
+      <span
+        className={`absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 ${
+          draggedItemId === item.id ? "cursor-grabbing" : "cursor-grab"
+        }`}
+        role="button"
+        tabIndex={0}
+        draggable
+        onDragStart={(event) => {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", item.id);
+          const row = itemRowRefs.current.get(item.id);
+          if (row) {
+            event.dataTransfer.setDragImage(row, 24, 16);
+          }
+          setDraggedItemId(item.id);
+          const parentId = findParentId(menuItems, item.id);
+          setDraggedParentId(parentId ?? null);
+          lastDragOverIdRef.current = null;
+        }}
+        onDragEnd={() => {
+          setDraggedItemId(null);
+          setDraggedParentId(null);
+          lastDragOverIdRef.current = null;
+        }}
+        aria-label="Drag to reorder"
+      >
+        <Icon source={DragHandleIcon} tone="subdued" />
+      </span>
+    );
+
     return (
       <div key={item.id} className="mt-0">
         <Box paddingInlineStart={depth === 0 ? "0" : "200"}>
@@ -3097,53 +3128,31 @@ export default function MenuBuilder() {
               lastDragOverIdRef.current = null;
             }}
           >
-            {showToggle ? (
-              <button
-                type="button"
-                onClick={() => handleToggleExpand(item.id)}
-                aria-label={isExpanded ? "Collapse" : "Expand"}
-                className="flex h-5 w-5 items-center justify-center text-gray-500 hover:text-gray-700"
-              >
-                <Icon source={isExpanded ? ChevronDownIcon : ChevronRightIcon} tone="subdued" />
-              </button>
-            ) : (
-              <div className="h-5 w-5" />
-            )}
-            <div className="flex flex-1 items-center gap-2 text-left text-sm text-gray-700">
-              <span className="flex items-center group-hover:hidden">
-                {resolvedIcon
-                  ? renderMenuIcon(resolvedIcon, { size: 16, className: "text-gray-500" })
-                  : <Icon source={itemIcon} tone="subdued" />}
+            <span className="relative flex h-5 w-5 items-center justify-center text-gray-500">
+              {showToggle ? (
+                <button
+                  type="button"
+                  onClick={() => handleToggleExpand(item.id)}
+                  aria-label={isExpanded ? "Collapse" : "Expand"}
+                  className="flex h-5 w-5 items-center justify-center text-gray-500 hover:text-gray-700"
+                >
+                  <Icon source={isExpanded ? ChevronDownIcon : ChevronRightIcon} tone="subdued" />
+                </button>
+              ) : null}
+            </span>
+            <div className="flex min-w-0 flex-1 items-center gap-2 text-left text-sm text-gray-700">
+              <span className="relative flex h-5 w-5 items-center justify-center text-gray-500">
+                <span className="pointer-events-none transition-opacity group-hover:opacity-0">
+                  {resolvedIcon
+                    ? renderMenuIcon(resolvedIcon, { size: 16, className: "text-gray-500" })
+                    : <Icon source={itemIcon} tone="subdued" />}
+                </span>
+                {dragHandle}
               </span>
               <span
-                className={`hidden items-center group-hover:flex cursor-grab ${
-                  draggedItemId === item.id ? "cursor-grabbing" : ""
-                }`}
-                role="button"
-                tabIndex={0}
-              draggable
-              onDragStart={(event) => {
-                event.dataTransfer.effectAllowed = "move";
-                event.dataTransfer.setData("text/plain", item.id);
-                const row = itemRowRefs.current.get(item.id);
-                if (row) {
-                  event.dataTransfer.setDragImage(row, 24, 16);
-                }
-                setDraggedItemId(item.id);
-                const parentId = findParentId(menuItems, item.id);
-                setDraggedParentId(parentId ?? null);
-                lastDragOverIdRef.current = null;
-              }}
-              onDragEnd={() => {
-                setDraggedItemId(null);
-                setDraggedParentId(null);
-                lastDragOverIdRef.current = null;
-              }}
-                aria-label="Drag to reorder"
+                className={`min-w-0 truncate ${item.role === "menu" ? "font-medium" : "font-normal"}`}
+                title={item.label}
               >
-                <Icon source={DragHandleIcon} tone="subdued" />
-              </span>
-              <span className={item.role === "menu" ? "font-medium" : "font-normal"}>
                 {item.label}
               </span>
             </div>
@@ -5018,6 +5027,7 @@ export default function MenuBuilder() {
       group.blockTemplate === "product" ||
       group.blockTemplate === "product-horizontal"
   ).length;
+  const linkBlockCount = dropdownGroups.filter((group) => group.blockTemplate === "links").length;
   const hasSpaceBlock = dropdownGroups.some((group) => group.blockTemplate === "space");
   const useImageSpaceLayout =
     imageBlockCount > 0 &&
@@ -5032,6 +5042,9 @@ export default function MenuBuilder() {
         group.blockTemplate === "product-horizontal" ||
         group.blockTemplate === "space"
     );
+  const useBlockFlexLayout =
+    useImageSpaceLayout ||
+    dropdownGroups.some((group) => group.blockTemplate === "links");
   const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
     left: "flex-start",
     right: "flex-end",
@@ -5764,13 +5777,13 @@ export default function MenuBuilder() {
                     return (
                     <div
                       style={{
-                        display: useImageSpaceLayout ? "flex" : "grid",
-                        gridTemplateColumns: useImageSpaceLayout
+                        display: useBlockFlexLayout ? "flex" : "grid",
+                        gridTemplateColumns: useBlockFlexLayout
                           ? undefined
                           : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
                         gap: useImageSpaceLayout ? 0 : 24,
-                        alignItems: useImageSpaceLayout ? "flex-start" : undefined,
-                        flexWrap: useImageSpaceLayout ? "wrap" : undefined,
+                        alignItems: useBlockFlexLayout ? "flex-start" : undefined,
+                        flexWrap: useBlockFlexLayout ? "wrap" : undefined,
                         color: previewColors.submenuText,
                       }}
                     >
@@ -5779,13 +5792,19 @@ export default function MenuBuilder() {
                       if (group.blockTemplate === "space") {
                         const spaceGridColumn = useImageSpaceLayout ? undefined : "1 / -1";
                         const spaceMinHeight = useImageSpaceLayout ? 120 : 80;
+                        const spaceFlex = useImageSpaceLayout
+                          ? linkBlockCount >= 2
+                            ? "0 0 100%"
+                            : "1 1 auto"
+                          : undefined;
+                        const spaceOrder = useImageSpaceLayout ? (linkBlockCount >= 2 ? 2 : 1) : undefined;
                         return (
                           <div
                             key={group.id}
                             style={{
                               gridColumn: spaceGridColumn,
-                              flex: useImageSpaceLayout ? "1 1 auto" : undefined,
-                              order: useImageSpaceLayout ? 1 : undefined,
+                              flex: spaceFlex,
+                              order: spaceOrder,
                               border: isGroupSelected
                                 ? `2px dashed ${themeSettings.menuActive}`
                                 : "1px dashed #cbd5e1",
@@ -6109,7 +6128,7 @@ export default function MenuBuilder() {
                               lastDragOverIdRef.current = null;
                             }}
                             style={{
-                              flex: useImageSpaceLayout ? `0 0 40%` : undefined,
+                              flex: useImageSpaceLayout ? `0 0 50%` : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",

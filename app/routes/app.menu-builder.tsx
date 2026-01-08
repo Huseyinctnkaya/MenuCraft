@@ -3439,6 +3439,17 @@ export default function MenuBuilder() {
                             Upload icon
                           </button>
                         </InlineStack>
+                        {editingItem.icon ? (
+                          <div className="flex justify-center">
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-red-600 hover:text-red-700"
+                              onClick={() => updateEditDraft("icon", "")}
+                            >
+                              Remove icon
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </BlockStack>
@@ -3744,6 +3755,19 @@ export default function MenuBuilder() {
                                     Upload icon
                                   </button>
                                 </InlineStack>
+                                {child.icon ? (
+                                  <div className="flex justify-center">
+                                    <button
+                                      type="button"
+                                      className="text-sm font-medium text-red-600 hover:text-red-700"
+                                      onClick={() =>
+                                        updateEditDraftItemById(child.id, (item) => ({ ...item, icon: "" }))
+                                      }
+                                    >
+                                      Remove icon
+                                    </button>
+                                  </div>
+                                ) : null}
                               </div>
                             </div>
                             <TextField
@@ -4410,6 +4434,17 @@ export default function MenuBuilder() {
                                       Upload icon
                                     </button>
                                   </InlineStack>
+                                  {item.icon ? (
+                                    <div className="flex justify-center">
+                                      <button
+                                        type="button"
+                                        className="text-sm font-medium text-red-600 hover:text-red-700"
+                                        onClick={() => updateCustomItem(item.id, { icon: "" })}
+                                      >
+                                        Remove icon
+                                      </button>
+                                    </div>
+                                  ) : null}
                                 </div>
                               </div>
                             </BlockStack>
@@ -5684,7 +5719,7 @@ export default function MenuBuilder() {
             <div
               className="menucraft-preview"
               style={{
-                maxWidth: previewMode === "mobile" ? 520 : menuMaxWidth ?? 1100,
+                maxWidth: previewMode === "mobile" ? 520 : menuMaxWidth ?? 1260,
                 margin: "36px auto 0",
                 padding: "0 32px",
                 fontFamily: themeSettings.fontFamily,
@@ -6419,7 +6454,7 @@ export default function MenuBuilder() {
                             : linkTextAlign === "right"
                               ? "flex-end"
                               : "flex-start";
-                        const headingLabel = headingItem?.label ?? "Heading";
+                        const headingLabel = headingItem?.label ?? "";
                         const headingSelected = headingItem ? selectedItemId === headingItem.id : false;
                         const headingIcon = headingItem?.icon;
                         return (
@@ -6478,97 +6513,97 @@ export default function MenuBuilder() {
                                 gap: 12,
                               }}
                             >
-                              <div>
-                                <div className="group/heading relative">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (headingItem) {
-                                        handleSelectItem(headingItem.id);
-                                      }
-                                    }}
-                                    style={{
-                                      width: "100%",
-                                      textAlign: linkTextAlign,
-                                      border: headingSelected
-                                        ? `2px dashed ${themeSettings.menuActive}`
-                                        : "2px solid transparent",
-                                      borderRadius: 8,
-                                      padding: "4px 8px",
-                                      paddingRight: 80,
-                                      background: "transparent",
-                                      color: previewColors.submenuHeading,
-                                      fontWeight: 600,
-                                      ...subheadingTypography,
-                                      lineHeight: 1.2,
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 6,
-                                        justifyContent: linkJustify,
-                                        width: "100%",
-                                      }}
-                                    >
-                                      {headingIcon ? (
+                              {headingItem ? (
+                                <>
+                                  <div>
+                                    <div className="group/heading relative">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleSelectItem(headingItem.id);
+                                        }}
+                                        style={{
+                                          width: "100%",
+                                          textAlign: linkTextAlign,
+                                          border: headingSelected
+                                            ? `2px dashed ${themeSettings.menuActive}`
+                                            : "2px solid transparent",
+                                          borderRadius: 8,
+                                          padding: "4px 8px",
+                                          paddingRight: 80,
+                                          background: "transparent",
+                                          color: previewColors.submenuHeading,
+                                          fontWeight: 600,
+                                          ...subheadingTypography,
+                                          lineHeight: 1.2,
+                                        }}
+                                      >
                                         <span
-                                          aria-hidden="true"
                                           style={{
-                                            display: "inline-flex",
+                                            display: "flex",
                                             alignItems: "center",
-                                            justifyContent: "center",
+                                            gap: 6,
+                                            justifyContent: linkJustify,
+                                            width: "100%",
                                           }}
                                         >
-                                          {renderMenuIcon(headingIcon, {
-                                            size: 16,
-                                            className: "text-gray-500",
-                                            color: previewColors.submenuHeading,
-                                          })}
+                                          {headingIcon ? (
+                                            <span
+                                              aria-hidden="true"
+                                              style={{
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                              }}
+                                            >
+                                              {renderMenuIcon(headingIcon, {
+                                                size: 16,
+                                                className: "text-gray-500",
+                                                color: previewColors.submenuHeading,
+                                              })}
+                                            </span>
+                                          ) : null}
+                                          <span style={{ textAlign: linkTextAlign }}>{headingLabel}</span>
                                         </span>
-                                      ) : null}
-                                      <span style={{ textAlign: linkTextAlign }}>{headingLabel}</span>
-                                    </span>
-                                  </button>
-                                  {headingItem ? (
-                                    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/heading:pointer-events-auto group-hover/heading:opacity-100">
-                                      <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                                        <button
-                                          type="button"
-                                          onClick={() => handleSelectItem(headingItem.id, true)}
-                                          aria-label="Edit item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                        >
-                                          <Icon source={EditIcon} />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleDuplicateItem(headingItem.id)}
-                                          aria-label="Duplicate item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                        >
-                                          <Icon source={DuplicateIcon} />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => openDeleteItemDialog(headingItem.id)}
-                                          aria-label="Delete item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                                        >
-                                          <Icon source={DeleteIcon} />
-                                        </button>
+                                      </button>
+                                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/heading:pointer-events-auto group-hover/heading:opacity-100">
+                                        <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleSelectItem(headingItem.id, true)}
+                                            aria-label="Edit item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                          >
+                                            <Icon source={EditIcon} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleDuplicateItem(headingItem.id)}
+                                            aria-label="Duplicate item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                          >
+                                            <Icon source={DuplicateIcon} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => openDeleteItemDialog(headingItem.id)}
+                                            aria-label="Delete item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                          >
+                                            <Icon source={DeleteIcon} />
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
-                                  ) : null}
-                                </div>
-                              </div>
-                              <div
-                                style={{
-                                  borderTop: `1px solid ${previewColors.submenuHeading}`,
-                                  opacity: 0.5,
-                                }}
-                              />
+                                  </div>
+                                  <div
+                                    style={{
+                                      borderTop: `1px solid ${previewColors.submenuHeading}`,
+                                      opacity: 0.5,
+                                    }}
+                                  />
+                                </>
+                              ) : null}
                               <div
                                 style={{
                                   display: "flex",

@@ -6407,8 +6407,21 @@ export default function MenuBuilder() {
                         const linkFlexBasis =
                           columnCount === 3 ? "65%" : `${Math.round((linkWidth / 12) * 100)}%`;
                         const linkTextAlign = group.linkTextAlign ?? "left";
+                        const linkJustify =
+                          linkTextAlign === "center"
+                            ? "center"
+                            : linkTextAlign === "right"
+                              ? "flex-end"
+                              : "flex-start";
+                        const linkAlignItems =
+                          linkTextAlign === "center"
+                            ? "center"
+                            : linkTextAlign === "right"
+                              ? "flex-end"
+                              : "flex-start";
                         const headingLabel = headingItem?.label ?? "Heading";
                         const headingSelected = headingItem ? selectedItemId === headingItem.id : false;
+                        const headingIcon = headingItem?.icon;
                         return (
                           <div
                             key={group.id}
@@ -6490,7 +6503,33 @@ export default function MenuBuilder() {
                                       lineHeight: 1.2,
                                     }}
                                   >
-                                    {headingLabel}
+                                    <span
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 6,
+                                        justifyContent: linkJustify,
+                                        width: "100%",
+                                      }}
+                                    >
+                                      {headingIcon ? (
+                                        <span
+                                          aria-hidden="true"
+                                          style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                          }}
+                                        >
+                                          {renderMenuIcon(headingIcon, {
+                                            size: 16,
+                                            className: "text-gray-500",
+                                            color: previewColors.submenuHeading,
+                                          })}
+                                        </span>
+                                      ) : null}
+                                      <span style={{ textAlign: linkTextAlign }}>{headingLabel}</span>
+                                    </span>
                                   </button>
                                   {headingItem ? (
                                     <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/heading:pointer-events-auto group-hover/heading:opacity-100">
@@ -6569,21 +6608,62 @@ export default function MenuBuilder() {
                                               lineHeight: 1.2,
                                             }}
                                           >
-                                            <div style={{ fontWeight: 600, ...subheadingTypography, lineHeight: 1.2 }}>
-                                              {child.label}
-                                            </div>
-                                            {child.description ? (
+                                            <div
+                                              style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 8,
+                                                justifyContent: linkJustify,
+                                                width: "100%",
+                                              }}
+                                            >
+                                              {child.icon ? (
+                                                <span
+                                                  aria-hidden="true"
+                                                  style={{
+                                                    display: "inline-flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                  }}
+                                                >
+                                                  {renderMenuIcon(child.icon, {
+                                                    size: 16,
+                                                    className: "text-gray-500",
+                                                    color: previewColors.submenuText,
+                                                  })}
+                                                </span>
+                                              ) : null}
                                               <div
                                                 style={{
-                                                  fontSize: 12,
-                                                  ...descriptionTypography,
-                                                  lineHeight: 1.3,
-                                                  color: previewColors.submenuDescription,
+                                                  display: "flex",
+                                                  flexDirection: "column",
+                                                  alignItems: linkAlignItems,
+                                                  textAlign: linkTextAlign,
                                                 }}
                                               >
-                                                {child.description}
+                                                <div
+                                                  style={{
+                                                    fontWeight: 600,
+                                                    ...subheadingTypography,
+                                                    lineHeight: 1.2,
+                                                  }}
+                                                >
+                                                  {child.label}
+                                                </div>
+                                                {child.description ? (
+                                                  <div
+                                                    style={{
+                                                      fontSize: 12,
+                                                      ...descriptionTypography,
+                                                      lineHeight: 1.3,
+                                                      color: previewColors.submenuDescription,
+                                                    }}
+                                                  >
+                                                    {child.description}
+                                                  </div>
+                                                ) : null}
                                               </div>
-                                            ) : null}
+                                            </div>
                                           </button>
                                           <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
                                             <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">

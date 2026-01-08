@@ -448,6 +448,7 @@ type MenuItem = {
   productWidth?: number;
   linkColumns?: number;
   linkWidth?: number;
+  linkTextAlign?: "left" | "center" | "right";
   isHeading?: boolean;
 };
 
@@ -1749,7 +1750,7 @@ export default function MenuBuilder() {
           return (
             <BlockStack gap="400">
               {renderTemplatePreviewCard({
-                title: "Boşluk",
+                title: "Space",
                 onSelect: selectTemplate,
                 showSelectButton: false,
                 showTitle: false,
@@ -1763,7 +1764,7 @@ export default function MenuBuilder() {
                       className="h-full w-full object-contain"
                     />
                     <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                      Boşluk
+                      Space
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
@@ -1982,7 +1983,7 @@ export default function MenuBuilder() {
           );
         case "links":
           return renderBlockTemplatePreviewCard({
-            title: "Link list",
+            title: "Link list (2 columns)",
             onSelect: selectTemplate,
             showSelectButton: false,
             showTitle: false,
@@ -1992,11 +1993,11 @@ export default function MenuBuilder() {
               <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                 <img
                   src="/two-columns.png"
-                  alt="Link list template"
+                  alt="Link list (2 columns) template"
                   className="h-full w-full object-contain"
                 />
                 <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Link list
+                  Link list (2 columns)
                 </div>
                 <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                   <Button
@@ -2860,7 +2861,7 @@ export default function MenuBuilder() {
       ...imageDefaults,
       ...contactDefaults,
       ...productDefaults,
-      ...(templateId === "links" ? { linkColumns: 2, linkWidth: 6 } : {}),
+      ...(templateId === "links" ? { linkColumns: 2, linkWidth: 6, linkTextAlign: "left" } : {}),
     };
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -3745,7 +3746,7 @@ export default function MenuBuilder() {
                   <Divider />
                   <BlockStack gap="300">
                     <Text as="h3" variant="headingSm">
-                      Ürün
+                      Product
                     </Text>
                     {editingItem.productIds?.length ? (
                       <div className="rounded-xl border border-gray-200 bg-gray-100 p-3">
@@ -3779,7 +3780,7 @@ export default function MenuBuilder() {
                             onClick={openProductPicker}
                             className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                           >
-                            Değiştirmek
+                            Change
                           </button>
                         </div>
                       </div>
@@ -3789,7 +3790,7 @@ export default function MenuBuilder() {
                         onClick={openProductPicker}
                         className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                       >
-                        Ürünleri seçin
+                        Select products
                       </button>
                     )}
                   </BlockStack>
@@ -4630,7 +4631,7 @@ export default function MenuBuilder() {
           <InlineStack gap="200" blockAlign="center">
             <div style={{ flex: 1 }}>
               <RangeSlider
-                label="Boyut"
+                label="Size"
                 value={builderSettings[sizeKey] as number}
                 min={10}
                 max={24}
@@ -5370,6 +5371,7 @@ export default function MenuBuilder() {
     previewMode === "mobile"
       ? builderSettings.submenuEnableMobileScroll
       : builderSettings.submenuEnableDesktopScroll;
+  const enableDropdownScroll = dropdownOverflowY && linkBlockCount === 0;
 
   const handleSaveMenu = (
     nextStatus?: "active" | "draft",
@@ -5971,8 +5973,8 @@ export default function MenuBuilder() {
                     padding: "10px",
                     boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
                     maxWidth: submenuMaxWidth ?? "none",
-                    overflowY: dropdownOverflowY ? "auto" : "visible",
-                    maxHeight: dropdownOverflowY ? 420 : "none",
+                    overflowY: enableDropdownScroll ? "auto" : "visible",
+                    maxHeight: enableDropdownScroll ? 420 : "none",
                     opacity: 1,
                     transform:
                       builderSettings.animationEffect === "slide"
@@ -6122,7 +6124,7 @@ export default function MenuBuilder() {
                             }}
                           >
                             <div
-                              className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+                              className="pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
                             >
                               <button
                                 type="button"
@@ -6323,6 +6325,9 @@ export default function MenuBuilder() {
                         );
                         const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 6));
                         const linkFlexBasis = `${Math.round((linkWidth / 12) * 100)}%`;
+                        const linkTextAlign = group.linkTextAlign ?? "left";
+                        const headingLabel = headingItem?.label ?? "Heading";
+                        const headingSelected = headingItem ? selectedItemId === headingItem.id : false;
                         return (
                           <div
                             key={group.id}
@@ -6365,38 +6370,10 @@ export default function MenuBuilder() {
                               flex: useBlockFlexLayout ? `0 0 ${linkFlexBasis}` : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
-                              padding: "6px",
+                              padding: "0",
                               borderRadius: 0,
                             }}
                           >
-                            <div
-                              className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
-                            >
-                              <button
-                                type="button"
-                                onClick={() => handleSelectItem(group.id, true)}
-                                aria-label="Edit item"
-                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                              >
-                                <Icon source={EditIcon} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDuplicateItem(group.id)}
-                                aria-label="Duplicate item"
-                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                              >
-                                <Icon source={DuplicateIcon} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openDeleteItemDialog(group.id)}
-                                aria-label="Delete item"
-                                className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                              >
-                                <Icon source={DeleteIcon} />
-                              </button>
-                            </div>
                             <div
                               style={{
                                 borderRadius: 16,
@@ -6407,15 +6384,64 @@ export default function MenuBuilder() {
                                 gap: 12,
                               }}
                             >
-                              <div
-                                style={{
-                                  color: previewColors.submenuHeading,
-                                  fontWeight: 600,
-                                  ...subheadingTypography,
-                                  lineHeight: 1.2,
-                                }}
-                              >
-                                {headingItem?.label ?? "Heading"}
+                              <div>
+                                <div className="group/heading relative">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (headingItem) {
+                                        handleSelectItem(headingItem.id);
+                                      }
+                                    }}
+                                    style={{
+                                      width: "100%",
+                                      textAlign: linkTextAlign,
+                                      border: headingSelected
+                                        ? `2px dashed ${themeSettings.menuActive}`
+                                        : "2px solid transparent",
+                                      borderRadius: 8,
+                                      padding: "4px 8px",
+                                      paddingRight: 56,
+                                      background: "transparent",
+                                      color: previewColors.submenuHeading,
+                                      fontWeight: 600,
+                                      ...subheadingTypography,
+                                      lineHeight: 1.2,
+                                    }}
+                                  >
+                                    {headingLabel}
+                                  </button>
+                                  {headingItem ? (
+                                    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/heading:pointer-events-auto group-hover/heading:opacity-100">
+                                      <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleSelectItem(headingItem.id, true)}
+                                          aria-label="Edit item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                        >
+                                          <Icon source={EditIcon} />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDuplicateItem(headingItem.id)}
+                                          aria-label="Duplicate item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                        >
+                                          <Icon source={DuplicateIcon} />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => openDeleteItemDialog(headingItem.id)}
+                                          aria-label="Delete item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                        >
+                                          <Icon source={DeleteIcon} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : null}
+                                </div>
                               </div>
                               <div
                                 style={{
@@ -6437,69 +6463,192 @@ export default function MenuBuilder() {
                                     {column.map((child) => {
                                       const isChildSelected = selectedItemId === child.id;
                                       return (
-                                        <button
-                                          key={child.id}
-                                          type="button"
-                                          onClick={() => handleSelectItem(child.id)}
-                                          onMouseEnter={(event) => {
-                                            event.currentTarget.style.color = previewColors.submenuTextHover;
-                                          }}
-                                          onMouseLeave={(event) => {
-                                            event.currentTarget.style.color = previewColors.submenuText;
-                                          }}
+                                        <div key={child.id} className="group/item relative">
+                                          <button
+                                            type="button"
+                                            onClick={() => handleSelectItem(child.id)}
+                                            onMouseEnter={(event) => {
+                                              event.currentTarget.style.color = previewColors.submenuTextHover;
+                                            }}
+                                            onMouseLeave={(event) => {
+                                              event.currentTarget.style.color = previewColors.submenuText;
+                                            }}
                                           style={{
-                                            textAlign: "left",
+                                            textAlign: linkTextAlign,
                                             border: isChildSelected
                                               ? `2px dashed ${themeSettings.menuActive}`
                                               : "2px solid transparent",
                                             borderRadius: 8,
                                             padding: "6px 8px",
-                                            background: "transparent",
-                                            color: previewColors.submenuText,
-                                            ...subtextTypography,
-                                            lineHeight: 1.2,
-                                          }}
-                                        >
-                                          <div style={{ fontWeight: 600, ...subheadingTypography, lineHeight: 1.2 }}>
-                                            {child.label}
-                                          </div>
-                                          {child.description ? (
-                                            <div
-                                              style={{
-                                                fontSize: 12,
-                                                ...descriptionTypography,
-                                                lineHeight: 1.3,
-                                                color: previewColors.submenuDescription,
-                                              }}
-                                            >
-                                              {child.description}
+                                              paddingRight: 56,
+                                              background: "transparent",
+                                              color: previewColors.submenuText,
+                                              width: "100%",
+                                              ...subtextTypography,
+                                              lineHeight: 1.2,
+                                            }}
+                                          >
+                                            <div style={{ fontWeight: 600, ...subheadingTypography, lineHeight: 1.2 }}>
+                                              {child.label}
                                             </div>
-                                          ) : null}
-                                        </button>
+                                            {child.description ? (
+                                              <div
+                                                style={{
+                                                  fontSize: 12,
+                                                  ...descriptionTypography,
+                                                  lineHeight: 1.3,
+                                                  color: previewColors.submenuDescription,
+                                                }}
+                                              >
+                                                {child.description}
+                                              </div>
+                                            ) : null}
+                                          </button>
+                                          <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                            <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                              <button
+                                                type="button"
+                                                onClick={() => handleSelectItem(child.id, true)}
+                                                aria-label="Edit item"
+                                                className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                              >
+                                                <Icon source={EditIcon} />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => handleDuplicateItem(child.id)}
+                                                aria-label="Duplicate item"
+                                                className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                              >
+                                                <Icon source={DuplicateIcon} />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => openDeleteItemDialog(child.id)}
+                                                aria-label="Delete item"
+                                                className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                              >
+                                                <Icon source={DeleteIcon} />
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
                                       );
                                     })}
                                   </div>
                                 ))}
                               </div>
-                              <Button
-                                variant="plain"
-                                icon={PlusIcon}
-                                size="slim"
+                              <button
+                                type="button"
                                 onClick={() => handleAddChild(group.id, "item")}
+                                className="flex items-center gap-2 text-sm font-medium"
                                 style={{
+                                  alignSelf: "flex-start",
                                   minHeight: builderSettings.spacingLinkListRowHeight,
-                                  color: previewColors.submenuDescription,
+                                  color: themeSettings.menuActive,
+                                  background: "transparent",
+                                  border: "none",
+                                  padding: 0,
                                   ...descriptionTypography,
                                 }}
                                 onMouseEnter={(event) => {
-                                  event.currentTarget.style.color = previewColors.submenuDescriptionHover;
+                                  event.currentTarget.style.color = previewColors.submenuTextHover;
                                 }}
                                 onMouseLeave={(event) => {
-                                  event.currentTarget.style.color = previewColors.submenuDescription;
+                                  event.currentTarget.style.color = themeSettings.menuActive;
                                 }}
                               >
+                                <span
+                                  aria-hidden="true"
+                                  style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 9999,
+                                    border: "2px solid currentColor",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: 14,
+                                    lineHeight: 1,
+                                  }}
+                                >
+                                  +
+                                </span>
                                 Add item
-                              </Button>
+                              </button>
+                            </div>
+                            <div className="pointer-events-none absolute left-1/2 top-full z-10 -translate-x-1/2 pt-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                              <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                <button
+                                  type="button"
+                                  aria-label="Align left"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, group.id, () => ({
+                                        ...group,
+                                        linkTextAlign: "left",
+                                      })),
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignLeftIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label="Align center"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, group.id, () => ({
+                                        ...group,
+                                        linkTextAlign: "center",
+                                      })),
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignCenterIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label="Align right"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, group.id, () => ({
+                                        ...group,
+                                        linkTextAlign: "right",
+                                      })),
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignRightIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSelectItem(group.id, true)}
+                                  aria-label="Edit item"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                >
+                                  <Icon source={EditIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDuplicateItem(group.id)}
+                                  aria-label="Duplicate item"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                >
+                                  <Icon source={DuplicateIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openDeleteItemDialog(group.id)}
+                                  aria-label="Delete item"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                >
+                                  <Icon source={DeleteIcon} />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         );

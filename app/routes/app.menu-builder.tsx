@@ -450,7 +450,7 @@ type MenuItem = {
   linkWidth?: number;
   linkTextAlign?: "left" | "center" | "right";
   isHeading?: boolean;
-  multiLayout?: "multi-links" | "multi-3-photo" | "multi-2-photos";
+  multiLayout?: "multi-links" | "multi-3-photo" | "multi-2-photos" | "multi-1-3-photos";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -459,6 +459,7 @@ type BlockTemplateId =
   | "multi"
   | "multi-3-photo"
   | "multi-2-photos"
+  | "multi-1-3-photos"
   | "tabs"
   | "image"
   | "image2"
@@ -2003,6 +2004,37 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "1 column + 3 photos",
+                onSelect: () => handleApplyBlockTemplate("multi-1-3-photos"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/1column%20+%203photos.png"
+                      alt="1 column + 3 photos template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      1 column + 3 photos
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("multi-1-3-photos")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "tabs":
@@ -3139,6 +3171,37 @@ export default function MenuBuilder() {
     return [buildLinkGroup(), buildImageGroup(), buildLinkGroup(), buildImageGroup()];
   };
 
+  const buildMultiBlockOneColumnThreePhotos = () => {
+    const linkGroup = {
+      id: buildId(),
+      label: "Link list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "links" as const,
+      multiLayout: "multi-1-3-photos" as const,
+      linkColumns: 1,
+      linkWidth: 3,
+      linkTextAlign: "left" as const,
+      children: buildEasyColumnLinkItems(),
+    };
+    const buildImageGroup = () => ({
+      id: buildId(),
+      label: "Image title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "image" as const,
+      multiLayout: "multi-1-3-photos" as const,
+      icon: `${ICON_PREFIX}image`,
+      description: "",
+      imageWidth: 3,
+      imageNoFill: false,
+      imageTextAlign: "left" as const,
+    });
+    return [linkGroup, buildImageGroup(), buildImageGroup(), buildImageGroup()];
+  };
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3178,14 +3241,19 @@ export default function MenuBuilder() {
       templateId === "links-easy" ||
       templateId === "links-icons";
     const isMultiBlockTemplate =
-      templateId === "multi" || templateId === "multi-3-photo" || templateId === "multi-2-photos";
+      templateId === "multi" ||
+      templateId === "multi-3-photo" ||
+      templateId === "multi-2-photos" ||
+      templateId === "multi-1-3-photos";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
           ? buildMultiBlockThreeColumnsPhoto()
           : templateId === "multi-2-photos"
             ? buildMultiBlockTwoColumnsTwoPhotos()
-          : buildMultiBlockLinkGroups();
+            : templateId === "multi-1-3-photos"
+              ? buildMultiBlockOneColumnThreePhotos()
+              : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
           ...item,
@@ -3209,6 +3277,7 @@ export default function MenuBuilder() {
       multi: "Multi block",
       "multi-3-photo": "3 columns + 1 photo",
       "multi-2-photos": "2 columns + 2 photos",
+      "multi-1-3-photos": "1 column + 3 photos",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",

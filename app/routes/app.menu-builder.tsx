@@ -447,6 +447,7 @@ type MenuItem = {
   productIds?: string[];
   productLayout?: "image-top" | "image-left";
   productWidth?: number;
+  productListCount?: number;
   linkColumns?: number;
   linkWidth?: number;
   linkTextAlign?: "left" | "center" | "right";
@@ -458,7 +459,8 @@ type MenuItem = {
     | "multi-1-3-photos"
     | "multi-4-images"
     | "multi-4-products"
-    | "multi-map-contact-address";
+    | "multi-map-contact-address"
+    | "multi-4-product-list";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -471,6 +473,8 @@ type BlockTemplateId =
   | "multi-4-images"
   | "multi-4-products"
   | "multi-map-contact-address"
+  | "multi-4-product-list"
+  | "multi-4-product-list"
   | "tabs"
   | "image"
   | "image2"
@@ -988,6 +992,9 @@ export default function MenuBuilder() {
   );
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const apiKey = appData?.apiKey ?? "";
+  const isProPlan = Boolean(
+    (appData as { isProPlan?: boolean } | null | undefined)?.isProPlan
+  );
   const navigate = useNavigate();
   const location = useLocation();
   const saveFetcher = useFetcher<typeof action>();
@@ -1666,6 +1673,8 @@ export default function MenuBuilder() {
     preview,
     onSelect,
     badge,
+    selectLabel = "Select",
+    selectDisabled = false,
     showSelectButton = true,
     titleHiddenOnHover = false,
     showTitle = true,
@@ -1676,6 +1685,8 @@ export default function MenuBuilder() {
     preview: ReactNode;
     onSelect: () => void;
     badge?: string;
+    selectLabel?: string;
+    selectDisabled?: boolean;
     showSelectButton?: boolean;
     titleHiddenOnHover?: boolean;
     showTitle?: boolean;
@@ -1685,26 +1696,29 @@ export default function MenuBuilder() {
     <div className="group relative transition-transform duration-150 ease-out">
       <Card padding="300" style={{ borderRadius: 0 }} className="rounded-none">
         <BlockStack gap="300">
-          <InlineStack align="space-between" blockAlign="center">
-            <span />
-            {badge ? <Badge tone="warning">{badge}</Badge> : null}
-          </InlineStack>
           <div
-            className={
-              previewContainerClassName ?? "relative bg-gray-100 p-3"
-            }
+            className={`relative overflow-visible ${previewContainerClassName ?? "bg-gray-100 p-3"}`}
           >
             <div className={`${previewHeightClassName} w-full`}>{preview}</div>
+            {badge ? (
+              <div
+                className="absolute right-3 top-3 z-10"
+                style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
+              >
+                <Badge tone="warning">{badge}</Badge>
+              </div>
+            ) : null}
             {showSelectButton ? (
               <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                 <Button
                   fullWidth
-                  onClick={onSelect}
+                  onClick={selectDisabled ? undefined : onSelect}
+                  disabled={selectDisabled}
                   size="slim"
                   variant="primary"
                   style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                 >
-                  Select
+                  {selectLabel}
                 </Button>
               </div>
             ) : null}
@@ -1715,7 +1729,13 @@ export default function MenuBuilder() {
                 titleHiddenOnHover ? "transition-opacity duration-150 group-hover:opacity-0" : ""
               }`}
             >
-              <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
+              <Text
+                as="p"
+                variant="bodySm"
+                alignment="center"
+                fontWeight="semibold"
+                className="whitespace-nowrap"
+              >
                 {title}
               </Text>
             </div>
@@ -2137,6 +2157,39 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "4 product list",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product-yatay.png"
+                      alt="4 product list template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      4 product list
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "tabs":
@@ -2476,8 +2529,9 @@ export default function MenuBuilder() {
         default:
           return renderBlockTemplatePreviewCard({
             title: "Custom HTML",
-            onSelect: selectTemplate,
-            badge: "Professional",
+            onSelect: isProPlan ? selectTemplate : () => {},
+            badge: "Pro",
+            selectLabel: isProPlan ? "Select" : "Upgrade to use",
             preview: (
               <div className="h-28 rounded-none bg-[#f3f4f6] p-2 font-mono text-[10px] text-gray-500">
                 <div className="h-2 w-20 rounded bg-gray-300" />
@@ -3383,6 +3437,21 @@ export default function MenuBuilder() {
     return [mapBlock, contactBlock, addressBlock];
   };
 
+  const buildMultiBlockFourProductList = () =>
+    Array.from({ length: 4 }, () => ({
+      id: buildId(),
+      label: "Example Product Title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "product" as const,
+      multiLayout: "multi-4-product-list" as const,
+      productLayout: "image-left" as const,
+      productWidth: 3,
+      productIds: [],
+      productListCount: 4,
+    }));
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3428,7 +3497,8 @@ export default function MenuBuilder() {
       templateId === "multi-1-3-photos" ||
       templateId === "multi-4-images" ||
       templateId === "multi-4-products" ||
-      templateId === "multi-map-contact-address";
+      templateId === "multi-map-contact-address" ||
+      templateId === "multi-4-product-list";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -3439,10 +3509,12 @@ export default function MenuBuilder() {
               ? buildMultiBlockOneColumnThreePhotos()
             : templateId === "multi-4-images"
               ? buildMultiBlockFourImages()
-              : templateId === "multi-4-products"
-                ? buildMultiBlockFourProducts()
-                : templateId === "multi-map-contact-address"
-                  ? buildMultiBlockMapContactAddress()
+            : templateId === "multi-4-products"
+              ? buildMultiBlockFourProducts()
+              : templateId === "multi-map-contact-address"
+                ? buildMultiBlockMapContactAddress()
+                : templateId === "multi-4-product-list"
+                  ? buildMultiBlockFourProductList()
                   : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -3471,6 +3543,7 @@ export default function MenuBuilder() {
       "multi-4-images": "4 images",
       "multi-4-products": "4 products",
       "multi-map-contact-address": "Map + contact + address",
+      "multi-4-product-list": "4 product list",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",
@@ -7979,7 +8052,15 @@ export default function MenuBuilder() {
                         const selectedProducts = selectedProductIds
                           .map((id) => products.find((product) => product.id === id))
                           .filter((product): product is ProductSummary => Boolean(product));
-                        const displayProducts = selectedProducts.length ? selectedProducts : [null];
+                        const productListCount = group.productListCount ?? 0;
+                        const limitedProducts = productListCount
+                          ? selectedProducts.slice(0, productListCount)
+                          : selectedProducts;
+                        const displayProducts = limitedProducts.length
+                          ? limitedProducts
+                          : productListCount > 0
+                            ? Array.from({ length: productListCount }, () => null)
+                            : [null];
                         const cardGridStyle =
                           productLayout === "image-top" && displayProducts.length > 1
                             ? {

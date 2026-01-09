@@ -462,6 +462,7 @@ type BlockTemplateId =
   | "links"
   | "links-easy"
   | "links-3"
+  | "links-icons"
   | "product"
   | "product-horizontal"
   | "collection"
@@ -2080,6 +2081,37 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "Columns with icons",
+                onSelect: () => handleApplyBlockTemplate("links-icons"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/columns-with-icons.png"
+                      alt="Columns with icons template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Columns with icons
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("links-icons")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "product":
@@ -2885,6 +2917,49 @@ export default function MenuBuilder() {
     ];
   };
 
+  const buildEasyColumnWithIcons = () => {
+    const [firstIcon, secondIcon] = (() => {
+      if (!ICON_LIBRARY.length) return [undefined, undefined];
+      const firstIndex = Math.floor(Math.random() * ICON_LIBRARY.length);
+      let secondIndex = Math.floor(Math.random() * ICON_LIBRARY.length);
+      if (ICON_LIBRARY.length > 1) {
+        while (secondIndex === firstIndex) {
+          secondIndex = Math.floor(Math.random() * ICON_LIBRARY.length);
+        }
+      }
+      return [
+        `${ICON_PREFIX}${ICON_LIBRARY[firstIndex].id}`,
+        `${ICON_PREFIX}${ICON_LIBRARY[secondIndex].id}`,
+      ];
+    })();
+    return [
+      {
+        id: buildId(),
+        label: "Heading",
+        url: "",
+        role: "item",
+        isHeading: true,
+        description: "",
+      },
+      {
+        id: buildId(),
+        label: "Menu item 1",
+        url: "/",
+        role: "item",
+        description: "Description",
+        icon: firstIcon,
+      },
+      {
+        id: buildId(),
+        label: "Menu item 2",
+        url: "/",
+        role: "item",
+        description: "Description",
+        icon: secondIcon,
+      },
+    ];
+  };
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -2919,12 +2994,18 @@ export default function MenuBuilder() {
   const handleApplyBlockTemplate = (templateId: BlockTemplateId) => {
     if (!blockTemplateTargetId) return;
     const isLinkListTemplate =
-      templateId === "links" || templateId === "links-3" || templateId === "links-easy";
+      templateId === "links" ||
+      templateId === "links-3" ||
+      templateId === "links-easy" ||
+      templateId === "links-icons";
     const resolvedBlockTemplate: BlockTemplateId =
-      templateId === "links-3" || templateId === "links-easy" ? "links" : templateId;
-    const linkColumnCount = templateId === "links-3" ? 3 : templateId === "links-easy" ? 1 : 2;
+      templateId === "links-3" || templateId === "links-easy" || templateId === "links-icons"
+        ? "links"
+        : templateId;
+    const linkColumnCount =
+      templateId === "links-3" ? 3 : templateId === "links-easy" || templateId === "links-icons" ? 1 : 2;
     const linkWidthDefault =
-      templateId === "links-3" ? 4 : templateId === "links-easy" ? 3 : 6;
+      templateId === "links-3" ? 4 : templateId === "links-easy" || templateId === "links-icons" ? 3 : 6;
     const labelMap: Record<BlockTemplateId, string> = {
       space: "Space",
       multi: "Multi block",
@@ -2934,6 +3015,7 @@ export default function MenuBuilder() {
       links: "Link list",
       "links-easy": "Easy column",
       "links-3": "Link list (3 columns)",
+      "links-icons": "Columns with icons",
       product: "Product",
       "product-horizontal": "Product horizontal",
       collection: "Collection",
@@ -2989,6 +3071,8 @@ export default function MenuBuilder() {
           ? buildThreeColumnLinkItems()
           : templateId === "links-easy"
             ? buildEasyColumnLinkItems()
+            : templateId === "links-icons"
+              ? buildEasyColumnWithIcons()
             : buildTwoColumnLinkItems()
         : [],
       blockTemplate: resolvedBlockTemplate,

@@ -450,12 +450,14 @@ type MenuItem = {
   linkWidth?: number;
   linkTextAlign?: "left" | "center" | "right";
   isHeading?: boolean;
+  multiLayout?: "multi-links" | "multi-3-photo";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
 type BlockTemplateId =
   | "space"
   | "multi"
+  | "multi-3-photo"
   | "tabs"
   | "image"
   | "image2"
@@ -1905,37 +1907,72 @@ export default function MenuBuilder() {
             ),
           });
         case "multi":
-          return renderBlockTemplatePreviewCard({
-            title: "Link list",
-            onSelect: selectTemplate,
-            showSelectButton: false,
-            showTitle: false,
-            previewHeightClassName: "h-44",
-            previewContainerClassName: "bg-transparent p-0",
-            preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <img
-                  src="/link-list-multiblock.png"
-                  alt="Multi block link list template"
-                  className="h-full w-full object-contain"
-                />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Link list
-                </div>
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                  <Button
-                    fullWidth
-                    onClick={selectTemplate}
-                    size="slim"
-                    variant="primary"
-                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                  >
-                    Select
-                  </Button>
-                </div>
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {renderBlockTemplatePreviewCard({
+                title: "Link list",
+                onSelect: () => handleApplyBlockTemplate("multi"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/link-list-multiblock.png"
+                      alt="Multi block link list template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Link list
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("multi")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "3 columns + 1 photo",
+                onSelect: () => handleApplyBlockTemplate("multi-3-photo"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/3columns+1photo.png"
+                      alt="3 columns + 1 photo template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      3 columns + 1 photo
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("multi-3-photo")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+            </div>
+          );
         case "tabs":
           return renderBlockTemplatePreviewCard({
             title: "Tabs",
@@ -2999,13 +3036,45 @@ export default function MenuBuilder() {
       label: "Link list",
       url: "",
       role: "group",
-      expanded: true,
+      expanded: false,
       blockTemplate: "links" as const,
+      multiLayout: "multi-links" as const,
       linkColumns: 1,
       linkWidth: 3,
       linkTextAlign: "left" as const,
       children: buildEasyColumnLinkItems(),
     }));
+
+  const buildMultiBlockThreeColumnsPhoto = () => {
+    const linkGroups = Array.from({ length: 3 }, () => ({
+      id: buildId(),
+      label: "Link list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "links" as const,
+      multiLayout: "multi-3-photo" as const,
+      linkColumns: 1,
+      linkWidth: 3,
+      linkTextAlign: "left" as const,
+      children: buildEasyColumnLinkItems(),
+    }));
+    const imageGroup: MenuItem = {
+      id: buildId(),
+      label: "Image title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "image",
+      multiLayout: "multi-3-photo",
+      icon: `${ICON_PREFIX}image`,
+      description: "",
+      imageWidth: 3,
+      imageNoFill: false,
+      imageTextAlign: "left",
+    };
+    return [...linkGroups, imageGroup];
+  };
 
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
@@ -3045,9 +3114,12 @@ export default function MenuBuilder() {
       templateId === "links-3" ||
       templateId === "links-easy" ||
       templateId === "links-icons";
-    const isMultiBlockTemplate = templateId === "multi";
+    const isMultiBlockTemplate = templateId === "multi" || templateId === "multi-3-photo";
     if (isMultiBlockTemplate) {
-      const newBlocks = buildMultiBlockLinkGroups();
+      const newBlocks =
+        templateId === "multi-3-photo"
+          ? buildMultiBlockThreeColumnsPhoto()
+          : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
           ...item,
@@ -3069,6 +3141,7 @@ export default function MenuBuilder() {
     const labelMap: Record<BlockTemplateId, string> = {
       space: "Space",
       multi: "Multi block",
+      "multi-3-photo": "3 columns + 1 photo",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",
@@ -3125,7 +3198,7 @@ export default function MenuBuilder() {
       label: labelMap[templateId],
       url: "",
       role: "group",
-      expanded: true,
+      expanded: false,
       children: isLinkListTemplate
         ? templateId === "links-3"
           ? buildThreeColumnLinkItems()
@@ -3150,7 +3223,7 @@ export default function MenuBuilder() {
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
         ...item,
-        expanded: true,
+        expanded: item.expanded ?? false,
         children: item.children ? [...item.children, newBlock] : [newBlock],
       }))
     );
@@ -5618,6 +5691,7 @@ export default function MenuBuilder() {
     );
     const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 6));
     const linkFlexBasis = columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+    const resolvedLinkFlexBasis = group.multiLayout === "multi-3-photo" ? "25%" : linkFlexBasis;
     const linkTextAlign = group.linkTextAlign ?? "left";
     const linkJustify =
       linkTextAlign === "center" ? "center" : linkTextAlign === "right" ? "flex-end" : "flex-start";
@@ -5667,8 +5741,9 @@ export default function MenuBuilder() {
           lastDragOverIdRef.current = null;
         }}
         style={{
-          flex: options.flex ?? (useBlockFlexLayout ? `0 0 ${linkFlexBasis}` : undefined),
+          flex: options.flex ?? (useBlockFlexLayout ? `0 0 ${resolvedLinkFlexBasis}` : undefined),
           order: useImageSpaceLayout ? 0 : undefined,
+          minWidth: group.multiLayout ? 0 : undefined,
           border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
           padding: "0",
           borderRadius: 0,
@@ -6761,25 +6836,27 @@ export default function MenuBuilder() {
                 >
                   {(() => {
                     const orderedDropdownGroups = useImageSpaceLayout
-                      ? [...dropdownGroups].sort((a, b) => {
-                          const aPriority =
-                            a.blockTemplate === "image" ||
-                            a.blockTemplate === "image2" ||
-                            a.blockTemplate === "contact" ||
-                            a.blockTemplate === "product" ||
-                            a.blockTemplate === "product-horizontal"
-                              ? 0
-                              : 1;
-                          const bPriority =
-                            b.blockTemplate === "image" ||
-                            b.blockTemplate === "image2" ||
-                            b.blockTemplate === "contact" ||
-                            b.blockTemplate === "product" ||
-                            b.blockTemplate === "product-horizontal"
-                              ? 0
-                              : 1;
-                          return aPriority - bPriority;
-                        })
+                      ? dropdownGroups.some((group) => group.multiLayout)
+                        ? dropdownGroups
+                        : [...dropdownGroups].sort((a, b) => {
+                            const aPriority =
+                              a.blockTemplate === "image" ||
+                              a.blockTemplate === "image2" ||
+                              a.blockTemplate === "contact" ||
+                              a.blockTemplate === "product" ||
+                              a.blockTemplate === "product-horizontal"
+                                ? 0
+                                : 1;
+                            const bPriority =
+                              b.blockTemplate === "image" ||
+                              b.blockTemplate === "image2" ||
+                              b.blockTemplate === "contact" ||
+                              b.blockTemplate === "product" ||
+                              b.blockTemplate === "product-horizontal"
+                                ? 0
+                                : 1;
+                            return aPriority - bPriority;
+                          })
                       : dropdownGroups;
 
                     return (
@@ -6849,10 +6926,11 @@ export default function MenuBuilder() {
                               ? "flex-end"
                               : "flex-start";
                         const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
+                        const isMultiThreePhoto = group.multiLayout === "multi-3-photo";
                         return (
                           <div
                             key={group.id}
-                            className="relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                            className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
                             draggable
                             onDragStart={(event) => {
                               event.dataTransfer.effectAllowed = "move";
@@ -6890,7 +6968,14 @@ export default function MenuBuilder() {
                             style={{
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
-                              flex: useImageSpaceLayout ? "0 0 30%" : undefined,
+                              flex: useImageSpaceLayout
+                                ? isMultiThreePhoto
+                                  ? "0 0 25%"
+                                  : "0 0 30%"
+                                : useBlockFlexLayout
+                                  ? `0 0 ${imageFlexBasis}`
+                                  : undefined,
+                              minWidth: isMultiThreePhoto ? 0 : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",

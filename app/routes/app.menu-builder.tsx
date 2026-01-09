@@ -450,7 +450,13 @@ type MenuItem = {
   linkWidth?: number;
   linkTextAlign?: "left" | "center" | "right";
   isHeading?: boolean;
-  multiLayout?: "multi-links" | "multi-3-photo" | "multi-2-photos" | "multi-1-3-photos";
+  multiLayout?:
+    | "multi-links"
+    | "multi-3-photo"
+    | "multi-2-photos"
+    | "multi-1-3-photos"
+    | "multi-4-images"
+    | "multi-4-products";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -460,6 +466,8 @@ type BlockTemplateId =
   | "multi-3-photo"
   | "multi-2-photos"
   | "multi-1-3-photos"
+  | "multi-4-images"
+  | "multi-4-products"
   | "tabs"
   | "image"
   | "image2"
@@ -2035,6 +2043,68 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "4 images",
+                onSelect: () => handleApplyBlockTemplate("multi-4-images"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/4images.png"
+                      alt="4 images template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      4 images
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("multi-4-images")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "4 products",
+                onSelect: () => handleApplyBlockTemplate("multi-4-products"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/4products.png"
+                      alt="4 products template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      4 products
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("multi-4-products")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "tabs":
@@ -3202,6 +3272,36 @@ export default function MenuBuilder() {
     return [linkGroup, buildImageGroup(), buildImageGroup(), buildImageGroup()];
   };
 
+  const buildMultiBlockFourImages = () =>
+    Array.from({ length: 4 }, () => ({
+      id: buildId(),
+      label: "Image title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "image" as const,
+      multiLayout: "multi-4-images" as const,
+      icon: `${ICON_PREFIX}image`,
+      description: "",
+      imageWidth: 3,
+      imageNoFill: false,
+      imageTextAlign: "left" as const,
+    }));
+
+  const buildMultiBlockFourProducts = () =>
+    Array.from({ length: 4 }, () => ({
+      id: buildId(),
+      label: "Example Product Title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "product" as const,
+      multiLayout: "multi-4-products" as const,
+      productLayout: "image-top" as const,
+      productWidth: 3,
+      productIds: [],
+    }));
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3244,7 +3344,9 @@ export default function MenuBuilder() {
       templateId === "multi" ||
       templateId === "multi-3-photo" ||
       templateId === "multi-2-photos" ||
-      templateId === "multi-1-3-photos";
+      templateId === "multi-1-3-photos" ||
+      templateId === "multi-4-images" ||
+      templateId === "multi-4-products";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -3253,7 +3355,11 @@ export default function MenuBuilder() {
             ? buildMultiBlockTwoColumnsTwoPhotos()
             : templateId === "multi-1-3-photos"
               ? buildMultiBlockOneColumnThreePhotos()
-              : buildMultiBlockLinkGroups();
+              : templateId === "multi-4-images"
+                ? buildMultiBlockFourImages()
+                : templateId === "multi-4-products"
+                  ? buildMultiBlockFourProducts()
+                  : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
           ...item,
@@ -3278,6 +3384,8 @@ export default function MenuBuilder() {
       "multi-3-photo": "3 columns + 1 photo",
       "multi-2-photos": "2 columns + 2 photos",
       "multi-1-3-photos": "1 column + 3 photos",
+      "multi-4-images": "4 images",
+      "multi-4-products": "4 products",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",

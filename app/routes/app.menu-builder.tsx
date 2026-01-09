@@ -1710,17 +1710,15 @@ export default function MenuBuilder() {
             ) : null}
           </div>
           {showTitle ? (
-            <Text
-              as="p"
-              variant="bodySm"
-              alignment="center"
-              fontWeight="semibold"
-              className={
-                titleHiddenOnHover ? "transition-opacity duration-150 group-hover:opacity-0" : undefined
-              }
+            <div
+              className={`w-full overflow-hidden text-ellipsis whitespace-nowrap ${
+                titleHiddenOnHover ? "transition-opacity duration-150 group-hover:opacity-0" : ""
+              }`}
             >
-              {title}
-            </Text>
+              <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
+                {title}
+              </Text>
+            </div>
           ) : null}
         </BlockStack>
       </Card>
@@ -3337,7 +3335,7 @@ export default function MenuBuilder() {
     }));
 
   const buildMultiBlockMapContactAddress = () => {
-    const mapHtml = `<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d476861.25720572006!2d105.37180736560343!3d20.973445013776995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135008e13800a29%3A0x2987e416210b90d!2sSMOqIE7hu5lpLCBWAeG7h3QgTmFt!5e0!3m2!1svi!2s!4v1575429838619!5m2!1svi!2s" width="100%" height="260" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+    const mapHtml = `<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d476861.25720572006!2d105.37180736560343!3d20.973445013776995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135008e13800a29%3A0x2987e416210b90d!2sSMOqIE7hu5lpLCBWAeG7h3QgTmFt!5e0!3m2!1svi!2s!4v1575429838619!5m2!1svi!2s" width="100%" height="260" frameborder="0" style="border:0; pointer-events:auto;" allowfullscreen="" loading="lazy" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>`;
     const addressHtml =
       "Adi-Dassler-Strasse 191074 Herzogenaurach Germany<br/>Phone: +49 (0) 9132 84-0<br/>Working hours: 8:00 - 16:00, Monday - Friday";
     const mapBlock: MenuItem = {
@@ -7625,6 +7623,8 @@ export default function MenuBuilder() {
                         const htmlWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
                         const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
                         const htmlContent = group.htmlContent ?? "";
+                        const htmlHasIframe = /<iframe/i.test(htmlContent);
+                        const allowHtmlDrag = !htmlHasIframe;
                         const htmlTitle = (group.label ?? "").trim();
                         const showHtmlTitle =
                           Boolean(htmlTitle) && htmlTitle.toLowerCase() !== "custom html";
@@ -7632,8 +7632,9 @@ export default function MenuBuilder() {
                           <div
                             key={group.id}
                             className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
-                            draggable
+                            draggable={allowHtmlDrag}
                             onDragStart={(event) => {
+                              if (!allowHtmlDrag) return;
                               event.dataTransfer.effectAllowed = "move";
                               event.dataTransfer.setData("text/plain", group.id);
                               setDraggedItemId(group.id);
@@ -7662,6 +7663,7 @@ export default function MenuBuilder() {
                               lastDragOverIdRef.current = null;
                             }}
                             onDragEnd={() => {
+                              if (!allowHtmlDrag) return;
                               setDraggedItemId(null);
                               setDraggedParentId(null);
                               lastDragOverIdRef.current = null;

@@ -992,9 +992,7 @@ export default function MenuBuilder() {
   );
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const apiKey = appData?.apiKey ?? "";
-  const isProPlan = Boolean(
-    (appData as { isProPlan?: boolean } | null | undefined)?.isProPlan
-  );
+  const isProPlan = true;
   const navigate = useNavigate();
   const location = useLocation();
   const saveFetcher = useFetcher<typeof action>();
@@ -1128,6 +1126,7 @@ export default function MenuBuilder() {
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [productPickerSearch, setProductPickerSearch] = useState("");
   const [productPickerSelection, setProductPickerSelection] = useState<Record<string, boolean>>({});
+  const [productPickerTargetId, setProductPickerTargetId] = useState<string | null>(null);
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
   const [submenuTemplateTargetId, setSubmenuTemplateTargetId] = useState<string | null>(null);
@@ -1177,6 +1176,7 @@ export default function MenuBuilder() {
     if (menuView !== "edit") {
       setEditDraft(null);
       setProductPickerOpen(false);
+      setProductPickerTargetId(null);
       return;
     }
     if (!selectedItem) {
@@ -1285,19 +1285,29 @@ export default function MenuBuilder() {
     reader.readAsDataURL(file);
   };
 
-  const openProductPicker = () => {
-    const activeIds = editDraft?.productIds ?? selectedItem?.productIds ?? [];
+  const closeProductPicker = () => {
+    setProductPickerOpen(false);
+    setProductPickerTargetId(null);
+  };
+
+  const openProductPicker = (targetId?: string | null) => {
+    const activeItem = targetId ? findEditableItemById(targetId) : editDraft ?? selectedItem;
+    const activeIds = activeItem?.productIds ?? [];
     const selection = activeIds.reduce<Record<string, boolean>>((acc, id) => {
       acc[id] = true;
       return acc;
     }, {});
     setProductPickerSelection(selection);
     setProductPickerSearch("");
+    setProductPickerTargetId(targetId ?? null);
     setProductPickerOpen(true);
   };
 
   const toggleProductSelection = (id: string) => {
     setProductPickerSelection((prev) => {
+      if (productPickerTargetId) {
+        return prev[id] ? {} : { [id]: true };
+      }
       const next = { ...prev };
       if (next[id]) {
         delete next[id];
@@ -1310,8 +1320,15 @@ export default function MenuBuilder() {
 
   const applyProductSelection = () => {
     const selectedIds = Object.keys(productPickerSelection);
-    updateEditDraft("productIds", selectedIds);
-    setProductPickerOpen(false);
+    if (productPickerTargetId) {
+      updateEditDraftItemById(productPickerTargetId, (item) => ({
+        ...item,
+        productIds: selectedIds.slice(0, 1),
+      }));
+    } else {
+      updateEditDraft("productIds", selectedIds);
+    }
+    closeProductPicker();
   };
 
   const renderSubmenuImagePickerPanel = () => {
@@ -1384,11 +1401,11 @@ export default function MenuBuilder() {
             <Button
               variant="tertiary"
               icon={ArrowLeftIcon}
-              onClick={() => setProductPickerOpen(false)}
+              onClick={closeProductPicker}
               accessibilityLabel="Back"
             />
             <Text as="h2" variant="headingSm">
-              Select products
+              {productPickerTargetId ? "Select product" : "Select products"}
             </Text>
           </InlineStack>
         </div>
@@ -1443,7 +1460,7 @@ export default function MenuBuilder() {
         </div>
         <div className="border-t border-gray-200 bg-white px-4 py-3">
           <InlineStack align="end" gap="200">
-            <Button variant="tertiary" onClick={() => setProductPickerOpen(false)}>
+            <Button variant="tertiary" onClick={closeProductPicker}>
               Cancel
             </Button>
             <Button variant="primary" onClick={applyProductSelection}>
@@ -2169,7 +2186,7 @@ export default function MenuBuilder() {
                 preview: (
                   <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
-                      src="/product-yatay.png"
+                      src="/4-product-list.png"
                       alt="4 product list template"
                       className="h-full w-full object-contain"
                     />
@@ -3141,14 +3158,29 @@ export default function MenuBuilder() {
       setBlockTemplateTargetId(null);
       return;
     }
-    const newItem: MenuItem = {
-      id: buildId(),
-      label: role === "group" ? "New group" : "New item",
-      url: role === "group" ? "" : "/",
-      role,
-      expanded: role === "group" ? true : undefined,
-      children: role === "group" ? [] : undefined,
-    };
+    const isProductListParent =
+      role === "item" &&
+      parentItem?.blockTemplate === "product" &&
+      Boolean(parentItem.children?.length);
+    const newItem: MenuItem = isProductListParent
+      ? {
+          id: buildId(),
+          label: "Example Product Title",
+          url: "",
+          role: "item",
+          blockTemplate: "product",
+          productLayout: "image-left",
+          productIds: [],
+          icon: `${ICON_PREFIX}tag`,
+        }
+      : {
+          id: buildId(),
+          label: role === "group" ? "New group" : "New item",
+          url: role === "group" ? "" : "/",
+          role,
+          expanded: role === "group" ? true : undefined,
+          children: role === "group" ? [] : undefined,
+        };
     setMenuItems((items) => addChildById(items, parentId, newItem));
   };
 
@@ -3437,10 +3469,35 @@ export default function MenuBuilder() {
     return [mapBlock, contactBlock, addressBlock];
   };
 
-  const buildMultiBlockFourProductList = () =>
-    Array.from({ length: 4 }, () => ({
+  const buildProductListColumnItems = (headingLabel: string) => {
+    const productItems = Array.from({ length: 4 }, () => ({
       id: buildId(),
       label: "Example Product Title",
+      url: "",
+      role: "item" as const,
+      blockTemplate: "product" as const,
+      productLayout: "image-left" as const,
+      productIds: [],
+      icon: `${ICON_PREFIX}tag`,
+    }));
+    return [
+      {
+        id: buildId(),
+        label: headingLabel,
+        url: "",
+        role: "item" as const,
+        isHeading: true,
+        description: "",
+      },
+      ...productItems,
+    ];
+  };
+
+  const buildMultiBlockFourProductList = () => {
+    const headings = Array.from({ length: 4 }, () => "Product list");
+    return headings.map((label) => ({
+      id: buildId(),
+      label,
       url: "",
       role: "group",
       expanded: false,
@@ -3449,8 +3506,9 @@ export default function MenuBuilder() {
       productLayout: "image-left" as const,
       productWidth: 3,
       productIds: [],
-      productListCount: 4,
+      children: buildProductListColumnItems(label),
     }));
+  };
 
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
@@ -3880,9 +3938,12 @@ export default function MenuBuilder() {
       item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
     const isContactBlock = item.role === "group" && item.blockTemplate === "contact";
     const isHtmlBlock = item.role === "group" && item.blockTemplate === "html";
+    const isProductListBlock =
+      item.role === "group" && item.blockTemplate === "product" && Boolean(item.children?.length);
     const isProductBlock =
       item.role === "group" &&
-      (item.blockTemplate === "product" || item.blockTemplate === "product-horizontal");
+      (item.blockTemplate === "product" || item.blockTemplate === "product-horizontal") &&
+      !isProductListBlock;
     const isVisualBlock = isImageBlock || isContactBlock || isProductBlock || isHtmlBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item" && !isVisualBlock;
@@ -3890,7 +3951,7 @@ export default function MenuBuilder() {
       item.icon ??
       (isContactBlock
         ? `${ICON_PREFIX}mail`
-        : isProductBlock
+        : isProductBlock || isProductListBlock
           ? `${ICON_PREFIX}tag`
           : isHtmlBlock
             ? `${ICON_PREFIX}code`
@@ -4092,11 +4153,21 @@ export default function MenuBuilder() {
         editingItem.blockTemplate === "image" || editingItem.blockTemplate === "image2";
       const isContactBlock = editingItem.blockTemplate === "contact";
       const isLinkListBlock = editingItem.blockTemplate === "links";
+      const isProductListBlock =
+        editingItem.blockTemplate === "product" &&
+        editingItem.role === "group" &&
+        Boolean(editingItem.children?.length);
+      const isProductItem =
+        editingItem.blockTemplate === "product" && editingItem.role === "item";
       const isProductBlock =
-        editingItem.blockTemplate === "product" || editingItem.blockTemplate === "product-horizontal";
+        (editingItem.blockTemplate === "product-horizontal" ||
+          (editingItem.blockTemplate === "product" && editingItem.role === "group")) &&
+        !isProductListBlock;
       const isHtmlBlock = editingItem.blockTemplate === "html";
-      const isVisualBlock = isImageBlock || isContactBlock || isProductBlock || isHtmlBlock;
+      const isVisualBlock =
+        isImageBlock || isContactBlock || isProductBlock || isProductItem || isHtmlBlock;
       const linkListItems = isLinkListBlock ? editingItem.children ?? [] : [];
+      const productListItems = isProductListBlock ? editingItem.children ?? [] : [];
       if (iconPickerState?.target === "edit") {
         return (
           <Card padding="0">
@@ -4138,7 +4209,7 @@ export default function MenuBuilder() {
                 <Text as="h3" variant="headingSm">
                   General
                 </Text>
-                {!isVisualBlock && !isLinkListBlock ? (
+                {!isVisualBlock && !isLinkListBlock && !isProductListBlock ? (
                   <BlockStack gap="200">
                     <Text as="h4" variant="headingSm">
                       Icon
@@ -4361,6 +4432,43 @@ export default function MenuBuilder() {
                       multiline={8}
                     />
                   </>
+                ) : isProductListBlock ? (
+                  <>
+                    <InlineStack gap="200" blockAlign="center">
+                      <div style={{ flex: 1 }}>
+                        <RangeSlider
+                          label="Width"
+                          value={editingItem.productWidth ?? 3}
+                          min={1}
+                          max={12}
+                          onChange={(value) => updateEditDraft("productWidth", value)}
+                        />
+                      </div>
+                      <div style={{ width: 90 }}>
+                        <TextField
+                          label="Width"
+                          labelHidden
+                          type="number"
+                          value={String(editingItem.productWidth ?? 3)}
+                          onChange={(value) => {
+                            const next = Number(value);
+                            if (!Number.isFinite(next)) return;
+                            const clamped = Math.max(1, Math.min(12, next));
+                            updateEditDraft("productWidth", clamped);
+                          }}
+                          suffix="/12"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </InlineStack>
+                  </>
+                ) : isProductItem ? (
+                  <TextField
+                    label="Title"
+                    value={editingItem.label}
+                    onChange={(value) => updateEditDraft("label", value)}
+                    autoComplete="off"
+                  />
                 ) : isProductBlock ? (
                   <>
                     <InlineStack gap="200" blockAlign="center">
@@ -4618,7 +4726,104 @@ export default function MenuBuilder() {
                 </>
               ) : null}
 
-              {isProductBlock ? (
+              {isProductListBlock ? (
+                <>
+                  <Divider />
+                  <BlockStack gap="300">
+                    <Text as="h3" variant="headingSm">
+                      Items
+                    </Text>
+                    {productListItems.length ? (
+                      (() => {
+                        let productItemIndex = 0;
+                        return productListItems.map((child, index) => {
+                          const isHeadingItem = Boolean(child.isHeading);
+                          const label = isHeadingItem ? "Heading" : `Product item ${++productItemIndex}`;
+                          const selectedProduct = products.find((product) => product.id === child.productIds?.[0]);
+                          return (
+                            <BlockStack key={child.id} gap="300">
+                              <InlineStack align="space-between" blockAlign="center">
+                                <Text as="h4" variant="headingSm">
+                                  {label}
+                                </Text>
+                                <button
+                                  type="button"
+                                  onClick={() => removeEditDraftItemById(child.id)}
+                                  className="text-sm font-medium text-red-600 hover:text-red-700"
+                                >
+                                  Remove
+                                </button>
+                              </InlineStack>
+                              {isHeadingItem ? (
+                                <TextField
+                                  label="Title"
+                                  value={child.label}
+                                  onChange={(value) =>
+                                    updateEditDraftItemById(child.id, (item) => ({ ...item, label: value }))
+                                  }
+                                  autoComplete="off"
+                                />
+                              ) : child.productIds?.length ? (
+                                <div className="rounded-xl border border-gray-200 bg-gray-100 p-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-12 w-12 overflow-hidden rounded-md border border-gray-200 bg-white">
+                                      <img
+                                        src={selectedProduct?.featuredImage?.url ?? "/product.png"}
+                                        alt={selectedProduct?.featuredImage?.altText ?? selectedProduct?.title ?? ""}
+                                        className="h-full w-full object-cover"
+                                      />
+                                    </div>
+                                    <div className="flex-1 text-sm font-medium text-gray-700">
+                                      {selectedProduct?.title ?? "Example Product Title"}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        updateEditDraftItemById(child.id, (item) => ({
+                                          ...item,
+                                          productIds: [],
+                                        }))
+                                      }
+                                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                      aria-label="Remove selection"
+                                    >
+                                      <span className="text-base leading-none">×</span>
+                                    </button>
+                                  </div>
+                                  <div className="mt-3">
+                                    <button
+                                      type="button"
+                                      onClick={() => openProductPicker(child.id)}
+                                      className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                                    >
+                                      Change
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => openProductPicker(child.id)}
+                                  className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                                >
+                                  Select product
+                                </button>
+                              )}
+                              {index < productListItems.length - 1 ? <Divider /> : null}
+                            </BlockStack>
+                          );
+                        });
+                      })()
+                    ) : (
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        No items yet.
+                      </Text>
+                    )}
+                  </BlockStack>
+                </>
+              ) : null}
+
+              {isProductBlock || isProductItem ? (
                 <>
                   <Divider />
                   <BlockStack gap="300">
@@ -4654,7 +4859,7 @@ export default function MenuBuilder() {
                         <div className="mt-3">
                           <button
                             type="button"
-                            onClick={openProductPicker}
+                            onClick={() => openProductPicker(isProductItem ? editingItem.id : null)}
                             className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                           >
                             Change
@@ -4664,17 +4869,17 @@ export default function MenuBuilder() {
                     ) : (
                       <button
                         type="button"
-                        onClick={openProductPicker}
+                        onClick={() => openProductPicker(isProductItem ? editingItem.id : null)}
                         className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                       >
-                        Select products
+                        {isProductItem ? "Select product" : "Select products"}
                       </button>
                     )}
                   </BlockStack>
                 </>
               ) : null}
 
-              {!isVisualBlock && !isLinkListBlock ? (
+              {!isVisualBlock && !isLinkListBlock && !isProductListBlock ? (
                 <>
                   <Divider />
                   <BlockStack gap="300">
@@ -8042,13 +8247,27 @@ export default function MenuBuilder() {
                       ) {
                         const productWidth = Math.max(1, Math.min(12, group.productWidth ?? 3));
                         const productLayout =
-                          group.productLayout ??
-                          (group.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
+                          group.children?.length
+                            ? "image-left"
+                            : group.productLayout ??
+                              (group.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
                         const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
                         const resolvedProductFlexBasis =
                           group.blockTemplate === "product-horizontal" ? "33%" : productFlexBasis;
                         const productPreviewHeight = useImageSpaceLayout ? 220 : 150;
-                        const selectedProductIds = group.productIds ?? [];
+                        const isProductListGroup =
+                          group.blockTemplate === "product" && Boolean(group.children?.length);
+                        const productItems = isProductListGroup ? group.children ?? [] : [];
+                        const headingItem = isProductListGroup
+                          ? productItems.find((child) => child.isHeading)
+                          : null;
+                        const productHeading = isProductListGroup
+                          ? headingItem?.label?.trim() ?? ""
+                          : group.label?.trim() ?? "";
+                        const showProductHeading = isProductListGroup
+                          ? Boolean(productHeading)
+                          : Boolean(group.productListCount) && Boolean(productHeading);
+                        const selectedProductIds = isProductListGroup ? [] : group.productIds ?? [];
                         const selectedProducts = selectedProductIds
                           .map((id) => products.find((product) => product.id === id))
                           .filter((product): product is ProductSummary => Boolean(product));
@@ -8056,13 +8275,22 @@ export default function MenuBuilder() {
                         const limitedProducts = productListCount
                           ? selectedProducts.slice(0, productListCount)
                           : selectedProducts;
-                        const displayProducts = limitedProducts.length
-                          ? limitedProducts
-                          : productListCount > 0
-                            ? Array.from({ length: productListCount }, () => null)
-                            : [null];
-                        const cardGridStyle =
-                          productLayout === "image-top" && displayProducts.length > 1
+                        const displayProducts = isProductListGroup
+                          ? productItems
+                              .filter((child) => !child.isHeading)
+                              .map((child) => ({
+                                child,
+                                product: products.find((product) => product.id === child.productIds?.[0]) ?? null,
+                              }))
+                          : (limitedProducts.length
+                              ? limitedProducts
+                              : productListCount > 0
+                                ? Array.from({ length: productListCount }, () => null)
+                                : [null]
+                            ).map((product) => ({ product }));
+                        const cardGridStyle = isProductListGroup
+                          ? { display: "grid", gap: 16 }
+                          : productLayout === "image-top" && displayProducts.length > 1
                             ? {
                                 display: "grid",
                                 gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
@@ -8151,9 +8379,30 @@ export default function MenuBuilder() {
                                 gap: 10,
                               }}
                             >
+                              {showProductHeading ? (
+                                <>
+                                  <div
+                                    style={{
+                                      color: previewColors.submenuHeading,
+                                      fontWeight: 600,
+                                      ...subheadingTypography,
+                                      lineHeight: 1.2,
+                                    }}
+                                  >
+                                    {productHeading}
+                                  </div>
+                                  <div
+                                    style={{
+                                      borderTop: `1px solid ${previewColors.submenuHeading}`,
+                                      opacity: 0.5,
+                                    }}
+                                  />
+                                </>
+                              ) : null}
                               <div style={cardGridStyle}>
-                                {displayProducts.map((product, index) => {
-                                  const title = product?.title ?? "Example Product Title";
+                                {displayProducts.map(({ product, child }, index) => {
+                                  const title =
+                                    product?.title ?? child?.label ?? "Example Product Title";
                                   const imageSrc = product?.featuredImage?.url;
                                   const imageAlt = product?.featuredImage?.altText ?? title;
                                   const hasImage = Boolean(imageSrc);
@@ -8227,7 +8476,7 @@ export default function MenuBuilder() {
                                   }
                                   return (
                                     <div
-                                      key={product?.id ?? `placeholder-${index}`}
+                                      key={child?.id ?? product?.id ?? `placeholder-${index}`}
                                       style={{
                                         display: "flex",
                                         flexDirection: isImageLeft ? "row" : "column",

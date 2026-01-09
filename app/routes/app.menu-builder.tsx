@@ -450,7 +450,7 @@ type MenuItem = {
   linkWidth?: number;
   linkTextAlign?: "left" | "center" | "right";
   isHeading?: boolean;
-  multiLayout?: "multi-links" | "multi-3-photo";
+  multiLayout?: "multi-links" | "multi-3-photo" | "multi-2-photos";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -458,6 +458,7 @@ type BlockTemplateId =
   | "space"
   | "multi"
   | "multi-3-photo"
+  | "multi-2-photos"
   | "tabs"
   | "image"
   | "image2"
@@ -1971,6 +1972,37 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "2 columns + 2 photos",
+                onSelect: () => handleApplyBlockTemplate("multi-2-photos"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/2columns+2photos.png"
+                      alt="2 columns + 2 photos template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      2 columns + 2 photos
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("multi-2-photos")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "tabs":
@@ -3076,6 +3108,37 @@ export default function MenuBuilder() {
     return [...linkGroups, imageGroup];
   };
 
+  const buildMultiBlockTwoColumnsTwoPhotos = () => {
+    const buildLinkGroup = () => ({
+      id: buildId(),
+      label: "Link list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "links" as const,
+      multiLayout: "multi-2-photos" as const,
+      linkColumns: 1,
+      linkWidth: 3,
+      linkTextAlign: "left" as const,
+      children: buildEasyColumnLinkItems(),
+    });
+    const buildImageGroup = () => ({
+      id: buildId(),
+      label: "Image title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "image" as const,
+      multiLayout: "multi-2-photos" as const,
+      icon: `${ICON_PREFIX}image`,
+      description: "",
+      imageWidth: 3,
+      imageNoFill: false,
+      imageTextAlign: "left" as const,
+    });
+    return [buildLinkGroup(), buildImageGroup(), buildLinkGroup(), buildImageGroup()];
+  };
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3114,11 +3177,14 @@ export default function MenuBuilder() {
       templateId === "links-3" ||
       templateId === "links-easy" ||
       templateId === "links-icons";
-    const isMultiBlockTemplate = templateId === "multi" || templateId === "multi-3-photo";
+    const isMultiBlockTemplate =
+      templateId === "multi" || templateId === "multi-3-photo" || templateId === "multi-2-photos";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
           ? buildMultiBlockThreeColumnsPhoto()
+          : templateId === "multi-2-photos"
+            ? buildMultiBlockTwoColumnsTwoPhotos()
           : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -3142,6 +3208,7 @@ export default function MenuBuilder() {
       space: "Space",
       multi: "Multi block",
       "multi-3-photo": "3 columns + 1 photo",
+      "multi-2-photos": "2 columns + 2 photos",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",
@@ -5691,7 +5758,6 @@ export default function MenuBuilder() {
     );
     const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 6));
     const linkFlexBasis = columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
-    const resolvedLinkFlexBasis = group.multiLayout === "multi-3-photo" ? "25%" : linkFlexBasis;
     const linkTextAlign = group.linkTextAlign ?? "left";
     const linkJustify =
       linkTextAlign === "center" ? "center" : linkTextAlign === "right" ? "flex-end" : "flex-start";
@@ -5741,7 +5807,7 @@ export default function MenuBuilder() {
           lastDragOverIdRef.current = null;
         }}
         style={{
-          flex: options.flex ?? (useBlockFlexLayout ? `0 0 ${resolvedLinkFlexBasis}` : undefined),
+          flex: options.flex ?? (useBlockFlexLayout ? `0 0 ${linkFlexBasis}` : undefined),
           order: useImageSpaceLayout ? 0 : undefined,
           minWidth: group.multiLayout ? 0 : undefined,
           border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
@@ -6926,7 +6992,7 @@ export default function MenuBuilder() {
                               ? "flex-end"
                               : "flex-start";
                         const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
-                        const isMultiThreePhoto = group.multiLayout === "multi-3-photo";
+                        const isMultiLayout = Boolean(group.multiLayout);
                         return (
                           <div
                             key={group.id}
@@ -6969,13 +7035,13 @@ export default function MenuBuilder() {
                               gridColumn: useImageSpaceLayout ? undefined : undefined,
                               minHeight: useImageSpaceLayout ? 240 : undefined,
                               flex: useImageSpaceLayout
-                                ? isMultiThreePhoto
-                                  ? "0 0 25%"
+                                ? isMultiLayout
+                                  ? `0 0 ${imageFlexBasis}`
                                   : "0 0 30%"
                                 : useBlockFlexLayout
                                   ? `0 0 ${imageFlexBasis}`
                                   : undefined,
-                              minWidth: isMultiThreePhoto ? 0 : undefined,
+                              minWidth: isMultiLayout ? 0 : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",
@@ -7819,25 +7885,26 @@ export default function MenuBuilder() {
             </div>
           </Box>
 
-          <div className="absolute bottom-6 left-6">
-            <Card padding="200">
-              <InlineStack gap="100">
-                <Button
-                  variant={previewMode === "desktop" ? "primary" : "tertiary"}
-                  icon={DesktopIcon}
-                  onClick={() => setPreviewMode("desktop")}
-                  accessibilityLabel="Desktop"
-                />
-                <Button
-                  variant={previewMode === "mobile" ? "primary" : "tertiary"}
-                  icon={MobileIcon}
-                  onClick={() => setPreviewMode("mobile")}
-                  accessibilityLabel="Mobile"
-                />
-              </InlineStack>
-            </Card>
-          </div>
         </main>
+
+        <div className="absolute bottom-6" style={{ left: "calc(4rem + 20rem + 24px)" }}>
+          <Card padding="200">
+            <InlineStack gap="100">
+              <Button
+                variant={previewMode === "desktop" ? "primary" : "tertiary"}
+                icon={DesktopIcon}
+                onClick={() => setPreviewMode("desktop")}
+                accessibilityLabel="Desktop"
+              />
+              <Button
+                variant={previewMode === "mobile" ? "primary" : "tertiary"}
+                icon={MobileIcon}
+                onClick={() => setPreviewMode("mobile")}
+                accessibilityLabel="Mobile"
+              />
+            </InlineStack>
+          </Card>
+        </div>
         {renderBlockTemplatePreviewPanel()}
         {renderBlockTemplatePicker()}
         {renderSubmenuTemplatePreviewPanel()}

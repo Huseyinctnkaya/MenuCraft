@@ -1644,7 +1644,7 @@ export default function MenuBuilder() {
     previewContainerClassName?: string;
   }) => (
     <div className="group relative transition-transform duration-150 ease-out">
-      <Card padding="300">
+      <Card padding="300" style={{ borderRadius: 0 }} className="rounded-none">
         <BlockStack gap="300">
           <InlineStack align="space-between" blockAlign="center">
             <span />
@@ -1652,7 +1652,7 @@ export default function MenuBuilder() {
           </InlineStack>
           <div
             className={
-              previewContainerClassName ?? "relative rounded-xl bg-gray-100 p-3"
+              previewContainerClassName ?? "relative bg-gray-100 p-3"
             }
           >
             <div className={`${previewHeightClassName} w-full`}>{preview}</div>
@@ -1761,7 +1761,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/Space.png"
                       alt="Space template"
@@ -1857,7 +1857,7 @@ export default function MenuBuilder() {
             previewHeightClassName: "h-44",
             previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                 <img
                   src="/Space.png"
                   alt="Space template"
@@ -1885,7 +1885,7 @@ export default function MenuBuilder() {
             title: "2 columns",
             onSelect: selectTemplate,
             preview: (
-              <div className="h-28 rounded-lg bg-white p-3">
+              <div className="h-28 rounded-none bg-white p-3">
                 <div className="text-[11px] font-semibold text-red-600">Brands</div>
                 <div className="mt-2 h-px bg-gray-200" />
                 <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-gray-700">
@@ -1908,7 +1908,7 @@ export default function MenuBuilder() {
             title: "Tabs",
             onSelect: selectTemplate,
             preview: (
-              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2">
+              <div className="h-28 rounded-none bg-[#f3f4f6] p-2">
                 <div className="flex gap-2 rounded-md bg-white px-2 py-1">
                   <div className="h-2 w-10 rounded-full bg-gray-300" />
                   <div className="h-2 w-10 rounded-full bg-gray-200" />
@@ -1929,7 +1929,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/image%201.png"
                       alt="Image 1 template"
@@ -1960,7 +1960,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/I%CC%87mage%202.png"
                       alt="Image 2 template"
@@ -1996,7 +1996,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/two-columns.png"
                       alt="Link list (2 columns) template"
@@ -2027,7 +2027,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/3-columns.png"
                       alt="Link list (3 columns) template"
@@ -2058,7 +2058,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/easy-column.png"
                       alt="Easy column template"
@@ -2089,7 +2089,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/columns-with-icons.png"
                       alt="Columns with icons template"
@@ -2125,7 +2125,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/product.png"
                       alt="Product template"
@@ -2156,7 +2156,7 @@ export default function MenuBuilder() {
                 previewHeightClassName: "h-44",
                 previewContainerClassName: "bg-transparent p-0",
                 preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
                       src="/product-yatay.png"
                       alt="Product horizontal template"
@@ -2186,7 +2186,7 @@ export default function MenuBuilder() {
             title: "Collection",
             onSelect: selectTemplate,
             preview: (
-              <div className="flex h-28 flex-col gap-2 rounded-lg bg-[#f3f4f6] p-2">
+              <div className="flex h-28 flex-col gap-2 rounded-none bg-[#f3f4f6] p-2">
                 <div className="h-14 rounded-md bg-white" />
                 <div className="h-2 w-20 rounded bg-gray-300" />
               </div>
@@ -2197,7 +2197,7 @@ export default function MenuBuilder() {
             title: "Blogs",
             onSelect: selectTemplate,
             preview: (
-              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2">
+              <div className="h-28 rounded-none bg-[#f3f4f6] p-2">
                 <div className="h-2 w-20 rounded bg-gray-300" />
                 <div className="mt-2 h-2 w-24 rounded bg-gray-200" />
                 <div className="mt-2 h-2 w-16 rounded bg-gray-200" />
@@ -2213,7 +2213,7 @@ export default function MenuBuilder() {
             previewHeightClassName: "h-44",
             previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-xl bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                 <img
                   src="/contact%20form.png"
                   alt="Contact form template"
@@ -2243,7 +2243,7 @@ export default function MenuBuilder() {
             onSelect: selectTemplate,
             badge: "Professional",
             preview: (
-              <div className="h-28 rounded-lg bg-[#f3f4f6] p-2 font-mono text-[10px] text-gray-500">
+              <div className="h-28 rounded-none bg-[#f3f4f6] p-2 font-mono text-[10px] text-gray-500">
                 <div className="h-2 w-20 rounded bg-gray-300" />
                 <div className="mt-2 h-2 w-24 rounded bg-gray-200" />
                 <div className="mt-2 h-2 w-28 rounded bg-gray-200" />

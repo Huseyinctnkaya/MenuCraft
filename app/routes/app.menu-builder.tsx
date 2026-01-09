@@ -443,6 +443,7 @@ type MenuItem = {
   contactMessageLabel?: string;
   contactSubmitLabel?: string;
   contactSuccessMessage?: string;
+  htmlContent?: string;
   productIds?: string[];
   productLayout?: "image-top" | "image-left";
   productWidth?: number;
@@ -456,7 +457,8 @@ type MenuItem = {
     | "multi-2-photos"
     | "multi-1-3-photos"
     | "multi-4-images"
-    | "multi-4-products";
+    | "multi-4-products"
+    | "multi-map-contact-address";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -468,6 +470,7 @@ type BlockTemplateId =
   | "multi-1-3-photos"
   | "multi-4-images"
   | "multi-4-products"
+  | "multi-map-contact-address"
   | "tabs"
   | "image"
   | "image2"
@@ -2105,6 +2108,37 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "Map + contact + address",
+                onSelect: () => handleApplyBlockTemplate("multi-map-contact-address"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/map-contact-adres.png"
+                      alt="Map + contact + address template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Map + contact + address
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplyBlockTemplate("multi-map-contact-address")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "tabs":
@@ -3302,6 +3336,55 @@ export default function MenuBuilder() {
       productIds: [],
     }));
 
+  const buildMultiBlockMapContactAddress = () => {
+    const mapHtml = `<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d476861.25720572006!2d105.37180736560343!3d20.973445013776995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135008e13800a29%3A0x2987e416210b90d!2sSMOqIE7hu5lpLCBWAeG7h3QgTmFt!5e0!3m2!1svi!2s!4v1575429838619!5m2!1svi!2s" width="100%" height="260" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy"></iframe>`;
+    const addressHtml =
+      "Adi-Dassler-Strasse 191074 Herzogenaurach Germany<br/>Phone: +49 (0) 9132 84-0<br/>Working hours: 8:00 - 16:00, Monday - Friday";
+    const mapBlock: MenuItem = {
+      id: buildId(),
+      label: "Custom HTML",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "html",
+      multiLayout: "multi-map-contact-address",
+      icon: `${ICON_PREFIX}code`,
+      htmlContent: mapHtml,
+      imageWidth: 3,
+    };
+    const contactBlock: MenuItem = {
+      id: buildId(),
+      label: "Contact",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "contact",
+      multiLayout: "multi-map-contact-address",
+      contactTitle: "Contact",
+      contactDescription: "",
+      contactNameLabel: "Name",
+      contactEmailLabel: "Email",
+      contactPhoneLabel: "Phone number",
+      contactMessageLabel: "Message",
+      contactSubmitLabel: "Send",
+      contactSuccessMessage: "Thanks for contacting us. We'll get back to you soon.",
+      imageWidth: 6,
+    };
+    const addressBlock: MenuItem = {
+      id: buildId(),
+      label: "Address",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "html",
+      multiLayout: "multi-map-contact-address",
+      icon: `${ICON_PREFIX}code`,
+      htmlContent: addressHtml,
+      imageWidth: 3,
+    };
+    return [mapBlock, contactBlock, addressBlock];
+  };
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3346,7 +3429,8 @@ export default function MenuBuilder() {
       templateId === "multi-2-photos" ||
       templateId === "multi-1-3-photos" ||
       templateId === "multi-4-images" ||
-      templateId === "multi-4-products";
+      templateId === "multi-4-products" ||
+      templateId === "multi-map-contact-address";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -3355,10 +3439,12 @@ export default function MenuBuilder() {
             ? buildMultiBlockTwoColumnsTwoPhotos()
             : templateId === "multi-1-3-photos"
               ? buildMultiBlockOneColumnThreePhotos()
-              : templateId === "multi-4-images"
-                ? buildMultiBlockFourImages()
-                : templateId === "multi-4-products"
-                  ? buildMultiBlockFourProducts()
+            : templateId === "multi-4-images"
+              ? buildMultiBlockFourImages()
+              : templateId === "multi-4-products"
+                ? buildMultiBlockFourProducts()
+                : templateId === "multi-map-contact-address"
+                  ? buildMultiBlockMapContactAddress()
                   : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -3386,6 +3472,7 @@ export default function MenuBuilder() {
       "multi-1-3-photos": "1 column + 3 photos",
       "multi-4-images": "4 images",
       "multi-4-products": "4 products",
+      "multi-map-contact-address": "Map + contact + address",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",
@@ -3406,6 +3493,7 @@ export default function MenuBuilder() {
       contact: `${ICON_PREFIX}mail`,
       product: `${ICON_PREFIX}tag`,
       "product-horizontal": `${ICON_PREFIX}tag`,
+      html: `${ICON_PREFIX}code`,
     };
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
       image: "Sample description",
@@ -3414,6 +3502,13 @@ export default function MenuBuilder() {
     const imageDefaults =
       templateId === "image" || templateId === "image2"
         ? { imageWidth: 3, imageNoFill: false }
+        : {};
+    const htmlDefaults =
+      templateId === "html"
+        ? {
+            htmlContent: "Add your custom HTML here.",
+            imageWidth: 3,
+          }
         : {};
     const contactDefaults =
       templateId === "contact"
@@ -3458,6 +3553,7 @@ export default function MenuBuilder() {
       icon: iconMap[templateId],
       description: descriptionMap[templateId],
       ...imageDefaults,
+      ...htmlDefaults,
       ...contactDefaults,
       ...productDefaults,
       ...(isLinkListTemplate
@@ -3712,10 +3808,11 @@ export default function MenuBuilder() {
     const isImageBlock =
       item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
     const isContactBlock = item.role === "group" && item.blockTemplate === "contact";
+    const isHtmlBlock = item.role === "group" && item.blockTemplate === "html";
     const isProductBlock =
       item.role === "group" &&
       (item.blockTemplate === "product" || item.blockTemplate === "product-horizontal");
-    const isVisualBlock = isImageBlock || isContactBlock || isProductBlock;
+    const isVisualBlock = isImageBlock || isContactBlock || isProductBlock || isHtmlBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item" && !isVisualBlock;
     const resolvedIcon =
@@ -3724,7 +3821,9 @@ export default function MenuBuilder() {
         ? `${ICON_PREFIX}mail`
         : isProductBlock
           ? `${ICON_PREFIX}tag`
-          : undefined);
+          : isHtmlBlock
+            ? `${ICON_PREFIX}code`
+            : undefined);
     const itemIcon =
       item.role === "group"
         ? item.blockTemplate === "contact"
@@ -3924,7 +4023,8 @@ export default function MenuBuilder() {
       const isLinkListBlock = editingItem.blockTemplate === "links";
       const isProductBlock =
         editingItem.blockTemplate === "product" || editingItem.blockTemplate === "product-horizontal";
-      const isVisualBlock = isImageBlock || isContactBlock || isProductBlock;
+      const isHtmlBlock = editingItem.blockTemplate === "html";
+      const isVisualBlock = isImageBlock || isContactBlock || isProductBlock || isHtmlBlock;
       const linkListItems = isLinkListBlock ? editingItem.children ?? [] : [];
       if (iconPickerState?.target === "edit") {
         return (
@@ -4145,6 +4245,49 @@ export default function MenuBuilder() {
                       value={editingItem.contactSuccessMessage ?? ""}
                       onChange={(value) => updateEditDraft("contactSuccessMessage", value)}
                       autoComplete="off"
+                    />
+                  </>
+                ) : isHtmlBlock ? (
+                  <>
+                    <InlineStack gap="200" blockAlign="center">
+                      <div style={{ flex: 1 }}>
+                        <RangeSlider
+                          label="Width"
+                          value={editingItem.imageWidth ?? 3}
+                          min={1}
+                          max={12}
+                          onChange={(value) => updateEditDraft("imageWidth", value)}
+                        />
+                      </div>
+                      <div style={{ width: 90 }}>
+                        <TextField
+                          label="Width"
+                          labelHidden
+                          type="number"
+                          value={String(editingItem.imageWidth ?? 3)}
+                          onChange={(value) => {
+                            const next = Number(value);
+                            if (!Number.isFinite(next)) return;
+                            const clamped = Math.max(1, Math.min(12, next));
+                            updateEditDraft("imageWidth", clamped);
+                          }}
+                          suffix="/12"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </InlineStack>
+                    <TextField
+                      label="Title"
+                      value={editingItem.label}
+                      onChange={(value) => updateEditDraft("label", value)}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label="HTML"
+                      value={editingItem.htmlContent ?? ""}
+                      onChange={(value) => updateEditDraft("htmlContent", value)}
+                      autoComplete="off"
+                      multiline={8}
                     />
                   </>
                 ) : isProductBlock ? (
@@ -6344,6 +6487,7 @@ export default function MenuBuilder() {
       group.blockTemplate === "image2" ||
       group.blockTemplate === "links" ||
       group.blockTemplate === "multi" ||
+      group.blockTemplate === "html" ||
       group.blockTemplate === "contact" ||
       group.blockTemplate === "product" ||
       group.blockTemplate === "product-horizontal"
@@ -6361,6 +6505,7 @@ export default function MenuBuilder() {
         group.blockTemplate === "image2" ||
         group.blockTemplate === "links" ||
         group.blockTemplate === "multi" ||
+        group.blockTemplate === "html" ||
         group.blockTemplate === "contact" ||
         group.blockTemplate === "product" ||
         group.blockTemplate === "product-horizontal" ||
@@ -7475,6 +7620,125 @@ export default function MenuBuilder() {
                       }
                       if (group.blockTemplate === "links") {
                         return renderLinkListBlock(group);
+                      }
+                      if (group.blockTemplate === "html") {
+                        const htmlWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
+                        const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
+                        const htmlContent = group.htmlContent ?? "";
+                        const htmlTitle = (group.label ?? "").trim();
+                        const showHtmlTitle =
+                          Boolean(htmlTitle) && htmlTitle.toLowerCase() !== "custom html";
+                        return (
+                          <div
+                            key={group.id}
+                            className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                            draggable
+                            onDragStart={(event) => {
+                              event.dataTransfer.effectAllowed = "move";
+                              event.dataTransfer.setData("text/plain", group.id);
+                              setDraggedItemId(group.id);
+                              const parentId = findParentId(menuItems, group.id);
+                              setDraggedParentId(parentId ?? null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragOver={(event) => {
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              if (draggedItemId === group.id) return;
+                              event.preventDefault();
+                              if (lastDragOverIdRef.current === group.id) return;
+                              lastDragOverIdRef.current = group.id;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              if (!draggedItemId) return;
+                              const targetParentId = findParentId(menuItems, group.id);
+                              if (draggedParentId !== targetParentId) return;
+                              setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            onDragEnd={() => {
+                              setDraggedItemId(null);
+                              setDraggedParentId(null);
+                              lastDragOverIdRef.current = null;
+                            }}
+                            style={{
+                              minHeight: useImageSpaceLayout ? 240 : undefined,
+                              flex: useImageSpaceLayout ? `0 0 ${htmlFlexBasis}` : undefined,
+                              order: useImageSpaceLayout ? 0 : undefined,
+                              border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
+                              padding: "6px",
+                              borderRadius: 0,
+                            }}
+                          >
+                            <div
+                              className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleSelectItem(group.id, true)}
+                                aria-label="Edit item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={EditIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateItem(group.id)}
+                                aria-label="Duplicate item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                              >
+                                <Icon source={DuplicateIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openDeleteItemDialog(group.id)}
+                                aria-label="Delete item"
+                                className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                              >
+                                <Icon source={DeleteIcon} />
+                              </button>
+                            </div>
+                            <div
+                              style={{
+                                border: "1px solid #e5e7eb",
+                                background: "#ffffff",
+                                padding: "16px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 12,
+                              }}
+                            >
+                              {showHtmlTitle ? (
+                                <div
+                                  style={{
+                                    color: previewColors.submenuHeading,
+                                    fontWeight: 600,
+                                    ...subheadingTypography,
+                                    lineHeight: 1.2,
+                                  }}
+                                >
+                                  {htmlTitle}
+                                </div>
+                              ) : null}
+                              <div
+                                style={{
+                                  color: previewColors.submenuText,
+                                  ...descriptionTypography,
+                                  lineHeight: 1.4,
+                                }}
+                                // Intentionally raw to preview embedded content.
+                                dangerouslySetInnerHTML={{
+                                  __html: htmlContent || "Add your custom HTML here.",
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
                       }
                       if (group.blockTemplate === "contact") {
                         const contactWidth = Math.max(1, Math.min(12, group.imageWidth ?? 6));

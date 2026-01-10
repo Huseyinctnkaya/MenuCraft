@@ -494,6 +494,7 @@ type BlockTemplateId =
   | "links-icons"
   | "product"
   | "product-horizontal"
+  | "product-grid"
   | "collection"
   | "blogs"
   | "contact"
@@ -1002,7 +1003,9 @@ export default function MenuBuilder() {
   );
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const apiKey = appData?.apiKey ?? "";
-  const isProPlan = true;
+  const planTier = (appData as { planTier?: string } | null)?.planTier ?? "plus";
+  const isPlusPlan = planTier === "plus";
+  const isProPlan = planTier === "pro" || isPlusPlan;
   const navigate = useNavigate();
   const location = useLocation();
   const saveFetcher = useFetcher<typeof action>();
@@ -1970,9 +1973,9 @@ export default function MenuBuilder() {
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Element Group (Mansory Order)",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => {},
+                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => {},
                 badge: "Plus",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isPlusPlan ? "Select" : "Upgrade to use",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -1991,13 +1994,13 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={
-                          isProPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => {}
+                          isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => {}
                         }
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isPlusPlan ? "Select" : "Upgrade to use"}
                       </Button>
                     </div>
                   </div>
@@ -2664,6 +2667,39 @@ export default function MenuBuilder() {
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
                         Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Product grid",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product.png"
+                      alt="Product grid template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Product grid
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
                       </Button>
                     </div>
                   </div>
@@ -3344,8 +3380,9 @@ export default function MenuBuilder() {
     }
     const isProductListParent =
       role === "item" &&
-      parentItem?.blockTemplate === "product" &&
+      (parentItem?.blockTemplate === "product" || parentItem?.blockTemplate === "product-grid") &&
       Boolean(parentItem.children?.length);
+    const useTopProductLayout = parentItem?.blockTemplate === "product-grid";
     const newItem: MenuItem = isProductListParent
       ? {
           id: buildId(),
@@ -3353,7 +3390,7 @@ export default function MenuBuilder() {
           url: "",
           role: "item",
           blockTemplate: "product",
-          productLayout: "image-left",
+          productLayout: useTopProductLayout ? "image-top" : "image-left",
           productIds: [],
           icon: `${ICON_PREFIX}tag`,
         }
@@ -3682,14 +3719,17 @@ export default function MenuBuilder() {
     return [mapBlock, contactBlock, addressBlock];
   };
 
-  const buildProductListColumnItems = (headingLabel: string) => {
+  const buildProductListColumnItems = (
+    headingLabel: string,
+    productLayout: "image-top" | "image-left" = "image-left"
+  ) => {
     const productItems = Array.from({ length: 4 }, () => ({
       id: buildId(),
       label: "Example Product Title",
       url: "",
       role: "item" as const,
       blockTemplate: "product" as const,
-      productLayout: "image-left" as const,
+      productLayout,
       productIds: [],
       icon: `${ICON_PREFIX}tag`,
     }));
@@ -3705,6 +3745,8 @@ export default function MenuBuilder() {
       ...productItems,
     ];
   };
+
+  const buildProductGridItems = () => buildProductListColumnItems("Heading", "image-top");
 
   const buildMultiBlockFourProductList = () => {
     const headings = Array.from({ length: 4 }, () => "Product list");
@@ -3958,6 +4000,7 @@ export default function MenuBuilder() {
       templateId === "multi-link-list-product-carousel" ||
       templateId === "multi-image-product-carousel" ||
       templateId === "multi-element-group-masonry";
+    const isProductGridTemplate = templateId === "product-grid";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -4027,6 +4070,7 @@ export default function MenuBuilder() {
       "links-icons": "Columns with icons",
       product: "Product",
       "product-horizontal": "Product horizontal",
+      "product-grid": "Product grid",
       collection: "Collection",
       blogs: "Blogs",
       contact: "Contact form",
@@ -4038,6 +4082,7 @@ export default function MenuBuilder() {
       contact: `${ICON_PREFIX}mail`,
       product: `${ICON_PREFIX}tag`,
       "product-horizontal": `${ICON_PREFIX}tag`,
+      "product-grid": `${ICON_PREFIX}tag`,
       html: `${ICON_PREFIX}code`,
     };
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
@@ -4070,30 +4115,33 @@ export default function MenuBuilder() {
           }
         : {};
     const productDefaults =
-      templateId === "product" || templateId === "product-horizontal"
+      templateId === "product" || templateId === "product-horizontal" || templateId === "product-grid"
         ? {
             productLayout: templateId === "product-horizontal" ? "image-left" : "image-top",
-            productWidth: 3,
+            productWidth: templateId === "product-grid" ? 6 : 3,
             productIds: [],
           }
         : {};
+    const newBlockChildren = isLinkListTemplate
+      ? templateId === "links-3"
+        ? buildThreeColumnLinkItems()
+        : templateId === "links-easy"
+          ? buildEasyColumnLinkItems()
+          : templateId === "links-icons"
+            ? buildEasyColumnWithIcons()
+          : buildTwoColumnLinkItems()
+      : isMultiBlockTemplate
+        ? buildMultiBlockLinkGroups()
+        : isProductGridTemplate
+          ? buildProductGridItems()
+          : [];
     const newBlock: MenuItem = {
       id: buildId(),
       label: labelMap[templateId],
       url: "",
       role: "group",
       expanded: false,
-      children: isLinkListTemplate
-        ? templateId === "links-3"
-          ? buildThreeColumnLinkItems()
-          : templateId === "links-easy"
-            ? buildEasyColumnLinkItems()
-            : templateId === "links-icons"
-              ? buildEasyColumnWithIcons()
-            : buildTwoColumnLinkItems()
-        : isMultiBlockTemplate
-          ? buildMultiBlockLinkGroups()
-          : [],
+      children: newBlockChildren,
       blockTemplate: resolvedBlockTemplate,
       icon: iconMap[templateId],
       description: descriptionMap[templateId],
@@ -4355,10 +4403,14 @@ export default function MenuBuilder() {
     const isContactBlock = item.role === "group" && item.blockTemplate === "contact";
     const isHtmlBlock = item.role === "group" && item.blockTemplate === "html";
     const isProductListBlock =
-      item.role === "group" && item.blockTemplate === "product" && Boolean(item.children?.length);
+      item.role === "group" &&
+      (item.blockTemplate === "product" || item.blockTemplate === "product-grid") &&
+      Boolean(item.children?.length);
     const isProductBlock =
       item.role === "group" &&
-      (item.blockTemplate === "product" || item.blockTemplate === "product-horizontal") &&
+      (item.blockTemplate === "product" ||
+        item.blockTemplate === "product-horizontal" ||
+        item.blockTemplate === "product-grid") &&
       !isProductListBlock;
     const isVisualBlock = isImageBlock || isContactBlock || isProductBlock || isHtmlBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
@@ -4570,14 +4622,15 @@ export default function MenuBuilder() {
       const isContactBlock = editingItem.blockTemplate === "contact";
       const isLinkListBlock = editingItem.blockTemplate === "links";
       const isProductListBlock =
-        editingItem.blockTemplate === "product" &&
+        (editingItem.blockTemplate === "product" || editingItem.blockTemplate === "product-grid") &&
         editingItem.role === "group" &&
         Boolean(editingItem.children?.length);
       const isProductItem =
         editingItem.blockTemplate === "product" && editingItem.role === "item";
       const isProductBlock =
         (editingItem.blockTemplate === "product-horizontal" ||
-          (editingItem.blockTemplate === "product" && editingItem.role === "group")) &&
+          ((editingItem.blockTemplate === "product" || editingItem.blockTemplate === "product-grid") &&
+            editingItem.role === "group")) &&
         !isProductListBlock;
       const isHtmlBlock = editingItem.blockTemplate === "html";
       const isVisualBlock =
@@ -7312,19 +7365,31 @@ export default function MenuBuilder() {
       group.multiLayout === "multi-link-list-product-carousel" ||
       group.multiLayout === "multi-image-product-carousel" ||
       group.multiLayout === "multi-element-group-masonry";
+    const isProductGrid = group.blockTemplate === "product-grid";
     const productLayout = isCarouselLayout
       ? "image-top"
-      : group.children?.length
+      : group.children?.length && !isProductGrid
         ? "image-left"
         : group.productLayout ??
           (group.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
     const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
-    const resolvedProductFlexBasis =
-      group.blockTemplate === "product-horizontal" ? "33%" : productFlexBasis;
     const productPreviewHeight = useImageSpaceLayout ? 220 : 150;
     const isMultiLayout = Boolean(group.multiLayout);
+    const isStandaloneProduct =
+      group.blockTemplate === "product" &&
+      !group.children?.length &&
+      !isCarouselLayout &&
+      !isMultiLayout;
+    const resolvedProductFlexBasis =
+      group.blockTemplate === "product-horizontal"
+        ? "33%"
+        : isStandaloneProduct
+          ? "20%"
+          : productFlexBasis;
     const isProductListGroup =
-      group.blockTemplate === "product" && Boolean(group.children?.length) && !isCarouselLayout;
+      (group.blockTemplate === "product" || isProductGrid) &&
+      Boolean(group.children?.length) &&
+      !isCarouselLayout;
     const productItems = group.children ?? [];
     const headingItem = isProductListGroup ? productItems.find((child) => child.isHeading) : null;
     const productHeading = isProductListGroup
@@ -7390,7 +7455,9 @@ export default function MenuBuilder() {
           animation: "menucraftCarouselFade 180ms ease",
         }
       : isProductListGroup
-        ? { display: "grid", gap: 16 }
+        ? isProductGrid
+          ? { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }
+          : { display: "grid", gap: 16 }
         : productLayout === "image-top" && displayProducts.length > 1
           ? {
               display: "grid",
@@ -7875,7 +7942,8 @@ export default function MenuBuilder() {
       group.blockTemplate === "html" ||
       group.blockTemplate === "contact" ||
       group.blockTemplate === "product" ||
-      group.blockTemplate === "product-horizontal"
+      group.blockTemplate === "product-horizontal" ||
+      group.blockTemplate === "product-grid"
   ).length;
   const linkBlockCount = dropdownGroups.filter(
     (group) => group.blockTemplate === "links" || group.blockTemplate === "multi"
@@ -7894,6 +7962,7 @@ export default function MenuBuilder() {
         group.blockTemplate === "contact" ||
         group.blockTemplate === "product" ||
         group.blockTemplate === "product-horizontal" ||
+        group.blockTemplate === "product-grid" ||
         group.blockTemplate === "space"
     );
   const useBlockFlexLayout =
@@ -8631,7 +8700,8 @@ export default function MenuBuilder() {
                               a.blockTemplate === "image2" ||
                               a.blockTemplate === "contact" ||
                               a.blockTemplate === "product" ||
-                              a.blockTemplate === "product-horizontal"
+                              a.blockTemplate === "product-horizontal" ||
+                              a.blockTemplate === "product-grid"
                                 ? 0
                                 : 1;
                             const bPriority =
@@ -8639,7 +8709,8 @@ export default function MenuBuilder() {
                               b.blockTemplate === "image2" ||
                               b.blockTemplate === "contact" ||
                               b.blockTemplate === "product" ||
-                              b.blockTemplate === "product-horizontal"
+                              b.blockTemplate === "product-horizontal" ||
+                              b.blockTemplate === "product-grid"
                                 ? 0
                                 : 1;
                             return aPriority - bPriority;
@@ -9271,7 +9342,8 @@ export default function MenuBuilder() {
                       }
                       if (
                         group.blockTemplate === "product" ||
-                        group.blockTemplate === "product-horizontal"
+                        group.blockTemplate === "product-horizontal" ||
+                        group.blockTemplate === "product-grid"
                       ) {
                         return renderProductBlock(group);
                       }

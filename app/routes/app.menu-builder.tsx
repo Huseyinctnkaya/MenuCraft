@@ -2684,7 +2684,7 @@ export default function MenuBuilder() {
                 preview: (
                   <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
-                      src="/product.png"
+                      src="/product-grid.png"
                       alt="Product grid template"
                       className="h-full w-full object-contain"
                     />
@@ -4118,7 +4118,7 @@ export default function MenuBuilder() {
       templateId === "product" || templateId === "product-horizontal" || templateId === "product-grid"
         ? {
             productLayout: templateId === "product-horizontal" ? "image-left" : "image-top",
-            productWidth: templateId === "product-grid" ? 6 : 3,
+            productWidth: templateId === "product-grid" ? 4 : 3,
             productIds: [],
           }
         : {};
@@ -7375,17 +7375,14 @@ export default function MenuBuilder() {
     const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
     const productPreviewHeight = useImageSpaceLayout ? 220 : 150;
     const isMultiLayout = Boolean(group.multiLayout);
-    const isStandaloneProduct =
-      group.blockTemplate === "product" &&
-      !group.children?.length &&
-      !isCarouselLayout &&
-      !isMultiLayout;
     const resolvedProductFlexBasis =
       group.blockTemplate === "product-horizontal"
         ? "33%"
-        : isStandaloneProduct
-          ? "20%"
-          : productFlexBasis;
+        : group.blockTemplate === "product-grid"
+          ? productFlexBasis
+          : !isCarouselLayout
+            ? "20%"
+            : productFlexBasis;
     const isProductListGroup =
       (group.blockTemplate === "product" || isProductGrid) &&
       Boolean(group.children?.length) &&

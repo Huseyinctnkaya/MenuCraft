@@ -462,7 +462,9 @@ type MenuItem = {
     | "multi-map-contact-address"
     | "multi-4-product-list"
     | "multi-1-column-3-product-list"
-    | "multi-product-carousel";
+    | "multi-product-carousel"
+    | "multi-link-list-product-carousel"
+    | "multi-image-product-carousel";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -478,6 +480,8 @@ type BlockTemplateId =
   | "multi-4-product-list"
   | "multi-1-column-3-product-list"
   | "multi-product-carousel"
+  | "multi-link-list-product-carousel"
+  | "multi-image-product-carousel"
   | "multi-4-product-list"
   | "tabs"
   | "image"
@@ -1846,7 +1850,7 @@ export default function MenuBuilder() {
                       alt="Space template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Space
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -1942,7 +1946,7 @@ export default function MenuBuilder() {
                   alt="Space template"
                   className="h-full w-full object-contain"
                 />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                   Space
                 </div>
                 <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -1976,7 +1980,7 @@ export default function MenuBuilder() {
                       alt="Multi block link list template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Link list
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2007,7 +2011,7 @@ export default function MenuBuilder() {
                       alt="3 columns + 1 photo template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       3 columns + 1 photo
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2038,7 +2042,7 @@ export default function MenuBuilder() {
                       alt="2 columns + 2 photos template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       2 columns + 2 photos
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2069,7 +2073,7 @@ export default function MenuBuilder() {
                       alt="1 column + 3 photos template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       1 column + 3 photos
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2100,7 +2104,7 @@ export default function MenuBuilder() {
                       alt="4 images template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       4 images
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2131,7 +2135,7 @@ export default function MenuBuilder() {
                       alt="4 products template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       4 products
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2162,7 +2166,7 @@ export default function MenuBuilder() {
                       alt="Map + contact + address template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Map + contact + address
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2195,7 +2199,7 @@ export default function MenuBuilder() {
                       alt="4 product list template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       4 product list
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2228,7 +2232,7 @@ export default function MenuBuilder() {
                       alt="1 link list + 3 product list template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       1 link list + 3 product list
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2263,13 +2267,83 @@ export default function MenuBuilder() {
                       alt="Product carousel template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Product carousel
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
                         onClick={isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "1 link list + product carousel",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/1link-list+product-carousel.png"
+                      alt="1 link list + product carousel template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      1 link list + product carousel
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={
+                          isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => {}
+                        }
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Image + product carousel",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/image+product-carousel.png"
+                      alt="Image + product carousel template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Image + product carousel
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={
+                          isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => {}
+                        }
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -2314,7 +2388,7 @@ export default function MenuBuilder() {
                       alt="Image 1 template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Image 1
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2345,7 +2419,7 @@ export default function MenuBuilder() {
                       alt="Image 2 template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Image 2
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2381,7 +2455,7 @@ export default function MenuBuilder() {
                       alt="Link list (2 columns) template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Link list (2 columns)
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2412,7 +2486,7 @@ export default function MenuBuilder() {
                       alt="Link list (3 columns) template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Link list (3 columns)
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2443,7 +2517,7 @@ export default function MenuBuilder() {
                       alt="Easy column template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Easy column
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2474,7 +2548,7 @@ export default function MenuBuilder() {
                       alt="Columns with icons template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Columns with icons
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2510,7 +2584,7 @@ export default function MenuBuilder() {
                       alt="Product template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Product
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2541,7 +2615,7 @@ export default function MenuBuilder() {
                       alt="Product horizontal template"
                       className="h-full w-full object-contain"
                     />
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                       Product horizontal
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -2598,7 +2672,7 @@ export default function MenuBuilder() {
                   alt="Contact form template"
                   className="h-full w-full object-contain"
                 />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                   Contact form
                 </div>
                 <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -3665,6 +3739,85 @@ export default function MenuBuilder() {
     })),
   });
 
+  const buildMultiBlockLinkListProductCarousel = () => {
+    const linkGroup: MenuItem = {
+      id: buildId(),
+      label: "Link list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "links",
+      multiLayout: "multi-link-list-product-carousel",
+      linkColumns: 1,
+      linkWidth: 3,
+      linkTextAlign: "left",
+      children: buildSingleColumnLinkItems(),
+    };
+    const carouselGroup: MenuItem = {
+      id: buildId(),
+      label: "Product carousel",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "product",
+      multiLayout: "multi-link-list-product-carousel",
+      productLayout: "image-top",
+      productWidth: 9,
+      productIds: [],
+      children: Array.from({ length: 8 }, () => ({
+        id: buildId(),
+        label: "Example Product Title",
+        url: "",
+        role: "item",
+        blockTemplate: "product",
+        productLayout: "image-top",
+        productIds: [],
+        icon: `${ICON_PREFIX}tag`,
+      })),
+    };
+    return [linkGroup, carouselGroup];
+  };
+
+  const buildMultiBlockImageProductCarousel = () => {
+    const imageGroup: MenuItem = {
+      id: buildId(),
+      label: "Image title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "image",
+      multiLayout: "multi-image-product-carousel",
+      icon: `${ICON_PREFIX}image`,
+      description: "",
+      imageWidth: 3,
+      imageNoFill: false,
+      imageTextAlign: "left",
+    };
+    const carouselGroup: MenuItem = {
+      id: buildId(),
+      label: "Product carousel",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "product",
+      multiLayout: "multi-image-product-carousel",
+      productLayout: "image-top",
+      productWidth: 9,
+      productIds: [],
+      children: Array.from({ length: 8 }, () => ({
+        id: buildId(),
+        label: "Example Product Title",
+        url: "",
+        role: "item",
+        blockTemplate: "product",
+        productLayout: "image-top",
+        productIds: [],
+        icon: `${ICON_PREFIX}tag`,
+      })),
+    };
+    return [imageGroup, carouselGroup];
+  };
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3713,7 +3866,9 @@ export default function MenuBuilder() {
       templateId === "multi-map-contact-address" ||
       templateId === "multi-4-product-list" ||
       templateId === "multi-1-column-3-product-list" ||
-      templateId === "multi-product-carousel";
+      templateId === "multi-product-carousel" ||
+      templateId === "multi-link-list-product-carousel" ||
+      templateId === "multi-image-product-carousel";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -3734,6 +3889,10 @@ export default function MenuBuilder() {
                     ? buildMultiBlockOneColumnThreeProductList()
                     : templateId === "multi-product-carousel"
                       ? [buildMultiBlockProductCarousel()]
+                      : templateId === "multi-link-list-product-carousel"
+                        ? buildMultiBlockLinkListProductCarousel()
+                        : templateId === "multi-image-product-carousel"
+                          ? buildMultiBlockImageProductCarousel()
                       : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -3765,6 +3924,8 @@ export default function MenuBuilder() {
       "multi-4-product-list": "4 product list",
       "multi-1-column-3-product-list": "1 link list + 3 product list",
       "multi-product-carousel": "Product carousel",
+      "multi-link-list-product-carousel": "1 link list + product carousel",
+      "multi-image-product-carousel": "Image + product carousel",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",
@@ -8423,7 +8584,10 @@ export default function MenuBuilder() {
                         group.blockTemplate === "product-horizontal"
                       ) {
                         const productWidth = Math.max(1, Math.min(12, group.productWidth ?? 3));
-                        const isCarouselLayout = group.multiLayout === "multi-product-carousel";
+                        const isCarouselLayout =
+                          group.multiLayout === "multi-product-carousel" ||
+                          group.multiLayout === "multi-link-list-product-carousel" ||
+                          group.multiLayout === "multi-image-product-carousel";
                         const productLayout = isCarouselLayout
                           ? "image-top"
                           : group.children?.length

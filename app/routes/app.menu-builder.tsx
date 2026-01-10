@@ -464,7 +464,8 @@ type MenuItem = {
     | "multi-1-column-3-product-list"
     | "multi-product-carousel"
     | "multi-link-list-product-carousel"
-    | "multi-image-product-carousel";
+    | "multi-image-product-carousel"
+    | "multi-element-group-masonry";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -482,6 +483,7 @@ type BlockTemplateId =
   | "multi-product-carousel"
   | "multi-link-list-product-carousel"
   | "multi-image-product-carousel"
+  | "multi-element-group-masonry"
   | "multi-4-product-list"
   | "tabs"
   | "image"
@@ -2354,6 +2356,41 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "Element Group (Mansory Order)",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product-carousel.png"
+                      alt="Element Group (Mansory Order) template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Element Group (Mansory Order)
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={
+                          isProPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => {}
+                        }
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "tabs":
@@ -3818,6 +3855,57 @@ export default function MenuBuilder() {
     return [imageGroup, carouselGroup];
   };
 
+  const buildMultiBlockElementGroupMasonry = () => {
+    const carouselGroup: MenuItem = {
+      id: buildId(),
+      label: "Product carousel",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "product",
+      multiLayout: "multi-element-group-masonry",
+      productLayout: "image-top",
+      productWidth: 6,
+      productIds: [],
+      children: Array.from({ length: 8 }, () => ({
+        id: buildId(),
+        label: "Example Product Title",
+        url: "",
+        role: "item",
+        blockTemplate: "product",
+        productLayout: "image-top",
+        productIds: [],
+        icon: `${ICON_PREFIX}tag`,
+      })),
+    };
+    const linkGroup = () => ({
+      id: buildId(),
+      label: "Link list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "links" as const,
+      multiLayout: "multi-element-group-masonry" as const,
+      linkColumns: 1,
+      linkWidth: 3,
+      linkTextAlign: "left" as const,
+      children: buildSingleColumnLinkItems(),
+    });
+    const textGroup: MenuItem = {
+      id: buildId(),
+      label: "Heading",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "html",
+      multiLayout: "multi-element-group-masonry",
+      htmlContent:
+        "The Current Culture Marketplace<br/>Our mission is to provide the world’s most curated collection of sneakers, apparel, collectibles, trading cards and more.",
+      imageWidth: 6,
+    };
+    return [carouselGroup, linkGroup(), linkGroup(), textGroup];
+  };
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3868,7 +3956,8 @@ export default function MenuBuilder() {
       templateId === "multi-1-column-3-product-list" ||
       templateId === "multi-product-carousel" ||
       templateId === "multi-link-list-product-carousel" ||
-      templateId === "multi-image-product-carousel";
+      templateId === "multi-image-product-carousel" ||
+      templateId === "multi-element-group-masonry";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -3889,10 +3978,12 @@ export default function MenuBuilder() {
                     ? buildMultiBlockOneColumnThreeProductList()
                     : templateId === "multi-product-carousel"
                       ? [buildMultiBlockProductCarousel()]
-                      : templateId === "multi-link-list-product-carousel"
-                        ? buildMultiBlockLinkListProductCarousel()
-                        : templateId === "multi-image-product-carousel"
-                          ? buildMultiBlockImageProductCarousel()
+                    : templateId === "multi-link-list-product-carousel"
+                      ? buildMultiBlockLinkListProductCarousel()
+                      : templateId === "multi-image-product-carousel"
+                        ? buildMultiBlockImageProductCarousel()
+                        : templateId === "multi-element-group-masonry"
+                          ? buildMultiBlockElementGroupMasonry()
                       : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -3926,6 +4017,7 @@ export default function MenuBuilder() {
       "multi-product-carousel": "Product carousel",
       "multi-link-list-product-carousel": "1 link list + product carousel",
       "multi-image-product-carousel": "Image + product carousel",
+      "multi-element-group-masonry": "Element Group (Mansory Order)",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",
@@ -8244,6 +8336,12 @@ export default function MenuBuilder() {
                         const htmlTitle = (group.label ?? "").trim();
                         const showHtmlTitle =
                           Boolean(htmlTitle) && htmlTitle.toLowerCase() !== "custom html";
+                        const htmlMinHeight =
+                          useImageSpaceLayout && group.multiLayout !== "multi-element-group-masonry"
+                            ? 240
+                            : undefined;
+                        const htmlMarginTop =
+                          group.multiLayout === "multi-element-group-masonry" ? -12 : undefined;
                         return (
                           <div
                             key={group.id}
@@ -8285,10 +8383,11 @@ export default function MenuBuilder() {
                               lastDragOverIdRef.current = null;
                             }}
                             style={{
-                              minHeight: useImageSpaceLayout ? 240 : undefined,
+                              minHeight: htmlMinHeight,
                               flex: useImageSpaceLayout ? `0 0 ${htmlFlexBasis}` : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
+                              marginTop: htmlMarginTop,
                               padding: "6px",
                               borderRadius: 0,
                             }}
@@ -8587,7 +8686,8 @@ export default function MenuBuilder() {
                         const isCarouselLayout =
                           group.multiLayout === "multi-product-carousel" ||
                           group.multiLayout === "multi-link-list-product-carousel" ||
-                          group.multiLayout === "multi-image-product-carousel";
+                          group.multiLayout === "multi-image-product-carousel" ||
+                          group.multiLayout === "multi-element-group-masonry";
                         const productLayout = isCarouselLayout
                           ? "image-top"
                           : group.children?.length

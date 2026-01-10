@@ -461,7 +461,8 @@ type MenuItem = {
     | "multi-4-products"
     | "multi-map-contact-address"
     | "multi-4-product-list"
-    | "multi-1-column-3-product-list";
+    | "multi-1-column-3-product-list"
+    | "multi-product-carousel";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -476,6 +477,7 @@ type BlockTemplateId =
   | "multi-map-contact-address"
   | "multi-4-product-list"
   | "multi-1-column-3-product-list"
+  | "multi-product-carousel"
   | "multi-4-product-list"
   | "tabs"
   | "image"
@@ -1129,6 +1131,7 @@ export default function MenuBuilder() {
   const [productPickerSearch, setProductPickerSearch] = useState("");
   const [productPickerSelection, setProductPickerSelection] = useState<Record<string, boolean>>({});
   const [productPickerTargetId, setProductPickerTargetId] = useState<string | null>(null);
+  const [productCarouselPageById, setProductCarouselPageById] = useState<Record<string, number>>({});
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
   const [submenuTemplateTargetId, setSubmenuTemplateTargetId] = useState<string | null>(null);
@@ -2234,6 +2237,39 @@ export default function MenuBuilder() {
                         onClick={
                           isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => {}
                         }
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Product carousel",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product-carousel.png"
+                      alt="Product carousel template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Product carousel
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -3606,6 +3642,29 @@ export default function MenuBuilder() {
     return [linkGroup, ...productGroups];
   };
 
+  const buildMultiBlockProductCarousel = () => ({
+    id: buildId(),
+    label: "Product carousel",
+    url: "",
+    role: "group",
+    expanded: false,
+    blockTemplate: "product" as const,
+    multiLayout: "multi-product-carousel" as const,
+    productLayout: "image-top" as const,
+    productWidth: 12,
+    productIds: [],
+    children: Array.from({ length: 8 }, () => ({
+      id: buildId(),
+      label: "Example Product Title",
+      url: "",
+      role: "item" as const,
+      blockTemplate: "product" as const,
+      productLayout: "image-top" as const,
+      productIds: [],
+      icon: `${ICON_PREFIX}tag`,
+    })),
+  });
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3653,7 +3712,8 @@ export default function MenuBuilder() {
       templateId === "multi-4-products" ||
       templateId === "multi-map-contact-address" ||
       templateId === "multi-4-product-list" ||
-      templateId === "multi-1-column-3-product-list";
+      templateId === "multi-1-column-3-product-list" ||
+      templateId === "multi-product-carousel";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -3672,7 +3732,9 @@ export default function MenuBuilder() {
                   ? buildMultiBlockFourProductList()
                   : templateId === "multi-1-column-3-product-list"
                     ? buildMultiBlockOneColumnThreeProductList()
-                    : buildMultiBlockLinkGroups();
+                    : templateId === "multi-product-carousel"
+                      ? [buildMultiBlockProductCarousel()]
+                      : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
           ...item,
@@ -3702,6 +3764,7 @@ export default function MenuBuilder() {
       "multi-map-contact-address": "Map + contact + address",
       "multi-4-product-list": "4 product list",
       "multi-1-column-3-product-list": "1 link list + 3 product list",
+      "multi-product-carousel": "Product carousel",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",
@@ -7105,6 +7168,20 @@ export default function MenuBuilder() {
           </Text>
         </Modal.Section>
       </Modal>
+      <style>
+        {`
+          @keyframes menucraftCarouselFade {
+            from {
+              opacity: 0;
+              transform: translateX(8px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+        `}
+      </style>
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <InlineStack align="space-between" blockAlign="center" gap="400">
           <InlineStack gap="300" blockAlign="center">
@@ -8346,8 +8423,10 @@ export default function MenuBuilder() {
                         group.blockTemplate === "product-horizontal"
                       ) {
                         const productWidth = Math.max(1, Math.min(12, group.productWidth ?? 3));
-                        const productLayout =
-                          group.children?.length
+                        const isCarouselLayout = group.multiLayout === "multi-product-carousel";
+                        const productLayout = isCarouselLayout
+                          ? "image-top"
+                          : group.children?.length
                             ? "image-left"
                             : group.productLayout ??
                               (group.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
@@ -8357,8 +8436,8 @@ export default function MenuBuilder() {
                         const productPreviewHeight = useImageSpaceLayout ? 220 : 150;
                         const isMultiLayout = Boolean(group.multiLayout);
                         const isProductListGroup =
-                          group.blockTemplate === "product" && Boolean(group.children?.length);
-                        const productItems = isProductListGroup ? group.children ?? [] : [];
+                          group.blockTemplate === "product" && Boolean(group.children?.length) && !isCarouselLayout;
+                        const productItems = group.children ?? [];
                         const headingItem = isProductListGroup
                           ? productItems.find((child) => child.isHeading)
                           : null;
@@ -8367,8 +8446,11 @@ export default function MenuBuilder() {
                           : group.label?.trim() ?? "";
                         const showProductHeading = isProductListGroup
                           ? Boolean(productHeading)
-                          : Boolean(group.productListCount) && Boolean(productHeading);
-                        const selectedProductIds = isProductListGroup ? [] : group.productIds ?? [];
+                          : isCarouselLayout
+                            ? Boolean(productHeading)
+                            : Boolean(group.productListCount) && Boolean(productHeading);
+                        const selectedProductIds =
+                          isProductListGroup || isCarouselLayout ? [] : group.productIds ?? [];
                         const selectedProducts = selectedProductIds
                           .map((id) => products.find((product) => product.id === id))
                           .filter((product): product is ProductSummary => Boolean(product));
@@ -8376,28 +8458,67 @@ export default function MenuBuilder() {
                         const limitedProducts = productListCount
                           ? selectedProducts.slice(0, productListCount)
                           : selectedProducts;
-                        const displayProducts = isProductListGroup
-                          ? productItems
-                              .filter((child) => !child.isHeading)
-                              .map((child) => ({
-                                child,
-                                product: products.find((product) => product.id === child.productIds?.[0]) ?? null,
-                              }))
-                          : (limitedProducts.length
-                              ? limitedProducts
-                              : productListCount > 0
-                                ? Array.from({ length: productListCount }, () => null)
-                                : [null]
-                            ).map((product) => ({ product }));
-                        const cardGridStyle = isProductListGroup
-                          ? { display: "grid", gap: 16 }
-                          : productLayout === "image-top" && displayProducts.length > 1
-                            ? {
-                                display: "grid",
-                                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                                gap: 16,
-                              }
-                            : { display: "grid", gap: 16 };
+                        const carouselItems = isCarouselLayout
+                          ? productItems.filter((child) => !child.isHeading)
+                          : [];
+                        const carouselSourceItems =
+                          isCarouselLayout && carouselItems.length === 0
+                            ? Array.from({ length: 8 }, () => null)
+                            : carouselItems;
+                        const carouselProducts = isCarouselLayout
+                          ? carouselSourceItems.map((child) => ({
+                              child: child ?? undefined,
+                              product: child
+                                ? products.find((product) => product.id === child.productIds?.[0]) ?? null
+                                : null,
+                            }))
+                          : [];
+                        const carouselPageSize = 4;
+                        const carouselPageCount = Math.max(
+                          1,
+                          Math.ceil(carouselProducts.length / carouselPageSize)
+                        );
+                        const carouselPage = Math.min(
+                          productCarouselPageById[group.id] ?? 0,
+                          carouselPageCount - 1
+                        );
+                        const carouselStartIndex = carouselPage * carouselPageSize;
+                        const carouselPageItems = carouselProducts.slice(
+                          carouselStartIndex,
+                          carouselStartIndex + carouselPageSize
+                        );
+                        const displayProducts = isCarouselLayout
+                          ? carouselPageItems
+                          : isProductListGroup
+                            ? productItems
+                                .filter((child) => !child.isHeading)
+                                .map((child) => ({
+                                  child,
+                                  product:
+                                    products.find((product) => product.id === child.productIds?.[0]) ?? null,
+                                }))
+                            : (limitedProducts.length
+                                ? limitedProducts
+                                : productListCount > 0
+                                  ? Array.from({ length: productListCount }, () => null)
+                                  : [null]
+                              ).map((product) => ({ product }));
+                        const cardGridStyle = isCarouselLayout
+                          ? {
+                              display: "grid",
+                              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                              gap: 16,
+                              animation: "menucraftCarouselFade 180ms ease",
+                            }
+                          : isProductListGroup
+                            ? { display: "grid", gap: 16 }
+                            : productLayout === "image-top" && displayProducts.length > 1
+                              ? {
+                                  display: "grid",
+                                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                                  gap: 16,
+                                }
+                              : { display: "grid", gap: 16 };
                         return (
                           <div
                             key={group.id}
@@ -8504,8 +8625,19 @@ export default function MenuBuilder() {
                                   />
                                 </>
                               ) : null}
-                              <div style={cardGridStyle}>
-                                {displayProducts.map(({ product, child }, index) => {
+                              <div
+                                style={{
+                                  position: "relative",
+                                  paddingBottom:
+                                    isCarouselLayout && carouselPageCount > 1 ? 28 : undefined,
+                                }}
+                              >
+                                <div
+                                  key={isCarouselLayout ? `${group.id}-page-${carouselPage}` : undefined}
+                                  style={cardGridStyle}
+                                >
+                                  {displayProducts.map(({ product, child }, index) => {
+                                  const placeholderKey = `${group.id}-placeholder-${carouselStartIndex + index}`;
                                   const title =
                                     product?.title ?? child?.label ?? "Example Product Title";
                                   const imageSrc = product?.featuredImage?.url;
@@ -8581,7 +8713,7 @@ export default function MenuBuilder() {
                                   }
                                   return (
                                     <div
-                                      key={child?.id ?? product?.id ?? `placeholder-${index}`}
+                                      key={child?.id ?? product?.id ?? placeholderKey}
                                       style={{
                                         display: "flex",
                                         flexDirection: isImageLeft ? "row" : "column",
@@ -8666,6 +8798,112 @@ export default function MenuBuilder() {
                                     </div>
                                   );
                                 })}
+                                </div>
+                                {isCarouselLayout && carouselPageCount > 1 ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setProductCarouselPageById((prev) => ({
+                                          ...prev,
+                                          [group.id]: Math.max(0, carouselPage - 1),
+                                        }))
+                                      }
+                                      disabled={carouselPage === 0}
+                                      aria-label="Previous slide"
+                                      style={{
+                                        position: "absolute",
+                                        top: "50%",
+                                        left: 8,
+                                        transform: "translateY(-50%)",
+                                        width: 32,
+                                        height: 32,
+                                        borderRadius: 6,
+                                        border: "1px solid #cbd5e1",
+                                        background: "#ffffff",
+                                        color: "#111827",
+                                        cursor: carouselPage === 0 ? "not-allowed" : "pointer",
+                                        opacity: carouselPage === 0 ? 0.4 : 1,
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: 16,
+                                        lineHeight: 1,
+                                        pointerEvents: "auto",
+                                      }}
+                                    >
+                                      {"<"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setProductCarouselPageById((prev) => ({
+                                          ...prev,
+                                          [group.id]: Math.min(carouselPageCount - 1, carouselPage + 1),
+                                        }))
+                                      }
+                                      disabled={carouselPage >= carouselPageCount - 1}
+                                      aria-label="Next slide"
+                                      style={{
+                                        position: "absolute",
+                                        top: "50%",
+                                        right: 8,
+                                        transform: "translateY(-50%)",
+                                        width: 32,
+                                        height: 32,
+                                        borderRadius: 6,
+                                        border: "1px solid #cbd5e1",
+                                        background: "#ffffff",
+                                        color: "#111827",
+                                        cursor: carouselPage >= carouselPageCount - 1 ? "not-allowed" : "pointer",
+                                        opacity: carouselPage >= carouselPageCount - 1 ? 0.4 : 1,
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: 16,
+                                        lineHeight: 1,
+                                        pointerEvents: "auto",
+                                      }}
+                                    >
+                                      {">"}
+                                    </button>
+                                    <div
+                                      style={{
+                                        position: "absolute",
+                                        left: "50%",
+                                        bottom: 4,
+                                        transform: "translateX(-50%)",
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        gap: 8,
+                                      }}
+                                    >
+                                      {Array.from({ length: carouselPageCount }).map((_, dotIndex) => (
+                                        <button
+                                          key={`${group.id}-dot-${dotIndex}`}
+                                          type="button"
+                                          onClick={() =>
+                                            setProductCarouselPageById((prev) => ({
+                                              ...prev,
+                                              [group.id]: dotIndex,
+                                            }))
+                                          }
+                                          aria-label={`Go to slide ${dotIndex + 1}`}
+                                          style={{
+                                            width: 8,
+                                            height: 8,
+                                            borderRadius: 9999,
+                                            border: "none",
+                                            background:
+                                              dotIndex === carouselPage ? "#111827" : "rgba(148, 163, 184, 0.6)",
+                                            cursor: "pointer",
+                                            padding: 0,
+                                          }}
+                                        />
+                                      ))}
+                                    </div>
+                                  </>
+                                ) : null}
                               </div>
                             </div>
                           </div>

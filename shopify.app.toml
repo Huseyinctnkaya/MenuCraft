@@ -2,7 +2,7 @@
 
 client_id = "e458d01dd187d4941bb99548a78e9421"
 name = "MenuCraft"
-application_url = "https://river-netscape-cordless-put.trycloudflare.com"
+application_url = "https://mike-engaging-sega-radar.trycloudflare.com"
 embedded = true
 
 [build]
@@ -11,7 +11,7 @@ dev_store_url = "mega-menu-test-2.myshopify.com"
 include_config_on_deploy = true
 
 [app_proxy]
-url = "https://river-netscape-cordless-put.trycloudflare.com/proxy"
+url = "https://mike-engaging-sega-radar.trycloudflare.com/proxy"
 subpath = "menucraft"
 prefix = "apps"
 
@@ -38,5 +38,5 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://river-netscape-cordless-put.trycloudflare.com/auth/callback"
+  "https://mike-engaging-sega-radar.trycloudflare.com/auth/callback"
 ]

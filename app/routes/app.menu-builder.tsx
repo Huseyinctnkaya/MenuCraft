@@ -460,7 +460,8 @@ type MenuItem = {
     | "multi-4-images"
     | "multi-4-products"
     | "multi-map-contact-address"
-    | "multi-4-product-list";
+    | "multi-4-product-list"
+    | "multi-1-column-3-product-list";
 };
 
 type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
@@ -474,6 +475,7 @@ type BlockTemplateId =
   | "multi-4-products"
   | "multi-map-contact-address"
   | "multi-4-product-list"
+  | "multi-1-column-3-product-list"
   | "multi-4-product-list"
   | "tabs"
   | "image"
@@ -2207,6 +2209,41 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              {renderBlockTemplatePreviewCard({
+                title: "1 link list + 3 product list",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/1link-list+3product-columns.png"
+                      alt="1 link list + 3 product list template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      1 link list + 3 product list
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={
+                          isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => {}
+                        }
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
             </div>
           );
         case "tabs":
@@ -3239,6 +3276,35 @@ export default function MenuBuilder() {
     ];
   };
 
+  const buildSingleColumnLinkItems = () => {
+    const defaultItemLabels = [
+      "Menu item 1",
+      "Menu item 2",
+      "Menu item 3",
+      "Menu item 4",
+      "Menu item 5",
+      "Menu item 6",
+      "Menu item 7",
+    ];
+    return [
+      {
+        id: buildId(),
+        label: "Heading",
+        url: "",
+        role: "item",
+        isHeading: true,
+        description: "",
+      },
+      ...defaultItemLabels.map((label) => ({
+        id: buildId(),
+        label,
+        url: "/",
+        role: "item",
+        description: "",
+      })),
+    ];
+  };
+
   const buildEasyColumnWithIcons = () => {
     const [firstIcon, secondIcon] = (() => {
       if (!ICON_LIBRARY.length) return [undefined, undefined];
@@ -3510,6 +3576,36 @@ export default function MenuBuilder() {
     }));
   };
 
+  const buildMultiBlockOneColumnThreeProductList = () => {
+    const linkGroup: MenuItem = {
+      id: buildId(),
+      label: "Link list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "links",
+      multiLayout: "multi-1-column-3-product-list",
+      linkColumns: 1,
+      linkWidth: 2,
+      linkTextAlign: "left",
+      children: buildSingleColumnLinkItems(),
+    };
+    const productGroups = Array.from({ length: 3 }, () => ({
+      id: buildId(),
+      label: "Product list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "product" as const,
+      multiLayout: "multi-1-column-3-product-list" as const,
+      productLayout: "image-left" as const,
+      productWidth: 3,
+      productIds: [],
+      children: buildProductListColumnItems("Product list"),
+    }));
+    return [linkGroup, ...productGroups];
+  };
+
   const buildThreeColumnLinkItems = () => {
     const defaultItemLabels = [
       "Menu item 1",
@@ -3556,7 +3652,8 @@ export default function MenuBuilder() {
       templateId === "multi-4-images" ||
       templateId === "multi-4-products" ||
       templateId === "multi-map-contact-address" ||
-      templateId === "multi-4-product-list";
+      templateId === "multi-4-product-list" ||
+      templateId === "multi-1-column-3-product-list";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -3573,7 +3670,9 @@ export default function MenuBuilder() {
                 ? buildMultiBlockMapContactAddress()
                 : templateId === "multi-4-product-list"
                   ? buildMultiBlockFourProductList()
-                  : buildMultiBlockLinkGroups();
+                  : templateId === "multi-1-column-3-product-list"
+                    ? buildMultiBlockOneColumnThreeProductList()
+                    : buildMultiBlockLinkGroups();
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
           ...item,
@@ -3602,6 +3701,7 @@ export default function MenuBuilder() {
       "multi-4-products": "4 products",
       "multi-map-contact-address": "Map + contact + address",
       "multi-4-product-list": "4 product list",
+      "multi-1-column-3-product-list": "1 link list + 3 product list",
       tabs: "Tabs",
       image: "Image 1",
       image2: "Image 2",
@@ -8255,6 +8355,7 @@ export default function MenuBuilder() {
                         const resolvedProductFlexBasis =
                           group.blockTemplate === "product-horizontal" ? "33%" : productFlexBasis;
                         const productPreviewHeight = useImageSpaceLayout ? 220 : 150;
+                        const isMultiLayout = Boolean(group.multiLayout);
                         const isProductListGroup =
                           group.blockTemplate === "product" && Boolean(group.children?.length);
                         const productItems = isProductListGroup ? group.children ?? [] : [];
@@ -8336,7 +8437,11 @@ export default function MenuBuilder() {
                               lastDragOverIdRef.current = null;
                             }}
                             style={{
-                              flex: useImageSpaceLayout ? `0 0 ${resolvedProductFlexBasis}` : undefined,
+                              flex:
+                                useImageSpaceLayout || isMultiLayout
+                                  ? `0 0 ${resolvedProductFlexBasis}`
+                                  : undefined,
+                              minWidth: isMultiLayout ? 0 : undefined,
                               order: useImageSpaceLayout ? 0 : undefined,
                               border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                               padding: "6px",

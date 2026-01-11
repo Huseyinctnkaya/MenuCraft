@@ -165,7 +165,7 @@ const BLOCK_TEMPLATES: Array<{ id: BlockTemplateId; label: string; icon: IconSou
   { id: "image", label: "Image", icon: ImageIcon },
   { id: "links", label: "Link list", icon: ListBulletedIcon },
   { id: "product", label: "Product", icon: ProductIcon },
-  { id: "collection", label: "Collection", icon: CollectionIcon },
+  { id: "collection", label: "Collection list", icon: CollectionIcon },
   { id: "blogs", label: "Blogs", icon: BlogIcon },
   { id: "contact", label: "Contact form", icon: EmailIcon },
   { id: "html", label: "Custom HTML", icon: CodeIcon },
@@ -222,7 +222,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
   }
 
-  let collections: Array<{ id: string; title: string; handle: string }> = [];
+  let collections: Array<{
+    id: string;
+    title: string;
+    handle: string;
+    image?: { url: string; altText?: string | null } | null;
+  }> = [];
   let products: ProductSummary[] = [];
 
   try {
@@ -233,6 +238,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             id
             title
             handle
+            image {
+              url
+              altText
+            }
           }
         }
         products(first: $productsFirst, sortKey: TITLE) {
@@ -445,6 +454,7 @@ type MenuItem = {
   contactSuccessMessage?: string;
   htmlContent?: string;
   productIds?: string[];
+  collectionIds?: string[];
   productLayout?: "image-top" | "image-left";
   productWidth?: number;
   productListCount?: number;
@@ -1143,6 +1153,10 @@ export default function MenuBuilder() {
   const [productPickerSearch, setProductPickerSearch] = useState("");
   const [productPickerSelection, setProductPickerSelection] = useState<Record<string, boolean>>({});
   const [productPickerTargetId, setProductPickerTargetId] = useState<string | null>(null);
+  const [collectionPickerOpen, setCollectionPickerOpen] = useState(false);
+  const [collectionPickerSearch, setCollectionPickerSearch] = useState("");
+  const [collectionPickerSelection, setCollectionPickerSelection] = useState<Record<string, boolean>>({});
+  const [collectionPickerTargetId, setCollectionPickerTargetId] = useState<string | null>(null);
   const [productCarouselPageById, setProductCarouselPageById] = useState<Record<string, number>>({});
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
@@ -1194,6 +1208,8 @@ export default function MenuBuilder() {
       setEditDraft(null);
       setProductPickerOpen(false);
       setProductPickerTargetId(null);
+      setCollectionPickerOpen(false);
+      setCollectionPickerTargetId(null);
       return;
     }
     if (!selectedItem) {
@@ -1348,6 +1364,52 @@ export default function MenuBuilder() {
     closeProductPicker();
   };
 
+  const closeCollectionPicker = () => {
+    setCollectionPickerOpen(false);
+    setCollectionPickerTargetId(null);
+  };
+
+  const openCollectionPicker = (targetId?: string | null) => {
+    const activeItem = targetId ? findEditableItemById(targetId) : editDraft ?? selectedItem;
+    const activeIds = activeItem?.collectionIds ?? [];
+    const selection = activeIds.reduce<Record<string, boolean>>((acc, id) => {
+      acc[id] = true;
+      return acc;
+    }, {});
+    setCollectionPickerSelection(selection);
+    setCollectionPickerSearch("");
+    setCollectionPickerTargetId(targetId ?? null);
+    setCollectionPickerOpen(true);
+  };
+
+  const toggleCollectionSelection = (id: string) => {
+    setCollectionPickerSelection((prev) => {
+      if (collectionPickerTargetId) {
+        return prev[id] ? {} : { [id]: true };
+      }
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = true;
+      }
+      return next;
+    });
+  };
+
+  const applyCollectionSelection = () => {
+    const selectedIds = Object.keys(collectionPickerSelection);
+    if (collectionPickerTargetId) {
+      updateEditDraftItemById(collectionPickerTargetId, (item) => ({
+        ...item,
+        collectionIds: selectedIds.slice(0, 1),
+      }));
+    } else {
+      updateEditDraft("collectionIds", selectedIds);
+    }
+    closeCollectionPicker();
+  };
+
   const renderSubmenuImagePickerPanel = () => {
     if (!submenuImagePickerOpen) return null;
     return (
@@ -1481,6 +1543,94 @@ export default function MenuBuilder() {
               Cancel
             </Button>
             <Button variant="primary" onClick={applyProductSelection}>
+              Apply
+            </Button>
+          </InlineStack>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCollectionPickerPanel = () => {
+    if (!collectionPickerOpen) return null;
+    const searchValue = collectionPickerSearch.trim().toLowerCase();
+    const filteredCollections = searchValue
+      ? collections.filter((collection) => collection.title.toLowerCase().includes(searchValue))
+      : collections;
+    return (
+      <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-200 px-4 py-3">
+          <InlineStack gap="200" blockAlign="center">
+            <Button
+              variant="tertiary"
+              icon={ArrowLeftIcon}
+              onClick={closeCollectionPicker}
+              accessibilityLabel="Back"
+            />
+            <Text as="h2" variant="headingSm">
+              {collectionPickerTargetId ? "Select collection" : "Select collections"}
+            </Text>
+          </InlineStack>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+          <BlockStack gap="300">
+            <TextField
+              label="Search"
+              labelHidden
+              value={collectionPickerSearch}
+              onChange={setCollectionPickerSearch}
+              placeholder="Search"
+              autoComplete="off"
+              prefix={<Icon source={SearchIcon} tone="subdued" />}
+            />
+            <BlockStack gap="200">
+              {filteredCollections.length ? (
+                filteredCollections.map((collection) => {
+                  const isSelected = Boolean(collectionPickerSelection[collection.id]);
+                  return (
+                    <label
+                      key={collection.id}
+                      className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                        isSelected
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-gray-200 text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleCollectionSelection(collection.id)}
+                        className="h-4 w-4"
+                      />
+                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-white">
+                        {collection.image?.url ? (
+                          <img
+                            src={collection.image.url}
+                            alt={collection.image.altText ?? collection.title}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <Icon source={CollectionIcon} tone="subdued" />
+                        )}
+                      </div>
+                      <span className="flex-1">{collection.title}</span>
+                    </label>
+                  );
+                })
+              ) : (
+                <Text as="p" variant="bodySm" tone="subdued">
+                  No collections found.
+                </Text>
+              )}
+            </BlockStack>
+          </BlockStack>
+        </div>
+        <div className="border-t border-gray-200 bg-white px-4 py-3">
+          <InlineStack align="end" gap="200">
+            <Button variant="tertiary" onClick={closeCollectionPicker}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={applyCollectionSelection}>
               Apply
             </Button>
           </InlineStack>
@@ -2811,12 +2961,35 @@ export default function MenuBuilder() {
           );
         case "collection":
           return renderBlockTemplatePreviewCard({
-            title: "Collection",
-            onSelect: selectTemplate,
+            title: "Collection list",
+            onSelect: isProPlan ? () => handleApplyBlockTemplate("collection") : () => {},
+            badge: "Pro",
+            selectLabel: isProPlan ? "Select" : "Upgrade to use",
+            showSelectButton: false,
+            showTitle: false,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="flex h-28 flex-col gap-2 rounded-none bg-[#f3f4f6] p-2">
-                <div className="h-14 rounded-md bg-white" />
-                <div className="h-2 w-20 rounded bg-gray-300" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/collection-list.png"
+                  alt="Collection list template"
+                  className="h-full w-full object-contain"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Collection list
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={isProPlan ? () => handleApplyBlockTemplate("collection") : () => {}}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    {isProPlan ? "Select" : "Upgrade to use"}
+                  </Button>
+                </div>
               </div>
             ),
           });
@@ -3487,6 +3660,7 @@ export default function MenuBuilder() {
         parentItem?.blockTemplate === "product-carousel" ||
         parentItem?.blockTemplate === "product-grid-horizontal") &&
       Boolean(parentItem.children?.length);
+    const isCollectionListParent = role === "item" && parentItem?.blockTemplate === "collection";
     const useTopProductLayout =
       parentItem?.blockTemplate === "product-grid" || parentItem?.blockTemplate === "product-carousel";
     const newItem: MenuItem = isProductListParent
@@ -3500,6 +3674,15 @@ export default function MenuBuilder() {
           productIds: [],
           icon: `${ICON_PREFIX}tag`,
         }
+      : isCollectionListParent
+        ? {
+            id: buildId(),
+            label: "Collection title",
+            url: "",
+            role: "item",
+            blockTemplate: "collection",
+            collectionIds: [],
+          }
       : {
           id: buildId(),
           label: role === "group" ? "New group" : "New item",
@@ -4101,6 +4284,16 @@ export default function MenuBuilder() {
     ];
   };
 
+  const buildCollectionListItems = () =>
+    Array.from({ length: 3 }, () => ({
+      id: buildId(),
+      label: "Collection title",
+      url: "",
+      role: "item",
+      blockTemplate: "collection" as const,
+      collectionIds: [],
+    }));
+
   const handleApplyBlockTemplate = (templateId: BlockTemplateId) => {
     if (!blockTemplateTargetId) return;
     const isLinkListTemplate =
@@ -4126,6 +4319,7 @@ export default function MenuBuilder() {
     const isProductCarouselTemplate = templateId === "product-carousel";
     const isProductListTemplate = templateId === "product-list";
     const isProductGridHorizontalTemplate = templateId === "product-grid-horizontal";
+    const isCollectionListTemplate = templateId === "collection";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -4201,7 +4395,7 @@ export default function MenuBuilder() {
       "product-carousel": "Product carousel",
       "product-list": "Product list",
       "product-grid-horizontal": "Horizontal product grid",
-      collection: "Collection",
+      collection: "Collection list",
       blogs: "Blogs",
       contact: "Contact form",
       html: "Custom HTML",
@@ -4268,6 +4462,12 @@ export default function MenuBuilder() {
             productIds: [],
           }
         : {};
+    const collectionDefaults =
+      templateId === "collection"
+        ? {
+            imageWidth: 6,
+          }
+        : {};
     const newBlockChildren = isLinkListTemplate
       ? templateId === "links-3"
         ? buildThreeColumnLinkItems()
@@ -4286,6 +4486,8 @@ export default function MenuBuilder() {
             ? buildProductListItems()
             : isProductGridHorizontalTemplate
               ? buildHorizontalProductGridItems()
+              : isCollectionListTemplate
+                ? buildCollectionListItems()
             : [];
     const newBlock: MenuItem = {
       id: buildId(),
@@ -4301,6 +4503,7 @@ export default function MenuBuilder() {
       ...htmlDefaults,
       ...contactDefaults,
       ...productDefaults,
+      ...collectionDefaults,
       ...(isLinkListTemplate
         ? { linkColumns: linkColumnCount, linkWidth: linkWidthDefault, linkTextAlign: "left" }
         : {}),
@@ -4554,6 +4757,8 @@ export default function MenuBuilder() {
       item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
     const isContactBlock = item.role === "group" && item.blockTemplate === "contact";
     const isHtmlBlock = item.role === "group" && item.blockTemplate === "html";
+    const isCollectionListBlock = item.role === "group" && item.blockTemplate === "collection";
+    const isCollectionItem = item.role === "item" && item.blockTemplate === "collection";
     const isProductListBlock =
       item.role === "group" &&
       (item.blockTemplate === "product" ||
@@ -4578,9 +4783,11 @@ export default function MenuBuilder() {
         ? `${ICON_PREFIX}mail`
         : isProductBlock || isProductListBlock
           ? `${ICON_PREFIX}tag`
-          : isHtmlBlock
-            ? `${ICON_PREFIX}code`
-            : undefined);
+          : isCollectionListBlock || isCollectionItem
+            ? `${ICON_PREFIX}folder`
+            : isHtmlBlock
+              ? `${ICON_PREFIX}code`
+              : undefined);
     const itemIcon =
       item.role === "group"
         ? item.blockTemplate === "contact"
@@ -4778,6 +4985,8 @@ export default function MenuBuilder() {
         editingItem.blockTemplate === "image" || editingItem.blockTemplate === "image2";
       const isContactBlock = editingItem.blockTemplate === "contact";
       const isLinkListBlock = editingItem.blockTemplate === "links";
+      const isCollectionListBlock =
+        editingItem.blockTemplate === "collection" && editingItem.role === "group";
       const isProductListBlock =
         (editingItem.blockTemplate === "product" ||
           editingItem.blockTemplate === "product-grid" ||
@@ -4787,6 +4996,8 @@ export default function MenuBuilder() {
         Boolean(editingItem.children?.length);
       const isProductItem =
         editingItem.blockTemplate === "product" && editingItem.role === "item";
+      const isCollectionItem =
+        editingItem.blockTemplate === "collection" && editingItem.role === "item";
       const isProductBlock =
         (editingItem.blockTemplate === "product-horizontal" ||
           ((editingItem.blockTemplate === "product" ||
@@ -4797,9 +5008,15 @@ export default function MenuBuilder() {
         !isProductListBlock;
       const isHtmlBlock = editingItem.blockTemplate === "html";
       const isVisualBlock =
-        isImageBlock || isContactBlock || isProductBlock || isProductItem || isHtmlBlock;
+        isImageBlock ||
+        isContactBlock ||
+        isProductBlock ||
+        isProductItem ||
+        isCollectionItem ||
+        isHtmlBlock;
       const linkListItems = isLinkListBlock ? editingItem.children ?? [] : [];
       const productListItems = isProductListBlock ? editingItem.children ?? [] : [];
+      const collectionListItems = isCollectionListBlock ? editingItem.children ?? [] : [];
       if (iconPickerState?.target === "edit") {
         return (
           <Card padding="0">
@@ -4815,6 +5032,9 @@ export default function MenuBuilder() {
       }
       if (productPickerOpen) {
         return renderProductPickerPanel();
+      }
+      if (collectionPickerOpen) {
+        return renderCollectionPickerPanel();
       }
       return (
         <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
@@ -4841,7 +5061,7 @@ export default function MenuBuilder() {
                 <Text as="h3" variant="headingSm">
                   General
                 </Text>
-                {!isVisualBlock && !isLinkListBlock && !isProductListBlock ? (
+                {!isVisualBlock && !isLinkListBlock && !isProductListBlock && !isCollectionListBlock ? (
                   <BlockStack gap="200">
                     <Text as="h4" variant="headingSm">
                       Icon
@@ -5064,6 +5284,36 @@ export default function MenuBuilder() {
                       multiline={8}
                     />
                   </>
+                ) : isCollectionListBlock ? (
+                  <>
+                    <InlineStack gap="200" blockAlign="center">
+                      <div style={{ flex: 1 }}>
+                        <RangeSlider
+                          label="Width"
+                          value={editingItem.imageWidth ?? 6}
+                          min={1}
+                          max={12}
+                          onChange={(value) => updateEditDraft("imageWidth", value)}
+                        />
+                      </div>
+                      <div style={{ width: 90 }}>
+                        <TextField
+                          label="Width"
+                          labelHidden
+                          type="number"
+                          value={String(editingItem.imageWidth ?? 6)}
+                          onChange={(value) => {
+                            const next = Number(value);
+                            if (!Number.isFinite(next)) return;
+                            const clamped = Math.max(1, Math.min(12, next));
+                            updateEditDraft("imageWidth", clamped);
+                          }}
+                          suffix="/12"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </InlineStack>
+                  </>
                 ) : isProductListBlock ? (
                   <>
                     <InlineStack gap="200" blockAlign="center">
@@ -5094,6 +5344,13 @@ export default function MenuBuilder() {
                       </div>
                     </InlineStack>
                   </>
+                ) : isCollectionItem ? (
+                  <TextField
+                    label="Title"
+                    value={editingItem.label}
+                    onChange={(value) => updateEditDraft("label", value)}
+                    autoComplete="off"
+                  />
                 ) : isProductItem ? (
                   <TextField
                     label="Title"
@@ -5455,6 +5712,87 @@ export default function MenuBuilder() {
                 </>
               ) : null}
 
+              {isCollectionListBlock ? (
+                <>
+                  <Divider />
+                  <BlockStack gap="300">
+                    <Text as="h3" variant="headingSm">
+                      Items
+                    </Text>
+                    {collectionListItems.length ? (
+                      collectionListItems.map((child, index) => {
+                        const selectedCollection = collections.find(
+                          (collection) => collection.id === child.collectionIds?.[0]
+                        );
+                        return (
+                          <BlockStack key={child.id} gap="300">
+                            <InlineStack align="space-between" blockAlign="center">
+                              <Text as="h4" variant="headingSm">
+                                Collection item {index + 1}
+                              </Text>
+                              <button
+                                type="button"
+                                onClick={() => removeEditDraftItemById(child.id)}
+                                className="text-sm font-medium text-red-600 hover:text-red-700"
+                              >
+                                Remove
+                              </button>
+                            </InlineStack>
+                            {child.collectionIds?.length ? (
+                              <div className="rounded-xl border border-gray-200 bg-gray-100 p-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-12 w-12 items-center justify-center rounded-md border border-gray-200 bg-white">
+                                    <Icon source={CollectionIcon} tone="subdued" />
+                                  </div>
+                                  <div className="flex-1 text-sm font-medium text-gray-700">
+                                    {selectedCollection?.title ?? "Collection title"}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateEditDraftItemById(child.id, (item) => ({
+                                        ...item,
+                                        collectionIds: [],
+                                      }))
+                                    }
+                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                                    aria-label="Remove selection"
+                                  >
+                                    <span className="text-base leading-none">×</span>
+                                  </button>
+                                </div>
+                                <div className="mt-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => openCollectionPicker(child.id)}
+                                    className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                                  >
+                                    Change
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => openCollectionPicker(child.id)}
+                                className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                              >
+                                Select collection
+                              </button>
+                            )}
+                            {index < collectionListItems.length - 1 ? <Divider /> : null}
+                          </BlockStack>
+                        );
+                      })
+                    ) : (
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        No items yet.
+                      </Text>
+                    )}
+                  </BlockStack>
+                </>
+              ) : null}
+
               {isProductBlock || isProductItem ? (
                 <>
                   <Divider />
@@ -5511,7 +5849,56 @@ export default function MenuBuilder() {
                 </>
               ) : null}
 
-              {!isVisualBlock && !isLinkListBlock && !isProductListBlock ? (
+              {isCollectionItem ? (
+                <>
+                  <Divider />
+                  <BlockStack gap="300">
+                    <Text as="h3" variant="headingSm">
+                      Collection
+                    </Text>
+                    {editingItem.collectionIds?.length ? (
+                      <div className="rounded-xl border border-gray-200 bg-gray-100 p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-md border border-gray-200 bg-white">
+                            <Icon source={CollectionIcon} tone="subdued" />
+                          </div>
+                          <div className="flex-1 text-sm font-medium text-gray-700">
+                            {collections.find((collection) => collection.id === editingItem.collectionIds?.[0])
+                              ?.title ?? "Collection title"}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => updateEditDraft("collectionIds", [])}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                            aria-label="Remove selection"
+                          >
+                            <span className="text-base leading-none">×</span>
+                          </button>
+                        </div>
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            onClick={() => openCollectionPicker(editingItem.id)}
+                            className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                          >
+                            Change
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openCollectionPicker(editingItem.id)}
+                        className="w-full rounded-lg border border-gray-200 bg-white py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                      >
+                        Select collection
+                      </button>
+                    )}
+                  </BlockStack>
+                </>
+              ) : null}
+
+              {!isVisualBlock && !isLinkListBlock && !isProductListBlock && !isCollectionListBlock ? (
                 <>
                   <Divider />
                   <BlockStack gap="300">
@@ -8020,6 +8407,162 @@ export default function MenuBuilder() {
     );
   };
 
+  const renderCollectionBlock = (
+    group: MenuItem,
+    options: { flex?: string; wrapperStyle?: CSSProperties } = {}
+  ) => {
+    const isGroupSelected = selectedItemId === group.id;
+    const collectionWidth = Math.max(1, Math.min(12, group.imageWidth ?? 6));
+    const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
+    const collectionItems = group.children ?? [];
+    const displayItems =
+      collectionItems.length > 0 ? collectionItems : Array.from({ length: 3 }, () => null);
+
+    return (
+      <div
+        key={group.id}
+        className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+        draggable
+        onDragStart={(event) => {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", group.id);
+          setDraggedItemId(group.id);
+          const parentId = findParentId(menuItems, group.id);
+          setDraggedParentId(parentId ?? null);
+          lastDragOverIdRef.current = null;
+        }}
+        onDragOver={(event) => {
+          if (!draggedItemId) return;
+          const targetParentId = findParentId(menuItems, group.id);
+          if (draggedParentId !== targetParentId) return;
+          if (draggedItemId === group.id) return;
+          event.preventDefault();
+          if (lastDragOverIdRef.current === group.id) return;
+          lastDragOverIdRef.current = group.id;
+          setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          if (!draggedItemId) return;
+          const targetParentId = findParentId(menuItems, group.id);
+          if (draggedParentId !== targetParentId) return;
+          setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+          setDraggedItemId(null);
+          setDraggedParentId(null);
+          lastDragOverIdRef.current = null;
+        }}
+        onDragEnd={() => {
+          setDraggedItemId(null);
+          setDraggedParentId(null);
+          lastDragOverIdRef.current = null;
+        }}
+        style={{
+          flex:
+            options.flex ??
+            ((useImageSpaceLayout || useBlockFlexLayout) ? `0 0 ${collectionFlexBasis}` : undefined),
+          order: useImageSpaceLayout ? 0 : undefined,
+          border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
+          padding: "6px",
+          borderRadius: 0,
+          ...options.wrapperStyle,
+        }}
+      >
+        <div className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={() => handleSelectItem(group.id, true)}
+            aria-label="Edit item"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+          >
+            <Icon source={EditIcon} />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDuplicateItem(group.id)}
+            aria-label="Duplicate item"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+          >
+            <Icon source={DuplicateIcon} />
+          </button>
+          <button
+            type="button"
+            onClick={() => openDeleteItemDialog(group.id)}
+            aria-label="Delete item"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+          >
+            <Icon source={DeleteIcon} />
+          </button>
+        </div>
+        <div
+          style={{
+            borderRadius: 16,
+            background: "transparent",
+            padding: "5px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 16,
+              flexWrap: "nowrap",
+            }}
+          >
+            {displayItems.map((child, index) => {
+              const selectedCollection = child
+                ? collections.find((collection) => collection.id === child.collectionIds?.[0])
+                : null;
+              const title = selectedCollection?.title ?? child?.label ?? "Collection title";
+              const imageSrc = selectedCollection?.image?.url;
+              const imageAlt = selectedCollection?.image?.altText ?? title;
+              return (
+                <div
+                  key={child?.id ?? `collection-placeholder-${index}`}
+                  style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 0", minWidth: 0 }}
+                >
+                  <div
+                    style={{
+                      border: "1px solid #e5e7eb",
+                      background: "#f3f4f4",
+                      width: "100%",
+                      aspectRatio: "1 / 1",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt={imageAlt}
+                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                      />
+                    ) : (
+                      <Icon source={CollectionIcon} tone="subdued" />
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      color: previewColors.submenuText,
+                      fontWeight: 600,
+                      ...subheadingTypography,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {title}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderElementGroupMasonry = (groups: MenuItem[]) => {
     if (!groups.length) return null;
     const productGroup = groups.find((group) => group.blockTemplate === "product");
@@ -8107,7 +8650,8 @@ export default function MenuBuilder() {
       group.blockTemplate === "product-horizontal" ||
       group.blockTemplate === "product-grid" ||
       group.blockTemplate === "product-carousel" ||
-      group.blockTemplate === "product-grid-horizontal"
+      group.blockTemplate === "product-grid-horizontal" ||
+      group.blockTemplate === "collection"
   ).length;
   const linkBlockCount = dropdownGroups.filter(
     (group) => group.blockTemplate === "links" || group.blockTemplate === "multi"
@@ -8129,11 +8673,17 @@ export default function MenuBuilder() {
         group.blockTemplate === "product-grid" ||
         group.blockTemplate === "product-carousel" ||
         group.blockTemplate === "product-grid-horizontal" ||
+        group.blockTemplate === "collection" ||
         group.blockTemplate === "space"
     );
   const useBlockFlexLayout =
     useImageSpaceLayout ||
-    dropdownGroups.some((group) => group.blockTemplate === "links" || group.blockTemplate === "multi");
+    dropdownGroups.some(
+      (group) =>
+        group.blockTemplate === "links" ||
+        group.blockTemplate === "multi" ||
+        group.blockTemplate === "collection"
+    );
   const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
     left: "flex-start",
     right: "flex-end",
@@ -9518,6 +10068,9 @@ export default function MenuBuilder() {
                         group.blockTemplate === "product-grid-horizontal"
                       ) {
                         return renderProductBlock(group);
+                      }
+                      if (group.blockTemplate === "collection") {
+                        return renderCollectionBlock(group);
                       }
                       return (
                         <div

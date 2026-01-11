@@ -6622,9 +6622,9 @@ export default function MenuBuilder() {
       );
 
       return (
-        <Card padding="0">
-          <div className="flex h-[calc(100vh-220px)] min-h-[520px] max-h-[780px] flex-col">
-            <div className="border-b border-gray-200 bg-white">
+        <Card padding="0" className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="sticky top-0 z-30 border-b border-gray-200 bg-white">
               <Box padding="400">
                 <InlineStack gap="200" blockAlign="center">
                   <Button
@@ -6666,7 +6666,7 @@ export default function MenuBuilder() {
                 </div>
               </Box>
             </div>
-            <div ref={customItemsScrollRef} className="flex-1 overflow-y-auto">
+            <div ref={customItemsScrollRef} className="relative z-0 flex-1 min-h-0 overflow-y-auto">
               {isSelectTab ? (
                 <>
                   <Box padding="400">
@@ -6824,7 +6824,7 @@ export default function MenuBuilder() {
               )}
             </div>
             {showFooter ? (
-              <div className="border-t border-gray-200 bg-white px-4 py-3">
+              <div className="sticky bottom-0 z-30 shrink-0 border-t border-gray-200 bg-white px-4 py-3">
                 <InlineStack align="end" gap="200">
                   <Button variant="tertiary" onClick={handleCloseAddRoot}>
                     Cancel
@@ -9559,7 +9559,7 @@ export default function MenuBuilder() {
 
         <aside className="w-80 bg-white border-r border-gray-200 flex flex-col">
           <div className="flex-1 overflow-y-auto">
-            <BlockStack gap="400" className="min-h-full h-full">
+            <BlockStack gap="400" className="flex min-h-0 h-full flex-col">
               {activePanel === "menu" && renderMenuPanel()}
               {activePanel === "settings" && renderSettingsPanel()}
               {activePanel === "typography" && renderTypographyPanel()}

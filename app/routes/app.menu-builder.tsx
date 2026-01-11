@@ -166,8 +166,7 @@ const BLOCK_TEMPLATES: Array<{ id: BlockTemplateId; label: string; icon: IconSou
   { id: "links", label: "Link list", icon: ListBulletedIcon },
   { id: "product", label: "Product", icon: ProductIcon },
   { id: "collection", label: "Collection list", icon: CollectionIcon },
-  { id: "blogs", label: "Articles", icon: BlogIcon },
-  { id: "blogs-latest", label: "Latest blog", icon: BlogIcon },
+  { id: "blogs", label: "Blogs", icon: BlogIcon },
   { id: "contact", label: "Contact form", icon: EmailIcon },
   { id: "html", label: "Custom HTML", icon: CodeIcon },
 ];
@@ -558,6 +557,7 @@ type BlockTemplateId =
   | "collection-horizontal"
   | "blogs"
   | "blogs-latest"
+  | "html-special"
   | "contact"
   | "html";
 
@@ -3121,73 +3121,76 @@ export default function MenuBuilder() {
             </div>
           );
         case "blogs":
-          return renderBlockTemplatePreviewCard({
-            title: "Articles",
-            onSelect: isProPlan ? selectTemplate : () => {},
-            badge: "Pro",
-            selectLabel: isProPlan ? "Select" : "Upgrade to use",
-            showSelectButton: false,
-            showTitle: false,
-            previewHeightClassName: "h-44",
-            previewContainerClassName: "bg-transparent p-0",
-            preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <img
-                  src="/articles-blog.png"
-                  alt="Articles template"
-                  className="h-full w-full object-contain"
-                />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Articles
-                </div>
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                  <Button
-                    fullWidth
-                    onClick={isProPlan ? selectTemplate : () => {}}
-                    size="slim"
-                    variant="primary"
-                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                  >
-                    {isProPlan ? "Select" : "Upgrade to use"}
-                  </Button>
-                </div>
-              </div>
-            ),
-          });
-        case "blogs-latest":
-          return renderBlockTemplatePreviewCard({
-            title: "Latest blog",
-            onSelect: isProPlan ? selectTemplate : () => {},
-            badge: "Pro",
-            selectLabel: isProPlan ? "Select" : "Upgrade to use",
-            showSelectButton: false,
-            showTitle: false,
-            previewHeightClassName: "h-44",
-            previewContainerClassName: "bg-transparent p-0",
-            preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <img
-                  src="/latest-blog.png"
-                  alt="Latest blog template"
-                  className="h-full w-full object-contain"
-                />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Latest blog
-                </div>
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                  <Button
-                    fullWidth
-                    onClick={isProPlan ? selectTemplate : () => {}}
-                    size="slim"
-                    variant="primary"
-                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                  >
-                    {isProPlan ? "Select" : "Upgrade to use"}
-                  </Button>
-                </div>
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {renderBlockTemplatePreviewCard({
+                title: "Articles",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/articles-blog.png"
+                      alt="Articles template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Articles
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Latest blog",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/latest-blog.png"
+                      alt="Latest blog template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Latest blog
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+            </div>
+          );
         case "contact":
           return renderBlockTemplatePreviewCard({
             title: "Contact form",
@@ -3222,19 +3225,43 @@ export default function MenuBuilder() {
           });
         case "html":
         default:
-          return renderBlockTemplatePreviewCard({
-            title: "Custom HTML",
-            onSelect: isProPlan ? selectTemplate : () => {},
-            badge: "Pro",
-            selectLabel: isProPlan ? "Select" : "Upgrade to use",
-            preview: (
-              <div className="h-28 rounded-none bg-[#f3f4f6] p-2 font-mono text-[10px] text-gray-500">
-                <div className="h-2 w-20 rounded bg-gray-300" />
-                <div className="mt-2 h-2 w-24 rounded bg-gray-200" />
-                <div className="mt-2 h-2 w-28 rounded bg-gray-200" />
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {renderBlockTemplatePreviewCard({
+                title: "Special HTML",
+                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => {},
+                badge: "Plus",
+                selectLabel: isPlusPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/custom-html.png"
+                      alt="Special HTML template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Special HTML
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isPlusPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+            </div>
+          );
       }
     };
 
@@ -4547,7 +4574,9 @@ export default function MenuBuilder() {
           ? "product"
           : templateId === "collection-horizontal"
             ? "collection"
-          : templateId;
+            : templateId === "html-special"
+              ? "html"
+              : templateId;
     const linkColumnCount =
       templateId === "links-3" ? 3 : templateId === "links-easy" || templateId === "links-icons" ? 1 : 2;
     const linkWidthDefault =
@@ -4584,6 +4613,7 @@ export default function MenuBuilder() {
       "collection-horizontal": "Horizontal collection list",
       blogs: "Articles",
       "blogs-latest": "Latest blog",
+      "html-special": "Special HTML",
       contact: "Contact form",
       html: "Custom HTML",
     };
@@ -4598,6 +4628,7 @@ export default function MenuBuilder() {
       "product-list": `${ICON_PREFIX}tag`,
       "product-grid-horizontal": `${ICON_PREFIX}tag`,
       html: `${ICON_PREFIX}code`,
+      "html-special": `${ICON_PREFIX}code`,
     };
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
       image: "Sample description",
@@ -4607,13 +4638,28 @@ export default function MenuBuilder() {
       templateId === "image" || templateId === "image2"
         ? { imageWidth: 3, imageNoFill: false }
         : {};
+    const htmlSpecialContent =
+      '<div style="display:flex;gap:12px;align-items:center;">' +
+      '<div style="flex:0 0 120px;border:1px solid #e5e7eb;background:#f3f4f4;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px;">' +
+      "Media" +
+      "</div>" +
+      '<div style="flex:1;min-width:0;">' +
+      '<div style="font-weight:600;color:#111827;margin-bottom:4px;">Featured HTML</div>' +
+      '<div style="font-size:12px;color:#6b7280;line-height:1.4;">Replace this with your own HTML content.</div>' +
+      "</div>" +
+      "</div>";
     const htmlDefaults =
       templateId === "html"
         ? {
             htmlContent: "Add your custom HTML here.",
             imageWidth: 3,
           }
-        : {};
+        : templateId === "html-special"
+          ? {
+              htmlContent: htmlSpecialContent,
+              imageWidth: 3,
+            }
+          : {};
     const contactDefaults =
       templateId === "contact"
         ? {

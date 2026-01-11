@@ -495,6 +495,9 @@ type BlockTemplateId =
   | "product"
   | "product-horizontal"
   | "product-grid"
+  | "product-carousel"
+  | "product-list"
+  | "product-grid-horizontal"
   | "collection"
   | "blogs"
   | "contact"
@@ -2611,6 +2614,39 @@ export default function MenuBuilder() {
           return (
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
+                title: "Product grid",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product-grid.png"
+                      alt="Product grid template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Product grid
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
                 title: "Product",
                 onSelect: () => handleApplyBlockTemplate("product"),
                 showSelectButton: false,
@@ -2636,6 +2672,39 @@ export default function MenuBuilder() {
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
                         Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Product carousel",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product-carousel.png"
+                      alt="Product carousel template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Product carousel
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
                       </Button>
                     </div>
                   </div>
@@ -2673,8 +2742,8 @@ export default function MenuBuilder() {
                 ),
               })}
               {renderBlockTemplatePreviewCard({
-                title: "Product grid",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => {},
+                title: "Product list",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-list") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to use",
                 showSelectButton: false,
@@ -2684,17 +2753,50 @@ export default function MenuBuilder() {
                 preview: (
                   <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
                     <img
-                      src="/product-grid.png"
-                      alt="Product grid template"
+                      src="/product-list.png"
+                      alt="Product list template"
                       className="h-full w-full object-contain"
                     />
                     <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                      Product grid
+                      Product list
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => {}}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-list") : () => {}}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        {isProPlan ? "Select" : "Upgrade to use"}
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderBlockTemplatePreviewCard({
+                title: "Horizontal product grid",
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => {},
+                badge: "Pro",
+                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/product-grid-horizontal.png"
+                      alt="Horizontal product grid template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Horizontal product grid
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -3380,9 +3482,13 @@ export default function MenuBuilder() {
     }
     const isProductListParent =
       role === "item" &&
-      (parentItem?.blockTemplate === "product" || parentItem?.blockTemplate === "product-grid") &&
+      (parentItem?.blockTemplate === "product" ||
+        parentItem?.blockTemplate === "product-grid" ||
+        parentItem?.blockTemplate === "product-carousel" ||
+        parentItem?.blockTemplate === "product-grid-horizontal") &&
       Boolean(parentItem.children?.length);
-    const useTopProductLayout = parentItem?.blockTemplate === "product-grid";
+    const useTopProductLayout =
+      parentItem?.blockTemplate === "product-grid" || parentItem?.blockTemplate === "product-carousel";
     const newItem: MenuItem = isProductListParent
       ? {
           id: buildId(),
@@ -3721,9 +3827,10 @@ export default function MenuBuilder() {
 
   const buildProductListColumnItems = (
     headingLabel: string,
-    productLayout: "image-top" | "image-left" = "image-left"
+    productLayout: "image-top" | "image-left" = "image-left",
+    itemCount: number = 4
   ) => {
-    const productItems = Array.from({ length: 4 }, () => ({
+    const productItems = Array.from({ length: itemCount }, () => ({
       id: buildId(),
       label: "Example Product Title",
       url: "",
@@ -3747,6 +3854,21 @@ export default function MenuBuilder() {
   };
 
   const buildProductGridItems = () => buildProductListColumnItems("Heading", "image-top");
+  const buildProductListItems = () => buildProductListColumnItems("Heading", "image-left", 3);
+  const buildHorizontalProductGridItems = () =>
+    buildProductListColumnItems("Heading", "image-left");
+
+  const buildProductCarouselItems = () =>
+    Array.from({ length: 8 }, () => ({
+      id: buildId(),
+      label: "Example Product Title",
+      url: "",
+      role: "item" as const,
+      blockTemplate: "product" as const,
+      productLayout: "image-top" as const,
+      productIds: [],
+      icon: `${ICON_PREFIX}tag`,
+    }));
 
   const buildMultiBlockFourProductList = () => {
     const headings = Array.from({ length: 4 }, () => "Product list");
@@ -4001,6 +4123,9 @@ export default function MenuBuilder() {
       templateId === "multi-image-product-carousel" ||
       templateId === "multi-element-group-masonry";
     const isProductGridTemplate = templateId === "product-grid";
+    const isProductCarouselTemplate = templateId === "product-carousel";
+    const isProductListTemplate = templateId === "product-list";
+    const isProductGridHorizontalTemplate = templateId === "product-grid-horizontal";
     if (isMultiBlockTemplate) {
       const newBlocks =
         templateId === "multi-3-photo"
@@ -4041,7 +4166,9 @@ export default function MenuBuilder() {
     const resolvedBlockTemplate: BlockTemplateId =
       templateId === "links-3" || templateId === "links-easy" || templateId === "links-icons"
         ? "links"
-        : templateId;
+        : templateId === "product-list"
+          ? "product"
+          : templateId;
     const linkColumnCount =
       templateId === "links-3" ? 3 : templateId === "links-easy" || templateId === "links-icons" ? 1 : 2;
     const linkWidthDefault =
@@ -4071,6 +4198,9 @@ export default function MenuBuilder() {
       product: "Product",
       "product-horizontal": "Product horizontal",
       "product-grid": "Product grid",
+      "product-carousel": "Product carousel",
+      "product-list": "Product list",
+      "product-grid-horizontal": "Horizontal product grid",
       collection: "Collection",
       blogs: "Blogs",
       contact: "Contact form",
@@ -4083,6 +4213,9 @@ export default function MenuBuilder() {
       product: `${ICON_PREFIX}tag`,
       "product-horizontal": `${ICON_PREFIX}tag`,
       "product-grid": `${ICON_PREFIX}tag`,
+      "product-carousel": `${ICON_PREFIX}tag`,
+      "product-list": `${ICON_PREFIX}tag`,
+      "product-grid-horizontal": `${ICON_PREFIX}tag`,
       html: `${ICON_PREFIX}code`,
     };
     const descriptionMap: Partial<Record<BlockTemplateId, string>> = {
@@ -4115,10 +4248,23 @@ export default function MenuBuilder() {
           }
         : {};
     const productDefaults =
-      templateId === "product" || templateId === "product-horizontal" || templateId === "product-grid"
+      templateId === "product" ||
+      templateId === "product-horizontal" ||
+      templateId === "product-grid" ||
+      templateId === "product-carousel" ||
+      templateId === "product-list" ||
+      templateId === "product-grid-horizontal"
         ? {
-            productLayout: templateId === "product-horizontal" ? "image-left" : "image-top",
-            productWidth: templateId === "product-grid" ? 4 : 3,
+            productLayout:
+              templateId === "product-horizontal" || templateId === "product-grid-horizontal"
+                ? "image-left"
+                : "image-top",
+            productWidth:
+              templateId === "product-grid" || templateId === "product-grid-horizontal"
+                ? 4
+                : templateId === "product-carousel"
+                  ? 12
+                  : 3,
             productIds: [],
           }
         : {};
@@ -4132,9 +4278,15 @@ export default function MenuBuilder() {
           : buildTwoColumnLinkItems()
       : isMultiBlockTemplate
         ? buildMultiBlockLinkGroups()
-        : isProductGridTemplate
-          ? buildProductGridItems()
-          : [];
+      : isProductGridTemplate
+        ? buildProductGridItems()
+        : isProductCarouselTemplate
+          ? buildProductCarouselItems()
+          : isProductListTemplate
+            ? buildProductListItems()
+            : isProductGridHorizontalTemplate
+              ? buildHorizontalProductGridItems()
+            : [];
     const newBlock: MenuItem = {
       id: buildId(),
       label: labelMap[templateId],
@@ -4404,13 +4556,18 @@ export default function MenuBuilder() {
     const isHtmlBlock = item.role === "group" && item.blockTemplate === "html";
     const isProductListBlock =
       item.role === "group" &&
-      (item.blockTemplate === "product" || item.blockTemplate === "product-grid") &&
+      (item.blockTemplate === "product" ||
+        item.blockTemplate === "product-grid" ||
+        item.blockTemplate === "product-carousel" ||
+        item.blockTemplate === "product-grid-horizontal") &&
       Boolean(item.children?.length);
     const isProductBlock =
       item.role === "group" &&
       (item.blockTemplate === "product" ||
         item.blockTemplate === "product-horizontal" ||
-        item.blockTemplate === "product-grid") &&
+        item.blockTemplate === "product-grid" ||
+        item.blockTemplate === "product-carousel" ||
+        item.blockTemplate === "product-grid-horizontal") &&
       !isProductListBlock;
     const isVisualBlock = isImageBlock || isContactBlock || isProductBlock || isHtmlBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
@@ -4622,14 +4779,20 @@ export default function MenuBuilder() {
       const isContactBlock = editingItem.blockTemplate === "contact";
       const isLinkListBlock = editingItem.blockTemplate === "links";
       const isProductListBlock =
-        (editingItem.blockTemplate === "product" || editingItem.blockTemplate === "product-grid") &&
+        (editingItem.blockTemplate === "product" ||
+          editingItem.blockTemplate === "product-grid" ||
+          editingItem.blockTemplate === "product-carousel" ||
+          editingItem.blockTemplate === "product-grid-horizontal") &&
         editingItem.role === "group" &&
         Boolean(editingItem.children?.length);
       const isProductItem =
         editingItem.blockTemplate === "product" && editingItem.role === "item";
       const isProductBlock =
         (editingItem.blockTemplate === "product-horizontal" ||
-          ((editingItem.blockTemplate === "product" || editingItem.blockTemplate === "product-grid") &&
+          ((editingItem.blockTemplate === "product" ||
+            editingItem.blockTemplate === "product-grid" ||
+            editingItem.blockTemplate === "product-carousel" ||
+            editingItem.blockTemplate === "product-grid-horizontal") &&
             editingItem.role === "group")) &&
         !isProductListBlock;
       const isHtmlBlock = editingItem.blockTemplate === "html";
@@ -7361,14 +7524,20 @@ export default function MenuBuilder() {
     const isGroupSelected = selectedItemId === group.id;
     const productWidth = Math.max(1, Math.min(12, group.productWidth ?? 3));
     const isCarouselLayout =
+      group.blockTemplate === "product-carousel" ||
       group.multiLayout === "multi-product-carousel" ||
       group.multiLayout === "multi-link-list-product-carousel" ||
       group.multiLayout === "multi-image-product-carousel" ||
       group.multiLayout === "multi-element-group-masonry";
-    const isProductGrid = group.blockTemplate === "product-grid";
+    const isProductGridLayout =
+      group.blockTemplate === "product-grid" || group.blockTemplate === "product-grid-horizontal";
+    const isProductListGroup =
+      (group.blockTemplate === "product" || isProductGridLayout) &&
+      Boolean(group.children?.length) &&
+      !isCarouselLayout;
     const productLayout = isCarouselLayout
       ? "image-top"
-      : group.children?.length && !isProductGrid
+      : group.children?.length && !isProductGridLayout
         ? "image-left"
         : group.productLayout ??
           (group.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
@@ -7378,15 +7547,11 @@ export default function MenuBuilder() {
     const resolvedProductFlexBasis =
       group.blockTemplate === "product-horizontal"
         ? "33%"
-        : group.blockTemplate === "product-grid"
+        : isProductListGroup
           ? productFlexBasis
           : !isCarouselLayout
             ? "20%"
             : productFlexBasis;
-    const isProductListGroup =
-      (group.blockTemplate === "product" || isProductGrid) &&
-      Boolean(group.children?.length) &&
-      !isCarouselLayout;
     const productItems = group.children ?? [];
     const headingItem = isProductListGroup ? productItems.find((child) => child.isHeading) : null;
     const productHeading = isProductListGroup
@@ -7452,7 +7617,7 @@ export default function MenuBuilder() {
           animation: "menucraftCarouselFade 180ms ease",
         }
       : isProductListGroup
-        ? isProductGrid
+        ? isProductGridLayout
           ? { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }
           : { display: "grid", gap: 16 }
         : productLayout === "image-top" && displayProducts.length > 1
@@ -7940,7 +8105,9 @@ export default function MenuBuilder() {
       group.blockTemplate === "contact" ||
       group.blockTemplate === "product" ||
       group.blockTemplate === "product-horizontal" ||
-      group.blockTemplate === "product-grid"
+      group.blockTemplate === "product-grid" ||
+      group.blockTemplate === "product-carousel" ||
+      group.blockTemplate === "product-grid-horizontal"
   ).length;
   const linkBlockCount = dropdownGroups.filter(
     (group) => group.blockTemplate === "links" || group.blockTemplate === "multi"
@@ -7960,6 +8127,8 @@ export default function MenuBuilder() {
         group.blockTemplate === "product" ||
         group.blockTemplate === "product-horizontal" ||
         group.blockTemplate === "product-grid" ||
+        group.blockTemplate === "product-carousel" ||
+        group.blockTemplate === "product-grid-horizontal" ||
         group.blockTemplate === "space"
     );
   const useBlockFlexLayout =
@@ -8698,7 +8867,9 @@ export default function MenuBuilder() {
                               a.blockTemplate === "contact" ||
                               a.blockTemplate === "product" ||
                               a.blockTemplate === "product-horizontal" ||
-                              a.blockTemplate === "product-grid"
+                              a.blockTemplate === "product-grid" ||
+                              a.blockTemplate === "product-carousel" ||
+                              a.blockTemplate === "product-grid-horizontal"
                                 ? 0
                                 : 1;
                             const bPriority =
@@ -8707,7 +8878,9 @@ export default function MenuBuilder() {
                               b.blockTemplate === "contact" ||
                               b.blockTemplate === "product" ||
                               b.blockTemplate === "product-horizontal" ||
-                              b.blockTemplate === "product-grid"
+                              b.blockTemplate === "product-grid" ||
+                              b.blockTemplate === "product-carousel" ||
+                              b.blockTemplate === "product-grid-horizontal"
                                 ? 0
                                 : 1;
                             return aPriority - bPriority;
@@ -9340,7 +9513,9 @@ export default function MenuBuilder() {
                       if (
                         group.blockTemplate === "product" ||
                         group.blockTemplate === "product-horizontal" ||
-                        group.blockTemplate === "product-grid"
+                        group.blockTemplate === "product-grid" ||
+                        group.blockTemplate === "product-carousel" ||
+                        group.blockTemplate === "product-grid-horizontal"
                       ) {
                         return renderProductBlock(group);
                       }

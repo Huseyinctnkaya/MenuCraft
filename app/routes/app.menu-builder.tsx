@@ -3328,7 +3328,7 @@ export default function MenuBuilder() {
           onMouseEnter={() => clearBlockTemplateHoverTimeout()}
           onMouseLeave={() => scheduleBlockTemplateHoverClear()}
         >
-          <BlockStack gap="200">
+          <BlockStack gap="0">
             {BLOCK_TEMPLATES.map((template) => {
               const isHovered = blockTemplateHoverId === template.id;
               return (

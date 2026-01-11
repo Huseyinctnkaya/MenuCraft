@@ -166,7 +166,8 @@ const BLOCK_TEMPLATES: Array<{ id: BlockTemplateId; label: string; icon: IconSou
   { id: "links", label: "Link list", icon: ListBulletedIcon },
   { id: "product", label: "Product", icon: ProductIcon },
   { id: "collection", label: "Collection list", icon: CollectionIcon },
-  { id: "blogs", label: "Blogs", icon: BlogIcon },
+  { id: "blogs", label: "Articles", icon: BlogIcon },
+  { id: "blogs-latest", label: "Latest blog", icon: BlogIcon },
   { id: "contact", label: "Contact form", icon: EmailIcon },
   { id: "html", label: "Custom HTML", icon: CodeIcon },
 ];
@@ -230,10 +231,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }> = [];
   let products: ProductSummary[] = [];
   let blogs: BlogSummary[] = [];
+  let latestArticles: LatestArticleSummary[] = [];
 
   try {
     const response = await admin.graphql(
-      `query MenuItemPicker($collectionsFirst: Int!, $productsFirst: Int!, $blogsFirst: Int!, $articlesFirst: Int!) {
+      `query MenuItemPicker($collectionsFirst: Int!, $productsFirst: Int!, $blogsFirst: Int!, $articlesFirst: Int!, $latestArticlesFirst: Int!) {
         collections(first: $collectionsFirst, sortKey: TITLE) {
           nodes {
             id
@@ -267,7 +269,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             id
             title
             handle
-            articles(first: $articlesFirst, sortKey: PUBLISHED_AT) {
+            articles(first: $articlesFirst) {
               nodes {
                 id
                 title
@@ -280,6 +282,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             }
           }
         }
+        articles(first: $latestArticlesFirst, sortKey: PUBLISHED_AT, reverse: true) {
+          nodes {
+            id
+            title
+            handle
+            image {
+              url
+              altText
+            }
+            blog {
+              handle
+            }
+          }
+        }
       }`,
       {
         variables: {
@@ -287,6 +303,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           productsFirst: 20,
           blogsFirst: 20,
           articlesFirst: 4,
+          latestArticlesFirst: 4,
         },
       }
     );
@@ -297,11 +314,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     collections = data?.data?.collections?.nodes ?? [];
     products = data?.data?.products?.nodes ?? [];
     blogs = data?.data?.blogs?.nodes ?? [];
+    latestArticles = data?.data?.articles?.nodes ?? [];
   } catch (error) {
     console.error("Failed to fetch collections/products/blogs", error);
     collections = [];
     products = [];
     blogs = [];
+    latestArticles = [];
   }
 
   return json({
@@ -315,6 +334,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     collections,
     products,
     blogs,
+    latestArticles,
   });
 };
 
@@ -537,6 +557,7 @@ type BlockTemplateId =
   | "collection"
   | "collection-horizontal"
   | "blogs"
+  | "blogs-latest"
   | "contact"
   | "html";
 
@@ -562,6 +583,14 @@ type BlogSummary = {
       image?: { url: string; altText?: string | null } | null;
     }>;
   } | null;
+};
+
+type LatestArticleSummary = {
+  id: string;
+  title: string;
+  handle: string;
+  image?: { url: string; altText?: string | null } | null;
+  blog?: { handle: string } | null;
 };
 
 type AddableItem = {
@@ -1049,7 +1078,7 @@ const normalizeMultiBlocks = (items: MenuItem[]): MenuItem[] => {
 };
 
 export default function MenuBuilder() {
-  const { menu, menuItems: initialMenuItems, menuSettings, collections, products, blogs } =
+  const { menu, menuItems: initialMenuItems, menuSettings, collections, products, blogs, latestArticles } =
     useLoaderData<typeof loader>();
   const normalizedMenuItems = useMemo(
     () => normalizeMultiBlocks(initialMenuItems),
@@ -3093,37 +3122,67 @@ export default function MenuBuilder() {
           );
         case "blogs":
           return renderBlockTemplatePreviewCard({
-            title: "Latest Blogs",
-            onSelect: selectTemplate,
+            title: "Articles",
+            onSelect: isProPlan ? selectTemplate : () => {},
+            badge: "Pro",
+            selectLabel: isProPlan ? "Select" : "Upgrade to use",
             showSelectButton: false,
             showTitle: false,
             previewHeightClassName: "h-44",
             previewContainerClassName: "bg-transparent p-0",
             preview: (
-              <div className="relative flex h-full w-full flex-col rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <div className="rounded-sm bg-white p-3">
-                  <div className="text-xs font-semibold text-gray-700">Latest Blogs</div>
-                  <div className="mt-2 flex gap-3">
-                    {Array.from({ length: 3 }).map((_, index) => (
-                      <div key={index} className="flex flex-1 flex-col gap-2">
-                        <div className="aspect-square w-full rounded-sm bg-gray-100" />
-                        <div className="h-2 w-20 rounded bg-gray-200" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/articles-blog.png"
+                  alt="Articles template"
+                  className="h-full w-full object-contain"
+                />
                 <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Latest Blogs
+                  Articles
                 </div>
                 <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                   <Button
                     fullWidth
-                    onClick={selectTemplate}
+                    onClick={isProPlan ? selectTemplate : () => {}}
                     size="slim"
                     variant="primary"
                     style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                   >
-                    Select
+                    {isProPlan ? "Select" : "Upgrade to use"}
+                  </Button>
+                </div>
+              </div>
+            ),
+          });
+        case "blogs-latest":
+          return renderBlockTemplatePreviewCard({
+            title: "Latest blog",
+            onSelect: isProPlan ? selectTemplate : () => {},
+            badge: "Pro",
+            selectLabel: isProPlan ? "Select" : "Upgrade to use",
+            showSelectButton: false,
+            showTitle: false,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
+            preview: (
+              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/latest-blog.png"
+                  alt="Latest blog template"
+                  className="h-full w-full object-contain"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Latest blog
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={isProPlan ? selectTemplate : () => {}}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    {isProPlan ? "Select" : "Upgrade to use"}
                   </Button>
                 </div>
               </div>
@@ -4523,7 +4582,8 @@ export default function MenuBuilder() {
       "product-grid-horizontal": "Horizontal product grid",
       collection: "Collection list",
       "collection-horizontal": "Horizontal collection list",
-      blogs: "Latest Blogs",
+      blogs: "Articles",
+      "blogs-latest": "Latest blog",
       contact: "Contact form",
       html: "Custom HTML",
     };
@@ -4597,7 +4657,7 @@ export default function MenuBuilder() {
           }
         : {};
     const blogDefaults =
-      templateId === "blogs"
+      templateId === "blogs" || templateId === "blogs-latest"
         ? {
             imageWidth: 6,
             blogIds: [],
@@ -4897,7 +4957,8 @@ export default function MenuBuilder() {
     const isHtmlBlock = item.role === "group" && item.blockTemplate === "html";
     const isCollectionListBlock = item.role === "group" && item.blockTemplate === "collection";
     const isCollectionItem = item.role === "item" && item.blockTemplate === "collection";
-    const isBlogBlock = item.role === "group" && item.blockTemplate === "blogs";
+    const isBlogBlock =
+      item.role === "group" && (item.blockTemplate === "blogs" || item.blockTemplate === "blogs-latest");
     const isProductListBlock =
       item.role === "group" &&
       (item.blockTemplate === "product" ||
@@ -5128,8 +5189,9 @@ export default function MenuBuilder() {
       const isLinkListBlock = editingItem.blockTemplate === "links";
       const isCollectionListBlock =
         editingItem.blockTemplate === "collection" && editingItem.role === "group";
-      const isBlogBlock =
-        editingItem.blockTemplate === "blogs" && editingItem.role === "group";
+      const isBlogBlock = editingItem.blockTemplate === "blogs" && editingItem.role === "group";
+      const isLatestBlogBlock =
+        editingItem.blockTemplate === "blogs-latest" && editingItem.role === "group";
       const isProductListBlock =
         (editingItem.blockTemplate === "product" ||
           editingItem.blockTemplate === "product-grid" ||
@@ -5157,6 +5219,7 @@ export default function MenuBuilder() {
         isProductItem ||
         isCollectionItem ||
         isBlogBlock ||
+        isLatestBlogBlock ||
         isHtmlBlock;
       const linkListItems = isLinkListBlock ? editingItem.children ?? [] : [];
       const productListItems = isProductListBlock ? editingItem.children ?? [] : [];
@@ -5458,7 +5521,7 @@ export default function MenuBuilder() {
                       </div>
                     </InlineStack>
                   </>
-                ) : isBlogBlock ? (
+                ) : isBlogBlock || isLatestBlogBlock ? (
                   <>
                     <InlineStack gap="200" blockAlign="center">
                       <div style={{ flex: 1 }}>
@@ -5493,19 +5556,21 @@ export default function MenuBuilder() {
                       onChange={(value) => updateEditDraft("label", value)}
                       autoComplete="off"
                     />
-                    <Select
-                      label="Blog type"
-                      options={[
-                        { label: "Select blog", value: "" },
-                        ...blogs.map((blog) => ({ label: blog.title, value: blog.id })),
-                      ]}
-                      value={editingItem.blogIds?.[0] ?? ""}
-                      onChange={(value) => {
-                        const selectedBlog = blogs.find((blog) => blog.id === value);
-                        updateEditDraft("blogIds", value ? [value] : []);
-                        updateEditDraft("url", selectedBlog?.handle ? `/blogs/${selectedBlog.handle}` : "");
-                      }}
-                    />
+                    {isBlogBlock ? (
+                      <Select
+                        label="Blog type"
+                        options={[
+                          { label: "Select blog", value: "" },
+                          ...blogs.map((blog) => ({ label: blog.title, value: blog.id })),
+                        ]}
+                        value={editingItem.blogIds?.[0] ?? ""}
+                        onChange={(value) => {
+                          const selectedBlog = blogs.find((blog) => blog.id === value);
+                          updateEditDraft("blogIds", value ? [value] : []);
+                          updateEditDraft("url", selectedBlog?.handle ? `/blogs/${selectedBlog.handle}` : "");
+                        }}
+                      />
+                    ) : null}
                   </>
                 ) : isProductListBlock ? (
                   <>
@@ -8786,16 +8851,22 @@ export default function MenuBuilder() {
     const isGroupSelected = selectedItemId === group.id;
     const blogWidth = Math.max(1, Math.min(12, group.imageWidth ?? 6));
     const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
+    const isLatestBlock = group.blockTemplate === "blogs-latest";
     const selectedBlogId = group.blogIds?.[0];
     const selectedBlog =
-      blogs.find((blog) => blog.id === selectedBlogId) ??
-      (group.url
-        ? blogs.find((blog) => group.url === `/blogs/${blog.handle}`)
-        : undefined);
-    const blogArticles = selectedBlog?.articles?.nodes ?? [];
-    const headingTitle = group.label || "Latest Blogs";
-    const displayCards = selectedBlog ? blogArticles : Array.from({ length: 4 }, () => null);
-    const showEmptyState = Boolean(selectedBlog) && blogArticles.length === 0;
+      !isLatestBlock
+        ? blogs.find((blog) => blog.id === selectedBlogId) ??
+          (group.url
+            ? blogs.find((blog) => group.url === `/blogs/${blog.handle}`)
+            : undefined)
+        : undefined;
+    const blogArticles = isLatestBlock
+      ? latestArticles
+      : selectedBlog?.articles?.nodes ?? [];
+    const headingTitle = group.label || (isLatestBlock ? "Latest blog" : "Articles");
+    const hasSelection = isLatestBlock ? true : Boolean(selectedBlog);
+    const displayCards = hasSelection ? blogArticles : Array.from({ length: 4 }, () => null);
+    const showEmptyState = hasSelection && blogArticles.length === 0;
 
     return (
       <div
@@ -8914,16 +8985,25 @@ export default function MenuBuilder() {
                 display: "flex",
                 gap: 16,
                 flexWrap: "nowrap",
+                justifyContent: displayCards.length === 1 ? "flex-start" : "space-between",
               }}
             >
               {displayCards.map((article, index) => {
                 const title = article?.title ?? `Blog post ${index + 1}`;
                 const imageSrc = article?.image?.url;
                 const imageAlt = article?.image?.altText ?? title;
+                const isSingleCard = displayCards.length === 1;
                 return (
                   <div
                     key={article?.id ?? `${group.id}-blog-card-${index}`}
-                    style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 0", minWidth: 0 }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                      flex: isSingleCard ? "0 0 25%" : "1 1 0",
+                      maxWidth: isSingleCard ? "25%" : undefined,
+                      minWidth: 0,
+                    }}
                   >
                     <div
                       style={{
@@ -9059,7 +9139,8 @@ export default function MenuBuilder() {
       group.blockTemplate === "product-carousel" ||
       group.blockTemplate === "product-grid-horizontal" ||
       group.blockTemplate === "collection" ||
-      group.blockTemplate === "blogs"
+      group.blockTemplate === "blogs" ||
+      group.blockTemplate === "blogs-latest"
   ).length;
   const linkBlockCount = dropdownGroups.filter(
     (group) => group.blockTemplate === "links" || group.blockTemplate === "multi"
@@ -9083,6 +9164,7 @@ export default function MenuBuilder() {
         group.blockTemplate === "product-grid-horizontal" ||
         group.blockTemplate === "collection" ||
         group.blockTemplate === "blogs" ||
+        group.blockTemplate === "blogs-latest" ||
         group.blockTemplate === "space"
     );
   const useBlockFlexLayout =
@@ -9092,7 +9174,8 @@ export default function MenuBuilder() {
         group.blockTemplate === "links" ||
         group.blockTemplate === "multi" ||
         group.blockTemplate === "collection" ||
-        group.blockTemplate === "blogs"
+        group.blockTemplate === "blogs" ||
+        group.blockTemplate === "blogs-latest"
     );
   const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
     left: "flex-start",
@@ -10482,7 +10565,7 @@ export default function MenuBuilder() {
                       if (group.blockTemplate === "collection") {
                         return renderCollectionBlock(group);
                       }
-                      if (group.blockTemplate === "blogs") {
+                      if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
                         return renderBlogBlock(group);
                       }
                       return (

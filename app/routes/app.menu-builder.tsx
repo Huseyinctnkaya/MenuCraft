@@ -4820,14 +4820,14 @@ export default function MenuBuilder() {
     resetAddItemsState();
   };
 
-  const toggleSelectableItem = (item: AddableItem) => {
+  const updateSelectableItem = (item: AddableItem, checked: boolean) => {
     setSelectedAddItems((prev) => {
-      const next = { ...prev };
-      if (next[item.id]) {
-        delete next[item.id];
-      } else {
-        next[item.id] = item;
+      if (checked) {
+        return { ...prev, [item.id]: item };
       }
+      if (!prev[item.id]) return prev;
+      const next = { ...prev };
+      delete next[item.id];
       return next;
     });
   };
@@ -6607,7 +6607,7 @@ export default function MenuBuilder() {
           key={item.id}
           label={item.label}
           checked={Boolean(selectedAddItems[item.id])}
-          onChange={() => toggleSelectableItem(item)}
+          onChange={(checked) => updateSelectableItem(item, checked)}
         />
       );
 
@@ -6855,7 +6855,7 @@ export default function MenuBuilder() {
           <Box>
             <button
               type="button"
-              onClick={handleOpenAddRoot}
+              onClick={() => handleOpenAddRoot()}
               className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100"
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
@@ -9806,7 +9806,7 @@ export default function MenuBuilder() {
                   })}
                   <button
                     type="button"
-                    onClick={handleOpenAddRoot}
+                    onClick={() => handleOpenAddRoot()}
                     style={{
                       color: previewColors.mainText,
                       height: isVerticalMenu ? menuRowHeight : "100%",

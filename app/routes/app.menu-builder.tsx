@@ -1353,13 +1353,23 @@ export default function MenuBuilder() {
 
   const applyProductSelection = () => {
     const selectedIds = Object.keys(productPickerSelection);
+    const selectedProduct = selectedIds.length
+      ? products.find((product) => product.id === selectedIds[0])
+      : null;
+    const nextUrl = selectedProduct?.handle ? `/products/${selectedProduct.handle}` : "";
     if (productPickerTargetId) {
       updateEditDraftItemById(productPickerTargetId, (item) => ({
         ...item,
         productIds: selectedIds.slice(0, 1),
+        url: nextUrl,
       }));
     } else {
       updateEditDraft("productIds", selectedIds);
+      if (selectedIds.length <= 1) {
+        updateEditDraft("url", nextUrl);
+      } else if (!selectedIds.length) {
+        updateEditDraft("url", "");
+      }
     }
     closeProductPicker();
   };
@@ -1399,13 +1409,23 @@ export default function MenuBuilder() {
 
   const applyCollectionSelection = () => {
     const selectedIds = Object.keys(collectionPickerSelection);
+    const selectedCollection = selectedIds.length
+      ? collections.find((collection) => collection.id === selectedIds[0])
+      : null;
+    const nextUrl = selectedCollection?.handle ? `/collections/${selectedCollection.handle}` : "";
     if (collectionPickerTargetId) {
       updateEditDraftItemById(collectionPickerTargetId, (item) => ({
         ...item,
         collectionIds: selectedIds.slice(0, 1),
+        url: nextUrl,
       }));
     } else {
       updateEditDraft("collectionIds", selectedIds);
+      if (selectedIds.length <= 1) {
+        updateEditDraft("url", nextUrl);
+      } else if (!selectedIds.length) {
+        updateEditDraft("url", "");
+      }
     }
     closeCollectionPicker();
   };
@@ -5671,6 +5691,7 @@ export default function MenuBuilder() {
                                         updateEditDraftItemById(child.id, (item) => ({
                                           ...item,
                                           productIds: [],
+                                          url: "",
                                         }))
                                       }
                                       className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
@@ -5753,6 +5774,7 @@ export default function MenuBuilder() {
                                       updateEditDraftItemById(child.id, (item) => ({
                                         ...item,
                                         collectionIds: [],
+                                        url: "",
                                       }))
                                     }
                                     className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
@@ -5819,7 +5841,10 @@ export default function MenuBuilder() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => updateEditDraft("productIds", [])}
+                            onClick={() => {
+                              updateEditDraft("productIds", []);
+                              updateEditDraft("url", "");
+                            }}
                             className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                             aria-label="Remove selection"
                           >
@@ -5868,7 +5893,10 @@ export default function MenuBuilder() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => updateEditDraft("collectionIds", [])}
+                            onClick={() => {
+                              updateEditDraft("collectionIds", []);
+                              updateEditDraft("url", "");
+                            }}
                             className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                             aria-label="Remove selection"
                           >

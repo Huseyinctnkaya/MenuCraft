@@ -2093,7 +2093,7 @@ export default function MenuBuilder() {
           });
         case "mega":
           return (
-            <BlockStack gap="400">
+            <div className="flex flex-col gap-0">
               {renderTemplatePreviewCard({
                 title: "Space",
                 onSelect: selectTemplate,
@@ -2127,49 +2127,49 @@ export default function MenuBuilder() {
               })}
               <div className="flex flex-col gap-0">
                 {(
-                  [
-                    { id: "multi", label: "4 link list", image: "/link-list-multiblock.png" },
-                    { id: "multi-3-photo", label: "3 link list + 1 image", image: "/3columns+1photo.png" },
-                    { id: "multi-2-photos", label: "2 link + 2 image", image: "/2columns+2photos.png" },
-                    { id: "multi-1-3-photos", label: "1 link + 3 image", image: "/1column%20+%203photos.png" },
-                    { id: "multi-4-images", label: "4 images", image: "/4images.png" },
-                    { id: "multi-4-products", label: "4 product", image: "/4products.png" },
-                    {
-                      id: "multi-4-product-list",
-                      label: "4 product list",
-                      image: "/4-product-list.png",
-                      plan: "pro",
-                    },
-                    {
-                      id: "multi-1-column-3-product-list",
-                      label: "1 link list + 3 product list",
-                      image: "/1link-list+3product-columns.png",
-                      plan: "pro",
-                    },
-                    {
-                      id: "multi-product-carousel",
-                      label: "Product carousel",
-                      image: "/product-carousel.png",
-                      plan: "pro",
-                    },
-                    {
-                      id: "multi-link-list-product-carousel",
-                      label: "1 link list + product carousel",
-                      image: "/1link-list+product-carousel.png",
-                      plan: "pro",
-                    },
-                    {
-                      id: "multi-image-product-carousel",
-                      label: "Image + product carousel",
-                      image: "/image+product-carousel.png",
-                      plan: "pro",
-                    },
-                    {
-                      id: "multi-map-contact-address",
-                      label: "Map + contact + address",
-                      image: "/map-contact-adres.png",
-                    },
-                  ] as Array<{
+                    [
+                      {
+                        id: "multi-4-product-list",
+                        label: "4 product list",
+                        image: "/4-product-list.png",
+                        plan: "pro",
+                      },
+                      { id: "multi", label: "4 link list", image: "/link-list-multiblock.png" },
+                      {
+                        id: "multi-1-column-3-product-list",
+                        label: "1 link list + 3 product list",
+                        image: "/1link-list+3product-columns.png",
+                        plan: "pro",
+                      },
+                      { id: "multi-3-photo", label: "3 link list + 1 image", image: "/3columns+1photo.png" },
+                      {
+                        id: "multi-product-carousel",
+                        label: "Product carousel",
+                        image: "/product-carousel.png",
+                        plan: "pro",
+                      },
+                      { id: "multi-2-photos", label: "2 link + 2 image", image: "/2columns+2photos.png" },
+                      {
+                        id: "multi-link-list-product-carousel",
+                        label: "1 link list + product carousel",
+                        image: "/1link-list+product-carousel.png",
+                        plan: "pro",
+                      },
+                      { id: "multi-1-3-photos", label: "1 link + 3 image", image: "/1column%20+%203photos.png" },
+                      {
+                        id: "multi-image-product-carousel",
+                        label: "Image + product carousel",
+                        image: "/image+product-carousel.png",
+                        plan: "pro",
+                      },
+                      { id: "multi-4-images", label: "4 images", image: "/4images.png" },
+                      { id: "multi-4-products", label: "4 product", image: "/4products.png" },
+                      {
+                        id: "multi-map-contact-address",
+                        label: "Map + contact + address",
+                        image: "/map-contact-adres.png",
+                      },
+                    ] as Array<{
                     id: BlockTemplateId;
                     label: string;
                     image: string;
@@ -2206,7 +2206,7 @@ export default function MenuBuilder() {
                   });
                 })}
               </div>
-            </BlockStack>
+            </div>
           );
         case "custom":
         default:

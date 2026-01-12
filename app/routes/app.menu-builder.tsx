@@ -10136,6 +10136,7 @@ export default function MenuBuilder() {
                     className="group relative"
                     style={{
                       display: "flex",
+                      flexDirection: "column",
                       gap: 0,
                       justifyContent: dropdownAlignJustify,
                       alignItems: "flex-start",
@@ -10170,8 +10171,9 @@ export default function MenuBuilder() {
                       }
                       return (
                         <>
-                          <div className="relative" style={dropdownPanelStyle} data-dropdown-main-panel>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 0, padding: 12 }}>
+                          <div style={{ display: "flex", gap: 0 }}>
+                            <div className="relative" style={dropdownPanelStyle} data-dropdown-main-panel>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 0, padding: 12 }}>
                               {dropdownItems.map((child) => {
                                 const hasChildren = Boolean(child.children?.length);
                                 const isActiveChild = activeDropdownItem?.id === child.id;
@@ -10428,58 +10430,59 @@ export default function MenuBuilder() {
                               </div>
                             </div>
                           ) : null}
+                          </div>
+                          <div style={{ width: dropdownPanelWidth, marginTop: 0 }}>
+                            <div className="flex items-center gap-0" style={{ background: "rgb(17, 24, 39)", padding: "4px", borderRadius: "0", width: "100%", justifyContent: "center" }}>
+                              <button
+                                type="button"
+                                aria-label="Align left"
+                                className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, previewMenu.id, () => ({
+                                      ...previewMenu,
+                                      submenuContentAlign: "left",
+                                    }))
+                                  )
+                                }
+                              >
+                                <Icon source={TextAlignLeftIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Align center"
+                                className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, previewMenu.id, () => ({
+                                      ...previewMenu,
+                                      submenuContentAlign: "center",
+                                    }))
+                                  )
+                                }
+                              >
+                                <Icon source={TextAlignCenterIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Align right"
+                                className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, previewMenu.id, () => ({
+                                      ...previewMenu,
+                                      submenuContentAlign: "right",
+                                    }))
+                                  )
+                                }
+                              >
+                                <Icon source={TextAlignRightIcon} />
+                              </button>
+                            </div>
+                          </div>
                         </>
                       );
                     })()}
-                    <div className="pointer-events-none absolute left-1/2 top-full z-10 -translate-x-1/2 pt-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                      <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                        <button
-                          type="button"
-                          aria-label="Align left"
-                          className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                          onClick={() =>
-                            setMenuItems((items) =>
-                              updateItemById(items, previewMenu.id, () => ({
-                                ...previewMenu,
-                                submenuContentAlign: "left",
-                              }))
-                            )
-                          }
-                        >
-                          <Icon source={TextAlignLeftIcon} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Align center"
-                          className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                          onClick={() =>
-                            setMenuItems((items) =>
-                              updateItemById(items, previewMenu.id, () => ({
-                                ...previewMenu,
-                                submenuContentAlign: "center",
-                              }))
-                            )
-                          }
-                        >
-                          <Icon source={TextAlignCenterIcon} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Align right"
-                          className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                          onClick={() =>
-                            setMenuItems((items) =>
-                              updateItemById(items, previewMenu.id, () => ({
-                                ...previewMenu,
-                                submenuContentAlign: "right",
-                              }))
-                            )
-                          }
-                        >
-                          <Icon source={TextAlignRightIcon} />
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 </div>
               ) : null}

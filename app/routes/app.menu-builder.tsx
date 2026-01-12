@@ -9508,7 +9508,7 @@ export default function MenuBuilder() {
       : dropdownContentAlign === "right"
         ? "flex-end"
         : "flex-start";
-  const dropdownPanelWidth = previewMenu?.submenuWidth === "content" ? 260 : "100%";
+  const dropdownPanelWidth = previewMenu?.submenuWidth === "content" ? 200 : "100%";
 
   const handleSaveMenu = (
     nextStatus?: "active" | "draft",
@@ -10152,7 +10152,6 @@ export default function MenuBuilder() {
                         boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
                         width: dropdownPanelWidth,
                         maxWidth: submenuMaxWidth ?? undefined,
-                        minWidth: 220,
                         overflowY: dropdownOverflowY ? "auto" : "visible",
                         maxHeight: dropdownOverflowY ? 420 : "none",
                       };

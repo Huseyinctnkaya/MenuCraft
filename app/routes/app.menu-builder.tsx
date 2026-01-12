@@ -10136,7 +10136,7 @@ export default function MenuBuilder() {
                     className="group relative"
                     style={{
                       display: "flex",
-                      gap: 16,
+                      gap: 0,
                       justifyContent: dropdownAlignJustify,
                       alignItems: "flex-start",
                       color: previewColors.submenuText,
@@ -10158,15 +10158,25 @@ export default function MenuBuilder() {
                         overflowY: dropdownOverflowY ? "auto" : "visible",
                         maxHeight: dropdownOverflowY ? 420 : "none",
                       };
+                      
+                      // Seçili item'ın top pozisyonunu bul
+                      let activeItemOffsetTop = 0;
+                      if (activeDropdownItem) {
+                        const mainPanel = document.querySelector('[data-dropdown-main-panel]');
+                        const activeItemElement = mainPanel?.querySelector(`[data-dropdown-item-id="${activeDropdownItem.id}"]`);
+                        if (activeItemElement) {
+                          activeItemOffsetTop = (activeItemElement as HTMLElement).offsetTop;
+                        }
+                      }
                       return (
                         <>
-                          <div className="relative" style={dropdownPanelStyle}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
+                          <div className="relative" style={dropdownPanelStyle} data-dropdown-main-panel>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 0, padding: 12 }}>
                               {dropdownItems.map((child) => {
                                 const hasChildren = Boolean(child.children?.length);
                                 const isActiveChild = activeDropdownItem?.id === child.id;
                                 return (
-                                  <div key={child.id} className="group/item relative">
+                                  <div key={child.id} className="group/item relative" data-dropdown-item-id={child.id}>
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -10298,7 +10308,7 @@ export default function MenuBuilder() {
                             </div>
                           </div>
                           {activeDropdownItem ? (
-                            <div style={dropdownPanelStyle}>
+                            <div style={{ ...dropdownPanelStyle, marginTop: activeItemOffsetTop }}>
                               <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
                                 {(activeDropdownItem.children ?? []).map((child) => (
                                   <div key={child.id} className="group/item relative">

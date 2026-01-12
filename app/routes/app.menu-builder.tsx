@@ -2125,6 +2125,87 @@ export default function MenuBuilder() {
                   </div>
                 ),
               })}
+              <div className="flex flex-col gap-0">
+                {(
+                  [
+                    { id: "multi", label: "4 link list", image: "/link-list-multiblock.png" },
+                    { id: "multi-3-photo", label: "3 link list + 1 image", image: "/3columns+1photo.png" },
+                    { id: "multi-2-photos", label: "2 link + 2 image", image: "/2columns+2photos.png" },
+                    { id: "multi-1-3-photos", label: "1 link + 3 image", image: "/1column%20+%203photos.png" },
+                    { id: "multi-4-images", label: "4 images", image: "/4images.png" },
+                    { id: "multi-4-products", label: "4 product", image: "/4products.png" },
+                    {
+                      id: "multi-4-product-list",
+                      label: "4 product list",
+                      image: "/4-product-list.png",
+                      plan: "pro",
+                    },
+                    {
+                      id: "multi-1-column-3-product-list",
+                      label: "1 link list + 3 product list",
+                      image: "/1link-list+3product-columns.png",
+                      plan: "pro",
+                    },
+                    {
+                      id: "multi-product-carousel",
+                      label: "Product carousel",
+                      image: "/product-carousel.png",
+                      plan: "pro",
+                    },
+                    {
+                      id: "multi-link-list-product-carousel",
+                      label: "1 link list + product carousel",
+                      image: "/1link-list+product-carousel.png",
+                      plan: "pro",
+                    },
+                    {
+                      id: "multi-image-product-carousel",
+                      label: "Image + product carousel",
+                      image: "/image+product-carousel.png",
+                      plan: "pro",
+                    },
+                    {
+                      id: "multi-map-contact-address",
+                      label: "Map + contact + address",
+                      image: "/map-contact-adres.png",
+                    },
+                  ] as Array<{
+                    id: BlockTemplateId;
+                    label: string;
+                    image: string;
+                    plan?: "pro" | "plus";
+                  }>
+                ).map((preset) => {
+                  const isAllowed =
+                    preset.plan === "pro"
+                      ? isProPlan
+                      : preset.plan === "plus"
+                        ? isPlusPlan
+                        : true;
+                  return renderBlockTemplatePreviewCard({
+                    title: preset.label,
+                    onSelect: isAllowed ? () => handleApplyMegaMenuPreset(preset.id) : () => {},
+                    badge: preset.plan ? (preset.plan === "plus" ? "Plus" : "Pro") : undefined,
+                    selectLabel: isAllowed ? "Select" : "Upgrade to use",
+                    selectDisabled: !isAllowed,
+                    showTitle: false,
+                    previewHeightClassName: "h-44",
+                    previewContainerClassName: "bg-transparent p-0",
+                    preview: (
+                      <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                        <img
+                          src={preset.image}
+                          alt={`${preset.label} template`}
+                          className="h-full w-full object-contain"
+                        />
+                        <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                          {preset.label}
+                        </div>
+                      </div>
+                    ),
+                  });
+                })}
+              </div>
             </BlockStack>
           );
         case "custom":
@@ -4514,6 +4595,22 @@ export default function MenuBuilder() {
       collectionIds: [],
     }));
 
+  const buildMultiBlockPreset = (templateId: BlockTemplateId) => {
+    if (templateId === "multi-3-photo") return buildMultiBlockThreeColumnsPhoto();
+    if (templateId === "multi-2-photos") return buildMultiBlockTwoColumnsTwoPhotos();
+    if (templateId === "multi-1-3-photos") return buildMultiBlockOneColumnThreePhotos();
+    if (templateId === "multi-4-images") return buildMultiBlockFourImages();
+    if (templateId === "multi-4-products") return buildMultiBlockFourProducts();
+    if (templateId === "multi-map-contact-address") return buildMultiBlockMapContactAddress();
+    if (templateId === "multi-4-product-list") return buildMultiBlockFourProductList();
+    if (templateId === "multi-1-column-3-product-list") return buildMultiBlockOneColumnThreeProductList();
+    if (templateId === "multi-product-carousel") return [buildMultiBlockProductCarousel()];
+    if (templateId === "multi-link-list-product-carousel") return buildMultiBlockLinkListProductCarousel();
+    if (templateId === "multi-image-product-carousel") return buildMultiBlockImageProductCarousel();
+    if (templateId === "multi-element-group-masonry") return buildMultiBlockElementGroupMasonry();
+    return buildMultiBlockLinkGroups();
+  };
+
   const handleApplyBlockTemplate = (templateId: BlockTemplateId) => {
     if (!blockTemplateTargetId) return;
     const isLinkListTemplate =
@@ -4541,32 +4638,7 @@ export default function MenuBuilder() {
     const isProductGridHorizontalTemplate = templateId === "product-grid-horizontal";
     const isCollectionListTemplate = templateId === "collection" || templateId === "collection-horizontal";
     if (isMultiBlockTemplate) {
-      const newBlocks =
-        templateId === "multi-3-photo"
-          ? buildMultiBlockThreeColumnsPhoto()
-          : templateId === "multi-2-photos"
-            ? buildMultiBlockTwoColumnsTwoPhotos()
-            : templateId === "multi-1-3-photos"
-              ? buildMultiBlockOneColumnThreePhotos()
-            : templateId === "multi-4-images"
-              ? buildMultiBlockFourImages()
-            : templateId === "multi-4-products"
-              ? buildMultiBlockFourProducts()
-              : templateId === "multi-map-contact-address"
-                ? buildMultiBlockMapContactAddress()
-                : templateId === "multi-4-product-list"
-                  ? buildMultiBlockFourProductList()
-                  : templateId === "multi-1-column-3-product-list"
-                    ? buildMultiBlockOneColumnThreeProductList()
-                    : templateId === "multi-product-carousel"
-                      ? [buildMultiBlockProductCarousel()]
-                    : templateId === "multi-link-list-product-carousel"
-                      ? buildMultiBlockLinkListProductCarousel()
-                      : templateId === "multi-image-product-carousel"
-                        ? buildMultiBlockImageProductCarousel()
-                        : templateId === "multi-element-group-masonry"
-                          ? buildMultiBlockElementGroupMasonry()
-                      : buildMultiBlockLinkGroups();
+      const newBlocks = buildMultiBlockPreset(templateId);
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
           ...item,
@@ -4770,6 +4842,24 @@ export default function MenuBuilder() {
       }))
     );
     setBlockTemplateTargetId(null);
+  };
+
+  const handleApplyMegaMenuPreset = (templateId: BlockTemplateId) => {
+    if (!submenuTemplateTargetId) return;
+    const newBlocks = buildMultiBlockPreset(templateId);
+    setMenuItems((items) =>
+      updateItemById(items, submenuTemplateTargetId, (item) => {
+        const hasChildren = Boolean(item.children?.length);
+        return {
+          ...item,
+          expanded: true,
+          submenuTemplate: "mega",
+          submenuType: "mega",
+          children: hasChildren ? item.children : newBlocks,
+        };
+      })
+    );
+    setSubmenuTemplateTargetId(null);
   };
 
   const handleApplySubmenuTemplate = (templateId: SubmenuTemplateId) => {

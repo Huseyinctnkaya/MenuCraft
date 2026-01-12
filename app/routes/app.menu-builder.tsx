@@ -10119,7 +10119,7 @@ export default function MenuBuilder() {
                 </div>
               </div>
 
-              {dropdownGroups.length > 0 && isDropdownMenu && previewMenu ? (
+              {isDropdownMenu && previewMenu ? (
                 <div
                   style={{
                     background: "transparent",
@@ -10166,12 +10166,12 @@ export default function MenuBuilder() {
                         const mainPanel = document.querySelector('[data-dropdown-main-panel]');
                         const activeItemElement = mainPanel?.querySelector(`[data-dropdown-item-id="${activeDropdownItem.id}"]`);
                         if (activeItemElement) {
-                          activeItemOffsetTop = (activeItemElement as HTMLElement).offsetTop;
+                          activeItemOffsetTop = (activeItemElement as HTMLElement).offsetTop + dropdownItemHeight;
                         }
                       }
                       return (
                         <>
-                          <div style={{ display: "flex", gap: 0 }}>
+                          <div style={{ display: "flex", gap: 0, position: "relative" }}>
                             <div className="relative" style={dropdownPanelStyle} data-dropdown-main-panel>
                               <div style={{ display: "flex", flexDirection: "column", gap: 0, padding: 12 }}>
                               {dropdownItems.map((child) => {
@@ -10205,9 +10205,7 @@ export default function MenuBuilder() {
                                         minHeight: dropdownItemHeight,
                                         padding: "8px 10px",
                                         borderRadius: 0,
-                                        border: isActiveChild
-                                          ? `2px solid ${themeSettings.menuActive}`
-                                          : "2px solid transparent",
+                                        border: "2px solid transparent",
                                         background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
                                         color: previewColors.submenuText,
                                         width: "100%",
@@ -10310,7 +10308,12 @@ export default function MenuBuilder() {
                             </div>
                           </div>
                           {activeDropdownItem ? (
-                            <div style={{ ...dropdownPanelStyle, marginTop: activeItemOffsetTop }}>
+                            <div style={{ 
+                              ...dropdownPanelStyle, 
+                              position: "absolute",
+                              left: `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
+                              top: activeItemOffsetTop,
+                            }}>
                               <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
                                 {(activeDropdownItem.children ?? []).map((child) => (
                                   <div key={child.id} className="group/item relative">

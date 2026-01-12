@@ -5159,7 +5159,7 @@ export default function MenuBuilder() {
     }));
   };
 
-  const renderMenuTree = (item: MenuItem, depth: number = 0) => {
+  const renderMenuTree = (item: MenuItem, depth: number = 0, parentItem?: MenuItem) => {
     if (item.blockTemplate === "space") {
       return null;
     }
@@ -5354,14 +5354,14 @@ export default function MenuBuilder() {
                 <div className="ml-1 border-l border-dashed border-gray-300/70">
                   <BlockStack>
                     {hasChildren
-                      ? item.children?.map((child) => renderMenuTree(child, depth + 1))
+                      ? item.children?.map((child) => renderMenuTree(child, depth + 1, item))
                       : null}
                   {item.role === "menu" ? (
                     <button
                       type="button"
                       onClick={() => {
                         if (isDropdownMenu) {
-                          handleAddChild(item.id, "item");
+                          handleOpenAddRoot(item.id);
                           return;
                         }
                         if (hasChildren) {
@@ -5382,11 +5382,14 @@ export default function MenuBuilder() {
                   {item.role === "group" && !isVisualBlock ? (
                     <button
                       type="button"
-                      onClick={() =>
-                        item.blockTemplate === "links"
-                          ? handleOpenAddRoot(item.id)
-                          : handleAddChild(item.id, "item")
-                      }
+                      onClick={() => {
+                        const isDropdownChildItem = parentItem?.submenuTemplate === "dropdown";
+                        if (item.blockTemplate === "links" || isDropdownChildItem) {
+                          handleOpenAddRoot(item.id);
+                        } else {
+                          handleAddChild(item.id, "item");
+                        }
+                      }}
                       className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
                     >
                       <span className="h-5 w-5" />
@@ -10250,7 +10253,7 @@ export default function MenuBuilder() {
                               })}
                               <button
                                 type="button"
-                                onClick={() => handleAddChild(previewMenu.id, "item")}
+                                onClick={() => handleOpenAddRoot(previewMenu.id)}
                                 className="text-sm font-medium"
                                 style={{
                                   alignSelf: "stretch",
@@ -10370,7 +10373,7 @@ export default function MenuBuilder() {
                                 ))}
                                 <button
                                   type="button"
-                                  onClick={() => handleAddChild(activeDropdownItem.id, "item")}
+                                  onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
                                   className="text-sm font-medium"
                                   style={{
                                     alignSelf: "stretch",

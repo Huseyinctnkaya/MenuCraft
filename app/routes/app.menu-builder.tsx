@@ -2085,7 +2085,7 @@ export default function MenuBuilder() {
       switch (activeTemplate.id) {
         case "dropdown":
           return renderTemplatePreviewCard({
-            title: "Dropdown",
+            title: "Vertical Dropdown",
             onSelect: selectTemplate,
             previewHeightClassName: "h-44",
             preview: (

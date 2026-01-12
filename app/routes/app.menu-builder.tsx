@@ -1265,6 +1265,10 @@ export default function MenuBuilder() {
   const [customItems, setCustomItems] = useState<CustomAddItem[]>(() => [buildCustomItem()]);
   const [linkPickerOpenId, setLinkPickerOpenId] = useState<string | null>(null);
   const [linkPickerRect, setLinkPickerRect] = useState<{ left: number; top: number; width: number } | null>(null);
+  const [activeDropdownItemId, setActiveDropdownItemId] = useState<string | null>(null);
+  const previewContainerRef = useRef<HTMLDivElement | null>(null);
+  const previewMenuItemRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
+  const [dropdownAnchor, setDropdownAnchor] = useState<{ left: number; top: number; width: number } | null>(null);
   const [savedFingerprint, setSavedFingerprint] = useState(() =>
     JSON.stringify({
       status: menu.status,
@@ -1309,6 +1313,46 @@ export default function MenuBuilder() {
       return { ...prev, imageLibrary: [currentImageUrl, ...existing] };
     });
   }, [imagePickerOpen, currentImageUrl]);
+
+  useEffect(() => {
+    setActiveDropdownItemId(null);
+  }, [openMenuId]);
+
+  useEffect(() => {
+    if (!openMenuId) {
+      setDropdownAnchor(null);
+      return;
+    }
+    const container = previewContainerRef.current;
+    const itemNode = previewMenuItemRefs.current.get(openMenuId);
+    if (!container || !itemNode) {
+      setDropdownAnchor(null);
+      return;
+    }
+    const containerRect = container.getBoundingClientRect();
+    const itemRect = itemNode.getBoundingClientRect();
+    setDropdownAnchor({
+      left: itemRect.left - containerRect.left,
+      top: itemRect.bottom - containerRect.top,
+      width: itemRect.width,
+    });
+  }, [
+    openMenuId,
+    menuItems,
+    previewMode,
+    builderSettings.layoutOrientation,
+    builderSettings.layoutAlignment,
+    builderSettings.menuItemSpacing,
+    builderSettings.spacingMainRowHeight,
+  ]);
+
+  const registerPreviewMenuItem = (id: string) => (node: HTMLButtonElement | null) => {
+    if (node) {
+      previewMenuItemRefs.current.set(id, node);
+    } else {
+      previewMenuItemRefs.current.delete(id);
+    }
+  };
 
   const updateBuilderSetting = <K extends keyof BuilderSettings>(
     key: K,
@@ -2040,42 +2084,32 @@ export default function MenuBuilder() {
       const selectTemplate = () => handleApplySubmenuTemplate(activeTemplate.id);
       switch (activeTemplate.id) {
         case "dropdown":
-          return (
-            <div className="flex flex-col gap-1">
-              {renderTemplatePreviewCard({
-                title: "Vertical flyout menu",
-                onSelect: selectTemplate,
-                preview: (
-                  <div className="flex h-28 gap-2 rounded-lg bg-[#a7b2c0] p-2">
-                    <div className="flex w-20 flex-col gap-2 rounded-md bg-white/80 p-2">
-                      <div className="h-3 rounded bg-gray-400" />
-                      <div className="h-3 rounded bg-gray-400" />
-                      <div className="h-3 rounded bg-gray-400" />
-                    </div>
-                    <div className="flex flex-1 items-center justify-center rounded-md bg-white/70">
-                      <div className="h-16 w-20 rounded bg-gray-300" />
-                    </div>
+          return renderTemplatePreviewCard({
+            title: "Dropdown",
+            onSelect: selectTemplate,
+            previewHeightClassName: "h-44",
+            preview: (
+              <div className="flex h-full gap-2 rounded-lg bg-[#a7b2c0] p-2">
+                <div className="flex w-24 flex-col gap-2 rounded-md bg-white/90 p-2">
+                  <div className="flex items-center justify-between rounded bg-gray-200/80 px-2 py-1">
+                    <div className="h-2 w-12 rounded bg-gray-400" />
                   </div>
-                ),
-              })}
-              {renderTemplatePreviewCard({
-                title: "Horizontal flyout menu",
-                onSelect: selectTemplate,
-                preview: (
-                  <div className="flex h-28 flex-col gap-2 rounded-lg bg-[#a7b2c0] p-2">
-                    <div className="flex items-center justify-between rounded-md bg-white/80 px-3 py-1 text-[10px] text-gray-500">
-                      <span className="h-2 w-10 rounded bg-gray-300" />
-                      <span className="h-2 w-10 rounded bg-gray-300" />
-                      <span className="h-2 w-10 rounded bg-gray-300" />
-                    </div>
-                    <div className="flex flex-1 items-center justify-center rounded-md bg-white/70">
-                      <div className="h-10 w-32 rounded bg-gray-300" />
-                    </div>
+                  <div className="flex items-center justify-between rounded bg-white px-2 py-1">
+                    <div className="h-2 w-12 rounded bg-gray-300" />
+                    <div className="h-2 w-2 rounded bg-gray-400" />
                   </div>
-                ),
-              })}
-            </div>
-          );
+                  <div className="flex items-center justify-between rounded bg-white px-2 py-1">
+                    <div className="h-2 w-12 rounded bg-gray-300" />
+                  </div>
+                </div>
+                <div className="flex flex-1 flex-col gap-2 rounded-md bg-white/90 p-2">
+                  <div className="h-2 w-16 rounded bg-gray-300" />
+                  <div className="h-2 w-20 rounded bg-gray-300" />
+                  <div className="h-2 w-14 rounded bg-gray-300" />
+                </div>
+              </div>
+            ),
+          });
         case "tabs":
           return renderTemplatePreviewCard({
             title: "Tabs",
@@ -4079,6 +4113,37 @@ export default function MenuBuilder() {
     ];
   };
 
+  const buildDropdownMenuItems = () => {
+    const flyoutItems = ["Submenu item 1", "Submenu item 2", "Submenu item 3"].map((label) => ({
+      id: buildId(),
+      label,
+      url: "/",
+      role: "item",
+    }));
+    return [
+      {
+        id: buildId(),
+        label: "Dropdown item 1",
+        url: "/",
+        role: "item",
+      },
+      {
+        id: buildId(),
+        label: "Dropdown item 2",
+        url: "",
+        role: "group",
+        expanded: true,
+        children: flyoutItems,
+      },
+      {
+        id: buildId(),
+        label: "Dropdown item 3",
+        url: "/",
+        role: "item",
+      },
+    ];
+  };
+
   const buildEasyColumnWithIcons = () => {
     const [firstIcon, secondIcon] = (() => {
       if (!ICON_LIBRARY.length) return [undefined, undefined];
@@ -4881,6 +4946,7 @@ export default function MenuBuilder() {
       children: [],
       blockTemplate: "space",
     };
+    const dropdownItems = buildDropdownMenuItems();
     setMenuItems((items) =>
       updateItemById(items, submenuTemplateTargetId, (item) => {
         const hasChildren = Boolean(item.children?.length);
@@ -4889,8 +4955,17 @@ export default function MenuBuilder() {
           expanded: true,
           submenuTemplate: templateId,
           submenuType: templateId === "dropdown" ? "dropdown" : "mega",
+          submenuWidth: templateId === "dropdown" ? item.submenuWidth ?? "content" : item.submenuWidth,
+          submenuContentAlign:
+            templateId === "dropdown" ? item.submenuContentAlign ?? "left" : item.submenuContentAlign,
           children:
-            hasChildren ? item.children : templateId === "mega" ? [spaceBlock] : [newGroup],
+            hasChildren
+              ? item.children
+              : templateId === "mega"
+                ? [spaceBlock]
+                : templateId === "dropdown"
+                  ? dropdownItems
+                  : [newGroup],
         };
       })
     );
@@ -5123,6 +5198,8 @@ export default function MenuBuilder() {
     const isVisualBlock = isImageBlock || isContactBlock || isProductBlock || isHtmlBlock || isBlogBlock;
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item" && !isVisualBlock;
+    const isDropdownMenu =
+      item.role === "menu" && (item.submenuType === "dropdown" || item.submenuTemplate === "dropdown");
     const resolvedIcon =
       item.icon ??
       (isContactBlock
@@ -5283,6 +5360,10 @@ export default function MenuBuilder() {
                     <button
                       type="button"
                       onClick={() => {
+                        if (isDropdownMenu) {
+                          handleAddChild(item.id, "item");
+                          return;
+                        }
                         if (hasChildren) {
                           handleOpenBlockTemplatePicker(item.id);
                         } else {
@@ -5295,7 +5376,7 @@ export default function MenuBuilder() {
                       <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
                         +
                       </span>
-                      {hasChildren ? "Add block" : "Add submenu"}
+                      {isDropdownMenu ? "Add item" : hasChildren ? "Add block" : "Add submenu"}
                     </button>
                   ) : null}
                   {item.role === "group" && !isVisualBlock ? (
@@ -9271,6 +9352,9 @@ export default function MenuBuilder() {
   };
 
   const dropdownGroups = previewMenu?.children ?? [];
+  const isDropdownMenu =
+    previewMenu?.submenuType === "dropdown" || previewMenu?.submenuTemplate === "dropdown";
+  const dropdownItems = isDropdownMenu ? dropdownGroups : [];
   const imageBlockCount = dropdownGroups.filter(
     (group) =>
       group.blockTemplate === "image" ||
@@ -9417,6 +9501,14 @@ export default function MenuBuilder() {
       ? builderSettings.submenuEnableMobileScroll
       : builderSettings.submenuEnableDesktopScroll;
   const enableDropdownScroll = dropdownOverflowY && linkBlockCount === 0;
+  const dropdownContentAlign = previewMenu?.submenuContentAlign ?? "left";
+  const dropdownAlignJustify =
+    dropdownContentAlign === "center"
+      ? "center"
+      : dropdownContentAlign === "right"
+        ? "flex-end"
+        : "flex-start";
+  const dropdownPanelWidth = previewMenu?.submenuWidth === "content" ? 260 : "100%";
 
   const handleSaveMenu = (
     nextStatus?: "active" | "draft",
@@ -9662,12 +9754,14 @@ export default function MenuBuilder() {
         <main className="flex-1 overflow-auto relative" style={{ background: themeSettings.canvasBackground }}>
           <Box padding="600">
             <div
+              ref={previewContainerRef}
               className="menucraft-preview"
               style={{
                 maxWidth: previewMode === "mobile" ? 520 : menuMaxWidth ?? 1260,
                 margin: "36px auto 0",
                 padding: "0 32px",
                 fontFamily: themeSettings.fontFamily,
+                position: "relative",
               }}
             >
               {builderSettings.customCss ? (
@@ -9771,6 +9865,7 @@ export default function MenuBuilder() {
                             handleSelectItem(item.id);
                             setOpenMenuId((prev) => (prev === item.id ? null : item.id));
                           }}
+                          ref={registerPreviewMenuItem(item.id)}
                           draggable
                           onDragStart={(event) => {
                             event.dataTransfer.effectAllowed = "move";
@@ -10021,7 +10116,286 @@ export default function MenuBuilder() {
                 </div>
               </div>
 
-              {dropdownGroups.length > 0 && (
+              {dropdownGroups.length > 0 && isDropdownMenu && previewMenu ? (
+                <div
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    marginTop: 0,
+                    padding: 0,
+                    position: "absolute",
+                    top: dropdownAnchor?.top ?? menuRowHeight,
+                    left: dropdownAnchor?.left ?? 0,
+                    zIndex: 20,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 16,
+                      justifyContent: dropdownAlignJustify,
+                      alignItems: "flex-start",
+                      color: previewColors.submenuText,
+                    }}
+                  >
+                    {(() => {
+                      const activeDropdownItem =
+                        dropdownItems.find((child) => child.id === activeDropdownItemId) ?? null;
+                      const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
+                      const dropdownPanelStyle: CSSProperties = {
+                        background: previewColors.submenuBackground,
+                        border: builderSettings.submenuShowBorder
+                          ? `1px solid ${previewColors.submenuBorder}`
+                          : "none",
+                        borderRadius: 0,
+                        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
+                        width: dropdownPanelWidth,
+                        maxWidth: submenuMaxWidth ?? undefined,
+                        minWidth: 220,
+                        overflowY: dropdownOverflowY ? "auto" : "visible",
+                        maxHeight: dropdownOverflowY ? 420 : "none",
+                      };
+                      return (
+                        <>
+                          <div className="group relative" style={dropdownPanelStyle}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
+                              {dropdownItems.map((child) => {
+                                const hasChildren = Boolean(child.children?.length);
+                                const isActiveChild = activeDropdownItem?.id === child.id;
+                                return (
+                                  <button
+                                    key={child.id}
+                                    type="button"
+                                    onClick={() => {
+                                      handleSelectItem(child.id);
+                                      if (hasChildren) {
+                                        setActiveDropdownItemId((prev) =>
+                                          prev === child.id ? null : child.id
+                                        );
+                                      } else {
+                                        setActiveDropdownItemId(null);
+                                      }
+                                    }}
+                                    onMouseEnter={(event) => {
+                                      event.currentTarget.style.color = previewColors.submenuTextHover;
+                                    }}
+                                    onMouseLeave={(event) => {
+                                      event.currentTarget.style.color = previewColors.submenuText;
+                                    }}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      gap: 10,
+                                      minHeight: dropdownItemHeight,
+                                      padding: "8px 10px",
+                                      borderRadius: 0,
+                                      border: isActiveChild
+                                        ? `2px solid ${themeSettings.menuActive}`
+                                        : "2px solid transparent",
+                                      background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
+                                      color: previewColors.submenuText,
+                                      width: "100%",
+                                      textAlign: dropdownContentAlign,
+                                      ...subtextTypography,
+                                      lineHeight: 1.2,
+                                    }}
+                                  >
+                                    <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                      {child.label}
+                                    </span>
+                                    {hasChildren ? (
+                                      <ChevronRightIcon width="14" height="14" fill={previewColors.submenuText} />
+                                    ) : null}
+                                  </button>
+                                );
+                              })}
+                              <button
+                                type="button"
+                                onClick={() => handleAddChild(previewMenu.id, "item")}
+                                className="text-sm font-medium"
+                                style={{
+                                  alignSelf: "stretch",
+                                  minHeight: dropdownItemHeight,
+                                  textAlign: dropdownContentAlign,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: dropdownAlignJustify,
+                                  gap: 8,
+                                  width: "100%",
+                                  padding: "6px 8px",
+                                  color: themeSettings.menuActive,
+                                  background: "transparent",
+                                  border: "none",
+                                  ...descriptionTypography,
+                                }}
+                                onMouseEnter={(event) => {
+                                  event.currentTarget.style.color = previewColors.submenuTextHover;
+                                }}
+                                onMouseLeave={(event) => {
+                                  event.currentTarget.style.color = themeSettings.menuActive;
+                                }}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 9999,
+                                    border: "2px solid currentColor",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: 14,
+                                    lineHeight: 1,
+                                  }}
+                                >
+                                  +
+                                </span>
+                                Add item
+                              </button>
+                            </div>
+                            <div className="pointer-events-none absolute left-1/2 top-full z-10 -translate-x-1/2 pt-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                              <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                <button
+                                  type="button"
+                                  aria-label="Align left"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, previewMenu.id, () => ({
+                                        ...previewMenu,
+                                        submenuContentAlign: "left",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignLeftIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label="Align center"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, previewMenu.id, () => ({
+                                        ...previewMenu,
+                                        submenuContentAlign: "center",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignCenterIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label="Align right"
+                                  className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, previewMenu.id, () => ({
+                                        ...previewMenu,
+                                        submenuContentAlign: "right",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignRightIcon} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          {activeDropdownItem ? (
+                            <div style={dropdownPanelStyle}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
+                                {(activeDropdownItem.children ?? []).map((child) => (
+                                  <button
+                                    key={child.id}
+                                    type="button"
+                                    onClick={() => handleSelectItem(child.id)}
+                                    onMouseEnter={(event) => {
+                                      event.currentTarget.style.color = previewColors.submenuTextHover;
+                                    }}
+                                    onMouseLeave={(event) => {
+                                      event.currentTarget.style.color = previewColors.submenuText;
+                                    }}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      gap: 10,
+                                      minHeight: dropdownItemHeight,
+                                      padding: "8px 10px",
+                                      borderRadius: 0,
+                                      border: "2px solid transparent",
+                                      background: "transparent",
+                                      color: previewColors.submenuText,
+                                      width: "100%",
+                                      textAlign: dropdownContentAlign,
+                                      ...subtextTypography,
+                                      lineHeight: 1.2,
+                                    }}
+                                  >
+                                    <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                      {child.label}
+                                    </span>
+                                  </button>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddChild(activeDropdownItem.id, "item")}
+                                  className="text-sm font-medium"
+                                  style={{
+                                    alignSelf: "stretch",
+                                    minHeight: dropdownItemHeight,
+                                    textAlign: dropdownContentAlign,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: dropdownAlignJustify,
+                                    gap: 8,
+                                    width: "100%",
+                                    padding: "6px 8px",
+                                    color: themeSettings.menuActive,
+                                    background: "transparent",
+                                    border: "none",
+                                    ...descriptionTypography,
+                                  }}
+                                  onMouseEnter={(event) => {
+                                    event.currentTarget.style.color = previewColors.submenuTextHover;
+                                  }}
+                                  onMouseLeave={(event) => {
+                                    event.currentTarget.style.color = themeSettings.menuActive;
+                                  }}
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    style={{
+                                      width: 20,
+                                      height: 20,
+                                      borderRadius: 9999,
+                                      border: "2px solid currentColor",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontSize: 14,
+                                      lineHeight: 1,
+                                    }}
+                                  >
+                                    +
+                                  </span>
+                                  Add item
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              ) : null}
+
+              {dropdownGroups.length > 0 && !isDropdownMenu && (
                 <div
                   style={{
                     background: previewColors.submenuBackground,

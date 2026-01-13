@@ -10313,7 +10313,7 @@ export default function MenuBuilder() {
                               position: "absolute",
                               left: `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
                               top: activeItemOffsetTop,
-                            }}>
+                            }} data-submenu-panel>
                               <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
                                 {(activeDropdownItem.children ?? []).map((child) => (
                                   <div key={child.id} className="group/item relative">
@@ -10429,6 +10429,23 @@ export default function MenuBuilder() {
                                     +
                                   </span>
                                   Add item
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-0" style={{ background: "rgb(17, 24, 39)", padding: "4px", borderRadius: "0", width: "100%", justifyContent: "center", marginTop: "8px" }}>
+                                <button
+                                  type="button"
+                                  aria-label="Back"
+                                  className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                  onClick={(e) => {
+                                    const submenuPanel = (e.currentTarget as HTMLElement).closest('[data-submenu-panel]') as HTMLElement;
+                                    if (submenuPanel) {
+                                      const panelWidth = dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? `${dropdownPanelWidth}px` : dropdownPanelWidth);
+                                      const widthValue = typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : (typeof dropdownPanelWidth === "string" ? parseInt(dropdownPanelWidth) : 200);
+                                      submenuPanel.style.left = `-${widthValue}px`;
+                                    }
+                                  }}
+                                >
+                                  <span style={{ fontSize: "12px" }}>← Sola yasla</span>
                                 </button>
                               </div>
                             </div>

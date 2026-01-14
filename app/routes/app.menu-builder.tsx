@@ -10332,7 +10332,40 @@ export default function MenuBuilder() {
                                   const hasChildren = Boolean(child.children?.length);
                                   const isActiveChild = activeDropdownItem?.id === child.id;
                                   return (
-                                    <div key={child.id} className="group/item relative" data-dropdown-item-id={child.id}>
+                                    <div
+                                      key={child.id}
+                                      className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                      data-dropdown-item-id={child.id}
+                                      draggable
+                                      onDragStart={(event) => {
+                                        event.dataTransfer.effectAllowed = "move";
+                                        event.dataTransfer.setData("text/plain", child.id);
+                                        setDraggedItemId(child.id);
+                                        const parentId = findParentId(menuItems, child.id);
+                                        setDraggedParentId(parentId ?? null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                      onDragEnd={() => {
+                                        setDraggedItemId(null);
+                                        setDraggedParentId(null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                      onDragOver={(event) => {
+                                        if (!draggedItemId || draggedItemId === child.id) return;
+                                        const targetParentId = findParentId(menuItems, child.id);
+                                        if (draggedParentId !== targetParentId) return;
+                                        event.preventDefault();
+                                        if (lastDragOverIdRef.current === child.id) return;
+                                        lastDragOverIdRef.current = child.id;
+                                        setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                      }}
+                                      onDrop={(event) => {
+                                        event.preventDefault();
+                                        setDraggedItemId(null);
+                                        setDraggedParentId(null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                    >
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -10472,7 +10505,39 @@ export default function MenuBuilder() {
                               }} data-submenu-panel>
                                 <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
                                   {(activeDropdownItem.children ?? []).map((child) => (
-                                    <div key={child.id} className="group/item relative">
+                                    <div
+                                      key={child.id}
+                                      className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                      draggable
+                                      onDragStart={(event) => {
+                                        event.dataTransfer.effectAllowed = "move";
+                                        event.dataTransfer.setData("text/plain", child.id);
+                                        setDraggedItemId(child.id);
+                                        const parentId = findParentId(menuItems, child.id);
+                                        setDraggedParentId(parentId ?? null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                      onDragEnd={() => {
+                                        setDraggedItemId(null);
+                                        setDraggedParentId(null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                      onDragOver={(event) => {
+                                        if (!draggedItemId || draggedItemId === child.id) return;
+                                        const targetParentId = findParentId(menuItems, child.id);
+                                        if (draggedParentId !== targetParentId) return;
+                                        event.preventDefault();
+                                        if (lastDragOverIdRef.current === child.id) return;
+                                        lastDragOverIdRef.current = child.id;
+                                        setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                      }}
+                                      onDrop={(event) => {
+                                        event.preventDefault();
+                                        setDraggedItemId(null);
+                                        setDraggedParentId(null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                    >
                                       <button
                                         type="button"
                                         onClick={() => handleSelectItem(child.id)}
@@ -10698,7 +10763,39 @@ export default function MenuBuilder() {
                             {horizontalDropdownItems.map((child) => {
                               const isActive = activeHorizontalItem?.id === child.id;
                               return (
-                                <div key={child.id} className="group/item relative">
+                                <div
+                                  key={child.id}
+                                  className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                  draggable
+                                  onDragStart={(event) => {
+                                    event.dataTransfer.effectAllowed = "move";
+                                    event.dataTransfer.setData("text/plain", child.id);
+                                    setDraggedItemId(child.id);
+                                    const parentId = findParentId(menuItems, child.id);
+                                    setDraggedParentId(parentId ?? null);
+                                    lastDragOverIdRef.current = null;
+                                  }}
+                                  onDragEnd={() => {
+                                    setDraggedItemId(null);
+                                    setDraggedParentId(null);
+                                    lastDragOverIdRef.current = null;
+                                  }}
+                                  onDragOver={(event) => {
+                                    if (!draggedItemId || draggedItemId === child.id) return;
+                                    const targetParentId = findParentId(menuItems, child.id);
+                                    if (draggedParentId !== targetParentId) return;
+                                    event.preventDefault();
+                                    if (lastDragOverIdRef.current === child.id) return;
+                                    lastDragOverIdRef.current = child.id;
+                                    setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                  }}
+                                  onDrop={(event) => {
+                                    event.preventDefault();
+                                    setDraggedItemId(null);
+                                    setDraggedParentId(null);
+                                    lastDragOverIdRef.current = null;
+                                  }}
+                                >
                                   <button
                                     type="button"
                                     onClick={() => handleSelectItem(child.id)}
@@ -10708,6 +10805,7 @@ export default function MenuBuilder() {
                                     onMouseLeave={(event) => {
                                       event.currentTarget.style.color = isActive ? previewColors.submenuTextHover : previewColors.submenuText;
                                     }}
+                                    className="cursor-grab active:cursor-grabbing"
                                     style={{
                                       display: "flex",
                                       alignItems: "center",
@@ -10846,7 +10944,39 @@ export default function MenuBuilder() {
                               {(activeHorizontalItem.children ?? []).map((child) => {
                                 const isActive = selectedItemId === child.id || selectedItemPath?.some(p => p.id === child.id);
                                 return (
-                                  <div key={child.id} className="group/item relative">
+                                  <div
+                                    key={child.id}
+                                    className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                    draggable
+                                    onDragStart={(event) => {
+                                      event.dataTransfer.effectAllowed = "move";
+                                      event.dataTransfer.setData("text/plain", child.id);
+                                      setDraggedItemId(child.id);
+                                      const parentId = findParentId(menuItems, child.id);
+                                      setDraggedParentId(parentId ?? null);
+                                      lastDragOverIdRef.current = null;
+                                    }}
+                                    onDragEnd={() => {
+                                      setDraggedItemId(null);
+                                      setDraggedParentId(null);
+                                      lastDragOverIdRef.current = null;
+                                    }}
+                                    onDragOver={(event) => {
+                                      if (!draggedItemId || draggedItemId === child.id) return;
+                                      const targetParentId = findParentId(menuItems, child.id);
+                                      if (draggedParentId !== targetParentId) return;
+                                      event.preventDefault();
+                                      if (lastDragOverIdRef.current === child.id) return;
+                                      lastDragOverIdRef.current = child.id;
+                                      setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                    }}
+                                    onDrop={(event) => {
+                                      event.preventDefault();
+                                      setDraggedItemId(null);
+                                      setDraggedParentId(null);
+                                      lastDragOverIdRef.current = null;
+                                    }}
+                                  >
                                     <button
                                       type="button"
                                       onClick={() => handleSelectItem(child.id)}
@@ -10856,6 +10986,7 @@ export default function MenuBuilder() {
                                       onMouseLeave={(event) => {
                                         event.currentTarget.style.color = isActive ? previewColors.submenuTextHover : previewColors.submenuText;
                                       }}
+                                      className="cursor-grab active:cursor-grabbing"
                                       style={{
                                         display: "flex",
                                         alignItems: "center",

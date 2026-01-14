@@ -1146,7 +1146,6 @@ export default function MenuBuilder() {
     canvasBackground: "#9fb1c4",
     menuItemSpacing: 28,
   });
-  const [isPreviewLeftAligned, setIsPreviewLeftAligned] = useState(false);
 
   const returnToPath = useMemo(() => {
     const search = new URLSearchParams(location.search);
@@ -10293,9 +10292,7 @@ export default function MenuBuilder() {
                               <div style={{
                                 ...dropdownPanelStyle,
                                 position: "absolute",
-                                left: isPreviewLeftAligned
-                                  ? `-${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`
-                                  : `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
+                                left: `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
                                 top: activeItemOffsetTop,
                               }} data-submenu-panel>
                                 <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
@@ -10420,11 +10417,16 @@ export default function MenuBuilder() {
                                     type="button"
                                     aria-label="Back"
                                     className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
-                                    onClick={() => setIsPreviewLeftAligned((prev) => !prev)}
+                                    onClick={(e) => {
+                                      const submenuPanel = (e.currentTarget as HTMLElement).closest('[data-submenu-panel]') as HTMLElement;
+                                      if (submenuPanel) {
+                                        const panelWidth = dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? `${dropdownPanelWidth}px` : dropdownPanelWidth);
+                                        const widthValue = typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : (typeof dropdownPanelWidth === "string" ? parseInt(dropdownPanelWidth) : 200);
+                                        submenuPanel.style.left = `-${widthValue}px`;
+                                      }
+                                    }}
                                   >
-                                    <span style={{ fontSize: "12px" }}>
-                                      {isPreviewLeftAligned ? "→ Align right" : "← Align left"}
-                                    </span>
+                                    <span style={{ fontSize: "12px" }}>← Sola yasla</span>
                                   </button>
                                 </div>
                               </div>

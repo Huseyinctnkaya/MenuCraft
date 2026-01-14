@@ -157,6 +157,7 @@ const SUBMENU_TEMPLATES: Array<{ id: SubmenuTemplateId; label: string; icon: Ico
   { id: "tabs", label: "Tabs", icon: CollectionListIcon },
   { id: "mega", label: "Mega menu", icon: ProductListIcon },
   { id: "dropdown", label: "Dropdown (flyout)", icon: ChevronDownIcon },
+  { id: "horizontal-dropdown", label: "Horizontal Dropdown", icon: ChevronRightIcon },
 ];
 
 const BLOCK_TEMPLATES: Array<{ id: BlockTemplateId; label: string; icon: IconSource }> = [
@@ -488,7 +489,7 @@ type MenuItem = {
   customBackgroundHoverColor?: string;
   blockTemplate?: BlockTemplateId;
   submenuTemplate?: SubmenuTemplateId;
-  submenuType?: "mega" | "dropdown";
+  submenuType?: "mega" | "dropdown" | "horizontal-dropdown";
   submenuWidth?: "full" | "content";
   submenuContentAlign?: "left" | "center" | "right";
   submenuBackgroundColor?: string;
@@ -533,7 +534,7 @@ type MenuItem = {
   | "multi-element-group-masonry";
 };
 
-type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown";
+type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown" | "horizontal-dropdown";
 type BlockTemplateId =
   | "space"
   | "multi"
@@ -2096,6 +2097,38 @@ export default function MenuBuilder() {
                 />
                 <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
                   Vertical Dropdown
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={selectTemplate}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    Select
+                  </Button>
+                </div>
+              </div>
+            ),
+          });
+        case "horizontal-dropdown":
+          return renderTemplatePreviewCard({
+            title: "Horizontal Dropdown",
+            onSelect: selectTemplate,
+            showSelectButton: false,
+            showTitle: false,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
+            preview: (
+              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/horizontal-dropdown.png"
+                  alt="Horizontal Dropdown template"
+                  className="h-full w-full object-contain pb-6"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Horizontal Dropdown
                 </div>
                 <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                   <Button
@@ -4948,16 +4981,16 @@ export default function MenuBuilder() {
           ...item,
           expanded: true,
           submenuTemplate: templateId,
-          submenuType: templateId === "dropdown" ? "dropdown" : "mega",
-          submenuWidth: templateId === "dropdown" ? item.submenuWidth ?? "content" : item.submenuWidth,
+          submenuType: templateId === "dropdown" ? "dropdown" : templateId === "horizontal-dropdown" ? "horizontal-dropdown" : "mega",
+          submenuWidth: templateId === "dropdown" || templateId === "horizontal-dropdown" ? item.submenuWidth ?? "content" : item.submenuWidth,
           submenuContentAlign:
-            templateId === "dropdown" ? item.submenuContentAlign ?? "left" : item.submenuContentAlign,
+            templateId === "dropdown" || templateId === "horizontal-dropdown" ? item.submenuContentAlign ?? "left" : item.submenuContentAlign,
           children:
             hasChildren
               ? item.children
               : templateId === "mega"
                 ? [spaceBlock]
-                : templateId === "dropdown"
+                : templateId === "dropdown" || templateId === "horizontal-dropdown"
                   ? dropdownItems
                   : [newGroup],
         };
@@ -9341,7 +9374,10 @@ export default function MenuBuilder() {
   const dropdownGroups = previewMenu?.children ?? [];
   const isDropdownMenu =
     previewMenu?.submenuType === "dropdown" || previewMenu?.submenuTemplate === "dropdown";
+  const isHorizontalDropdownMenu =
+    previewMenu?.submenuType === "horizontal-dropdown" || previewMenu?.submenuTemplate === "horizontal-dropdown";
   const dropdownItems = isDropdownMenu ? dropdownGroups : [];
+  const horizontalDropdownItems = isHorizontalDropdownMenu ? dropdownGroups : [];
   const imageBlockCount = dropdownGroups.filter(
     (group) =>
       group.blockTemplate === "image" ||
@@ -10486,7 +10522,144 @@ export default function MenuBuilder() {
                 </div>
               ) : null}
 
-              {dropdownGroups.length > 0 && !isDropdownMenu && (
+              {/* Horizontal Dropdown */}
+              {isHorizontalDropdownMenu && horizontalDropdownItems.length > 0 ? (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    right: 0,
+                    zIndex: 40,
+                    width: "100%",
+                  }}
+                >
+                  <div
+                    className="group relative"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 0,
+                      color: previewColors.submenuText,
+                      width: "100%",
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 0, position: "relative", width: "100%" }}>
+                      <div
+                        className="relative"
+                        style={{
+                          background: previewColors.submenuBackground,
+                          border: builderSettings.submenuShowBorder
+                            ? `1px solid ${previewColors.submenuBorder}`
+                            : "none",
+                          borderRadius: 0,
+                          boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
+                          width: "100%",
+                        }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "row", gap: 0, padding: "12px 12px", flexWrap: "wrap", alignItems: "center", flex: 1 }}>
+                          {horizontalDropdownItems.map((child) => {
+                            return (
+                              <div key={child.id} className="group/item relative">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    handleSelectItem(child.id);
+                                  }}
+                                  onMouseEnter={(event) => {
+                                    event.currentTarget.style.color = previewColors.submenuTextHover;
+                                  }}
+                                  onMouseLeave={(event) => {
+                                    event.currentTarget.style.color = previewColors.submenuText;
+                                  }}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 10,
+                                    minHeight: builderSettings.spacingLinkListRowHeight,
+                                    padding: "8px 16px",
+                                    borderRadius: 0,
+                                    border: "2px solid transparent",
+                                    background: "transparent",
+                                    color: previewColors.submenuText,
+                                    textAlign: "center",
+                                    ...subtextTypography,
+                                    lineHeight: 1.2,
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  <span>{child.label}</span>
+                                </button>
+                                <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                  <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                    <button
+                                      type="button"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        handleSelectItem(child.id, true);
+                                      }}
+                                      aria-label="Edit item"
+                                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                    >
+                                      <Icon source={EditIcon} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        handleCopyItem(child.id);
+                                      }}
+                                      aria-label="Copy item"
+                                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                    >
+                                      <Icon source={DuplicateIcon} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        handleDeleteItem(child.id);
+                                      }}
+                                      aria-label="Delete item"
+                                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                    >
+                                      <Icon source={DeleteIcon} />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenAddChild(previewMenu.id)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 8,
+                              padding: "8px 16px",
+                              borderRadius: 0,
+                              border: "none",
+                              background: "transparent",
+                              color: "#3b82f6",
+                              fontSize: 14,
+                              fontWeight: 500,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            + Öğe Ekle
+                          </button>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {dropdownGroups.length > 0 && !isDropdownMenu && !isHorizontalDropdownMenu && (
                 <div
                   style={{
                     background: previewColors.submenuBackground,

@@ -1106,6 +1106,7 @@ export default function MenuBuilder() {
   const [activePanel, setActivePanel] = useState<RailPanel>("menu");
   const [menuView, setMenuView] = useState<"list" | "edit" | "add-root">("list");
   const [addItemsTargetId, setAddItemsTargetId] = useState<string | null>(null);
+  const [addItemAfterId, setAddItemAfterId] = useState<string | undefined>(undefined);
   const [menuStatus, setMenuStatus] = useState<"active" | "draft">(
     menu.status === "active" ? "active" : "draft"
   );
@@ -5009,6 +5010,7 @@ export default function MenuBuilder() {
     setLinkPickerOpenId(null);
     setIconPickerState(null);
     setIconPickerSearch("");
+    setAddItemAfterId(undefined);
   };
 
   const handleOpenAddRoot = (targetId?: string | null) => {
@@ -5045,17 +5047,50 @@ export default function MenuBuilder() {
       label: item.label,
       url: item.url,
       role: itemRole,
+      children: [], // Ensure children is initialized
     }));
+
     if (addItemsTargetId) {
       setMenuItems((prev) =>
-        updateItemById(prev, addItemsTargetId, (item) => ({
-          ...item,
-          expanded: true,
-          children: item.children ? [...item.children, ...nextItems] : nextItems,
-        }))
+        updateItemById(prev, addItemsTargetId, (item) => {
+          const children = [...(item.children || [])];
+          if (addItemAfterId !== undefined) {
+            const index = children.findIndex((c) => c.id === addItemAfterId);
+            if (index !== -1) {
+              children.splice(index + 1, 0, ...nextItems);
+            } else {
+              children.push(...nextItems);
+            }
+          } else if (addItemAfterId === undefined && children.length > 0 && item.children) {
+            // If we were adding at start (afterId undefined in handleAddItemAt)
+            // we need to distinguish between "add at bottom" and "add at top"
+            // But for now, let's just append if not specifically positioned
+            children.push(...nextItems);
+          } else {
+            children.push(...nextItems);
+          }
+          return {
+            ...item,
+            expanded: true,
+            children,
+          };
+        })
       );
     } else {
-      setMenuItems((prev) => [...prev, ...nextItems]);
+      setMenuItems((prev) => {
+        const next = [...prev];
+        if (addItemAfterId !== undefined) {
+          const index = next.findIndex((i) => i.id === addItemAfterId);
+          if (index !== -1) {
+            next.splice(index + 1, 0, ...nextItems);
+          } else {
+            next.push(...nextItems);
+          }
+        } else {
+          next.push(...nextItems);
+        }
+        return next;
+      });
     }
     setMenuView("list");
     setAddItemsTargetId(null);
@@ -5087,6 +5122,7 @@ export default function MenuBuilder() {
         role: itemRole,
         description: item.description || undefined,
         icon: item.icon || undefined,
+        children: [],
       }));
 
     if (!nextItems.length) {
@@ -5095,14 +5131,40 @@ export default function MenuBuilder() {
 
     if (addItemsTargetId) {
       setMenuItems((prev) =>
-        updateItemById(prev, addItemsTargetId, (item) => ({
-          ...item,
-          expanded: true,
-          children: item.children ? [...item.children, ...nextItems] : nextItems,
-        }))
+        updateItemById(prev, addItemsTargetId, (item) => {
+          const children = [...(item.children || [])];
+          if (addItemAfterId !== undefined) {
+            const index = children.findIndex((c) => c.id === addItemAfterId);
+            if (index !== -1) {
+              children.splice(index + 1, 0, ...nextItems);
+            } else {
+              children.push(...nextItems);
+            }
+          } else {
+            children.push(...nextItems);
+          }
+          return {
+            ...item,
+            expanded: true,
+            children,
+          };
+        })
       );
     } else {
-      setMenuItems((prev) => [...prev, ...nextItems]);
+      setMenuItems((prev) => {
+        const next = [...prev];
+        if (addItemAfterId !== undefined) {
+          const index = next.findIndex((i) => i.id === addItemAfterId);
+          if (index !== -1) {
+            next.splice(index + 1, 0, ...nextItems);
+          } else {
+            next.push(...nextItems);
+          }
+        } else {
+          next.push(...nextItems);
+        }
+        return next;
+      });
     }
     setMenuView("list");
     setAddItemsTargetId(null);
@@ -5186,6 +5248,66 @@ export default function MenuBuilder() {
       ...item,
       children: item.children ? reorderItems(item.children, draggedId, targetId) : item.children,
     }));
+  };
+
+  const handleAddItemAt = (parentId: string | null, afterId: string | undefined) => {
+    setAddItemsTargetId(parentId);
+    setAddItemAfterId(afterId);
+    setAddItemsSearch("");
+    setActivePanel("menu");
+    setMenuView("add-root");
+  };
+
+  const renderAddBetween = (parentId: string | null, afterId: string | undefined, depth: number) => {
+    // Only show for submenus (depth > 0)
+    if (depth === 0) return null;
+    const indent = depth * 16;
+
+    return (
+      <div
+        className="group/add relative -my-2 h-4 z-[100] cursor-default"
+        style={{ marginLeft: indent, marginRight: 8 }}
+      >
+        {/* Invisible larger hover area */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-6 pointer-events-auto" />
+
+        {/* Animated Line - scales from center, slightly thicker and darker blue */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[2px] bg-blue-600 scale-x-0 group-hover/add:scale-x-100 transition-transform duration-300 origin-center pointer-events-none shadow-[0_0_2px_rgba(37,99,235,0.2)]" />
+
+        {/* Centered Button & Tooltip Container */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover/add:opacity-100 transition-opacity pointer-events-auto flex items-center justify-center w-8 h-8">
+
+          {/* Tooltip - Positioned absolutely above the button, doesn't shift the button center */}
+          <div className="absolute bottom-[calc(100%+4px)] left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none mb-1">
+            <div className="bg-white px-2.5 py-1.5 rounded-lg border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.12)] text-[11px] font-bold text-gray-800 whitespace-nowrap z-50">
+              Açılır menü ekle
+            </div>
+            {/* Tooltip Arrow */}
+            <div className="w-2.5 h-2.5 bg-white border-r border-b border-gray-100 rotate-45 -mt-1.5 shadow-[2px_2px_5px_rgba(0,0,0,0.03)] z-40" />
+          </div>
+
+          {/* Plus Button with Halo Effect */}
+          <div className="relative flex items-center justify-center w-full h-full">
+            {/* Halo (Outer Glow) */}
+            <div className="absolute w-8 h-8 rounded-full bg-blue-500/10 blur-[2px] group-hover/add:scale-125 transition-transform duration-300" />
+            <div className="absolute w-6 h-6 rounded-full bg-blue-100/40" />
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddItemAt(parentId, afterId);
+              }}
+              className="relative flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_2px_5px_rgba(0,0,0,0.2)] hover:bg-blue-700 transition-all hover:scale-110 border-2 border-white z-50"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" focusable="false" aria-hidden="true">
+                <path d="M10.75 5.75c0-.414-.336-.75-.75-.75s-.75.336-.75.75v3.5h-3.5c-.414 0-.75.336-.75.75s.336.75.75.75h3.5v3.5c0 .414.336.75.75.75s.75-.336.75-.75v-3.5h3.5c.414 0 .75-.336.75-.75s-.336-.75-.75-.75h-3.5v-3.5Z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderMenuTree = (item: MenuItem, depth: number = 0, parentItem?: MenuItem) => {
@@ -5373,7 +5495,7 @@ export default function MenuBuilder() {
                 style={{
                   maxHeight: isExpanded ? 9999 : 0,
                   opacity: isExpanded ? 1 : 0,
-                  overflow: "hidden",
+                  overflow: isExpanded ? "visible" : "hidden",
                   transition: "max-height 140ms ease, opacity 140ms ease",
                 }}
               >
@@ -5381,7 +5503,13 @@ export default function MenuBuilder() {
                   <div className="ml-1 border-l border-dashed border-gray-300/70">
                     <BlockStack>
                       {hasChildren
-                        ? item.children?.map((child) => renderMenuTree(child, depth + 1, item))
+                        ? item.children?.map((child, index) => (
+                          <div key={child.id}>
+                            {index === 0 && renderAddBetween(item.id, undefined, depth + 1)}
+                            {renderMenuTree(child, depth + 1, item)}
+                            {renderAddBetween(item.id, child.id, depth + 1)}
+                          </div>
+                        ))
                         : null}
                       {item.role === "menu" ? (
                         <button

@@ -157,7 +157,6 @@ const SUBMENU_TEMPLATES: Array<{ id: SubmenuTemplateId; label: string; icon: Ico
   { id: "tabs", label: "Tabs", icon: CollectionListIcon },
   { id: "mega", label: "Mega menu", icon: ProductListIcon },
   { id: "dropdown", label: "Dropdown (flyout)", icon: ChevronDownIcon },
-  { id: "horizontal-dropdown", label: "Horizontal Dropdown", icon: ChevronRightIcon },
 ];
 
 const BLOCK_TEMPLATES: Array<{ id: BlockTemplateId; label: string; icon: IconSource }> = [
@@ -2081,69 +2080,72 @@ export default function MenuBuilder() {
       const selectTemplate = () => handleApplySubmenuTemplate(activeTemplate.id);
       switch (activeTemplate.id) {
         case "dropdown":
-          return renderTemplatePreviewCard({
-            title: "Vertical Dropdown",
-            onSelect: selectTemplate,
-            showSelectButton: false,
-            showTitle: false,
-            previewHeightClassName: "h-44",
-            previewContainerClassName: "bg-transparent p-0",
-            preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <img
-                  src="/vertical-dropdown.png"
-                  alt="Vertical Dropdown template"
-                  className="h-full w-full object-contain pb-6"
-                />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Vertical Dropdown
-                </div>
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                  <Button
-                    fullWidth
-                    onClick={selectTemplate}
-                    size="slim"
-                    variant="primary"
-                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                  >
-                    Select
-                  </Button>
-                </div>
-              </div>
-            ),
-          });
-        case "horizontal-dropdown":
-          return renderTemplatePreviewCard({
-            title: "Horizontal Dropdown",
-            onSelect: selectTemplate,
-            showSelectButton: false,
-            showTitle: false,
-            previewHeightClassName: "h-44",
-            previewContainerClassName: "bg-transparent p-0",
-            preview: (
-              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                <img
-                  src="/horizontal-dropdown.png"
-                  alt="Horizontal Dropdown template"
-                  className="h-full w-full object-contain pb-6"
-                />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                  Horizontal Dropdown
-                </div>
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                  <Button
-                    fullWidth
-                    onClick={selectTemplate}
-                    size="slim"
-                    variant="primary"
-                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                  >
-                    Select
-                  </Button>
-                </div>
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {renderTemplatePreviewCard({
+                title: "Vertical Dropdown",
+                onSelect: () => handleApplySubmenuTemplate("dropdown"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/vertical-dropdown.png"
+                      alt="Vertical Dropdown template"
+                      className="h-full w-full object-contain pb-6"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Vertical Dropdown
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplySubmenuTemplate("dropdown")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Horizontal Dropdown",
+                onSelect: () => handleApplySubmenuTemplate("horizontal-dropdown"),
+                showSelectButton: false,
+                showTitle: false,
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/horizantal-dropdown.png"
+                      alt="Horizontal Dropdown template"
+                      className="h-full w-full object-contain pb-6"
+                    />
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Horizontal Dropdown
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplySubmenuTemplate("horizontal-dropdown")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+            </div>
+          );
         case "tabs":
           return renderTemplatePreviewCard({
             title: "Tabs",

@@ -9780,7 +9780,6 @@ export default function MenuBuilder() {
               style={{
                 maxWidth: previewMode === "mobile" ? 520 : menuMaxWidth ?? 1260,
                 margin: "36px auto 0",
-                padding: "0 32px",
                 fontFamily: themeSettings.fontFamily,
                 position: "relative",
               }}
@@ -10557,7 +10556,7 @@ export default function MenuBuilder() {
                           width: "100%",
                         }}
                       >
-                        <div style={{ display: "flex", flexDirection: "row", gap: 0, padding: "12px 12px", flexWrap: "wrap", alignItems: "center", flex: 1 }}>
+                        <div style={{ display: "flex", flexDirection: "row", gap: 0, flexWrap: "wrap", alignItems: "center", justifyContent: "center", flex: 1 }}>
                           {horizontalDropdownItems.map((child) => {
                             return (
                               <div key={child.id} className="group/item relative">
@@ -10578,7 +10577,7 @@ export default function MenuBuilder() {
                                     justifyContent: "center",
                                     gap: 10,
                                     minHeight: builderSettings.spacingLinkListRowHeight,
-                                    padding: "8px 16px",
+                                    padding: "16px",
                                     borderRadius: 0,
                                     border: "2px solid transparent",
                                     background: "transparent",
@@ -10639,7 +10638,7 @@ export default function MenuBuilder() {
                               alignItems: "center",
                               justifyContent: "center",
                               gap: 8,
-                              padding: "8px 16px",
+                              padding: "16px",
                               borderRadius: 0,
                               border: "none",
                               background: "transparent",

@@ -10694,15 +10694,36 @@ export default function MenuBuilder() {
                         overflowY: dropdownOverflowY ? "auto" : "visible",
                         maxHeight: dropdownOverflowY ? 420 : "none",
                       };
+                      const previewContainerWidth =
+                        previewContainerRef.current?.getBoundingClientRect().width ??
+                        menuMaxWidth ??
+                        1260;
+                      const dropdownPanelPixelWidth =
+                        dropdownPanelWidth === "100%"
+                          ? previewContainerWidth
+                          : typeof dropdownPanelWidth === "number"
+                            ? dropdownPanelWidth
+                            : parseInt(dropdownPanelWidth);
+                      const availableRight = dropdownAnchor
+                        ? previewContainerWidth - (dropdownAnchor.left + dropdownPanelPixelWidth)
+                        : null;
                       const simpleLeftTabsPanelWidth = submenuMaxWidth ?? 720;
-                      const simpleLeftTabsContentMinWidth = Math.max(submenuMaxWidth ?? 0, 960);
+                      const resolvedSimpleLeftTabsPanelWidth =
+                        availableRight && availableRight > 0
+                          ? Math.floor(availableRight)
+                          : simpleLeftTabsPanelWidth;
+                      const { background, border, borderRadius, boxShadow } = dropdownPanelStyle;
                       const dropdownFlyoutStyle: CSSProperties = activeDropdownHasBlocks
                         ? {
-                          ...dropdownPanelStyle,
-                          width: simpleLeftTabsPanelWidth,
-                          maxWidth: submenuMaxWidth ?? simpleLeftTabsPanelWidth,
+                          background,
+                          border,
+                          borderRadius,
+                          boxShadow,
+                          width: resolvedSimpleLeftTabsPanelWidth,
+                          maxWidth: resolvedSimpleLeftTabsPanelWidth,
+                          height: "auto",
                           maxHeight: "none",
-                          overflowY: "visible",
+                          overflow: "visible",
                         }
                         : dropdownPanelStyle;
 
@@ -10903,14 +10924,14 @@ export default function MenuBuilder() {
                               >
                                 {activeDropdownHasBlocks ? (
                                   <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                                    <div style={{ overflowX: "auto" }}>
+                                    <div style={{ overflowX: "auto", overflowY: "hidden" }}>
                                       <div
                                         style={{
                                           display: "flex",
                                           flexWrap: "nowrap",
                                           gap: 24,
                                           alignItems: "flex-start",
-                                          minWidth: simpleLeftTabsContentMinWidth,
+                                          justifyContent: "space-between",
                                         }}
                                       >
                                         {activeDropdownChildren.map((child) => {
@@ -10925,10 +10946,8 @@ export default function MenuBuilder() {
                                             });
                                           }
                                           if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                            const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
-                                            const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
                                             return renderImageBlock(child, {
-                                              flex: `0 0 ${imageFlexBasis}`,
+                                              flex: "0 0 20%",
                                               wrapperStyle: { minWidth: 0 },
                                             });
                                           }
@@ -10979,16 +10998,6 @@ export default function MenuBuilder() {
                                           return null;
                                         })}
                                       </div>
-                                    </div>
-                                    <div>
-                                      <Button
-                                        variant="secondary"
-                                        icon={PlusIcon}
-                                        size="slim"
-                                        onClick={() => handleOpenBlockTemplatePicker(activeDropdownItem.id)}
-                                      >
-                                        Add block
-                                      </Button>
                                     </div>
                                   </div>
                                 ) : (

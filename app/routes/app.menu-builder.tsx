@@ -533,7 +533,13 @@ type MenuItem = {
   | "multi-element-group-masonry";
 };
 
-type SubmenuTemplateId = "custom" | "tabs" | "mega" | "dropdown" | "horizontal-dropdown";
+type SubmenuTemplateId =
+  | "custom"
+  | "tabs"
+  | "simple-left-tabs"
+  | "mega"
+  | "dropdown"
+  | "horizontal-dropdown";
 type BlockTemplateId =
   | "space"
   | "multi"
@@ -2150,20 +2156,51 @@ export default function MenuBuilder() {
             </div>
           );
         case "tabs":
-          return renderTemplatePreviewCard({
-            title: "Tabs",
-            onSelect: selectTemplate,
-            preview: (
-              <div className="h-28 rounded-lg bg-[#a7b2c0] p-2">
-                <div className="flex gap-2 rounded-md bg-white/80 px-2 py-1">
-                  <div className="h-2 w-10 rounded-full bg-gray-400" />
-                  <div className="h-2 w-10 rounded-full bg-gray-300" />
-                  <div className="h-2 w-10 rounded-full bg-gray-300" />
-                </div>
-                <div className="mt-3 h-14 rounded-md bg-white/70" />
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {renderTemplatePreviewCard({
+                title: "Tabs",
+                onSelect: () => handleApplySubmenuTemplate("tabs"),
+                preview: (
+                  <div className="h-28 rounded-lg bg-[#a7b2c0] p-2">
+                    <div className="flex gap-2 rounded-md bg-white/80 px-2 py-1">
+                      <div className="h-2 w-10 rounded-full bg-gray-400" />
+                      <div className="h-2 w-10 rounded-full bg-gray-300" />
+                      <div className="h-2 w-10 rounded-full bg-gray-300" />
+                    </div>
+                    <div className="mt-3 h-14 rounded-md bg-white/70" />
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Simple Left Tabs",
+                onSelect: () => handleApplySubmenuTemplate("simple-left-tabs"),
+                preview: (
+                  <div className="h-28 rounded-lg bg-[#e2e8f0] p-2">
+                    <div className="flex h-full gap-2 rounded-md bg-white/80 p-2">
+                      <div className="flex w-1/4 flex-col gap-1">
+                        <div className="h-2 w-full rounded-full bg-gray-400" />
+                        <div className="h-2 w-full rounded-full bg-gray-300" />
+                        <div className="h-2 w-full rounded-full bg-gray-300" />
+                      </div>
+                      <div className="flex flex-1 gap-2">
+                        <div className="flex w-1/4 flex-col gap-1">
+                          <div className="h-2 w-full rounded-full bg-gray-400" />
+                          <div className="h-2 w-full rounded-full bg-gray-300" />
+                        </div>
+                        <div className="w-1/4 rounded-md bg-gray-200" />
+                        <div className="flex w-1/4 flex-col gap-1">
+                          <div className="h-2 w-full rounded-full bg-gray-400" />
+                          <div className="h-2 w-full rounded-full bg-gray-300" />
+                        </div>
+                        <div className="w-1/4 rounded-md bg-gray-200" />
+                      </div>
+                    </div>
+                  </div>
+                ),
+              })}
+            </div>
+          );
         case "mega":
           return (
             <div className="flex flex-col gap-0">
@@ -4193,6 +4230,32 @@ export default function MenuBuilder() {
     ];
   };
 
+  const buildSimpleLeftTabsItems = () => {
+    const blockItems = buildMultiBlockTwoColumnsTwoPhotos();
+    return [
+      {
+        id: buildId(),
+        label: "Dropdown item 1",
+        url: "/",
+        role: "item",
+      },
+      {
+        id: buildId(),
+        label: "Dropdown item 2",
+        url: "",
+        role: "group",
+        expanded: true,
+        children: blockItems,
+      },
+      {
+        id: buildId(),
+        label: "Dropdown item 3",
+        url: "/",
+        role: "item",
+      },
+    ];
+  };
+
   const buildEasyColumnWithIcons = () => {
     const [firstIcon, secondIcon] = (() => {
       if (!ICON_LIBRARY.length) return [undefined, undefined];
@@ -4978,6 +5041,8 @@ export default function MenuBuilder() {
 
   const handleApplySubmenuTemplate = (templateId: SubmenuTemplateId) => {
     if (!submenuTemplateTargetId) return;
+    const isDropdownTemplate = templateId === "dropdown" || templateId === "simple-left-tabs";
+    const isHorizontalDropdownTemplate = templateId === "horizontal-dropdown";
     const newGroup: MenuItem = {
       id: buildId(),
       label: templateId === "tabs" ? "New tab" : "New group",
@@ -4995,7 +5060,8 @@ export default function MenuBuilder() {
       children: [],
       blockTemplate: "space",
     };
-    const dropdownItems = buildDropdownMenuItems();
+    const dropdownItems =
+      templateId === "simple-left-tabs" ? buildSimpleLeftTabsItems() : buildDropdownMenuItems();
     setMenuItems((items) =>
       updateItemById(items, submenuTemplateTargetId, (item) => {
         const hasChildren = Boolean(item.children?.length);
@@ -5003,16 +5069,20 @@ export default function MenuBuilder() {
           ...item,
           expanded: true,
           submenuTemplate: templateId,
-          submenuType: templateId === "dropdown" ? "dropdown" : templateId === "horizontal-dropdown" ? "horizontal-dropdown" : "mega",
-          submenuWidth: templateId === "dropdown" || templateId === "horizontal-dropdown" ? item.submenuWidth ?? "content" : item.submenuWidth,
+          submenuType: isDropdownTemplate ? "dropdown" : isHorizontalDropdownTemplate ? "horizontal-dropdown" : "mega",
+          submenuWidth: isDropdownTemplate || isHorizontalDropdownTemplate ? item.submenuWidth ?? "content" : item.submenuWidth,
           submenuContentAlign:
-            templateId === "dropdown" || templateId === "horizontal-dropdown" ? item.submenuContentAlign ?? "center" : item.submenuContentAlign,
+            isDropdownTemplate
+              ? item.submenuContentAlign ?? "left"
+              : isHorizontalDropdownTemplate
+                ? item.submenuContentAlign ?? "center"
+                : item.submenuContentAlign,
           children:
             hasChildren
               ? item.children
               : templateId === "mega"
                 ? [spaceBlock]
-                : templateId === "dropdown" || templateId === "horizontal-dropdown"
+                : isDropdownTemplate || isHorizontalDropdownTemplate
                   ? dropdownItems
                   : [newGroup],
         };
@@ -5557,7 +5627,10 @@ export default function MenuBuilder() {
                           <button
                             type="button"
                             onClick={() => {
-                              const isDropdownChildItem = parentItem?.submenuTemplate === "dropdown";
+                              const isDropdownChildItem =
+                                parentItem?.submenuType === "dropdown" ||
+                                parentItem?.submenuTemplate === "dropdown" ||
+                                parentItem?.submenuTemplate === "simple-left-tabs";
                               if (item.blockTemplate === "links" || isDropdownChildItem) {
                                 handleOpenAddRoot(item.id);
                               } else {
@@ -8440,6 +8513,274 @@ export default function MenuBuilder() {
     );
   };
 
+  const renderImageBlock = (
+    group: MenuItem,
+    options: { flex?: string; wrapperStyle?: CSSProperties } = {}
+  ) => {
+    const isOverlayImage = group.blockTemplate === "image2";
+    const imageWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
+    const imageScale = `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
+    const imageFill = !group.imageNoFill;
+    const imagePreviewHeight = useImageSpaceLayout ? 220 : 150;
+    const imageTextAlign = group.imageTextAlign ?? "left";
+    const imageTextAlignItems =
+      imageTextAlign === "center"
+        ? "center"
+        : imageTextAlign === "right"
+          ? "flex-end"
+          : "flex-start";
+    const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
+    const isMultiLayout = Boolean(group.multiLayout);
+    const isGroupSelected = selectedItemId === group.id;
+
+    return (
+      <div
+        key={group.id}
+        className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+        draggable
+        onDragStart={(event) => {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", group.id);
+          setDraggedItemId(group.id);
+          const parentId = findParentId(menuItems, group.id);
+          setDraggedParentId(parentId ?? null);
+          lastDragOverIdRef.current = null;
+        }}
+        onDragOver={(event) => {
+          if (!draggedItemId) return;
+          const targetParentId = findParentId(menuItems, group.id);
+          if (draggedParentId !== targetParentId) return;
+          if (draggedItemId === group.id) return;
+          event.preventDefault();
+          if (lastDragOverIdRef.current === group.id) return;
+          lastDragOverIdRef.current = group.id;
+          setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+        }}
+        onDrop={(event) => {
+          event.preventDefault();
+          if (!draggedItemId) return;
+          const targetParentId = findParentId(menuItems, group.id);
+          if (draggedParentId !== targetParentId) return;
+          setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+          setDraggedItemId(null);
+          setDraggedParentId(null);
+          lastDragOverIdRef.current = null;
+        }}
+        onDragEnd={() => {
+          setDraggedItemId(null);
+          setDraggedParentId(null);
+          lastDragOverIdRef.current = null;
+        }}
+        style={{
+          gridColumn: useImageSpaceLayout ? undefined : undefined,
+          minHeight: useImageSpaceLayout ? 240 : undefined,
+          flex: options.flex ??
+            (useImageSpaceLayout
+              ? isMultiLayout
+                ? `0 0 ${imageFlexBasis}`
+                : "0 0 20%"
+              : useBlockFlexLayout
+                ? `0 0 ${imageFlexBasis}`
+                : undefined),
+          minWidth: isMultiLayout ? 0 : undefined,
+          order: useImageSpaceLayout ? 0 : undefined,
+          border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
+          padding: "6px",
+          borderRadius: 0,
+          ...options.wrapperStyle,
+        }}
+      >
+        <div
+          className="pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+        >
+          <button
+            type="button"
+            aria-label="Align left"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+            onClick={() =>
+              setMenuItems((items) =>
+                updateItemById(items, group.id, () => ({
+                  ...group,
+                  imageTextAlign: "left",
+                })),
+              )
+            }
+          >
+            <Icon source={TextAlignLeftIcon} />
+          </button>
+          <button
+            type="button"
+            aria-label="Align center"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+            onClick={() =>
+              setMenuItems((items) =>
+                updateItemById(items, group.id, () => ({
+                  ...group,
+                  imageTextAlign: "center",
+                })),
+              )
+            }
+          >
+            <Icon source={TextAlignCenterIcon} />
+          </button>
+          <button
+            type="button"
+            aria-label="Align right"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+            onClick={() =>
+              setMenuItems((items) =>
+                updateItemById(items, group.id, () => ({
+                  ...group,
+                  imageTextAlign: "right",
+                })),
+              )
+            }
+          >
+            <Icon source={TextAlignRightIcon} />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSelectItem(group.id, true)}
+            aria-label="Edit item"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+          >
+            <Icon source={EditIcon} />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDuplicateItem(group.id)}
+            aria-label="Duplicate item"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+          >
+            <Icon source={DuplicateIcon} />
+          </button>
+          <button
+            type="button"
+            onClick={() => openDeleteItemDialog(group.id)}
+            aria-label="Delete item"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+          >
+            <Icon source={DeleteIcon} />
+          </button>
+        </div>
+        <div
+          style={{
+            borderRadius: 16,
+            background: "transparent",
+            padding: isOverlayImage ? "0" : "5px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              borderRadius: 0,
+              background: imageFill ? "#ffffff" : "transparent",
+              border: imageFill && group.imageUrl ? "1px solid #e5e7eb" : "1px solid transparent",
+              height: imagePreviewHeight,
+              position: "relative",
+              overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {group.imageUrl ? (
+              <img
+                src={group.imageUrl}
+                alt={group.label}
+                style={{ width: imageScale, maxWidth: "100%", maxHeight: "100%" }}
+              />
+            ) : (
+              <svg
+                className="gm-placeholder-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 525.5 525.5"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  height: "100%",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  fill: "rgba(133, 133, 133, 0.35)",
+                  backgroundColor: "rgba(133, 133, 133, 0.1)",
+                  border: "1px solid rgba(133, 133, 133, 0.2)",
+                }}
+              >
+                <path d="M324.5 212.7H203c-1.6 0-2.8 1.3-2.8 2.8V308c0 1.6 1.3 2.8 2.8 2.8h121.6c1.6 0 2.8-1.3 2.8-2.8v-92.5c0-1.6-1.3-2.8-2.9-2.8zm1.1 95.3c0 .6-.5 1.1-1.1 1.1H203c-.6 0-1.1-.5-1.1-1.1v-92.5c0-.6.5-1.1 1.1-1.1h121.6c.6 0 1.1.5 1.1 1.1V308z" />
+                <path d="M210.4 299.5H240v.1s.1 0 .2-.1h75.2v-76.2h-105v76.2zm1.8-7.2l20-20c1.6-1.6 3.8-2.5 6.1-2.5s4.5.9 6.1 2.5l11.5 11.5 16.8 16.8c-12.9 3.3-20.7 6.3-22.8 7.2h-27.7v-5.5zm101.5-10.1c-20.1 1.7-36.7 4.8-49.1 7.9l-16.9-16.9 26.3-26.3c1.6-1.6 3.8-2.5 6.1-2.5s4.5.9 6.1 2.5l27.5 27.5v7.8zm-68.9 15.5c9.7-3.5 33.9-10.9 68.9-13.8v13.8h-68.9zm68.9-72.7v46.8l-26.2-26.2c-1.9-1.9-4.5-3-7.3-3s-5.4 1.1-7.3 3l-18.8 18.8V225h101.4z" />
+                <path d="M232.8 254c4.6 0 8.3-3.7 8.3-8.3s-3.7-8.3-8.3-8.3-8.3 3.7-8.3 8.3 3.7 8.3 8.3 8.3zm0-14.9c3.6 0 6.6 2.9 6.6 6.6s-2.9 6.6-6.6 6.6-6.6-2.9-6.6-6.6 3-6.6 6.6-6.6z" />
+              </svg>
+            )}
+            {isOverlayImage ? (
+              <div
+                style={{
+                  position: "absolute",
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  background: "#3f3f3f",
+                  color: "#ffffff",
+                  padding: "10px 12px",
+                  textAlign: imageTextAlign,
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 600,
+                    ...subheadingTypography,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {group.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    ...descriptionTypography,
+                    lineHeight: 1.2,
+                    color: "#e5e7eb",
+                  }}
+                >
+                  {group.description || "Sample description"}
+                </div>
+              </div>
+            ) : null}
+          </div>
+          {!isOverlayImage ? (
+            <>
+              <div
+                style={{
+                  color: previewColors.submenuText,
+                  fontWeight: 600,
+                  ...subheadingTypography,
+                  lineHeight: 1.2,
+                  textAlign: imageTextAlign,
+                  alignSelf: imageTextAlignItems,
+                }}
+              >
+                {group.label}
+              </div>
+              <div
+                style={{
+                  color: previewColors.submenuDescription,
+                  fontSize: 12,
+                  ...descriptionTypography,
+                  lineHeight: 1.2,
+                  textAlign: imageTextAlign,
+                  alignSelf: imageTextAlignItems,
+                }}
+              >
+                {group.description || "Sample description"}
+              </div>
+            </>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
+
   const renderHtmlBlock = (
     group: MenuItem,
     options: { flex?: string; wrapperStyle?: CSSProperties } = {}
@@ -9693,7 +10034,9 @@ export default function MenuBuilder() {
       ? builderSettings.submenuEnableMobileScroll
       : builderSettings.submenuEnableDesktopScroll;
   const enableDropdownScroll = dropdownOverflowY && linkBlockCount === 0;
-  const dropdownContentAlign = previewMenu?.submenuContentAlign ?? "center";
+  const dropdownContentAlign = isDropdownMenu
+    ? previewMenu?.submenuContentAlign ?? "left"
+    : previewMenu?.submenuContentAlign ?? "center";
   const dropdownAlignJustify =
     dropdownContentAlign === "center"
       ? "center"
@@ -10319,7 +10662,7 @@ export default function MenuBuilder() {
                   }}
                 >
                   <div
-                    className="group relative"
+                    className="relative"
                     style={{
                       display: "flex",
                       flexDirection: "column",
@@ -10332,6 +10675,12 @@ export default function MenuBuilder() {
                     {(() => {
                       const activeDropdownItem =
                         dropdownItems.find((child) => child.id === activeDropdownItemId) ?? null;
+                      const isSimpleLeftTabsTemplate =
+                        previewMenu?.submenuTemplate === "simple-left-tabs";
+                      const activeDropdownChildren = activeDropdownItem?.children ?? [];
+                      const activeDropdownHasBlocks =
+                        isSimpleLeftTabsTemplate &&
+                        activeDropdownChildren.some((child) => child.blockTemplate);
                       const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
                       const dropdownPanelStyle: CSSProperties = {
                         background: previewColors.submenuBackground,
@@ -10345,6 +10694,17 @@ export default function MenuBuilder() {
                         overflowY: dropdownOverflowY ? "auto" : "visible",
                         maxHeight: dropdownOverflowY ? 420 : "none",
                       };
+                      const simpleLeftTabsPanelWidth = submenuMaxWidth ?? 720;
+                      const simpleLeftTabsContentMinWidth = Math.max(submenuMaxWidth ?? 0, 960);
+                      const dropdownFlyoutStyle: CSSProperties = activeDropdownHasBlocks
+                        ? {
+                          ...dropdownPanelStyle,
+                          width: simpleLeftTabsPanelWidth,
+                          maxWidth: submenuMaxWidth ?? simpleLeftTabsPanelWidth,
+                          maxHeight: "none",
+                          overflowY: "visible",
+                        }
+                        : dropdownPanelStyle;
 
                       // Seçili item'ın top pozisyonunu bul
                       let activeItemOffsetTop = 0;
@@ -10530,178 +10890,261 @@ export default function MenuBuilder() {
                               </div>
                             </div>
                             {activeDropdownItem ? (
-                              <div style={{
-                                ...dropdownPanelStyle,
-                                position: "absolute",
-                                left: isPreviewLeftAligned
-                                  ? `-${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`
-                                  : `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
-                                top: activeItemOffsetTop,
-                              }} data-submenu-panel>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
-                                  {(activeDropdownItem.children ?? []).map((child) => (
-                                    <div
-                                      key={child.id}
-                                      className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
-                                      ref={registerPreviewRow(child.id)}
-                                      style={{ willChange: "transform" }}
-                                      draggable
-                                      onDragStart={(event) => {
-                                        event.dataTransfer.effectAllowed = "move";
-                                        event.dataTransfer.setData("text/plain", child.id);
-                                        setDraggedItemId(child.id);
-                                        const parentId = findParentId(menuItems, child.id);
-                                        setDraggedParentId(parentId ?? null);
-                                        lastDragOverIdRef.current = null;
-                                      }}
-                                      onDragEnd={() => {
-                                        setDraggedItemId(null);
-                                        setDraggedParentId(null);
-                                        lastDragOverIdRef.current = null;
-                                      }}
-                                      onDragOver={(event) => {
-                                        if (!draggedItemId || draggedItemId === child.id) return;
-                                        const targetParentId = findParentId(menuItems, child.id);
-                                        if (draggedParentId !== targetParentId) return;
-                                        event.preventDefault();
-                                        if (lastDragOverIdRef.current === child.id) return;
-                                        lastDragOverIdRef.current = child.id;
-                                        setMenuItems((items) => moveItem(items, draggedItemId, child.id));
-                                      }}
-                                      onDrop={(event) => {
-                                        event.preventDefault();
-                                        setDraggedItemId(null);
-                                        setDraggedParentId(null);
-                                        lastDragOverIdRef.current = null;
-                                      }}
-                                    >
-                                      <button
-                                        type="button"
-                                        className="cursor-grab active:cursor-grabbing"
-                                        onClick={() => handleSelectItem(child.id)}
-                                        onMouseEnter={(event) => {
-                                          event.currentTarget.style.color = previewColors.submenuTextHover;
-                                        }}
-                                        onMouseLeave={(event) => {
-                                          event.currentTarget.style.color = previewColors.submenuText;
-                                        }}
+                              <div
+                                style={{
+                                  ...dropdownFlyoutStyle,
+                                  position: "absolute",
+                                  left: isPreviewLeftAligned
+                                    ? `-${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`
+                                    : `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
+                                  top: activeItemOffsetTop,
+                                }}
+                                data-submenu-panel
+                              >
+                                {activeDropdownHasBlocks ? (
+                                  <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                                    <div style={{ overflowX: "auto" }}>
+                                      <div
                                         style={{
                                           display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "space-between",
-                                          gap: 10,
-                                          minHeight: dropdownItemHeight,
-                                          padding: "8px 10px",
-                                          borderRadius: 0,
-                                          border: "2px solid transparent",
-                                          background: "transparent",
-                                          color: previewColors.submenuText,
-                                          width: "100%",
-                                          textAlign: dropdownContentAlign,
-                                          ...subtextTypography,
-                                          lineHeight: 1.2,
+                                          flexWrap: "nowrap",
+                                          gap: 24,
+                                          alignItems: "flex-start",
+                                          minWidth: simpleLeftTabsContentMinWidth,
                                         }}
                                       >
-                                        <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
-                                          {child.label}
-                                        </span>
-                                      </button>
-                                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                                        <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                                          <button
-                                            type="button"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleSelectItem(child.id, true);
-                                            }}
-                                            aria-label="Edit item"
-                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                          >
-                                            <Icon source={EditIcon} />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleDuplicateItem(child.id);
-                                            }}
-                                            aria-label="Duplicate item"
-                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                          >
-                                            <Icon source={DuplicateIcon} />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              openDeleteItemDialog(child.id);
-                                            }}
-                                            aria-label="Delete item"
-                                            className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                                          >
-                                            <Icon source={DeleteIcon} />
-                                          </button>
-                                        </div>
+                                        {activeDropdownChildren.map((child) => {
+                                          if (child.blockTemplate === "links") {
+                                            const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                            const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                            const linkFlexBasis =
+                                              columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                                            return renderLinkListBlock(child, {
+                                              flex: `0 0 ${linkFlexBasis}`,
+                                              wrapperStyle: { minWidth: 0 },
+                                            });
+                                          }
+                                          if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                            const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                            const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
+                                            return renderImageBlock(child, {
+                                              flex: `0 0 ${imageFlexBasis}`,
+                                              wrapperStyle: { minWidth: 0 },
+                                            });
+                                          }
+                                          if (child.blockTemplate === "html") {
+                                            const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                            const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
+                                            return renderHtmlBlock(child, {
+                                              flex: `0 0 ${htmlFlexBasis}`,
+                                              wrapperStyle: { minWidth: 0 },
+                                            });
+                                          }
+                                          if (
+                                            child.blockTemplate === "product" ||
+                                            child.blockTemplate === "product-horizontal" ||
+                                            child.blockTemplate === "product-grid" ||
+                                            child.blockTemplate === "product-carousel" ||
+                                            child.blockTemplate === "product-grid-horizontal"
+                                          ) {
+                                            const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
+                                            const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
+                                            return renderProductBlock(child, {
+                                              flex: `0 0 ${productFlexBasis}`,
+                                              wrapperStyle: { minWidth: 0 },
+                                            });
+                                          }
+                                          if (
+                                            child.blockTemplate === "collection" ||
+                                            child.blockTemplate === "collection-horizontal"
+                                          ) {
+                                            const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                            const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
+                                            return renderCollectionBlock(child, {
+                                              flex: `0 0 ${collectionFlexBasis}`,
+                                              wrapperStyle: { minWidth: 0 },
+                                            });
+                                          }
+                                          if (
+                                            child.blockTemplate === "blogs" ||
+                                            child.blockTemplate === "blogs-latest"
+                                          ) {
+                                            const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                            const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
+                                            return renderBlogBlock(child, {
+                                              flex: `0 0 ${blogFlexBasis}`,
+                                              wrapperStyle: { minWidth: 0 },
+                                            });
+                                          }
+                                          return null;
+                                        })}
                                       </div>
                                     </div>
-                                  ))}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
-                                    className="text-sm font-medium"
-                                    style={{
-                                      alignSelf: "stretch",
-                                      minHeight: dropdownItemHeight,
-                                      textAlign: dropdownContentAlign,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: dropdownAlignJustify,
-                                      gap: 8,
-                                      width: "100%",
-                                      padding: "6px 8px",
-                                      color: themeSettings.menuActive,
-                                      background: "transparent",
-                                      border: "none",
-                                      ...descriptionTypography,
-                                    }}
-                                    onMouseEnter={(event) => {
-                                      event.currentTarget.style.color = previewColors.submenuTextHover;
-                                    }}
-                                    onMouseLeave={(event) => {
-                                      event.currentTarget.style.color = themeSettings.menuActive;
-                                    }}
-                                  >
-                                    <span
-                                      aria-hidden="true"
+                                    <div>
+                                      <Button
+                                        variant="secondary"
+                                        icon={PlusIcon}
+                                        size="slim"
+                                        onClick={() => handleOpenBlockTemplatePicker(activeDropdownItem.id)}
+                                      >
+                                        Add block
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
+                                    {activeDropdownChildren.map((child) => (
+                                      <div
+                                        key={child.id}
+                                        className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                        ref={registerPreviewRow(child.id)}
+                                        style={{ willChange: "transform" }}
+                                        draggable
+                                        onDragStart={(event) => {
+                                          event.dataTransfer.effectAllowed = "move";
+                                          event.dataTransfer.setData("text/plain", child.id);
+                                          setDraggedItemId(child.id);
+                                          const parentId = findParentId(menuItems, child.id);
+                                          setDraggedParentId(parentId ?? null);
+                                          lastDragOverIdRef.current = null;
+                                        }}
+                                        onDragEnd={() => {
+                                          setDraggedItemId(null);
+                                          setDraggedParentId(null);
+                                          lastDragOverIdRef.current = null;
+                                        }}
+                                        onDragOver={(event) => {
+                                          if (!draggedItemId || draggedItemId === child.id) return;
+                                          const targetParentId = findParentId(menuItems, child.id);
+                                          if (draggedParentId !== targetParentId) return;
+                                          event.preventDefault();
+                                          if (lastDragOverIdRef.current === child.id) return;
+                                          lastDragOverIdRef.current = child.id;
+                                          setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                        }}
+                                        onDrop={(event) => {
+                                          event.preventDefault();
+                                          setDraggedItemId(null);
+                                          setDraggedParentId(null);
+                                          lastDragOverIdRef.current = null;
+                                        }}
+                                      >
+                                        <button
+                                          type="button"
+                                          className="cursor-grab active:cursor-grabbing"
+                                          onClick={() => handleSelectItem(child.id)}
+                                          onMouseEnter={(event) => {
+                                            event.currentTarget.style.color = previewColors.submenuTextHover;
+                                          }}
+                                          onMouseLeave={(event) => {
+                                            event.currentTarget.style.color = previewColors.submenuText;
+                                          }}
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            gap: 10,
+                                            minHeight: dropdownItemHeight,
+                                            padding: "8px 10px",
+                                            borderRadius: 0,
+                                            border: "2px solid transparent",
+                                            background: "transparent",
+                                            color: previewColors.submenuText,
+                                            width: "100%",
+                                            textAlign: dropdownContentAlign,
+                                            ...subtextTypography,
+                                            lineHeight: 1.2,
+                                          }}
+                                        >
+                                          <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                            {child.label}
+                                          </span>
+                                        </button>
+                                        <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                          <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                            <button
+                                              type="button"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleSelectItem(child.id, true);
+                                              }}
+                                              aria-label="Edit item"
+                                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                            >
+                                              <Icon source={EditIcon} />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleDuplicateItem(child.id);
+                                              }}
+                                              aria-label="Duplicate item"
+                                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                            >
+                                              <Icon source={DuplicateIcon} />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                openDeleteItemDialog(child.id);
+                                              }}
+                                              aria-label="Delete item"
+                                              className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                            >
+                                              <Icon source={DeleteIcon} />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
+                                      className="text-sm font-medium"
                                       style={{
-                                        width: 20,
-                                        height: 20,
-                                        borderRadius: 9999,
-                                        border: "2px solid currentColor",
-                                        display: "inline-flex",
+                                        alignSelf: "stretch",
+                                        minHeight: dropdownItemHeight,
+                                        textAlign: dropdownContentAlign,
+                                        display: "flex",
                                         alignItems: "center",
-                                        justifyContent: "center",
-                                        fontSize: 14,
-                                        lineHeight: 1,
+                                        justifyContent: dropdownAlignJustify,
+                                        gap: 8,
+                                        width: "100%",
+                                        padding: "6px 8px",
+                                        color: themeSettings.menuActive,
+                                        background: "transparent",
+                                        border: "none",
+                                        ...descriptionTypography,
+                                      }}
+                                      onMouseEnter={(event) => {
+                                        event.currentTarget.style.color = previewColors.submenuTextHover;
+                                      }}
+                                      onMouseLeave={(event) => {
+                                        event.currentTarget.style.color = themeSettings.menuActive;
                                       }}
                                     >
-                                      +
-                                    </span>
-                                    Add item
-                                  </button>
-                                </div>
-                                <div className="flex items-center gap-0" style={{ background: "rgb(17, 24, 39)", padding: "4px", borderRadius: "0", width: "100%", justifyContent: "center", marginTop: "8px" }}>
-                                  <button
-                                    type="button"
-                                    aria-label="Back"
-                                    className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
-                                    onClick={() => setIsPreviewLeftAligned((prev) => !prev)}
-                                  >
-                                    <span style={{ fontSize: "12px" }}>
-                                      {isPreviewLeftAligned ? "→ Align right" : "← Align left"}
-                                    </span>
-                                  </button>
-                                </div>
+                                      <span
+                                        aria-hidden="true"
+                                        style={{
+                                          width: 20,
+                                          height: 20,
+                                          borderRadius: 9999,
+                                          border: "2px solid currentColor",
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          fontSize: 14,
+                                          lineHeight: 1,
+                                        }}
+                                      >
+                                        +
+                                      </span>
+                                      Add item
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             ) : null}
                           </div>
@@ -11283,264 +11726,7 @@ export default function MenuBuilder() {
                             );
                           }
                           if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
-                            const isOverlayImage = group.blockTemplate === "image2";
-                            const imageWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
-                            const imageScale = `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
-                            const imageFill = !group.imageNoFill;
-                            const imagePreviewHeight = useImageSpaceLayout ? 220 : 150;
-                            const imageTextAlign = group.imageTextAlign ?? "left";
-                            const imageTextAlignItems =
-                              imageTextAlign === "center"
-                                ? "center"
-                                : imageTextAlign === "right"
-                                  ? "flex-end"
-                                  : "flex-start";
-                            const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
-                            const isMultiLayout = Boolean(group.multiLayout);
-                            return (
-                              <div
-                                key={group.id}
-                                className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
-                                draggable
-                                onDragStart={(event) => {
-                                  event.dataTransfer.effectAllowed = "move";
-                                  event.dataTransfer.setData("text/plain", group.id);
-                                  setDraggedItemId(group.id);
-                                  const parentId = findParentId(menuItems, group.id);
-                                  setDraggedParentId(parentId ?? null);
-                                  lastDragOverIdRef.current = null;
-                                }}
-                                onDragOver={(event) => {
-                                  if (!draggedItemId) return;
-                                  const targetParentId = findParentId(menuItems, group.id);
-                                  if (draggedParentId !== targetParentId) return;
-                                  if (draggedItemId === group.id) return;
-                                  event.preventDefault();
-                                  if (lastDragOverIdRef.current === group.id) return;
-                                  lastDragOverIdRef.current = group.id;
-                                  setMenuItems((items) => moveItem(items, draggedItemId, group.id));
-                                }}
-                                onDrop={(event) => {
-                                  event.preventDefault();
-                                  if (!draggedItemId) return;
-                                  const targetParentId = findParentId(menuItems, group.id);
-                                  if (draggedParentId !== targetParentId) return;
-                                  setMenuItems((items) => moveItem(items, draggedItemId, group.id));
-                                  setDraggedItemId(null);
-                                  setDraggedParentId(null);
-                                  lastDragOverIdRef.current = null;
-                                }}
-                                onDragEnd={() => {
-                                  setDraggedItemId(null);
-                                  setDraggedParentId(null);
-                                  lastDragOverIdRef.current = null;
-                                }}
-                                style={{
-                                  gridColumn: useImageSpaceLayout ? undefined : undefined,
-                                  minHeight: useImageSpaceLayout ? 240 : undefined,
-                                  flex: useImageSpaceLayout
-                                    ? isMultiLayout
-                                      ? `0 0 ${imageFlexBasis}`
-                                      : "0 0 20%"
-                                    : useBlockFlexLayout
-                                      ? `0 0 ${imageFlexBasis}`
-                                      : undefined,
-                                  minWidth: isMultiLayout ? 0 : undefined,
-                                  order: useImageSpaceLayout ? 0 : undefined,
-                                  border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
-                                  padding: "6px",
-                                  borderRadius: 0,
-                                }}
-                              >
-                                <div
-                                  className="pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
-                                >
-                                  <button
-                                    type="button"
-                                    aria-label="Align left"
-                                    className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                    onClick={() =>
-                                      setMenuItems((items) =>
-                                        updateItemById(items, group.id, () => ({
-                                          ...group,
-                                          imageTextAlign: "left",
-                                        })),
-                                      )
-                                    }
-                                  >
-                                    <Icon source={TextAlignLeftIcon} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    aria-label="Align center"
-                                    className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                    onClick={() =>
-                                      setMenuItems((items) =>
-                                        updateItemById(items, group.id, () => ({
-                                          ...group,
-                                          imageTextAlign: "center",
-                                        })),
-                                      )
-                                    }
-                                  >
-                                    <Icon source={TextAlignCenterIcon} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    aria-label="Align right"
-                                    className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                    onClick={() =>
-                                      setMenuItems((items) =>
-                                        updateItemById(items, group.id, () => ({
-                                          ...group,
-                                          imageTextAlign: "right",
-                                        })),
-                                      )
-                                    }
-                                  >
-                                    <Icon source={TextAlignRightIcon} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSelectItem(group.id, true)}
-                                    aria-label="Edit item"
-                                    className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                  >
-                                    <Icon source={EditIcon} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDuplicateItem(group.id)}
-                                    aria-label="Duplicate item"
-                                    className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                  >
-                                    <Icon source={DuplicateIcon} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => openDeleteItemDialog(group.id)}
-                                    aria-label="Delete item"
-                                    className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                                  >
-                                    <Icon source={DeleteIcon} />
-                                  </button>
-                                </div>
-                                <div
-                                  style={{
-                                    borderRadius: 16,
-                                    background: "transparent",
-                                    padding: isOverlayImage ? "0" : "5px",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 10,
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      borderRadius: 0,
-                                      background: imageFill ? "#ffffff" : "transparent",
-                                      border: imageFill && group.imageUrl ? "1px solid #e5e7eb" : "1px solid transparent",
-                                      height: imagePreviewHeight,
-                                      position: "relative",
-                                      overflow: "hidden",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                    }}
-                                  >
-                                    {group.imageUrl ? (
-                                      <img
-                                        src={group.imageUrl}
-                                        alt={group.label}
-                                        style={{ width: imageScale, maxWidth: "100%", maxHeight: "100%" }}
-                                      />
-                                    ) : (
-                                      <svg
-                                        className="gm-placeholder-svg"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 525.5 525.5"
-                                        style={{
-                                          display: "block",
-                                          width: "100%",
-                                          height: "100%",
-                                          maxWidth: "100%",
-                                          maxHeight: "100%",
-                                          fill: "rgba(133, 133, 133, 0.35)",
-                                          backgroundColor: "rgba(133, 133, 133, 0.1)",
-                                          border: "1px solid rgba(133, 133, 133, 0.2)",
-                                        }}
-                                      >
-                                        <path d="M324.5 212.7H203c-1.6 0-2.8 1.3-2.8 2.8V308c0 1.6 1.3 2.8 2.8 2.8h121.6c1.6 0 2.8-1.3 2.8-2.8v-92.5c0-1.6-1.3-2.8-2.9-2.8zm1.1 95.3c0 .6-.5 1.1-1.1 1.1H203c-.6 0-1.1-.5-1.1-1.1v-92.5c0-.6.5-1.1 1.1-1.1h121.6c.6 0 1.1.5 1.1 1.1V308z" />
-                                        <path d="M210.4 299.5H240v.1s.1 0 .2-.1h75.2v-76.2h-105v76.2zm1.8-7.2l20-20c1.6-1.6 3.8-2.5 6.1-2.5s4.5.9 6.1 2.5l11.5 11.5 16.8 16.8c-12.9 3.3-20.7 6.3-22.8 7.2h-27.7v-5.5zm101.5-10.1c-20.1 1.7-36.7 4.8-49.1 7.9l-16.9-16.9 26.3-26.3c1.6-1.6 3.8-2.5 6.1-2.5s4.5.9 6.1 2.5l27.5 27.5v7.8zm-68.9 15.5c9.7-3.5 33.9-10.9 68.9-13.8v13.8h-68.9zm68.9-72.7v46.8l-26.2-26.2c-1.9-1.9-4.5-3-7.3-3s-5.4 1.1-7.3 3l-18.8 18.8V225h101.4z" />
-                                        <path d="M232.8 254c4.6 0 8.3-3.7 8.3-8.3s-3.7-8.3-8.3-8.3-8.3 3.7-8.3 8.3 3.7 8.3 8.3 8.3zm0-14.9c3.6 0 6.6 2.9 6.6 6.6s-2.9 6.6-6.6 6.6-6.6-2.9-6.6-6.6 3-6.6 6.6-6.6z" />
-                                      </svg>
-                                    )}
-                                    {isOverlayImage ? (
-                                      <div
-                                        style={{
-                                          position: "absolute",
-                                          left: 16,
-                                          right: 16,
-                                          bottom: 16,
-                                          background: "#3f3f3f",
-                                          color: "#ffffff",
-                                          padding: "10px 12px",
-                                          textAlign: imageTextAlign,
-                                        }}
-                                      >
-                                        <div
-                                          style={{
-                                            fontWeight: 600,
-                                            ...subheadingTypography,
-                                            lineHeight: 1.2,
-                                          }}
-                                        >
-                                          {group.label}
-                                        </div>
-                                        <div
-                                          style={{
-                                            fontSize: 12,
-                                            ...descriptionTypography,
-                                            lineHeight: 1.2,
-                                            color: "#e5e7eb",
-                                          }}
-                                        >
-                                          {group.description || "Sample description"}
-                                        </div>
-                                      </div>
-                                    ) : null}
-                                  </div>
-                                  {!isOverlayImage ? (
-                                    <>
-                                      <div
-                                        style={{
-                                          color: previewColors.submenuText,
-                                          fontWeight: 600,
-                                          ...subheadingTypography,
-                                          lineHeight: 1.2,
-                                          textAlign: imageTextAlign,
-                                          alignSelf: imageTextAlignItems,
-                                        }}
-                                      >
-                                        {group.label}
-                                      </div>
-                                      <div
-                                        style={{
-                                          color: previewColors.submenuDescription,
-                                          fontSize: 12,
-                                          ...descriptionTypography,
-                                          lineHeight: 1.2,
-                                          textAlign: imageTextAlign,
-                                          alignSelf: imageTextAlignItems,
-                                        }}
-                                      >
-                                        {group.description || "Sample description"}
-                                      </div>
-                                    </>
-                                  ) : null}
-                                </div>
-                              </div>
-                            );
+                            return renderImageBlock(group);
                           }
                           if (group.blockTemplate === "multi") {
                             const multiColumns = (group.children ?? []).filter(

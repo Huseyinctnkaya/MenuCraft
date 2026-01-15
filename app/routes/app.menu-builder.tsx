@@ -317,8 +317,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     );
     const data = await response.json();
-    if (data?.errors?.length) {
-      console.error("Collections/products/blogs query errors", data.errors);
+    if ((data as any)?.errors?.length) {
+      console.error("Collections/products/blogs query errors", (data as any).errors);
     }
     collections = data?.data?.collections?.nodes ?? [];
     products = data?.data?.products?.nodes ?? [];
@@ -1121,8 +1121,10 @@ export default function MenuBuilder() {
   const hoverClearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [draggedParentId, setDraggedParentId] = useState<string | null>(null);
-  const itemRowRefs = useRef(new Map<string, HTMLDivElement>());
-  const prevPositionsRef = useRef(new Map<string, DOMRect>());
+  const sidebarRowRefs = useRef(new Map<string, HTMLDivElement>());
+  const previewRowRefs = useRef(new Map<string, HTMLDivElement>());
+  const prevSidebarPositionsRef = useRef(new Map<string, DOMRect>());
+  const prevPreviewPositionsRef = useRef(new Map<string, DOMRect>());
   const lastDragOverIdRef = useRef<string | null>(null);
   const prevMenuIdRef = useRef(menu.id);
   const linkPickerContainerRef = useRef<HTMLDivElement | null>(null);
@@ -3893,39 +3895,56 @@ export default function MenuBuilder() {
     });
   };
 
-  const registerItemRow = (id: string) => (node: HTMLDivElement | null) => {
-    if (node) {
-      itemRowRefs.current.set(id, node);
-    } else {
-      itemRowRefs.current.delete(id);
-    }
+  const registerSidebarRow = (id: string) => (node: HTMLDivElement | null) => {
+    if (node) sidebarRowRefs.current.set(id, node);
+    else sidebarRowRefs.current.delete(id);
+  };
+
+  const registerPreviewRow = (id: string) => (node: HTMLDivElement | null) => {
+    if (node) previewRowRefs.current.set(id, node);
+    else previewRowRefs.current.delete(id);
   };
 
   useLayoutEffect(() => {
-    const prevPositions = prevPositionsRef.current;
-    const nextPositions = new Map<string, DOMRect>();
+    const animateMap = (
+      rowRefs: React.MutableRefObject<Map<string, HTMLDivElement>>,
+      prevPositionsRef: React.MutableRefObject<Map<string, DOMRect>>
+    ) => {
+      const prevPositions = prevPositionsRef.current;
+      const nextPositions = new Map<string, DOMRect>();
 
-    itemRowRefs.current.forEach((node, id) => {
-      nextPositions.set(id, node.getBoundingClientRect());
-    });
-
-    nextPositions.forEach((nextBox, id) => {
-      const prevBox = prevPositions.get(id);
-      if (!prevBox) return;
-      const deltaX = prevBox.left - nextBox.left;
-      const deltaY = prevBox.top - nextBox.top;
-      if (deltaX === 0 && deltaY === 0) return;
-      const node = itemRowRefs.current.get(id);
-      if (!node) return;
-      node.style.transition = "transform 0s";
-      node.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-      requestAnimationFrame(() => {
-        node.style.transition = "transform 180ms ease";
-        node.style.transform = "";
+      rowRefs.current.forEach((node, id) => {
+        if (node) nextPositions.set(id, node.getBoundingClientRect());
       });
-    });
 
-    prevPositionsRef.current = nextPositions;
+      nextPositions.forEach((nextBox, id) => {
+        const prevBox = prevPositions.get(id);
+        if (!prevBox) return;
+        const deltaY = prevBox.top - nextBox.top;
+        const deltaX = prevBox.left - nextBox.left;
+        if (deltaY === 0 && deltaX === 0) return;
+        const node = rowRefs.current.get(id);
+        if (!node) return;
+
+        // Reset previous animations instantly
+        node.style.transition = "none";
+        node.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+
+        // Force a reflow
+        void node.offsetHeight;
+
+        // Play the animation
+        requestAnimationFrame(() => {
+          node.style.transition = "transform 250ms cubic-bezier(0.2, 0, 0, 1)";
+          node.style.transform = "translate3d(0, 0, 0)";
+        });
+      });
+
+      prevPositionsRef.current = nextPositions;
+    };
+
+    animateMap(sidebarRowRefs, prevSidebarPositionsRef);
+    animateMap(previewRowRefs, prevPreviewPositionsRef);
   }, [menuItems]);
 
   const handleSelectItem = (id: string, openEdit = false) => {
@@ -5372,17 +5391,14 @@ export default function MenuBuilder() {
         : TextIcon;
     const depthIndent = depth === 0 ? 0 : depth * 16;
 
-    const dragHandle = (
+    const renderDragHandle = () => (
       <span
-        className={`absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 ${draggedItemId === item.id ? "cursor-grabbing" : "cursor-grab"
-          }`}
-        role="button"
-        tabIndex={0}
+        className="absolute inset-0 flex items-center justify-center cursor-move text-gray-400 opacity-0 transition-opacity group-hover:opacity-100"
         draggable
         onDragStart={(event) => {
           event.dataTransfer.effectAllowed = "move";
           event.dataTransfer.setData("text/plain", item.id);
-          const row = itemRowRefs.current.get(item.id);
+          const row = sidebarRowRefs.current.get(item.id);
           if (row) {
             event.dataTransfer.setDragImage(row, 24, 16);
           }
@@ -5409,7 +5425,7 @@ export default function MenuBuilder() {
             <div
               className={`group flex items-center gap-2 rounded-lg px-0 py-1 transition-colors ${isSelected ? "bg-gray-50" : "hover:bg-gray-50"
                 }`}
-              ref={registerItemRow(item.id)}
+              ref={registerSidebarRow(item.id)}
               style={{ willChange: "transform" }}
               onDragOver={(event) => {
                 if (!draggedItemId) return;
@@ -5451,8 +5467,10 @@ export default function MenuBuilder() {
                       ? renderMenuIcon(resolvedIcon, { size: 16, className: "text-gray-500" })
                       : <Icon source={itemIcon} tone="subdued" />}
                   </span>
-                  {dragHandle}
+                  {renderDragHandle()}
+
                 </span>
+                {/* Rebuild Trigger */}
                 <span
                   className={`min-w-0 truncate ${item.role === "menu" ? "font-medium" : "font-normal"}`}
                   title={item.label}
@@ -8032,6 +8050,7 @@ export default function MenuBuilder() {
       <div
         key={group.id}
         className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+        ref={registerPreviewRow(group.id)}
         draggable
         onDragStart={(event) => {
           event.dataTransfer.effectAllowed = "move";
@@ -8067,6 +8086,7 @@ export default function MenuBuilder() {
           lastDragOverIdRef.current = null;
         }}
         style={{
+          willChange: "transform",
           flex: options.flex ?? (useBlockFlexLayout ? `0 0 ${linkFlexBasis}` : undefined),
           order: useImageSpaceLayout ? 0 : undefined,
           minWidth: group.multiLayout ? 0 : undefined,
@@ -8439,6 +8459,7 @@ export default function MenuBuilder() {
       <div
         key={group.id}
         className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+        ref={registerPreviewRow(group.id)}
         draggable={allowHtmlDrag}
         onDragStart={(event) => {
           if (!allowHtmlDrag) return;
@@ -8476,6 +8497,7 @@ export default function MenuBuilder() {
           lastDragOverIdRef.current = null;
         }}
         style={{
+          willChange: "transform",
           minHeight: htmlMinHeight,
           flex: options.flex ?? (useImageSpaceLayout ? `0 0 ${htmlFlexBasis}` : undefined),
           order: useImageSpaceLayout ? 0 : undefined,
@@ -8664,6 +8686,8 @@ export default function MenuBuilder() {
       <div
         key={group.id}
         className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+        ref={registerPreviewRow(group.id)}
+
         draggable
         onDragStart={(event) => {
           event.dataTransfer.effectAllowed = "move";
@@ -8699,6 +8723,7 @@ export default function MenuBuilder() {
           lastDragOverIdRef.current = null;
         }}
         style={{
+          willChange: "transform",
           flex:
             options.flex ??
             (useImageSpaceLayout || isMultiLayout ? `0 0 ${resolvedProductFlexBasis}` : undefined),
@@ -9070,6 +9095,8 @@ export default function MenuBuilder() {
       <div
         key={group.id}
         className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+        ref={registerPreviewRow(group.id)}
+
         draggable
         onDragStart={(event) => {
           event.dataTransfer.effectAllowed = "move";
@@ -9105,6 +9132,7 @@ export default function MenuBuilder() {
           lastDragOverIdRef.current = null;
         }}
         style={{
+          willChange: "transform",
           flex:
             options.flex ??
             ((useImageSpaceLayout || useBlockFlexLayout) ? `0 0 ${collectionFlexBasis}` : undefined),
@@ -9251,6 +9279,8 @@ export default function MenuBuilder() {
       <div
         key={group.id}
         className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+        ref={registerPreviewRow(group.id)}
+        style={{ willChange: "transform" }}
         draggable
         onDragStart={(event) => {
           event.dataTransfer.effectAllowed = "move";
@@ -10337,6 +10367,8 @@ export default function MenuBuilder() {
                                     <div
                                       key={child.id}
                                       className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                      ref={registerPreviewRow(child.id)}
+                                      style={{ willChange: "transform" }}
                                       data-dropdown-item-id={child.id}
                                       draggable
                                       onDragStart={(event) => {
@@ -10511,6 +10543,8 @@ export default function MenuBuilder() {
                                     <div
                                       key={child.id}
                                       className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                      ref={registerPreviewRow(child.id)}
+                                      style={{ willChange: "transform" }}
                                       draggable
                                       onDragStart={(event) => {
                                         event.dataTransfer.effectAllowed = "move";
@@ -10770,6 +10804,8 @@ export default function MenuBuilder() {
                                 <div
                                   key={child.id}
                                   className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                  ref={registerPreviewRow(child.id)}
+                                  style={{ willChange: "transform" }}
                                   draggable
                                   onDragStart={(event) => {
                                     event.dataTransfer.effectAllowed = "move";
@@ -10951,6 +10987,8 @@ export default function MenuBuilder() {
                                   <div
                                     key={child.id}
                                     className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                    ref={registerPreviewRow(child.id)}
+                                    style={{ willChange: "transform" }}
                                     draggable
                                     onDragStart={(event) => {
                                       event.dataTransfer.effectAllowed = "move";
@@ -11216,7 +11254,9 @@ export default function MenuBuilder() {
                             return (
                               <div
                                 key={group.id}
+                                ref={registerPreviewRow(group.id)}
                                 style={{
+                                  willChange: "transform",
                                   gridColumn: spaceGridColumn,
                                   flex: spaceFlex,
                                   order: spaceOrder,
@@ -11544,7 +11584,9 @@ export default function MenuBuilder() {
                                   setDraggedParentId(null);
                                   lastDragOverIdRef.current = null;
                                 }}
+                                ref={registerPreviewRow(group.id)}
                                 style={{
+                                  willChange: "transform",
                                   gridColumn: useBlockFlexLayout ? undefined : "1 / -1",
                                   flex: useBlockFlexLayout ? "0 0 100%" : undefined,
                                   border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
@@ -11621,7 +11663,9 @@ export default function MenuBuilder() {
                                   setDraggedParentId(null);
                                   lastDragOverIdRef.current = null;
                                 }}
+                                ref={registerPreviewRow(group.id)}
                                 style={{
+                                  willChange: "transform",
                                   minHeight: useImageSpaceLayout ? 240 : undefined,
                                   flex: useImageSpaceLayout ? `0 0 ${contactFlexBasis}` : undefined,
                                   order: useImageSpaceLayout ? 0 : undefined,

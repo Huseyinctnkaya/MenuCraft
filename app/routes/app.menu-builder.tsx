@@ -2156,51 +2156,37 @@ export default function MenuBuilder() {
             </div>
           );
         case "tabs":
-          return (
-            <div className="flex flex-col gap-0">
-              {renderTemplatePreviewCard({
-                title: "Tabs",
-                onSelect: () => handleApplySubmenuTemplate("tabs"),
-                preview: (
-                  <div className="h-28 rounded-lg bg-[#a7b2c0] p-2">
-                    <div className="flex gap-2 rounded-md bg-white/80 px-2 py-1">
-                      <div className="h-2 w-10 rounded-full bg-gray-400" />
-                      <div className="h-2 w-10 rounded-full bg-gray-300" />
-                      <div className="h-2 w-10 rounded-full bg-gray-300" />
-                    </div>
-                    <div className="mt-3 h-14 rounded-md bg-white/70" />
-                  </div>
-                ),
-              })}
-              {renderTemplatePreviewCard({
-                title: "Simple Left Tabs",
-                onSelect: () => handleApplySubmenuTemplate("simple-left-tabs"),
-                preview: (
-                  <div className="h-28 rounded-lg bg-[#e2e8f0] p-2">
-                    <div className="flex h-full gap-2 rounded-md bg-white/80 p-2">
-                      <div className="flex w-1/4 flex-col gap-1">
-                        <div className="h-2 w-full rounded-full bg-gray-400" />
-                        <div className="h-2 w-full rounded-full bg-gray-300" />
-                        <div className="h-2 w-full rounded-full bg-gray-300" />
-                      </div>
-                      <div className="flex flex-1 gap-2">
-                        <div className="flex w-1/4 flex-col gap-1">
-                          <div className="h-2 w-full rounded-full bg-gray-400" />
-                          <div className="h-2 w-full rounded-full bg-gray-300" />
-                        </div>
-                        <div className="w-1/4 rounded-md bg-gray-200" />
-                        <div className="flex w-1/4 flex-col gap-1">
-                          <div className="h-2 w-full rounded-full bg-gray-400" />
-                          <div className="h-2 w-full rounded-full bg-gray-300" />
-                        </div>
-                        <div className="w-1/4 rounded-md bg-gray-200" />
-                      </div>
-                    </div>
-                  </div>
-                ),
-              })}
-            </div>
-          );
+          return renderTemplatePreviewCard({
+            title: "Simple Left Tabs",
+            onSelect: () => handleApplySubmenuTemplate("simple-left-tabs"),
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
+            showSelectButton: false,
+            showTitle: false,
+            preview: (
+              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/simple-left-tabs.png"
+                  alt="Simple Left Tabs template"
+                  className="h-full w-full object-contain"
+                />
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Simple Left Tabs
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={() => handleApplySubmenuTemplate("simple-left-tabs")}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    Select
+                  </Button>
+                </div>
+              </div>
+            ),
+          });
         case "mega":
           return (
             <div className="flex flex-col gap-0">
@@ -9881,6 +9867,8 @@ export default function MenuBuilder() {
     previewMenu?.submenuType === "horizontal-dropdown" || previewMenu?.submenuTemplate === "horizontal-dropdown";
   const dropdownItems = isDropdownMenu ? dropdownGroups : [];
   const horizontalDropdownItems = isHorizontalDropdownMenu ? dropdownGroups : [];
+  const previewMenuIndex = previewMenu ? menuItems.findIndex((item) => item.id === previewMenu.id) : -1;
+  const useSimpleLeftTabsCompactLayout = previewMenuIndex > -1 && previewMenuIndex < 3;
   const imageBlockCount = dropdownGroups.filter(
     (group) =>
       group.blockTemplate === "image" ||
@@ -10931,7 +10919,8 @@ export default function MenuBuilder() {
                                           flexWrap: "nowrap",
                                           gap: 24,
                                           alignItems: "flex-start",
-                                          justifyContent: "space-between",
+                                          justifyContent: useSimpleLeftTabsCompactLayout ? "space-between" : undefined,
+                                          minWidth: useSimpleLeftTabsCompactLayout ? undefined : 960,
                                         }}
                                       >
                                         {activeDropdownChildren.map((child) => {

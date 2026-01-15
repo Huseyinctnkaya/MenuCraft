@@ -11341,7 +11341,7 @@ export default function MenuBuilder() {
                                   flex: useImageSpaceLayout
                                     ? isMultiLayout
                                       ? `0 0 ${imageFlexBasis}`
-                                      : "0 0 30%"
+                                      : "0 0 20%"
                                     : useBlockFlexLayout
                                       ? `0 0 ${imageFlexBasis}`
                                       : undefined,

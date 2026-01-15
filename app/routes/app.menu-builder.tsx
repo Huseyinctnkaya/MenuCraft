@@ -5397,7 +5397,7 @@ export default function MenuBuilder() {
           ? FormsIcon
           : TextFontListIcon
         : TextIcon;
-    const depthIndent = depth === 0 ? 0 : depth * 16;
+    const depthIndent = depth === 0 ? 0 : depth * 8;
 
     const renderDragHandle = () => (
       <span
@@ -5526,7 +5526,7 @@ export default function MenuBuilder() {
                 }}
               >
                 <Box>
-                  <div className="ml-1 border-l border-dashed border-gray-300/70">
+                  <div className="ml-0 border-l border-dashed border-gray-300/70">
                     <div className={`rounded-lg transition-all duration-150 ${draggedItemId && draggedParentId === item.id ? "border-2 border-dotted border-blue-500 bg-blue-50/40 p-2 my-1" : "border-2 border-transparent p-0"}`}>
                       <BlockStack>
                         {hasChildren
@@ -7197,7 +7197,7 @@ export default function MenuBuilder() {
     }
 
     return (
-      <Card padding="400">
+      <Card padding="300">
         <BlockStack gap="300">
           <InlineStack align="space-between" blockAlign="center">
             <Text as="h2" variant="headingMd">

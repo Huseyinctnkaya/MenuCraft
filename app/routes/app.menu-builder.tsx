@@ -5501,60 +5501,62 @@ export default function MenuBuilder() {
               >
                 <Box>
                   <div className="ml-1 border-l border-dashed border-gray-300/70">
-                    <BlockStack>
-                      {hasChildren
-                        ? item.children?.map((child, index) => (
-                          <div key={child.id}>
-                            {index === 0 && renderAddBetween(item.id, undefined, depth + 1)}
-                            {renderMenuTree(child, depth + 1, item)}
-                            {renderAddBetween(item.id, child.id, depth + 1)}
-                          </div>
-                        ))
-                        : null}
-                      {item.role === "menu" ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (isDropdownMenu) {
-                              handleOpenAddRoot(item.id);
-                              return;
-                            }
-                            if (hasChildren) {
-                              handleOpenBlockTemplatePicker(item.id);
-                            } else {
-                              handleAddChild(item.id, "group");
-                            }
-                          }}
-                          className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
-                        >
-                          <span className="h-5 w-5" />
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
-                            +
-                          </span>
-                          {isDropdownMenu ? "Add item" : hasChildren ? "Add block" : "Add submenu"}
-                        </button>
-                      ) : null}
-                      {item.role === "group" && !isVisualBlock ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const isDropdownChildItem = parentItem?.submenuTemplate === "dropdown";
-                            if (item.blockTemplate === "links" || isDropdownChildItem) {
-                              handleOpenAddRoot(item.id);
-                            } else {
-                              handleAddChild(item.id, "item");
-                            }
-                          }}
-                          className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
-                        >
-                          <span className="h-5 w-5" />
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
-                            +
-                          </span>
-                          Add item
-                        </button>
-                      ) : null}
-                    </BlockStack>
+                    <div className={`rounded-lg transition-all duration-150 ${draggedItemId && draggedParentId === item.id ? "border-2 border-dotted border-blue-500 bg-blue-50/40 p-2 my-1" : "border-2 border-transparent p-0"}`}>
+                      <BlockStack>
+                        {hasChildren
+                          ? item.children?.map((child, index) => (
+                            <div key={child.id}>
+                              {index === 0 && renderAddBetween(item.id, undefined, depth + 1)}
+                              {renderMenuTree(child, depth + 1, item)}
+                              {renderAddBetween(item.id, child.id, depth + 1)}
+                            </div>
+                          ))
+                          : null}
+                        {item.role === "menu" ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isDropdownMenu) {
+                                handleOpenAddRoot(item.id);
+                                return;
+                              }
+                              if (hasChildren) {
+                                handleOpenBlockTemplatePicker(item.id);
+                              } else {
+                                handleAddChild(item.id, "group");
+                              }
+                            }}
+                            className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
+                          >
+                            <span className="h-5 w-5" />
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                              +
+                            </span>
+                            {isDropdownMenu ? "Add item" : hasChildren ? "Add block" : "Add submenu"}
+                          </button>
+                        ) : null}
+                        {item.role === "group" && !isVisualBlock ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const isDropdownChildItem = parentItem?.submenuTemplate === "dropdown";
+                              if (item.blockTemplate === "links" || isDropdownChildItem) {
+                                handleOpenAddRoot(item.id);
+                              } else {
+                                handleAddChild(item.id, "item");
+                              }
+                            }}
+                            className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
+                          >
+                            <span className="h-5 w-5" />
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
+                              +
+                            </span>
+                            Add item
+                          </button>
+                        ) : null}
+                      </BlockStack>
+                    </div>
                   </div>
                 </Box>
               </div>
@@ -7178,7 +7180,7 @@ export default function MenuBuilder() {
           </Text>
           <Divider />
           <div
-            className={`rounded-lg border-2 border-dotted transition-all duration-150 ${draggedItemId ? "border-blue-500 bg-blue-50/40 p-2" : "border-transparent"
+            className={`rounded-lg border-2 border-dotted transition-all duration-150 ${draggedItemId && draggedParentId === null ? "border-blue-500 bg-blue-50/40 p-2" : "border-transparent"
               }`}
           >
             <BlockStack gap="100">
@@ -10368,6 +10370,7 @@ export default function MenuBuilder() {
                                     >
                                       <button
                                         type="button"
+                                        className="cursor-grab active:cursor-grabbing"
                                         onClick={() => {
                                           handleSelectItem(child.id);
                                           if (hasChildren) {
@@ -10540,6 +10543,7 @@ export default function MenuBuilder() {
                                     >
                                       <button
                                         type="button"
+                                        className="cursor-grab active:cursor-grabbing"
                                         onClick={() => handleSelectItem(child.id)}
                                         onMouseEnter={(event) => {
                                           event.currentTarget.style.color = previewColors.submenuTextHover;

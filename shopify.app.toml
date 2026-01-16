@@ -7,7 +7,7 @@ embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = "mega-menu-test-2.myshopify.com"
+dev_store_url = "mega-menu-test-2.myshopify.com"a
 include_config_on_deploy = true
 
 [app_proxy]

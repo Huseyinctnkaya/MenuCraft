@@ -137,6 +137,61 @@ export const buildSimpleLeftTabsItems = () => {
   ];
 };
 
+export const buildTwoLevelTabsItems = () => {
+  const buildLeafBlocks = () => {
+    const linkGroup: MenuItem = {
+      id: buildId(),
+      label: "Link list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "links",
+      linkColumns: 1,
+      linkWidth: 6,
+      linkTextAlign: "left",
+      children: buildEasyColumnLinkItems(),
+    };
+    const imageGroup: MenuItem = {
+      id: buildId(),
+      label: "Image title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "image",
+      icon: `${ICON_PREFIX}image`,
+      description: "",
+      imageWidth: 3,
+      imageNoFill: false,
+      imageTextAlign: "left",
+    };
+    return [linkGroup, imageGroup];
+  };
+
+  return [
+    { id: buildId(), label: "Dropdown item 1", url: "/", role: "item" },
+    {
+      id: buildId(),
+      label: "Dropdown item 2",
+      url: "",
+      role: "group",
+      expanded: true,
+      children: [
+        { id: buildId(), label: "Submenu item 1", url: "/", role: "item" },
+        {
+          id: buildId(),
+          label: "Submenu item 2",
+          url: "",
+          role: "group",
+          expanded: true,
+          children: buildLeafBlocks(),
+        },
+        { id: buildId(), label: "Submenu item 3", url: "/", role: "item" },
+      ],
+    },
+    { id: buildId(), label: "Dropdown item 3", url: "/", role: "item" },
+  ];
+};
+
 export const buildEasyColumnWithIcons = () => {
   const [firstIcon, secondIcon] = (() => {
     if (!ICON_LIBRARY.length) return [undefined, undefined];

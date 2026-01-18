@@ -104,6 +104,7 @@ import {
   buildProductGridItems,
   buildProductListItems,
   buildSimpleLeftTabsItems,
+  buildThreeLevelTabsItems,
   buildTwoLevelTabsItems,
   buildThreeColumnLinkItems,
   buildTwoColumnLinkItems,
@@ -556,6 +557,7 @@ export default function MenuBuilder() {
   const [linkPickerRect, setLinkPickerRect] = useState<{ left: number; top: number; width: number } | null>(null);
   const [activeDropdownItemId, setActiveDropdownItemId] = useState<string | null>(null);
   const [activeDropdownChildId, setActiveDropdownChildId] = useState<string | null>(null);
+  const [activeDropdownGrandchildId, setActiveDropdownGrandchildId] = useState<string | null>(null);
   const [dropdownMainPanelMinHeight, setDropdownMainPanelMinHeight] = useState<number | null>(null);
   const [floatingLinkListToolbarId, setFloatingLinkListToolbarId] = useState<string | null>(null);
   const [floatingLinkListToolbarPosition, setFloatingLinkListToolbarPosition] = useState<{
@@ -617,6 +619,7 @@ export default function MenuBuilder() {
   useEffect(() => {
     setActiveDropdownItemId(null);
     setActiveDropdownChildId(null);
+    setActiveDropdownGrandchildId(null);
   }, [openMenuId]);
 
   useEffect(() => {
@@ -650,6 +653,7 @@ export default function MenuBuilder() {
   useLayoutEffect(() => {
     const isTabsFlyoutTemplate =
       previewMenu?.submenuTemplate === "two-level-tabs" ||
+      previewMenu?.submenuTemplate === "three-level-tabs" ||
       previewMenu?.submenuTemplate === "simple-left-tabs";
     if (!isTabsFlyoutTemplate || !activeDropdownItemId) {
       if (dropdownMainPanelMinHeight !== null) {
@@ -670,7 +674,14 @@ export default function MenuBuilder() {
     if (dropdownMainPanelMinHeight !== flyoutHeight) {
       setDropdownMainPanelMinHeight(flyoutHeight);
     }
-  }, [activeDropdownItemId, activeDropdownChildId, dropdownMainPanelMinHeight, openMenuId, previewMenu]);
+  }, [
+    activeDropdownItemId,
+    activeDropdownChildId,
+    activeDropdownGrandchildId,
+    dropdownMainPanelMinHeight,
+    openMenuId,
+    previewMenu,
+  ]);
 
   useLayoutEffect(() => {
     if (!floatingLinkListToolbarId) {
@@ -1562,6 +1573,44 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-level-tabs") : undefined}
+                        disabled={!isPlusPlan}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Three Level Tabs",
+                onSelect: () => handleApplySubmenuTemplate("three-level-tabs"),
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                showSelectButton: false,
+                showTitle: false,
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/three-level-tabs.png"
+                      alt="Three Level Tabs template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div
+                      className="absolute right-3 top-3 z-10"
+                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
+                    >
+                      <Badge tone="warning">Plus</Badge>
+                    </div>
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Three Level Tabs
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-level-tabs") : undefined}
                         disabled={!isPlusPlan}
                         size="slim"
                         variant="primary"
@@ -3750,14 +3799,18 @@ export default function MenuBuilder() {
     if (!submenuTemplateTargetId) return;
     if (
       !isPlusPlan &&
-      (templateId === "tabs" || templateId === "simple-left-tabs" || templateId === "two-level-tabs")
+      (templateId === "tabs" ||
+        templateId === "simple-left-tabs" ||
+        templateId === "two-level-tabs" ||
+        templateId === "three-level-tabs")
     ) {
       return;
     }
     const isDropdownTemplate =
       templateId === "dropdown" ||
       templateId === "simple-left-tabs" ||
-      templateId === "two-level-tabs";
+      templateId === "two-level-tabs" ||
+      templateId === "three-level-tabs";
     const isHorizontalDropdownTemplate = templateId === "horizontal-dropdown";
     const newGroup: MenuItem = {
       id: buildId(),
@@ -3781,6 +3834,8 @@ export default function MenuBuilder() {
         ? buildSimpleLeftTabsItems()
         : templateId === "two-level-tabs"
           ? buildTwoLevelTabsItems()
+          : templateId === "three-level-tabs"
+            ? buildThreeLevelTabsItems()
           : buildDropdownMenuItems();
     setMenuItems((items) =>
       updateItemById(items, submenuTemplateTargetId, (item) => {
@@ -4303,7 +4358,8 @@ export default function MenuBuilder() {
                                 parentItem?.submenuType === "dropdown" ||
                                 parentItem?.submenuTemplate === "dropdown" ||
                                 parentItem?.submenuTemplate === "simple-left-tabs" ||
-                                parentItem?.submenuTemplate === "two-level-tabs";
+                                parentItem?.submenuTemplate === "two-level-tabs" ||
+                                parentItem?.submenuTemplate === "three-level-tabs";
                               if (item.blockTemplate === "links" || isDropdownChildItem) {
                                 handleOpenAddRoot(item.id);
                               } else {
@@ -7259,13 +7315,19 @@ export default function MenuBuilder() {
 
   const renderImageBlock = (
     group: MenuItem,
-    options: { flex?: string; wrapperStyle?: CSSProperties } = {}
+    options: {
+      flex?: string;
+      wrapperStyle?: CSSProperties;
+      imagePreviewHeight?: number;
+      imageScale?: string;
+    } = {}
   ) => {
     const isOverlayImage = group.blockTemplate === "image2";
     const imageWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
-    const imageScale = `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
+    const imageScale = options.imageScale ?? `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
     const imageFill = !group.imageNoFill;
-    const imagePreviewHeight = useImageSpaceLayout ? 220 : 150;
+    const imagePreviewHeight =
+      options.imagePreviewHeight ?? (useImageSpaceLayout ? 220 : 150);
     const imageTextAlign = group.imageTextAlign ?? "left";
     const imageTextAlignItems =
       imageTextAlign === "center"
@@ -9426,20 +9488,39 @@ export default function MenuBuilder() {
                         previewMenu?.submenuTemplate === "simple-left-tabs";
                       const isTwoLevelTabsTemplate =
                         previewMenu?.submenuTemplate === "two-level-tabs";
+                      const isThreeLevelTabsTemplate =
+                        previewMenu?.submenuTemplate === "three-level-tabs";
                       const activeDropdownChildren = activeDropdownItem?.children ?? [];
                       const activeDropdownHasBlocks =
                         isSimpleLeftTabsTemplate &&
                         activeDropdownChildren.some((child) => child.blockTemplate);
-                      const activeSecondLevelItem = isTwoLevelTabsTemplate
-                        ? activeDropdownChildren.find((child) => child.id === activeDropdownChildId) ?? null
-                        : null;
+                      const activeSecondLevelItem =
+                        isTwoLevelTabsTemplate || isThreeLevelTabsTemplate
+                          ? activeDropdownChildren.find((child) => child.id === activeDropdownChildId) ?? null
+                          : null;
                       const secondLevelChildren = activeSecondLevelItem?.children ?? [];
                       const secondLevelHasBlocks =
                         isTwoLevelTabsTemplate &&
                         secondLevelChildren.some((child) => child.blockTemplate);
+                      const activeThirdLevelItem = isThreeLevelTabsTemplate
+                        ? secondLevelChildren.find((child) => child.id === activeDropdownGrandchildId) ?? null
+                        : null;
+                      const thirdLevelChildren = activeThirdLevelItem?.children ?? [];
+                      const thirdLevelHasBlocks =
+                        isThreeLevelTabsTemplate &&
+                        thirdLevelChildren.some((child) => child.blockTemplate);
+                      const isSoloImagePanel =
+                        thirdLevelChildren.length === 1 &&
+                        (thirdLevelChildren[0]?.blockTemplate === "image" ||
+                          thirdLevelChildren[0]?.blockTemplate === "image2");
                       const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
-                      const hasBlockPanel = activeDropdownHasBlocks || secondLevelHasBlocks;
-                      const allowDropdownScroll = dropdownOverflowY && !isTwoLevelTabsTemplate && !hasBlockPanel;
+                      const hasBlockPanel =
+                        activeDropdownHasBlocks || secondLevelHasBlocks || thirdLevelHasBlocks;
+                      const allowDropdownScroll =
+                        dropdownOverflowY &&
+                        !isTwoLevelTabsTemplate &&
+                        !isThreeLevelTabsTemplate &&
+                        !hasBlockPanel;
                       const dropdownPanelStyle: CSSProperties = {
                         background: previewColors.submenuBackground,
                         border: builderSettings.submenuShowBorder
@@ -9471,12 +9552,21 @@ export default function MenuBuilder() {
                           ? Math.floor(availableRight)
                           : simpleLeftTabsPanelWidth;
                       const { background, border, borderRadius, boxShadow } = dropdownPanelStyle;
-                      const blockPanelCount = secondLevelChildren.filter((child) => child.blockTemplate).length;
-                      const blockPanelWidth = Math.min(
+                      const blockPanelChildren = secondLevelHasBlocks
+                        ? secondLevelChildren
+                        : thirdLevelHasBlocks
+                          ? thirdLevelChildren
+                          : [];
+                      const blockPanelCount = blockPanelChildren.filter((child) => child.blockTemplate).length;
+                      const baseBlockPanelWidth = Math.min(
                         resolvedSimpleLeftTabsPanelWidth,
                         Math.max(360, blockPanelCount * 240 || 480)
                       );
-                      const dropdownFlyoutStyle: CSSProperties = isTwoLevelTabsTemplate
+                      const blockPanelWidth = isSoloImagePanel
+                        ? Math.max(280, Math.round(baseBlockPanelWidth * 0.7))
+                        : baseBlockPanelWidth;
+                      const dropdownFlyoutStyle: CSSProperties =
+                        isTwoLevelTabsTemplate || isThreeLevelTabsTemplate
                         ? {
                           background: "transparent",
                           border: "none",
@@ -9583,13 +9673,15 @@ export default function MenuBuilder() {
                                             setActiveDropdownItemId((prev) =>
                                               prev === child.id ? null : child.id
                                             );
-                                            if (isTwoLevelTabsTemplate) {
+                                            if (isTwoLevelTabsTemplate || isThreeLevelTabsTemplate) {
                                               setActiveDropdownChildId(null);
+                                              setActiveDropdownGrandchildId(null);
                                             }
                                           } else {
                                             setActiveDropdownItemId(null);
-                                            if (isTwoLevelTabsTemplate) {
+                                            if (isTwoLevelTabsTemplate || isThreeLevelTabsTemplate) {
                                               setActiveDropdownChildId(null);
+                                              setActiveDropdownGrandchildId(null);
                                             }
                                           }
                                         }}
@@ -9773,7 +9865,10 @@ export default function MenuBuilder() {
                                   left: isPreviewLeftAligned
                                     ? `-${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`
                                     : `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
-                                  top: isTwoLevelTabsTemplate || isSimpleLeftTabsTemplate ? 0 : activeItemOffsetTop,
+                                  top:
+                                    isTwoLevelTabsTemplate || isThreeLevelTabsTemplate || isSimpleLeftTabsTemplate
+                                      ? 0
+                                      : activeItemOffsetTop,
                                 }}
                                 data-submenu-panel
                                 ref={dropdownFlyoutRef}
@@ -9965,7 +10060,14 @@ export default function MenuBuilder() {
                                           overflow: "visible",
                                         }}
                                       >
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: isSoloImagePanel ? 8 : 12,
+                                            padding: isSoloImagePanel ? 8 : 12,
+                                          }}
+                                        >
                                           <div
                                             className="menu-builder-hide-scrollbar"
                                             style={{
@@ -9998,14 +10100,485 @@ export default function MenuBuilder() {
                                                   });
                                                 }
                                                 if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                                  const isSoloImagePanel = thirdLevelChildren.length === 1;
                                                   const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
                                                   const imageFlexBasis = Math.max(
                                                     40,
                                                     Math.round((imageWidth / 12) * 100)
                                                   );
                                                   return renderImageBlock(child, {
-                                                    flex: `0 0 ${imageFlexBasis}%`,
+                                                    flex: isSoloImagePanel
+                                                      ? "0 0 70%"
+                                                      : `0 0 ${imageFlexBasis}%`,
                                                     wrapperStyle: { minWidth: 0 },
+                                                    imagePreviewHeight: isSoloImagePanel ? 220 : undefined,
+                                                    imageScale: isSoloImagePanel ? "100%" : undefined,
+                                                  });
+                                                }
+                                                if (child.blockTemplate === "html") {
+                                                  const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                  const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
+                                                  return renderHtmlBlock(child, {
+                                                    flex: `0 0 ${htmlFlexBasis}`,
+                                                    wrapperStyle: { minWidth: 0 },
+                                                  });
+                                                }
+                                                if (
+                                                  child.blockTemplate === "product" ||
+                                                  child.blockTemplate === "product-horizontal" ||
+                                                  child.blockTemplate === "product-grid" ||
+                                                  child.blockTemplate === "product-carousel" ||
+                                                  child.blockTemplate === "product-grid-horizontal"
+                                                ) {
+                                                  const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
+                                                  const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
+                                                  return renderProductBlock(child, {
+                                                    flex: `0 0 ${productFlexBasis}`,
+                                                    wrapperStyle: { minWidth: 0 },
+                                                  });
+                                                }
+                                                if (
+                                                  child.blockTemplate === "collection" ||
+                                                  child.blockTemplate === "collection-horizontal"
+                                                ) {
+                                                  const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                  const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
+                                                  return renderCollectionBlock(child, {
+                                                    flex: `0 0 ${collectionFlexBasis}`,
+                                                    wrapperStyle: { minWidth: 0 },
+                                                  });
+                                                }
+                                                if (
+                                                  child.blockTemplate === "blogs" ||
+                                                  child.blockTemplate === "blogs-latest"
+                                                ) {
+                                                  const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                  const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
+                                                  return renderBlogBlock(child, {
+                                                    flex: `0 0 ${blogFlexBasis}`,
+                                                    wrapperStyle: { minWidth: 0 },
+                                                  });
+                                                }
+                                                return null;
+                                              })}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : null}
+                                  </>
+                                ) : isThreeLevelTabsTemplate ? (
+                                  <>
+                                    <div style={dropdownPanelStyle}>
+                                      <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
+                                        {activeDropdownChildren.map((child) => {
+                                          const hasChildren = Boolean(child.children?.length);
+                                          const isActiveChild = activeDropdownChildId === child.id;
+                                          return (
+                                            <div
+                                              key={child.id}
+                                              className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                              ref={registerPreviewRow(child.id)}
+                                              style={{ willChange: "transform" }}
+                                              draggable
+                                              onDragStart={(event) => {
+                                                event.dataTransfer.effectAllowed = "move";
+                                                event.dataTransfer.setData("text/plain", child.id);
+                                                setDraggedItemId(child.id);
+                                                const parentId = findParentId(menuItems, child.id);
+                                                setDraggedParentId(parentId ?? null);
+                                                lastDragOverIdRef.current = null;
+                                              }}
+                                              onDragEnd={() => {
+                                                setDraggedItemId(null);
+                                                setDraggedParentId(null);
+                                                lastDragOverIdRef.current = null;
+                                              }}
+                                              onDragOver={(event) => {
+                                                if (!draggedItemId || draggedItemId === child.id) return;
+                                                const targetParentId = findParentId(menuItems, child.id);
+                                                if (draggedParentId !== targetParentId) return;
+                                                event.preventDefault();
+                                                if (lastDragOverIdRef.current === child.id) return;
+                                                lastDragOverIdRef.current = child.id;
+                                                setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                              }}
+                                              onDrop={(event) => {
+                                                event.preventDefault();
+                                                setDraggedItemId(null);
+                                                setDraggedParentId(null);
+                                                lastDragOverIdRef.current = null;
+                                              }}
+                                            >
+                                              <button
+                                                type="button"
+                                                className="cursor-grab active:cursor-grabbing"
+                                                onClick={() => {
+                                                  handleSelectItem(child.id);
+                                                  if (hasChildren) {
+                                                    setActiveDropdownChildId((prev) =>
+                                                      prev === child.id ? null : child.id
+                                                    );
+                                                    setActiveDropdownGrandchildId(null);
+                                                  } else {
+                                                    setActiveDropdownChildId(null);
+                                                    setActiveDropdownGrandchildId(null);
+                                                  }
+                                                }}
+                                                onMouseEnter={(event) => {
+                                                  event.currentTarget.style.color = previewColors.submenuTextHover;
+                                                }}
+                                                onMouseLeave={(event) => {
+                                                  event.currentTarget.style.color = previewColors.submenuText;
+                                                }}
+                                                style={{
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  justifyContent: "space-between",
+                                                  gap: 10,
+                                                  minHeight: dropdownItemHeight,
+                                                  padding: "8px 10px",
+                                                  borderRadius: 0,
+                                                  border: "2px solid transparent",
+                                                  background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
+                                                  color: previewColors.submenuText,
+                                                  width: "100%",
+                                                  textAlign: dropdownContentAlign,
+                                                  ...subtextTypography,
+                                                  lineHeight: 1.2,
+                                                }}
+                                              >
+                                                <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                                  {child.label}
+                                                </span>
+                                                {hasChildren ? (
+                                                  <ChevronRightIcon
+                                                    width="14"
+                                                    height="14"
+                                                    fill={previewColors.submenuText}
+                                                  />
+                                                ) : null}
+                                              </button>
+                                              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                                <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                                  <button
+                                                    type="button"
+                                                    onClick={(event) => {
+                                                      event.stopPropagation();
+                                                      handleSelectItem(child.id, true);
+                                                    }}
+                                                    aria-label="Edit item"
+                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                                  >
+                                                    <Icon source={EditIcon} />
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={(event) => {
+                                                      event.stopPropagation();
+                                                      handleDuplicateItem(child.id);
+                                                    }}
+                                                    aria-label="Duplicate item"
+                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                                  >
+                                                    <Icon source={DuplicateIcon} />
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={(event) => {
+                                                      event.stopPropagation();
+                                                      openDeleteItemDialog(child.id);
+                                                    }}
+                                                    aria-label="Delete item"
+                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                                  >
+                                                    <Icon source={DeleteIcon} />
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                        <button
+                                          type="button"
+                                          onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
+                                          className="text-sm font-medium"
+                                          style={{
+                                            alignSelf: "stretch",
+                                            minHeight: dropdownItemHeight,
+                                            textAlign: dropdownContentAlign,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: dropdownAlignJustify,
+                                            gap: 8,
+                                            width: "100%",
+                                            padding: "6px 8px",
+                                            color: themeSettings.menuActive,
+                                            background: "transparent",
+                                            border: "none",
+                                            ...descriptionTypography,
+                                          }}
+                                          onMouseEnter={(event) => {
+                                            event.currentTarget.style.color = previewColors.submenuTextHover;
+                                          }}
+                                          onMouseLeave={(event) => {
+                                            event.currentTarget.style.color = themeSettings.menuActive;
+                                          }}
+                                        >
+                                          <span
+                                            aria-hidden="true"
+                                            style={{
+                                              width: 20,
+                                              height: 20,
+                                              borderRadius: 9999,
+                                              border: "2px solid currentColor",
+                                              display: "inline-flex",
+                                              alignItems: "center",
+                                              justifyContent: "center",
+                                              fontSize: 14,
+                                              lineHeight: 1,
+                                            }}
+                                          >
+                                            +
+                                          </span>
+                                          Add item
+                                        </button>
+                                      </div>
+                                    </div>
+                                    {activeSecondLevelItem ? (
+                                      <div style={dropdownPanelStyle}>
+                                        <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
+                                          {secondLevelChildren.map((child) => {
+                                            const hasBlocks = Boolean(
+                                              child.children?.some((grandChild) => grandChild.blockTemplate)
+                                            );
+                                            const isActiveChild = activeDropdownGrandchildId === child.id;
+                                            return (
+                                              <div
+                                                key={child.id}
+                                                className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                                ref={registerPreviewRow(child.id)}
+                                                style={{ willChange: "transform" }}
+                                                draggable
+                                                onDragStart={(event) => {
+                                                  event.dataTransfer.effectAllowed = "move";
+                                                  event.dataTransfer.setData("text/plain", child.id);
+                                                  setDraggedItemId(child.id);
+                                                  const parentId = findParentId(menuItems, child.id);
+                                                  setDraggedParentId(parentId ?? null);
+                                                  lastDragOverIdRef.current = null;
+                                                }}
+                                                onDragEnd={() => {
+                                                  setDraggedItemId(null);
+                                                  setDraggedParentId(null);
+                                                  lastDragOverIdRef.current = null;
+                                                }}
+                                                onDragOver={(event) => {
+                                                  if (!draggedItemId || draggedItemId === child.id) return;
+                                                  const targetParentId = findParentId(menuItems, child.id);
+                                                  if (draggedParentId !== targetParentId) return;
+                                                  event.preventDefault();
+                                                  if (lastDragOverIdRef.current === child.id) return;
+                                                  lastDragOverIdRef.current = child.id;
+                                                  setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                                }}
+                                                onDrop={(event) => {
+                                                  event.preventDefault();
+                                                  setDraggedItemId(null);
+                                                  setDraggedParentId(null);
+                                                  lastDragOverIdRef.current = null;
+                                                }}
+                                              >
+                                                <button
+                                                  type="button"
+                                                  className="cursor-grab active:cursor-grabbing"
+                                                  onClick={() => {
+                                                    handleSelectItem(child.id);
+                                                    if (hasBlocks) {
+                                                      setActiveDropdownGrandchildId((prev) =>
+                                                        prev === child.id ? null : child.id
+                                                      );
+                                                    } else {
+                                                      setActiveDropdownGrandchildId(null);
+                                                    }
+                                                  }}
+                                                  onMouseEnter={(event) => {
+                                                    event.currentTarget.style.color = previewColors.submenuTextHover;
+                                                  }}
+                                                  onMouseLeave={(event) => {
+                                                    event.currentTarget.style.color = previewColors.submenuText;
+                                                  }}
+                                                  style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "space-between",
+                                                    gap: 10,
+                                                    minHeight: dropdownItemHeight,
+                                                    padding: "8px 10px",
+                                                    borderRadius: 0,
+                                                    border: "2px solid transparent",
+                                                    background: isActiveChild
+                                                      ? "rgba(59, 130, 246, 0.08)"
+                                                      : "transparent",
+                                                    color: previewColors.submenuText,
+                                                    width: "100%",
+                                                    textAlign: dropdownContentAlign,
+                                                    ...subtextTypography,
+                                                    lineHeight: 1.2,
+                                                  }}
+                                                >
+                                                  <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                                    {child.label}
+                                                  </span>
+                                                  {hasBlocks ? (
+                                                    <ChevronRightIcon
+                                                      width="14"
+                                                      height="14"
+                                                      fill={previewColors.submenuText}
+                                                    />
+                                                  ) : null}
+                                                </button>
+                                                <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                                  <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                                    <button
+                                                      type="button"
+                                                      onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleSelectItem(child.id, true);
+                                                      }}
+                                                      aria-label="Edit item"
+                                                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                                    >
+                                                      <Icon source={EditIcon} />
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleDuplicateItem(child.id);
+                                                      }}
+                                                      aria-label="Duplicate item"
+                                                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                                    >
+                                                      <Icon source={DuplicateIcon} />
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        openDeleteItemDialog(child.id);
+                                                      }}
+                                                      aria-label="Delete item"
+                                                      className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                                    >
+                                                      <Icon source={DeleteIcon} />
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                          <button
+                                            type="button"
+                                            onClick={() => handleOpenAddRoot(activeSecondLevelItem.id)}
+                                            className="text-sm font-medium"
+                                            style={{
+                                              alignSelf: "stretch",
+                                              minHeight: dropdownItemHeight,
+                                              textAlign: dropdownContentAlign,
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: dropdownAlignJustify,
+                                              gap: 8,
+                                              width: "100%",
+                                              padding: "6px 8px",
+                                              color: themeSettings.menuActive,
+                                              background: "transparent",
+                                              border: "none",
+                                              ...descriptionTypography,
+                                            }}
+                                            onMouseEnter={(event) => {
+                                              event.currentTarget.style.color = previewColors.submenuTextHover;
+                                            }}
+                                            onMouseLeave={(event) => {
+                                              event.currentTarget.style.color = themeSettings.menuActive;
+                                            }}
+                                          >
+                                            <span
+                                              aria-hidden="true"
+                                              style={{
+                                                width: 20,
+                                                height: 20,
+                                                borderRadius: 9999,
+                                                border: "2px solid currentColor",
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                fontSize: 14,
+                                                lineHeight: 1,
+                                              }}
+                                            >
+                                              +
+                                            </span>
+                                            Add item
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : null}
+                                    {thirdLevelHasBlocks ? (
+                                      <div
+                                        style={{
+                                          ...dropdownPanelStyle,
+                                          width: blockPanelWidth,
+                                          maxWidth: blockPanelWidth,
+                                          overflow: "visible",
+                                        }}
+                                      >
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                                          <div
+                                            className="menu-builder-hide-scrollbar"
+                                            style={{
+                                              overflowX: "auto",
+                                              overflowY: "hidden",
+                                              scrollbarWidth: "none",
+                                              msOverflowStyle: "none",
+                                            }}
+                                          >
+                                            <div
+                                              style={{
+                                                display: "flex",
+                                                flexWrap: "nowrap",
+                                                gap: 24,
+                                                alignItems: "flex-start",
+                                                justifyContent: "flex-start",
+                                                minWidth: 0,
+                                              }}
+                                            >
+                                              {thirdLevelChildren.map((child) => {
+                                                if (child.blockTemplate === "links") {
+                                                  const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                                  const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                                  const linkFlexBasis =
+                                                    columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                                                  return renderLinkListBlock(child, {
+                                                    flex: `0 0 ${linkFlexBasis}`,
+                                                    wrapperStyle: { minWidth: 0 },
+                                                    toolbarPlacement: "floating",
+                                                  });
+                                                }
+                                                if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                                  const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                  const imageFlexBasis = Math.max(
+                                                    40,
+                                                    Math.round((imageWidth / 12) * 100)
+                                                  );
+                                                  return renderImageBlock(child, {
+                                                    flex: isSoloImagePanel
+                                                      ? "0 0 100%"
+                                                      : `0 0 ${imageFlexBasis}%`,
+                                                    wrapperStyle: { minWidth: 0 },
+                                                    imagePreviewHeight: isSoloImagePanel ? 220 : undefined,
+                                                    imageScale: isSoloImagePanel ? "100%" : undefined,
                                                   });
                                                 }
                                                 if (child.blockTemplate === "html") {

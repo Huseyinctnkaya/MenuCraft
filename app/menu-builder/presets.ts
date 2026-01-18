@@ -192,6 +192,61 @@ export const buildTwoLevelTabsItems = () => {
   ];
 };
 
+export const buildThreeLevelTabsItems = () => {
+  const buildLeafBlocks = () => {
+    const imageGroup: MenuItem = {
+      id: buildId(),
+      label: "Image title",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "image",
+      icon: `${ICON_PREFIX}image`,
+      description: "",
+      imageWidth: 3,
+      imageNoFill: false,
+      imageTextAlign: "left",
+    };
+    return [imageGroup];
+  };
+  const buildThirdLevelItems = () => [
+    { id: buildId(), label: "Submenu item 1", url: "/", role: "item" as const },
+    {
+      id: buildId(),
+      label: "Submenu item 2",
+      url: "",
+      role: "group" as const,
+      expanded: true,
+      children: buildLeafBlocks(),
+    },
+    { id: buildId(), label: "Submenu item 3", url: "/", role: "item" as const },
+  ];
+
+  return [
+    { id: buildId(), label: "Dropdown item 1", url: "/", role: "item" },
+    {
+      id: buildId(),
+      label: "Dropdown item 2",
+      url: "",
+      role: "group",
+      expanded: true,
+      children: [
+        { id: buildId(), label: "Submenu item 1", url: "/", role: "item" },
+        {
+          id: buildId(),
+          label: "Submenu item 2",
+          url: "",
+          role: "group",
+          expanded: true,
+          children: buildThirdLevelItems(),
+        },
+        { id: buildId(), label: "Submenu item 3", url: "/", role: "item" },
+      ],
+    },
+    { id: buildId(), label: "Dropdown item 3", url: "/", role: "item" },
+  ];
+};
+
 export const buildEasyColumnWithIcons = () => {
   const [firstIcon, secondIcon] = (() => {
     if (!ICON_LIBRARY.length) return [undefined, undefined];

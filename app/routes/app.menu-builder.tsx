@@ -556,8 +556,11 @@ export default function MenuBuilder() {
   const [linkPickerRect, setLinkPickerRect] = useState<{ left: number; top: number; width: number } | null>(null);
   const [activeDropdownItemId, setActiveDropdownItemId] = useState<string | null>(null);
   const [activeDropdownChildId, setActiveDropdownChildId] = useState<string | null>(null);
+  const [dropdownMainPanelMinHeight, setDropdownMainPanelMinHeight] = useState<number | null>(null);
   const previewContainerRef = useRef<HTMLDivElement | null>(null);
   const previewMenuItemRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
+  const dropdownMainPanelRef = useRef<HTMLDivElement | null>(null);
+  const dropdownFlyoutRef = useRef<HTMLDivElement | null>(null);
   const [dropdownAnchor, setDropdownAnchor] = useState<{ left: number; top: number; width: number } | null>(null);
   const [savedFingerprint, setSavedFingerprint] = useState(() =>
     JSON.stringify({
@@ -636,6 +639,29 @@ export default function MenuBuilder() {
     builderSettings.menuItemSpacing,
     builderSettings.spacingMainRowHeight,
   ]);
+
+  useLayoutEffect(() => {
+    const isTwoLevelTabsTemplate = previewMenu?.submenuTemplate === "two-level-tabs";
+    if (!isTwoLevelTabsTemplate || !activeDropdownItemId) {
+      if (dropdownMainPanelMinHeight !== null) {
+        setDropdownMainPanelMinHeight(null);
+      }
+      return;
+    }
+    const mainPanel = dropdownMainPanelRef.current;
+    const flyoutPanel = dropdownFlyoutRef.current;
+    if (!mainPanel || !flyoutPanel) {
+      if (dropdownMainPanelMinHeight !== null) {
+        setDropdownMainPanelMinHeight(null);
+      }
+      return;
+    }
+    const flyoutHeight = flyoutPanel.offsetHeight;
+    if (!flyoutHeight) return;
+    if (dropdownMainPanelMinHeight !== flyoutHeight) {
+      setDropdownMainPanelMinHeight(flyoutHeight);
+    }
+  }, [activeDropdownItemId, activeDropdownChildId, dropdownMainPanelMinHeight, openMenuId, previewMenu]);
 
   const registerPreviewMenuItem = (id: string) => (node: HTMLButtonElement | null) => {
     if (node) {
@@ -9390,10 +9416,18 @@ export default function MenuBuilder() {
                           activeItemOffsetTop = (activeItemElement as HTMLElement).offsetTop + dropdownItemHeight;
                         }
                       }
+                      const mainPanelStyle: CSSProperties = dropdownMainPanelMinHeight
+                        ? { ...dropdownPanelStyle, minHeight: dropdownMainPanelMinHeight }
+                        : dropdownPanelStyle;
                       return (
                         <>
                           <div style={{ display: "flex", gap: 0, position: "relative" }}>
-                            <div className="relative" style={dropdownPanelStyle} data-dropdown-main-panel>
+                            <div
+                              className="relative"
+                              style={mainPanelStyle}
+                              data-dropdown-main-panel
+                              ref={dropdownMainPanelRef}
+                            >
                               <div style={{ display: "flex", flexDirection: "column", gap: 0, padding: 12 }}>
                                 {dropdownItems.map((child) => {
                                   const hasChildren = Boolean(child.children?.length);
@@ -9581,6 +9615,7 @@ export default function MenuBuilder() {
                                   top: isTwoLevelTabsTemplate ? 0 : activeItemOffsetTop,
                                 }}
                                 data-submenu-panel
+                                ref={dropdownFlyoutRef}
                               >
                                 {isTwoLevelTabsTemplate ? (
                                   <>

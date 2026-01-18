@@ -557,6 +557,13 @@ export default function MenuBuilder() {
   const [activeDropdownItemId, setActiveDropdownItemId] = useState<string | null>(null);
   const [activeDropdownChildId, setActiveDropdownChildId] = useState<string | null>(null);
   const [dropdownMainPanelMinHeight, setDropdownMainPanelMinHeight] = useState<number | null>(null);
+  const [floatingLinkListToolbarId, setFloatingLinkListToolbarId] = useState<string | null>(null);
+  const [floatingLinkListToolbarPosition, setFloatingLinkListToolbarPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
+  const floatingLinkListToolbarHoverRef = useRef(false);
+  const hideFloatingLinkListToolbarTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewContainerRef = useRef<HTMLDivElement | null>(null);
   const previewMenuItemRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
   const dropdownMainPanelRef = useRef<HTMLDivElement | null>(null);
@@ -641,8 +648,10 @@ export default function MenuBuilder() {
   ]);
 
   useLayoutEffect(() => {
-    const isTwoLevelTabsTemplate = previewMenu?.submenuTemplate === "two-level-tabs";
-    if (!isTwoLevelTabsTemplate || !activeDropdownItemId) {
+    const isTabsFlyoutTemplate =
+      previewMenu?.submenuTemplate === "two-level-tabs" ||
+      previewMenu?.submenuTemplate === "simple-left-tabs";
+    if (!isTabsFlyoutTemplate || !activeDropdownItemId) {
       if (dropdownMainPanelMinHeight !== null) {
         setDropdownMainPanelMinHeight(null);
       }
@@ -662,6 +671,29 @@ export default function MenuBuilder() {
       setDropdownMainPanelMinHeight(flyoutHeight);
     }
   }, [activeDropdownItemId, activeDropdownChildId, dropdownMainPanelMinHeight, openMenuId, previewMenu]);
+
+  useLayoutEffect(() => {
+    if (!floatingLinkListToolbarId) {
+      setFloatingLinkListToolbarPosition(null);
+      return;
+    }
+    const updatePosition = () => {
+      const node = previewRowRefs.current.get(floatingLinkListToolbarId);
+      if (!node) return;
+      const rect = node.getBoundingClientRect();
+      setFloatingLinkListToolbarPosition({
+        left: rect.left + rect.width / 2,
+        top: rect.bottom + 24,
+      });
+    };
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    document.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      document.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [floatingLinkListToolbarId]);
 
   const registerPreviewMenuItem = (id: string) => (node: HTMLButtonElement | null) => {
     if (node) {
@@ -1511,21 +1543,12 @@ export default function MenuBuilder() {
                 showSelectButton: false,
                 showTitle: false,
                 preview: (
-                  <div className="relative flex h-full w-full gap-2 rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                    <div className="flex w-1/3 flex-col gap-1 rounded bg-white/90 p-1">
-                      <div className="h-2 w-4/5 rounded bg-gray-300" />
-                      <div className="h-2 w-3/4 rounded bg-gray-300" />
-                      <div className="h-2 w-2/3 rounded bg-gray-300" />
-                    </div>
-                    <div className="flex flex-1 gap-2 rounded bg-white/90 p-1">
-                      <div className="flex flex-1 flex-col gap-1">
-                        <div className="h-2 w-4/5 rounded bg-gray-300" />
-                        <div className="h-2 w-3/4 rounded bg-gray-300" />
-                        <div className="h-2 w-2/3 rounded bg-gray-300" />
-                        <div className="h-2 w-3/5 rounded bg-gray-300" />
-                      </div>
-                      <div className="w-12 rounded bg-gray-300" />
-                    </div>
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/two-level-tabs.png"
+                      alt="Two Level Tabs template"
+                      className="h-full w-full object-contain"
+                    />
                     <div
                       className="absolute right-3 top-3 z-10"
                       style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
@@ -6746,10 +6769,89 @@ export default function MenuBuilder() {
     </Card>
   );
 
+  const renderLinkListToolbarButtons = (group: MenuItem) => (
+    <>
+      <button
+        type="button"
+        aria-label="Align left"
+        className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+        onClick={() =>
+          setMenuItems((items) =>
+            updateItemById(items, group.id, () => ({
+              ...group,
+              linkTextAlign: "left",
+            })),
+          )
+        }
+      >
+        <Icon source={TextAlignLeftIcon} />
+      </button>
+      <button
+        type="button"
+        aria-label="Align center"
+        className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+        onClick={() =>
+          setMenuItems((items) =>
+            updateItemById(items, group.id, () => ({
+              ...group,
+              linkTextAlign: "center",
+            })),
+          )
+        }
+      >
+        <Icon source={TextAlignCenterIcon} />
+      </button>
+      <button
+        type="button"
+        aria-label="Align right"
+        className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+        onClick={() =>
+          setMenuItems((items) =>
+            updateItemById(items, group.id, () => ({
+              ...group,
+              linkTextAlign: "right",
+            })),
+          )
+        }
+      >
+        <Icon source={TextAlignRightIcon} />
+      </button>
+      <button
+        type="button"
+        onClick={() => handleSelectItem(group.id, true)}
+        aria-label="Edit item"
+        className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+      >
+        <Icon source={EditIcon} />
+      </button>
+      <button
+        type="button"
+        onClick={() => handleDuplicateItem(group.id)}
+        aria-label="Duplicate item"
+        className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+      >
+        <Icon source={DuplicateIcon} />
+      </button>
+      <button
+        type="button"
+        onClick={() => openDeleteItemDialog(group.id)}
+        aria-label="Delete item"
+        className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+      >
+        <Icon source={DeleteIcon} />
+      </button>
+    </>
+  );
+
   const renderLinkListBlock = (
     group: MenuItem,
-    options: { flex?: string; wrapperStyle?: CSSProperties } = {}
+    options: {
+      flex?: string;
+      wrapperStyle?: CSSProperties;
+      toolbarPlacement?: "inline" | "floating";
+    } = {}
   ) => {
+    const useFloatingToolbar = options.toolbarPlacement === "floating";
     const headingItem = group.children?.find((child) => child.isHeading);
     const linkItems = (group.children ?? []).filter((child) => !child.isHeading);
     const columnCount = Math.max(1, group.linkColumns ?? 2);
@@ -6768,12 +6870,33 @@ export default function MenuBuilder() {
     const headingSelected = headingItem ? selectedItemId === headingItem.id : false;
     const headingIcon = headingItem?.icon;
     const isGroupSelected = selectedItemId === group.id;
+    const scheduleHideFloatingLinkListToolbar = () => {
+      if (hideFloatingLinkListToolbarTimeoutRef.current) {
+        clearTimeout(hideFloatingLinkListToolbarTimeoutRef.current);
+      }
+      hideFloatingLinkListToolbarTimeoutRef.current = setTimeout(() => {
+        if (!floatingLinkListToolbarHoverRef.current) {
+          setFloatingLinkListToolbarId(null);
+        }
+      }, 100);
+    };
 
     return (
       <div
         key={group.id}
         className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
         ref={registerPreviewRow(group.id)}
+        onMouseEnter={() => {
+          if (!useFloatingToolbar) return;
+          if (hideFloatingLinkListToolbarTimeoutRef.current) {
+            clearTimeout(hideFloatingLinkListToolbarTimeoutRef.current);
+          }
+          setFloatingLinkListToolbarId(group.id);
+        }}
+        onMouseLeave={() => {
+          if (!useFloatingToolbar) return;
+          scheduleHideFloatingLinkListToolbar();
+        }}
         draggable
         onDragStart={(event) => {
           event.dataTransfer.effectAllowed = "move";
@@ -7086,80 +7209,51 @@ export default function MenuBuilder() {
             Add item
           </button>
         </div>
-        <div className="pointer-events-none absolute left-1/2 top-full z-10 -translate-x-1/2 pt-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-          <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-            <button
-              type="button"
-              aria-label="Align left"
-              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-              onClick={() =>
-                setMenuItems((items) =>
-                  updateItemById(items, group.id, () => ({
-                    ...group,
-                    linkTextAlign: "left",
-                  })),
-                )
-              }
-            >
-              <Icon source={TextAlignLeftIcon} />
-            </button>
-            <button
-              type="button"
-              aria-label="Align center"
-              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-              onClick={() =>
-                setMenuItems((items) =>
-                  updateItemById(items, group.id, () => ({
-                    ...group,
-                    linkTextAlign: "center",
-                  })),
-                )
-              }
-            >
-              <Icon source={TextAlignCenterIcon} />
-            </button>
-            <button
-              type="button"
-              aria-label="Align right"
-              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-              onClick={() =>
-                setMenuItems((items) =>
-                  updateItemById(items, group.id, () => ({
-                    ...group,
-                    linkTextAlign: "right",
-                  })),
-                )
-              }
-            >
-              <Icon source={TextAlignRightIcon} />
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSelectItem(group.id, true)}
-              aria-label="Edit item"
-              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-            >
-              <Icon source={EditIcon} />
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDuplicateItem(group.id)}
-              aria-label="Duplicate item"
-              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-            >
-              <Icon source={DuplicateIcon} />
-            </button>
-            <button
-              type="button"
-              onClick={() => openDeleteItemDialog(group.id)}
-              aria-label="Delete item"
-              className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-            >
-              <Icon source={DeleteIcon} />
-            </button>
+        {!useFloatingToolbar ? (
+          <div className="pointer-events-none absolute left-1/2 top-full z-10 -translate-x-1/2 pt-4 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+            <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+              {renderLinkListToolbarButtons(group)}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
+    );
+  };
+
+  const renderFloatingLinkListToolbar = () => {
+    if (!floatingLinkListToolbarId || !floatingLinkListToolbarPosition) return null;
+    const group = findItemPath(menuItems, floatingLinkListToolbarId)?.slice(-1)[0];
+    if (!group) return null;
+    return createPortal(
+      <div
+        className="pointer-events-auto fixed z-50 -translate-x-1/2"
+        style={{
+          left: floatingLinkListToolbarPosition.left,
+          top: floatingLinkListToolbarPosition.top,
+        }}
+        onMouseEnter={() => {
+          floatingLinkListToolbarHoverRef.current = true;
+          if (hideFloatingLinkListToolbarTimeoutRef.current) {
+            clearTimeout(hideFloatingLinkListToolbarTimeoutRef.current);
+          }
+        }}
+        onMouseLeave={() => {
+          floatingLinkListToolbarHoverRef.current = false;
+          if (hideFloatingLinkListToolbarTimeoutRef.current) {
+            clearTimeout(hideFloatingLinkListToolbarTimeoutRef.current);
+          }
+          hideFloatingLinkListToolbarTimeoutRef.current = setTimeout(() => {
+            if (!floatingLinkListToolbarHoverRef.current) {
+              setFloatingLinkListToolbarId(null);
+            }
+          }, 100);
+        }}
+      >
+        <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+          {renderLinkListToolbarButtons(group)}
+        </div>
+      </div>,
+      document.body
     );
   };
 
@@ -9343,6 +9437,8 @@ export default function MenuBuilder() {
                         isTwoLevelTabsTemplate &&
                         secondLevelChildren.some((child) => child.blockTemplate);
                       const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
+                      const hasBlockPanel = activeDropdownHasBlocks || secondLevelHasBlocks;
+                      const allowDropdownScroll = dropdownOverflowY && !isTwoLevelTabsTemplate && !hasBlockPanel;
                       const dropdownPanelStyle: CSSProperties = {
                         background: previewColors.submenuBackground,
                         border: builderSettings.submenuShowBorder
@@ -9352,8 +9448,8 @@ export default function MenuBuilder() {
                         boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
                         width: dropdownPanelWidth,
                         maxWidth: submenuMaxWidth ?? undefined,
-                        overflowY: dropdownOverflowY ? "auto" : "visible",
-                        maxHeight: dropdownOverflowY ? 420 : "none",
+                        overflowY: allowDropdownScroll ? "auto" : "visible",
+                        maxHeight: allowDropdownScroll ? 420 : "none",
                       };
                       const previewContainerWidth =
                         previewContainerRef.current?.getBoundingClientRect().width ??
@@ -9676,7 +9772,7 @@ export default function MenuBuilder() {
                                   left: isPreviewLeftAligned
                                     ? `-${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`
                                     : `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
-                                  top: isTwoLevelTabsTemplate ? 0 : activeItemOffsetTop,
+                                  top: isTwoLevelTabsTemplate || isSimpleLeftTabsTemplate ? 0 : activeItemOffsetTop,
                                 }}
                                 data-submenu-panel
                                 ref={dropdownFlyoutRef}
@@ -9869,7 +9965,7 @@ export default function MenuBuilder() {
                                         }}
                                       >
                                         <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                                          <div style={{ overflowX: "hidden", overflowY: "hidden" }}>
+                                          <div style={{ overflowX: "auto", overflowY: "visible" }}>
                                             <div
                                               style={{
                                                 display: "flex",
@@ -9889,13 +9985,17 @@ export default function MenuBuilder() {
                                                   return renderLinkListBlock(child, {
                                                     flex: `0 0 ${linkFlexBasis}`,
                                                     wrapperStyle: { minWidth: 0 },
+                                                    toolbarPlacement: "floating",
                                                   });
                                                 }
                                                 if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                                  const imageWidth = Math.max(4, Math.min(12, child.imageWidth ?? 3));
-                                                  const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
+                                                  const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                  const imageFlexBasis = Math.max(
+                                                    40,
+                                                    Math.round((imageWidth / 12) * 100)
+                                                  );
                                                   return renderImageBlock(child, {
-                                                    flex: `0 0 ${imageFlexBasis}`,
+                                                    flex: `0 0 ${imageFlexBasis}%`,
                                                     wrapperStyle: { minWidth: 0 },
                                                   });
                                                 }
@@ -9953,7 +10053,7 @@ export default function MenuBuilder() {
                                   </>
                                 ) : activeDropdownHasBlocks ? (
                                   <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                                    <div style={{ overflowX: "auto", overflowY: "hidden" }}>
+                                    <div style={{ overflowX: "auto", overflowY: "visible" }}>
                                       <div
                                         style={{
                                           display: "flex",
@@ -11140,6 +11240,7 @@ export default function MenuBuilder() {
         {renderBlockTemplatePicker()}
         {renderSubmenuTemplatePreviewPanel()}
         {renderSubmenuTemplatePicker()}
+        {renderFloatingLinkListToolbar()}
       </div>
     </div>
   );

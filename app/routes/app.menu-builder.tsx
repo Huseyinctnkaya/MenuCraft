@@ -9585,7 +9585,7 @@ export default function MenuBuilder() {
                                 {isTwoLevelTabsTemplate ? (
                                   <>
                                     <div style={dropdownPanelStyle}>
-                                      <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
+                                      <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
                                         {activeDropdownChildren.map((child) => {
                                           const hasBlocks = Boolean(
                                             child.children?.some((grandChild) => grandChild.blockTemplate)

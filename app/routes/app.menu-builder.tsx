@@ -9424,11 +9424,19 @@ export default function MenuBuilder() {
                           <div style={{ display: "flex", gap: 0, position: "relative" }}>
                             <div
                               className="relative"
-                              style={mainPanelStyle}
+                              style={{ ...mainPanelStyle, display: "flex", flexDirection: "column" }}
                               data-dropdown-main-panel
                               ref={dropdownMainPanelRef}
                             >
-                              <div style={{ display: "flex", flexDirection: "column", gap: 0, padding: 12 }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 0,
+                                  padding: 12,
+                                  flex: 1,
+                                }}
+                              >
                                 {dropdownItems.map((child) => {
                                   const hasChildren = Boolean(child.children?.length);
                                   const isActiveChild = activeDropdownItem?.id === child.id;
@@ -9601,6 +9609,62 @@ export default function MenuBuilder() {
                                     +
                                   </span>
                                   Add item
+                                </button>
+                              </div>
+                              <div
+                                className="flex items-center gap-0"
+                                style={{
+                                  background: "rgb(17, 24, 39)",
+                                  padding: "4px",
+                                  borderRadius: "0",
+                                  width: "100%",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <button
+                                  type="button"
+                                  aria-label="Align left"
+                                  className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, previewMenu.id, () => ({
+                                        ...previewMenu,
+                                        submenuContentAlign: "left",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignLeftIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label="Align center"
+                                  className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, previewMenu.id, () => ({
+                                        ...previewMenu,
+                                        submenuContentAlign: "center",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignCenterIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label="Align right"
+                                  className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, previewMenu.id, () => ({
+                                        ...previewMenu,
+                                        submenuContentAlign: "right",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignRightIcon} />
                                 </button>
                               </div>
                             </div>
@@ -9828,8 +9892,10 @@ export default function MenuBuilder() {
                                                   });
                                                 }
                                                 if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                                  const imageWidth = Math.max(4, Math.min(12, child.imageWidth ?? 3));
+                                                  const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
                                                   return renderImageBlock(child, {
-                                                    flex: "0 0 20%",
+                                                    flex: `0 0 ${imageFlexBasis}`,
                                                     wrapperStyle: { minWidth: 0 },
                                                   });
                                                 }
@@ -9910,8 +9976,10 @@ export default function MenuBuilder() {
                                             });
                                           }
                                           if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                            const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                            const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
                                             return renderImageBlock(child, {
-                                              flex: "0 0 20%",
+                                              flex: `0 0 ${imageFlexBasis}`,
                                               wrapperStyle: { minWidth: 0 },
                                             });
                                           }
@@ -10120,55 +10188,6 @@ export default function MenuBuilder() {
                                 )}
                               </div>
                             ) : null}
-                          </div>
-                          <div style={{ width: dropdownPanelWidth, marginTop: 0 }}>
-                            <div className="flex items-center gap-0" style={{ background: "rgb(17, 24, 39)", padding: "4px", borderRadius: "0", width: "100%", justifyContent: "center" }}>
-                              <button
-                                type="button"
-                                aria-label="Align left"
-                                className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, previewMenu.id, () => ({
-                                      ...previewMenu,
-                                      submenuContentAlign: "left",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignLeftIcon} />
-                              </button>
-                              <button
-                                type="button"
-                                aria-label="Align center"
-                                className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, previewMenu.id, () => ({
-                                      ...previewMenu,
-                                      submenuContentAlign: "center",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignCenterIcon} />
-                              </button>
-                              <button
-                                type="button"
-                                aria-label="Align right"
-                                className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, previewMenu.id, () => ({
-                                      ...previewMenu,
-                                      submenuContentAlign: "right",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignRightIcon} />
-                              </button>
-                            </div>
                           </div>
                         </>
                       );

@@ -683,7 +683,7 @@ export default function MenuBuilder() {
       const rect = node.getBoundingClientRect();
       setFloatingLinkListToolbarPosition({
         left: rect.left + rect.width / 2,
-        top: rect.bottom + 24,
+        top: rect.bottom + 32,
       });
     };
     updatePosition();
@@ -8878,6 +8878,7 @@ export default function MenuBuilder() {
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
+      <style>{".menu-builder-hide-scrollbar::-webkit-scrollbar{display:none;}"}</style>
       {fullscreenPhase !== "ready" ? (
         <div className="fixed inset-0 z-50 bg-gray-100" />
       ) : null}
@@ -9965,7 +9966,15 @@ export default function MenuBuilder() {
                                         }}
                                       >
                                         <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                                          <div style={{ overflowX: "auto", overflowY: "visible" }}>
+                                          <div
+                                            className="menu-builder-hide-scrollbar"
+                                            style={{
+                                              overflowX: "auto",
+                                              overflowY: "hidden",
+                                              scrollbarWidth: "none",
+                                              msOverflowStyle: "none",
+                                            }}
+                                          >
                                             <div
                                               style={{
                                                 display: "flex",
@@ -10053,7 +10062,15 @@ export default function MenuBuilder() {
                                   </>
                                 ) : activeDropdownHasBlocks ? (
                                   <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                                    <div style={{ overflowX: "auto", overflowY: "visible" }}>
+                                    <div
+                                      className="menu-builder-hide-scrollbar"
+                                      style={{
+                                        overflowX: "auto",
+                                        overflowY: "hidden",
+                                        scrollbarWidth: "none",
+                                        msOverflowStyle: "none",
+                                      }}
+                                    >
                                       <div
                                         style={{
                                           display: "flex",
@@ -10073,13 +10090,12 @@ export default function MenuBuilder() {
                                             return renderLinkListBlock(child, {
                                               flex: `0 0 ${linkFlexBasis}`,
                                               wrapperStyle: { minWidth: 0 },
+                                              toolbarPlacement: "floating",
                                             });
                                           }
                                           if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                            const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
-                                            const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
                                             return renderImageBlock(child, {
-                                              flex: `0 0 ${imageFlexBasis}`,
+                                              flex: "0 0 20%",
                                               wrapperStyle: { minWidth: 0 },
                                             });
                                           }

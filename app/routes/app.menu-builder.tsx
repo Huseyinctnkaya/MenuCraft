@@ -1801,7 +1801,7 @@ export default function MenuBuilder() {
 
     return (
       <div
-        className={`absolute right-80 top-0 z-20 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        className={`absolute right-80 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
           }`}
         aria-hidden={!showPanel}
         onMouseEnter={() => {
@@ -2932,7 +2932,7 @@ export default function MenuBuilder() {
 
     return (
       <div
-        className={`absolute right-80 top-0 z-20 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        className={`absolute right-80 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
           }`}
         aria-hidden={!showPanel}
         onMouseEnter={() => {
@@ -9116,11 +9116,13 @@ export default function MenuBuilder() {
 
       <div className="flex flex-1 overflow-hidden relative">
         <div
-          className={`pointer-events-none absolute inset-0 z-10 bg-gray-900/40 transition-opacity duration-200 ${isTemplatePickerOpen ? "opacity-100" : "opacity-0"
+          className={`absolute inset-0 z-10 bg-gray-900/40 transition-opacity duration-200 ${isTemplatePickerOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             }`}
           aria-hidden="true"
         />
-        <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2">
+        <aside
+          className={`w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 transition-opacity ${isTemplatePickerOpen ? "pointer-events-none opacity-50" : ""}`}
+        >
           {[
             { id: "menu", icon: MenuIcon, label: "Menu" },
             { id: "settings", icon: SettingsIcon, label: "Settings" },
@@ -9153,7 +9155,9 @@ export default function MenuBuilder() {
           ))}
         </aside>
 
-        <aside className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        <aside
+          className={`w-80 bg-white border-r border-gray-200 flex flex-col transition-opacity ${isTemplatePickerOpen ? "pointer-events-none opacity-50" : ""}`}
+        >
           <div className="flex-1 overflow-y-auto">
             <BlockStack gap="400" className="flex min-h-0 h-full flex-col">
               {activePanel === "menu" && renderMenuPanel()}

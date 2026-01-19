@@ -105,6 +105,7 @@ import {
   buildProductListItems,
   buildSimpleLeftTabsItems,
   buildSimpleTopTabsItems,
+  buildTwoTopTabsItems,
   buildThreeLevelTabsItems,
   buildTwoLevelTabsItems,
   buildThreeColumnLinkItems,
@@ -561,6 +562,7 @@ export default function MenuBuilder() {
   const [activeDropdownGrandchildId, setActiveDropdownGrandchildId] = useState<string | null>(null);
   const [hoveredImageBlockId, setHoveredImageBlockId] = useState<string | null>(null);
   const [activeHorizontalItemId, setActiveHorizontalItemId] = useState<string | null>(null);
+  const [activeHorizontalChildId, setActiveHorizontalChildId] = useState<string | null>(null);
   const [dropdownMainPanelMinHeight, setDropdownMainPanelMinHeight] = useState<number | null>(null);
   const [floatingLinkListToolbarId, setFloatingLinkListToolbarId] = useState<string | null>(null);
   const [floatingLinkListToolbarPosition, setFloatingLinkListToolbarPosition] = useState<{
@@ -624,7 +626,12 @@ export default function MenuBuilder() {
     setActiveDropdownChildId(null);
     setActiveDropdownGrandchildId(null);
     setActiveHorizontalItemId(null);
+    setActiveHorizontalChildId(null);
   }, [openMenuId]);
+
+  useEffect(() => {
+    setActiveHorizontalChildId(null);
+  }, [activeHorizontalItemId]);
 
   useEffect(() => {
     if (!openMenuId) {
@@ -1577,6 +1584,44 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-top-tabs") : undefined}
+                        disabled={!isPlusPlan}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Two Top Tabs",
+                onSelect: () => handleApplySubmenuTemplate("two-top-tabs"),
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                showSelectButton: false,
+                showTitle: false,
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/two-top-tabs.png"
+                      alt="Two Top Tabs template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div
+                      className="absolute right-3 top-3 z-10"
+                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
+                    >
+                      <Badge tone="warning">Plus</Badge>
+                    </div>
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Two Top Tabs
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-top-tabs") : undefined}
                         disabled={!isPlusPlan}
                         size="slim"
                         variant="primary"
@@ -3846,6 +3891,7 @@ export default function MenuBuilder() {
       (templateId === "tabs" ||
         templateId === "simple-left-tabs" ||
         templateId === "simple-top-tabs" ||
+        templateId === "two-top-tabs" ||
         templateId === "two-level-tabs" ||
         templateId === "three-level-tabs")
     ) {
@@ -3857,7 +3903,9 @@ export default function MenuBuilder() {
       templateId === "two-level-tabs" ||
       templateId === "three-level-tabs";
     const isHorizontalDropdownTemplate =
-      templateId === "horizontal-dropdown" || templateId === "simple-top-tabs";
+      templateId === "horizontal-dropdown" ||
+      templateId === "simple-top-tabs" ||
+      templateId === "two-top-tabs";
     const newGroup: MenuItem = {
       id: buildId(),
       label: templateId === "tabs" ? "New tab" : "New group",
@@ -3880,6 +3928,8 @@ export default function MenuBuilder() {
         ? buildSimpleLeftTabsItems()
         : templateId === "simple-top-tabs"
           ? buildSimpleTopTabsItems()
+          : templateId === "two-top-tabs"
+            ? buildTwoTopTabsItems()
         : templateId === "two-level-tabs"
           ? buildTwoLevelTabsItems()
           : templateId === "three-level-tabs"
@@ -4215,7 +4265,10 @@ export default function MenuBuilder() {
     const isExpanded = item.expanded ?? item.role !== "item";
     const showToggle = item.role !== "item" && !isVisualBlock;
     const isDropdownMenu =
-      item.role === "menu" && (item.submenuType === "dropdown" || item.submenuTemplate === "dropdown");
+      item.role === "menu" &&
+      (item.submenuType === "dropdown" ||
+        item.submenuType === "horizontal-dropdown" ||
+        item.submenuTemplate === "dropdown");
     const resolvedIcon =
       item.icon ??
       (isContactBlock
@@ -8748,8 +8801,11 @@ export default function MenuBuilder() {
   const isHorizontalDropdownMenu =
     previewMenu?.submenuType === "horizontal-dropdown" ||
     previewMenu?.submenuTemplate === "horizontal-dropdown" ||
-    previewMenu?.submenuTemplate === "simple-top-tabs";
-  const isSimpleTopTabsTemplate = previewMenu?.submenuTemplate === "simple-top-tabs";
+    previewMenu?.submenuTemplate === "simple-top-tabs" ||
+    previewMenu?.submenuTemplate === "two-top-tabs";
+  const isTopTabsTemplate =
+    previewMenu?.submenuTemplate === "simple-top-tabs" || previewMenu?.submenuTemplate === "two-top-tabs";
+  const isTwoTopTabsTemplate = previewMenu?.submenuTemplate === "two-top-tabs";
   const dropdownItems = isDropdownMenu ? dropdownGroups : [];
   const horizontalDropdownItems = isHorizontalDropdownMenu ? dropdownGroups : [];
   const previewMenuIndex = previewMenu ? menuItems.findIndex((item) => item.id === previewMenu.id) : -1;
@@ -8774,17 +8830,21 @@ export default function MenuBuilder() {
 
   const selectedItemPath = useMemo(() => findItemPath(menuItems, selectedItemId), [menuItems, selectedItemId]);
   const activeHorizontalItem = useMemo(() => {
-    if (isSimpleTopTabsTemplate) {
+    if (isTopTabsTemplate) {
       if (!activeHorizontalItemId) return null;
       return horizontalDropdownItems.find((item) => item.id === activeHorizontalItemId) ?? null;
     }
     return (
       horizontalDropdownItems.find((item) => selectedItemPath?.some((p) => p.id === item.id)) ?? null
     );
-  }, [activeHorizontalItemId, horizontalDropdownItems, isSimpleTopTabsTemplate, selectedItemPath]);
+  }, [activeHorizontalItemId, horizontalDropdownItems, isTopTabsTemplate, selectedItemPath]);
   const activeHorizontalChildren = activeHorizontalItem?.children ?? [];
   const activeHorizontalHasBlocks = activeHorizontalChildren.some((child) => child.blockTemplate);
-
+  const activeHorizontalChild = isTwoTopTabsTemplate
+    ? activeHorizontalChildren.find((child) => child.id === activeHorizontalChildId) ?? null
+    : null;
+  const activeHorizontalChildBlocks = activeHorizontalChild?.children ?? [];
+  const activeHorizontalChildHasBlocks = activeHorizontalChildBlocks.some((child) => child.blockTemplate);
   const linkBlockCount = dropdownGroups.filter(
     (group) => group.blockTemplate === "links" || group.blockTemplate === "multi"
   ).length;
@@ -9187,7 +9247,8 @@ export default function MenuBuilder() {
                   dangerouslySetInnerHTML={{ __html: builderSettings.customCss }}
                 />
               ) : null}
-              {builderSettings.elementsShowSearch && isMobilePreview ? (
+              <div style={{ position: "relative", width: "100%" }}>
+                {builderSettings.elementsShowSearch && isMobilePreview ? (
                 <div
                   style={{
                     background: "#ffffff",
@@ -9203,8 +9264,15 @@ export default function MenuBuilder() {
                     <SearchIcon width="18" height="18" fill="#111827" />
                   </span>
                 </div>
-              ) : null}
-              <div style={{ background: previewColors.mainBackground, borderRadius: 0, overflow: "visible" }}>
+                ) : null}
+                <div
+                  style={{
+                    background: previewColors.mainBackground,
+                    borderRadius: 0,
+                    overflow: "visible",
+                    position: "relative",
+                  }}
+                >
                 <div
                   style={{
                     display: "flex",
@@ -9531,7 +9599,7 @@ export default function MenuBuilder() {
                     </div>
                   )}
                 </div>
-              </div>
+                </div>
 
               {isDropdownMenu && previewMenu ? (
                 <div
@@ -11040,10 +11108,11 @@ export default function MenuBuilder() {
                                     type="button"
                                     onClick={() => {
                                       handleSelectItem(child.id);
-                                      if (isSimpleTopTabsTemplate) {
+                                      if (isTopTabsTemplate) {
                                         setActiveHorizontalItemId((prev) =>
                                           prev === child.id ? null : child.children?.length ? child.id : null
                                         );
+                                        setActiveHorizontalChildId(null);
                                       }
                                     }}
                                     onMouseEnter={(event) => {
@@ -11191,6 +11260,9 @@ export default function MenuBuilder() {
                               {activeHorizontalChildren.map((child) => {
                                 const isActive =
                                   selectedItemId === child.id || selectedItemPath?.some((p) => p.id === child.id);
+                                const hasBlockChildren = Boolean(
+                                  child.children?.some((grandChild) => grandChild.blockTemplate)
+                                );
                                 return (
                                   <div
                                     key={child.id}
@@ -11229,7 +11301,14 @@ export default function MenuBuilder() {
                                   >
                                     <button
                                       type="button"
-                                      onClick={() => handleSelectItem(child.id)}
+                                      onClick={() => {
+                                        handleSelectItem(child.id);
+                                        if (isTwoTopTabsTemplate) {
+                                          setActiveHorizontalChildId((prev) =>
+                                            prev === child.id ? null : hasBlockChildren ? child.id : null
+                                          );
+                                        }
+                                      }}
                                       onMouseEnter={(event) => {
                                         event.currentTarget.style.color = previewColors.submenuTextHover;
                                       }}
@@ -11381,6 +11460,63 @@ export default function MenuBuilder() {
                             </div>
                           </div>
                         ) : null}
+                        {isTwoTopTabsTemplate && activeHorizontalChildHasBlocks ? (
+                          <div
+                            style={{
+                              borderTop: `1px solid ${previewColors.submenuBorder}`,
+                              width: "100%",
+                            }}
+                          >
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                              <div
+                                className="menu-builder-hide-scrollbar"
+                                style={{
+                                  overflowX: "auto",
+                                  overflowY: "hidden",
+                                  scrollbarWidth: "none",
+                                  msOverflowStyle: "none",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "nowrap",
+                                    gap: 24,
+                                    alignItems: "flex-start",
+                                    justifyContent: "space-between",
+                                    minWidth: 0,
+                                  }}
+                                >
+                                  {activeHorizontalChildBlocks.map((child) => {
+                                    if (child.blockTemplate === "links") {
+                                      const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                      const rawLinkWidth = child.linkWidth ?? 6;
+                                      const linkWidth = Math.max(1, Math.min(12, rawLinkWidth));
+                                      const resolvedLinkWidth =
+                                        isTwoTopTabsTemplate && rawLinkWidth === 6 ? 4 : linkWidth;
+                                      const linkFlexBasis =
+                                        columnCount === 3
+                                          ? "70%"
+                                          : `${Math.round((resolvedLinkWidth / 12) * 100)}%`;
+                                      return renderLinkListBlock(child, {
+                                        flex: `0 0 ${linkFlexBasis}`,
+                                        wrapperStyle: { minWidth: 0 },
+                                        toolbarPlacement: "floating",
+                                      });
+                                    }
+                                    if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                      return renderImageBlock(child, {
+                                        flex: "0 0 20%",
+                                        wrapperStyle: { minWidth: 0 },
+                                      });
+                                    }
+                                    return null;
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
                         {activeHorizontalItem && activeHorizontalHasBlocks ? (
                           <div
                             style={{
@@ -11438,6 +11574,7 @@ export default function MenuBuilder() {
                   </div>
                 </div>
               ) : null}
+              </div>
 
               {dropdownGroups.length > 0 && !isDropdownMenu && !isHorizontalDropdownMenu && (
                 <div

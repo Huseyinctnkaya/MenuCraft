@@ -163,6 +163,70 @@ export const buildSimpleTopTabsItems = () => {
   ];
 };
 
+export const buildTwoTopTabsItems = () => {
+  const buildBlockItems = () => {
+    const linkGroup: MenuItem = {
+      id: buildId(),
+      label: "Link list",
+      url: "",
+      role: "group",
+      expanded: false,
+      blockTemplate: "links",
+      linkColumns: 1,
+      linkWidth: 4,
+      linkTextAlign: "left",
+      children: buildEasyColumnLinkItems(),
+    };
+    const buildImageGroup = () => ({
+      id: buildId(),
+      label: "Image title",
+      url: "",
+      role: "group" as const,
+      expanded: false,
+      blockTemplate: "image" as const,
+      icon: `${ICON_PREFIX}image`,
+      description: "",
+      imageWidth: 3,
+      imageNoFill: false,
+      imageTextAlign: "left" as const,
+    });
+    return [linkGroup, buildImageGroup(), buildImageGroup(), buildImageGroup()];
+  };
+  return [
+    {
+      id: buildId(),
+      label: "Dropdown item 1",
+      url: "/",
+      role: "item" as const,
+    },
+    {
+      id: buildId(),
+      label: "Dropdown item 2",
+      url: "",
+      role: "group" as const,
+      expanded: true,
+      children: [
+        { id: buildId(), label: "Submenu item 1", url: "/", role: "item" as const },
+        {
+          id: buildId(),
+          label: "Submenu item 2",
+          url: "",
+          role: "group" as const,
+          expanded: true,
+          children: buildBlockItems(),
+        },
+        { id: buildId(), label: "Submenu item 3", url: "/", role: "item" as const },
+      ],
+    },
+    {
+      id: buildId(),
+      label: "Dropdown item 3",
+      url: "/",
+      role: "item" as const,
+    },
+  ];
+};
+
 export const buildTwoLevelTabsItems = () => {
   const buildLeafBlocks = () => {
     const linkGroup: MenuItem = {

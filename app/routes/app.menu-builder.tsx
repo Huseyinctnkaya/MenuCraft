@@ -560,6 +560,7 @@ export default function MenuBuilder() {
   const [activeDropdownChildId, setActiveDropdownChildId] = useState<string | null>(null);
   const [activeDropdownGrandchildId, setActiveDropdownGrandchildId] = useState<string | null>(null);
   const [hoveredImageBlockId, setHoveredImageBlockId] = useState<string | null>(null);
+  const [activeHorizontalItemId, setActiveHorizontalItemId] = useState<string | null>(null);
   const [dropdownMainPanelMinHeight, setDropdownMainPanelMinHeight] = useState<number | null>(null);
   const [floatingLinkListToolbarId, setFloatingLinkListToolbarId] = useState<string | null>(null);
   const [floatingLinkListToolbarPosition, setFloatingLinkListToolbarPosition] = useState<{
@@ -622,6 +623,7 @@ export default function MenuBuilder() {
     setActiveDropdownItemId(null);
     setActiveDropdownChildId(null);
     setActiveDropdownGrandchildId(null);
+    setActiveHorizontalItemId(null);
   }, [openMenuId]);
 
   useEffect(() => {
@@ -3579,7 +3581,9 @@ export default function MenuBuilder() {
   };
 
   const handleOpenBlockTemplatePicker = (menuId: string) => {
-    setOpenMenuId(menuId);
+    const path = findItemPath(menuItems, menuId);
+    const rootMenuId = path?.[0]?.id ?? menuId;
+    setOpenMenuId(rootMenuId);
     setBlockTemplateTargetId(menuId);
     setSubmenuTemplateTargetId(null);
   };
@@ -4183,6 +4187,7 @@ export default function MenuBuilder() {
     }
     const isSelected = selectedItemId === item.id;
     const hasChildren = Boolean(item.children?.length);
+    const hasBlockChildren = Boolean(item.children?.some((child) => child.blockTemplate));
     const isImageBlock =
       item.role === "group" && (item.blockTemplate === "image" || item.blockTemplate === "image2");
     const isContactBlock = item.role === "group" && item.blockTemplate === "contact";
@@ -4404,6 +4409,10 @@ export default function MenuBuilder() {
                                 parentItem?.submenuTemplate === "simple-left-tabs" ||
                                 parentItem?.submenuTemplate === "two-level-tabs" ||
                                 parentItem?.submenuTemplate === "three-level-tabs";
+                              if (hasBlockChildren && !item.blockTemplate) {
+                                handleOpenBlockTemplatePicker(item.id);
+                                return;
+                              }
                               if (item.blockTemplate === "links" || isDropdownChildItem) {
                                 handleOpenAddRoot(item.id);
                               } else {
@@ -4416,7 +4425,7 @@ export default function MenuBuilder() {
                             <span className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 text-xs leading-none">
                               +
                             </span>
-                            Add item
+                            {hasBlockChildren && !item.blockTemplate ? "Add block" : "Add item"}
                           </button>
                         ) : null}
                       </BlockStack>
@@ -8740,6 +8749,7 @@ export default function MenuBuilder() {
     previewMenu?.submenuType === "horizontal-dropdown" ||
     previewMenu?.submenuTemplate === "horizontal-dropdown" ||
     previewMenu?.submenuTemplate === "simple-top-tabs";
+  const isSimpleTopTabsTemplate = previewMenu?.submenuTemplate === "simple-top-tabs";
   const dropdownItems = isDropdownMenu ? dropdownGroups : [];
   const horizontalDropdownItems = isHorizontalDropdownMenu ? dropdownGroups : [];
   const previewMenuIndex = previewMenu ? menuItems.findIndex((item) => item.id === previewMenu.id) : -1;
@@ -8763,10 +8773,15 @@ export default function MenuBuilder() {
   ).length;
 
   const selectedItemPath = useMemo(() => findItemPath(menuItems, selectedItemId), [menuItems, selectedItemId]);
-  const activeHorizontalItem = useMemo(() =>
-    horizontalDropdownItems.find(item =>
-      selectedItemPath?.some(p => p.id === item.id)
-    ), [horizontalDropdownItems, selectedItemPath]);
+  const activeHorizontalItem = useMemo(() => {
+    if (isSimpleTopTabsTemplate) {
+      if (!activeHorizontalItemId) return null;
+      return horizontalDropdownItems.find((item) => item.id === activeHorizontalItemId) ?? null;
+    }
+    return (
+      horizontalDropdownItems.find((item) => selectedItemPath?.some((p) => p.id === item.id)) ?? null
+    );
+  }, [activeHorizontalItemId, horizontalDropdownItems, isSimpleTopTabsTemplate, selectedItemPath]);
   const activeHorizontalChildren = activeHorizontalItem?.children ?? [];
   const activeHorizontalHasBlocks = activeHorizontalChildren.some((child) => child.blockTemplate);
 
@@ -11019,7 +11034,14 @@ export default function MenuBuilder() {
                                 >
                                   <button
                                     type="button"
-                                    onClick={() => handleSelectItem(child.id)}
+                                    onClick={() => {
+                                      handleSelectItem(child.id);
+                                      if (isSimpleTopTabsTemplate) {
+                                        setActiveHorizontalItemId((prev) =>
+                                          prev === child.id ? null : child.children?.length ? child.id : null
+                                        );
+                                      }
+                                    }}
                                     onMouseEnter={(event) => {
                                       event.currentTarget.style.color = previewColors.submenuTextHover;
                                     }}

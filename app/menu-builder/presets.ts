@@ -137,6 +137,32 @@ export const buildSimpleLeftTabsItems = () => {
   ];
 };
 
+export const buildSimpleTopTabsItems = () => {
+  const blockItems = buildMultiBlockTwoColumnsTwoPhotos();
+  return [
+    {
+      id: buildId(),
+      label: "Dropdown item 1",
+      url: "/",
+      role: "item" as const,
+    },
+    {
+      id: buildId(),
+      label: "Dropdown item 2",
+      url: "",
+      role: "group" as const,
+      expanded: true,
+      children: blockItems,
+    },
+    {
+      id: buildId(),
+      label: "Dropdown item 3",
+      url: "/",
+      role: "item" as const,
+    },
+  ];
+};
+
 export const buildTwoLevelTabsItems = () => {
   const buildLeafBlocks = () => {
     const linkGroup: MenuItem = {

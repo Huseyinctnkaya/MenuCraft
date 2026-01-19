@@ -104,6 +104,7 @@ import {
   buildProductGridItems,
   buildProductListItems,
   buildSimpleLeftTabsItems,
+  buildSimpleTopTabsItems,
   buildThreeLevelTabsItems,
   buildTwoLevelTabsItems,
   buildThreeColumnLinkItems,
@@ -558,6 +559,7 @@ export default function MenuBuilder() {
   const [activeDropdownItemId, setActiveDropdownItemId] = useState<string | null>(null);
   const [activeDropdownChildId, setActiveDropdownChildId] = useState<string | null>(null);
   const [activeDropdownGrandchildId, setActiveDropdownGrandchildId] = useState<string | null>(null);
+  const [hoveredImageBlockId, setHoveredImageBlockId] = useState<string | null>(null);
   const [dropdownMainPanelMinHeight, setDropdownMainPanelMinHeight] = useState<number | null>(null);
   const [floatingLinkListToolbarId, setFloatingLinkListToolbarId] = useState<string | null>(null);
   const [floatingLinkListToolbarPosition, setFloatingLinkListToolbarPosition] = useState<{
@@ -1535,6 +1537,44 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-left-tabs") : undefined}
+                        disabled={!isPlusPlan}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Simple Top Tabs",
+                onSelect: () => handleApplySubmenuTemplate("simple-top-tabs"),
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                showSelectButton: false,
+                showTitle: false,
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <img
+                      src="/simple-top-tabs.png"
+                      alt="Simple Top Tabs template"
+                      className="h-full w-full object-contain"
+                    />
+                    <div
+                      className="absolute right-3 top-3 z-10"
+                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
+                    >
+                      <Badge tone="warning">Plus</Badge>
+                    </div>
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Simple Top Tabs
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-top-tabs") : undefined}
                         disabled={!isPlusPlan}
                         size="slim"
                         variant="primary"
@@ -3801,6 +3841,7 @@ export default function MenuBuilder() {
       !isPlusPlan &&
       (templateId === "tabs" ||
         templateId === "simple-left-tabs" ||
+        templateId === "simple-top-tabs" ||
         templateId === "two-level-tabs" ||
         templateId === "three-level-tabs")
     ) {
@@ -3811,7 +3852,8 @@ export default function MenuBuilder() {
       templateId === "simple-left-tabs" ||
       templateId === "two-level-tabs" ||
       templateId === "three-level-tabs";
-    const isHorizontalDropdownTemplate = templateId === "horizontal-dropdown";
+    const isHorizontalDropdownTemplate =
+      templateId === "horizontal-dropdown" || templateId === "simple-top-tabs";
     const newGroup: MenuItem = {
       id: buildId(),
       label: templateId === "tabs" ? "New tab" : "New group",
@@ -3832,6 +3874,8 @@ export default function MenuBuilder() {
     const dropdownItems =
       templateId === "simple-left-tabs"
         ? buildSimpleLeftTabsItems()
+        : templateId === "simple-top-tabs"
+          ? buildSimpleTopTabsItems()
         : templateId === "two-level-tabs"
           ? buildTwoLevelTabsItems()
           : templateId === "three-level-tabs"
@@ -7338,12 +7382,17 @@ export default function MenuBuilder() {
     const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
     const isMultiLayout = Boolean(group.multiLayout);
     const isGroupSelected = selectedItemId === group.id;
+    const isImageHovered = hoveredImageBlockId === group.id;
 
     return (
       <div
         key={group.id}
-        className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+        className="relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
         draggable
+        onMouseEnter={() => setHoveredImageBlockId(group.id)}
+        onMouseLeave={() => {
+          setHoveredImageBlockId((prev) => (prev === group.id ? null : prev));
+        }}
         onDragStart={(event) => {
           event.dataTransfer.effectAllowed = "move";
           event.dataTransfer.setData("text/plain", group.id);
@@ -7397,7 +7446,11 @@ export default function MenuBuilder() {
         }}
       >
         <div
-          className="pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+          className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md transition-opacity"
+          style={{
+            opacity: isImageHovered ? 1 : 0,
+            pointerEvents: isImageHovered ? "auto" : "none",
+          }}
         >
           <button
             type="button"
@@ -8684,7 +8737,9 @@ export default function MenuBuilder() {
   const isDropdownMenu =
     previewMenu?.submenuType === "dropdown" || previewMenu?.submenuTemplate === "dropdown";
   const isHorizontalDropdownMenu =
-    previewMenu?.submenuType === "horizontal-dropdown" || previewMenu?.submenuTemplate === "horizontal-dropdown";
+    previewMenu?.submenuType === "horizontal-dropdown" ||
+    previewMenu?.submenuTemplate === "horizontal-dropdown" ||
+    previewMenu?.submenuTemplate === "simple-top-tabs";
   const dropdownItems = isDropdownMenu ? dropdownGroups : [];
   const horizontalDropdownItems = isHorizontalDropdownMenu ? dropdownGroups : [];
   const previewMenuIndex = previewMenu ? menuItems.findIndex((item) => item.id === previewMenu.id) : -1;
@@ -8712,6 +8767,8 @@ export default function MenuBuilder() {
     horizontalDropdownItems.find(item =>
       selectedItemPath?.some(p => p.id === item.id)
     ), [horizontalDropdownItems, selectedItemPath]);
+  const activeHorizontalChildren = activeHorizontalItem?.children ?? [];
+  const activeHorizontalHasBlocks = activeHorizontalChildren.some((child) => child.blockTemplate);
 
   const linkBlockCount = dropdownGroups.filter(
     (group) => group.blockTemplate === "links" || group.blockTemplate === "multi"
@@ -11083,7 +11140,7 @@ export default function MenuBuilder() {
                         </div>
 
                         {/* Second level horizontal dropdown */}
-                        {activeHorizontalItem && (
+                        {activeHorizontalItem && !activeHorizontalHasBlocks ? (
                           <div
                             style={{
                               borderTop: `1px solid ${previewColors.submenuBorder}`,
@@ -11100,13 +11157,14 @@ export default function MenuBuilder() {
                                 gap: 0,
                                 flexWrap: "wrap",
                                 alignItems: "center",
-                                justifyContent: menuAlignmentMap[activeHorizontalItem.submenuContentAlign || 'center'],
+                                justifyContent: menuAlignmentMap[activeHorizontalItem.submenuContentAlign || "center"],
                                 flex: 1,
                                 padding: "0 12px",
                               }}
                             >
-                              {(activeHorizontalItem.children ?? []).map((child) => {
-                                const isActive = selectedItemId === child.id || selectedItemPath?.some(p => p.id === child.id);
+                              {activeHorizontalChildren.map((child) => {
+                                const isActive =
+                                  selectedItemId === child.id || selectedItemPath?.some((p) => p.id === child.id);
                                 return (
                                   <div
                                     key={child.id}
@@ -11150,7 +11208,9 @@ export default function MenuBuilder() {
                                         event.currentTarget.style.color = previewColors.submenuTextHover;
                                       }}
                                       onMouseLeave={(event) => {
-                                        event.currentTarget.style.color = isActive ? previewColors.submenuTextHover : previewColors.submenuText;
+                                        event.currentTarget.style.color = isActive
+                                          ? previewColors.submenuTextHover
+                                          : previewColors.submenuText;
                                       }}
                                       className="cursor-grab active:cursor-grabbing"
                                       style={{
@@ -11240,31 +11300,113 @@ export default function MenuBuilder() {
                             </div>
 
                             {/* Alignment Buttons for Row 2 */}
-                            <div style={{ background: "rgb(17, 24, 39)", padding: "4px", borderRadius: "4px", marginRight: "12px", display: "flex", gap: 0 }}>
+                            <div
+                              style={{
+                                background: "rgb(17, 24, 39)",
+                                padding: "4px",
+                                borderRadius: "4px",
+                                marginRight: "12px",
+                                display: "flex",
+                                gap: 0,
+                              }}
+                            >
                               <button
                                 type="button"
                                 className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "left" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() => setMenuItems((items) => updateItemById(items, activeHorizontalItem.id, (item) => ({ ...item, submenuContentAlign: "left" })))}
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, activeHorizontalItem.id, (item) => ({
+                                      ...item,
+                                      submenuContentAlign: "left",
+                                    }))
+                                  )
+                                }
                               >
                                 <Icon source={TextAlignLeftIcon} />
                               </button>
                               <button
                                 type="button"
                                 className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "center" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() => setMenuItems((items) => updateItemById(items, activeHorizontalItem.id, (item) => ({ ...item, submenuContentAlign: "center" })))}
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, activeHorizontalItem.id, (item) => ({
+                                      ...item,
+                                      submenuContentAlign: "center",
+                                    }))
+                                  )
+                                }
                               >
                                 <Icon source={TextAlignCenterIcon} />
                               </button>
                               <button
                                 type="button"
                                 className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "right" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() => setMenuItems((items) => updateItemById(items, activeHorizontalItem.id, (item) => ({ ...item, submenuContentAlign: "right" })))}
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, activeHorizontalItem.id, (item) => ({
+                                      ...item,
+                                      submenuContentAlign: "right",
+                                    }))
+                                  )
+                                }
                               >
                                 <Icon source={TextAlignRightIcon} />
                               </button>
                             </div>
                           </div>
-                        )}
+                        ) : null}
+                        {activeHorizontalItem && activeHorizontalHasBlocks ? (
+                          <div
+                            style={{
+                              borderTop: `1px solid ${previewColors.submenuBorder}`,
+                              width: "100%",
+                            }}
+                          >
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                              <div
+                                className="menu-builder-hide-scrollbar"
+                                style={{
+                                  overflowX: "auto",
+                                  overflowY: "hidden",
+                                  scrollbarWidth: "none",
+                                  msOverflowStyle: "none",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "nowrap",
+                                    gap: 24,
+                                    alignItems: "flex-start",
+                                    justifyContent: "space-between",
+                                    minWidth: 0,
+                                  }}
+                                >
+                                  {activeHorizontalChildren.map((child) => {
+                                    if (child.blockTemplate === "links") {
+                                      const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                      const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                      const linkFlexBasis =
+                                        columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                                      return renderLinkListBlock(child, {
+                                        flex: `0 0 ${linkFlexBasis}`,
+                                        wrapperStyle: { minWidth: 0 },
+                                        toolbarPlacement: "floating",
+                                      });
+                                    }
+                                    if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                      return renderImageBlock(child, {
+                                        flex: "0 0 20%",
+                                        wrapperStyle: { minWidth: 0 },
+                                      });
+                                    }
+                                    return null;
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </div>

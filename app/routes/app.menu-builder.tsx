@@ -106,6 +106,7 @@ import {
   buildSimpleLeftTabsItems,
   buildSimpleTopTabsItems,
   buildTwoTopTabsItems,
+  buildThreeTopTabsItems,
   buildThreeLevelTabsItems,
   buildTwoLevelTabsItems,
   buildThreeColumnLinkItems,
@@ -563,6 +564,7 @@ export default function MenuBuilder() {
   const [hoveredImageBlockId, setHoveredImageBlockId] = useState<string | null>(null);
   const [activeHorizontalItemId, setActiveHorizontalItemId] = useState<string | null>(null);
   const [activeHorizontalChildId, setActiveHorizontalChildId] = useState<string | null>(null);
+  const [activeHorizontalGrandchildId, setActiveHorizontalGrandchildId] = useState<string | null>(null);
   const [dropdownMainPanelMinHeight, setDropdownMainPanelMinHeight] = useState<number | null>(null);
   const [floatingLinkListToolbarId, setFloatingLinkListToolbarId] = useState<string | null>(null);
   const [floatingLinkListToolbarPosition, setFloatingLinkListToolbarPosition] = useState<{
@@ -627,11 +629,17 @@ export default function MenuBuilder() {
     setActiveDropdownGrandchildId(null);
     setActiveHorizontalItemId(null);
     setActiveHorizontalChildId(null);
+    setActiveHorizontalGrandchildId(null);
   }, [openMenuId]);
 
   useEffect(() => {
     setActiveHorizontalChildId(null);
+    setActiveHorizontalGrandchildId(null);
   }, [activeHorizontalItemId]);
+
+  useEffect(() => {
+    setActiveHorizontalGrandchildId(null);
+  }, [activeHorizontalChildId]);
 
   useEffect(() => {
     if (!openMenuId) {
@@ -1622,6 +1630,57 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-top-tabs") : undefined}
+                        disabled={!isPlusPlan}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Three Top Tabs",
+                onSelect: () => handleApplySubmenuTemplate("three-top-tabs"),
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                showSelectButton: false,
+                showTitle: false,
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <div className="flex h-full w-full flex-col gap-2 rounded-2xl bg-gray-100 p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-12 rounded-full bg-gray-300" />
+                        <div className="h-3 w-12 rounded-full bg-gray-300" />
+                        <div className="h-3 w-12 rounded-full bg-gray-300" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-10 rounded-full bg-gray-300" />
+                        <div className="h-3 w-10 rounded-full bg-gray-300" />
+                        <div className="h-3 w-10 rounded-full bg-gray-300" />
+                      </div>
+                      <div className="flex flex-1 gap-2">
+                        <div className="flex-1 rounded-lg bg-gray-300" />
+                        <div className="flex-1 rounded-lg bg-gray-300" />
+                        <div className="flex-1 rounded-lg bg-gray-300" />
+                        <div className="flex-1 rounded-lg bg-gray-300" />
+                      </div>
+                    </div>
+                    <div
+                      className="absolute right-3 top-3 z-10"
+                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
+                    >
+                      <Badge tone="warning">Plus</Badge>
+                    </div>
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Three Top Tabs
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-top-tabs") : undefined}
                         disabled={!isPlusPlan}
                         size="slim"
                         variant="primary"
@@ -3892,6 +3951,7 @@ export default function MenuBuilder() {
         templateId === "simple-left-tabs" ||
         templateId === "simple-top-tabs" ||
         templateId === "two-top-tabs" ||
+        templateId === "three-top-tabs" ||
         templateId === "two-level-tabs" ||
         templateId === "three-level-tabs")
     ) {
@@ -3905,7 +3965,8 @@ export default function MenuBuilder() {
     const isHorizontalDropdownTemplate =
       templateId === "horizontal-dropdown" ||
       templateId === "simple-top-tabs" ||
-      templateId === "two-top-tabs";
+      templateId === "two-top-tabs" ||
+      templateId === "three-top-tabs";
     const newGroup: MenuItem = {
       id: buildId(),
       label: templateId === "tabs" ? "New tab" : "New group",
@@ -3930,6 +3991,8 @@ export default function MenuBuilder() {
           ? buildSimpleTopTabsItems()
           : templateId === "two-top-tabs"
             ? buildTwoTopTabsItems()
+            : templateId === "three-top-tabs"
+              ? buildThreeTopTabsItems()
         : templateId === "two-level-tabs"
           ? buildTwoLevelTabsItems()
           : templateId === "three-level-tabs"
@@ -8802,10 +8865,14 @@ export default function MenuBuilder() {
     previewMenu?.submenuType === "horizontal-dropdown" ||
     previewMenu?.submenuTemplate === "horizontal-dropdown" ||
     previewMenu?.submenuTemplate === "simple-top-tabs" ||
-    previewMenu?.submenuTemplate === "two-top-tabs";
+    previewMenu?.submenuTemplate === "two-top-tabs" ||
+    previewMenu?.submenuTemplate === "three-top-tabs";
   const isTopTabsTemplate =
-    previewMenu?.submenuTemplate === "simple-top-tabs" || previewMenu?.submenuTemplate === "two-top-tabs";
+    previewMenu?.submenuTemplate === "simple-top-tabs" ||
+    previewMenu?.submenuTemplate === "two-top-tabs" ||
+    previewMenu?.submenuTemplate === "three-top-tabs";
   const isTwoTopTabsTemplate = previewMenu?.submenuTemplate === "two-top-tabs";
+  const isThreeTopTabsTemplate = previewMenu?.submenuTemplate === "three-top-tabs";
   const dropdownItems = isDropdownMenu ? dropdownGroups : [];
   const horizontalDropdownItems = isHorizontalDropdownMenu ? dropdownGroups : [];
   const previewMenuIndex = previewMenu ? menuItems.findIndex((item) => item.id === previewMenu.id) : -1;
@@ -8842,9 +8909,16 @@ export default function MenuBuilder() {
   const activeHorizontalHasBlocks = activeHorizontalChildren.some((child) => child.blockTemplate);
   const activeHorizontalChild = isTwoTopTabsTemplate
     ? activeHorizontalChildren.find((child) => child.id === activeHorizontalChildId) ?? null
+    : isThreeTopTabsTemplate
+      ? activeHorizontalChildren.find((child) => child.id === activeHorizontalChildId) ?? null
     : null;
-  const activeHorizontalChildBlocks = activeHorizontalChild?.children ?? [];
-  const activeHorizontalChildHasBlocks = activeHorizontalChildBlocks.some((child) => child.blockTemplate);
+  const activeHorizontalChildChildren = activeHorizontalChild?.children ?? [];
+  const activeHorizontalChildHasBlocks = activeHorizontalChildChildren.some((child) => child.blockTemplate);
+  const activeHorizontalGrandchild = isThreeTopTabsTemplate
+    ? activeHorizontalChildChildren.find((child) => child.id === activeHorizontalGrandchildId) ?? null
+    : null;
+  const activeHorizontalGrandchildBlocks = activeHorizontalGrandchild?.children ?? [];
+  const activeHorizontalGrandchildHasBlocks = activeHorizontalGrandchildBlocks.some((child) => child.blockTemplate);
   const linkBlockCount = dropdownGroups.filter(
     (group) => group.blockTemplate === "links" || group.blockTemplate === "multi"
   ).length;
@@ -11108,12 +11182,13 @@ export default function MenuBuilder() {
                                     type="button"
                                     onClick={() => {
                                       handleSelectItem(child.id);
-                                      if (isTopTabsTemplate) {
-                                        setActiveHorizontalItemId((prev) =>
-                                          prev === child.id ? null : child.children?.length ? child.id : null
-                                        );
-                                        setActiveHorizontalChildId(null);
-                                      }
+                                    if (isTopTabsTemplate) {
+                                      setActiveHorizontalItemId((prev) =>
+                                        prev === child.id ? null : child.children?.length ? child.id : null
+                                      );
+                                      setActiveHorizontalChildId(null);
+                                      setActiveHorizontalGrandchildId(null);
+                                    }
                                     }}
                                     onMouseEnter={(event) => {
                                       event.currentTarget.style.color = previewColors.submenuTextHover;
@@ -11307,6 +11382,14 @@ export default function MenuBuilder() {
                                           setActiveHorizontalChildId((prev) =>
                                             prev === child.id ? null : hasBlockChildren ? child.id : null
                                           );
+                                          setActiveHorizontalGrandchildId(null);
+                                        }
+                                        if (isThreeTopTabsTemplate) {
+                                          const hasNestedChildren = Boolean(child.children?.length);
+                                          setActiveHorizontalChildId((prev) =>
+                                            prev === child.id ? null : hasNestedChildren ? child.id : null
+                                          );
+                                          setActiveHorizontalGrandchildId(null);
                                         }
                                       }}
                                       onMouseEnter={(event) => {
@@ -11460,6 +11543,174 @@ export default function MenuBuilder() {
                             </div>
                           </div>
                         ) : null}
+                        {isThreeTopTabsTemplate && activeHorizontalChild && !activeHorizontalChildHasBlocks ? (
+                          <div
+                            style={{
+                              borderTop: `1px solid ${previewColors.submenuBorder}`,
+                              display: "flex",
+                              flexDirection: "row",
+                              alignItems: "center",
+                              width: "100%",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                gap: 0,
+                                flexWrap: "wrap",
+                                alignItems: "center",
+                                justifyContent: menuAlignmentMap[activeHorizontalChild.submenuContentAlign || "center"],
+                                flex: 1,
+                                padding: "0 12px",
+                              }}
+                            >
+                              {activeHorizontalChildChildren.map((child) => {
+                                const isActive =
+                                  selectedItemId === child.id || selectedItemPath?.some((p) => p.id === child.id);
+                                const hasBlockChildren = Boolean(
+                                  child.children?.some((grandChild) => grandChild.blockTemplate)
+                                );
+                                return (
+                                  <div
+                                    key={child.id}
+                                    className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                    ref={registerPreviewRow(child.id)}
+                                    style={{ willChange: "transform" }}
+                                    draggable
+                                    onDragStart={(event) => {
+                                      event.dataTransfer.effectAllowed = "move";
+                                      event.dataTransfer.setData("text/plain", child.id);
+                                      setDraggedItemId(child.id);
+                                      const parentId = findParentId(menuItems, child.id);
+                                      setDraggedParentId(parentId ?? null);
+                                      lastDragOverIdRef.current = null;
+                                    }}
+                                    onDragEnd={() => {
+                                      setDraggedItemId(null);
+                                      setDraggedParentId(null);
+                                      lastDragOverIdRef.current = null;
+                                    }}
+                                    onDragOver={(event) => {
+                                      if (!draggedItemId || draggedItemId === child.id) return;
+                                      const targetParentId = findParentId(menuItems, child.id);
+                                      if (draggedParentId !== targetParentId) return;
+                                      event.preventDefault();
+                                      if (lastDragOverIdRef.current === child.id) return;
+                                      lastDragOverIdRef.current = child.id;
+                                      setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                    }}
+                                    onDrop={(event) => {
+                                      event.preventDefault();
+                                      setDraggedItemId(null);
+                                      setDraggedParentId(null);
+                                      lastDragOverIdRef.current = null;
+                                    }}
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        handleSelectItem(child.id);
+                                        setActiveHorizontalGrandchildId((prev) =>
+                                          prev === child.id ? null : hasBlockChildren ? child.id : null
+                                        );
+                                      }}
+                                      onMouseEnter={(event) => {
+                                        event.currentTarget.style.color = previewColors.submenuTextHover;
+                                      }}
+                                      onMouseLeave={(event) => {
+                                        event.currentTarget.style.color = isActive
+                                          ? previewColors.submenuTextHover
+                                          : previewColors.submenuText;
+                                      }}
+                                      className="cursor-grab active:cursor-grabbing"
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        gap: 10,
+                                        minHeight: builderSettings.spacingLinkListRowHeight,
+                                        padding: "16px",
+                                        borderRadius: 0,
+                                        border: "2px solid transparent",
+                                        background: "transparent",
+                                        color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
+                                        textAlign: "center",
+                                        ...subtextTypography,
+                                        lineHeight: 1.2,
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                        <span>{child.label}</span>
+                                        {Boolean(child.children?.length) && (
+                                          <Icon source={ChevronDownIcon} tone="subdued" />
+                                        )}
+                                      </div>
+                                    </button>
+                                    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                      <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                        <button
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleSelectItem(child.id, true);
+                                          }}
+                                          aria-label="Edit item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                        >
+                                          <Icon source={EditIcon} />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleDuplicateItem(child.id);
+                                          }}
+                                          aria-label="Copy item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                        >
+                                          <Icon source={DuplicateIcon} />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleDeleteItem(child.id);
+                                          }}
+                                          aria-label="Delete item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                        >
+                                          <Icon source={DeleteIcon} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                              <button
+                                type="button"
+                                onClick={() => handleAddChild(activeHorizontalChild.id, "item")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 8,
+                                  padding: "16px",
+                                  borderRadius: 0,
+                                  border: "none",
+                                  background: "transparent",
+                                  color: "#3b82f6",
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                + Öğe Ekle
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
                         {isTwoTopTabsTemplate && activeHorizontalChildHasBlocks ? (
                           <div
                             style={{
@@ -11504,6 +11755,47 @@ export default function MenuBuilder() {
                                         toolbarPlacement: "floating",
                                       });
                                     }
+                                    if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                      return renderImageBlock(child, {
+                                        flex: "0 0 20%",
+                                        wrapperStyle: { minWidth: 0 },
+                                      });
+                                    }
+                                    return null;
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
+                        {isThreeTopTabsTemplate && activeHorizontalGrandchildHasBlocks ? (
+                          <div
+                            style={{
+                              borderTop: `1px solid ${previewColors.submenuBorder}`,
+                              width: "100%",
+                            }}
+                          >
+                            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                              <div
+                                className="menu-builder-hide-scrollbar"
+                                style={{
+                                  overflowX: "auto",
+                                  overflowY: "hidden",
+                                  scrollbarWidth: "none",
+                                  msOverflowStyle: "none",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "nowrap",
+                                    gap: 24,
+                                    alignItems: "flex-start",
+                                    justifyContent: "space-between",
+                                    minWidth: 0,
+                                  }}
+                                >
+                                  {activeHorizontalGrandchildBlocks.map((child) => {
                                     if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
                                       return renderImageBlock(child, {
                                         flex: "0 0 20%",

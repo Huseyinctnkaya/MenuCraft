@@ -73,6 +73,7 @@ export type SubmenuTemplateId =
   | "simple-left-tabs"
   | "simple-top-tabs"
   | "two-top-tabs"
+  | "three-top-tabs"
   | "two-level-tabs"
   | "three-level-tabs"
   | "mega"

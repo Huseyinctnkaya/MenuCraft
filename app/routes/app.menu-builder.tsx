@@ -1650,24 +1650,11 @@ export default function MenuBuilder() {
                 showTitle: false,
                 preview: (
                   <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                    <div className="flex h-full w-full flex-col gap-2 rounded-2xl bg-gray-100 p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-12 rounded-full bg-gray-300" />
-                        <div className="h-3 w-12 rounded-full bg-gray-300" />
-                        <div className="h-3 w-12 rounded-full bg-gray-300" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-10 rounded-full bg-gray-300" />
-                        <div className="h-3 w-10 rounded-full bg-gray-300" />
-                        <div className="h-3 w-10 rounded-full bg-gray-300" />
-                      </div>
-                      <div className="flex flex-1 gap-2">
-                        <div className="flex-1 rounded-lg bg-gray-300" />
-                        <div className="flex-1 rounded-lg bg-gray-300" />
-                        <div className="flex-1 rounded-lg bg-gray-300" />
-                        <div className="flex-1 rounded-lg bg-gray-300" />
-                      </div>
-                    </div>
+                    <img
+                      src="/three-top-tabs.png"
+                      alt="Three Top Tabs template"
+                      className="h-full w-full object-contain"
+                    />
                     <div
                       className="absolute right-3 top-3 z-10"
                       style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
@@ -11707,6 +11694,59 @@ export default function MenuBuilder() {
                                 }}
                               >
                                 + Öğe Ekle
+                              </button>
+                            </div>
+                            <div
+                              style={{
+                                background: "rgb(17, 24, 39)",
+                                padding: "4px",
+                                borderRadius: "4px",
+                                marginRight: "12px",
+                                display: "flex",
+                                gap: 0,
+                              }}
+                            >
+                              <button
+                                type="button"
+                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "left" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, activeHorizontalChild.id, (item) => ({
+                                      ...item,
+                                      submenuContentAlign: "left",
+                                    }))
+                                  )
+                                }
+                              >
+                                <Icon source={TextAlignLeftIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "center" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, activeHorizontalChild.id, (item) => ({
+                                      ...item,
+                                      submenuContentAlign: "center",
+                                    }))
+                                  )
+                                }
+                              >
+                                <Icon source={TextAlignCenterIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "right" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                onClick={() =>
+                                  setMenuItems((items) =>
+                                    updateItemById(items, activeHorizontalChild.id, (item) => ({
+                                      ...item,
+                                      submenuContentAlign: "right",
+                                    }))
+                                  )
+                                }
+                              >
+                                <Icon source={TextAlignRightIcon} />
                               </button>
                             </div>
                           </div>

@@ -104,6 +104,7 @@ import {
   buildProductGridItems,
   buildProductListItems,
   buildSimpleLeftTabsItems,
+  buildSimpleRightTabsItems,
   buildSimpleTopTabsItems,
   buildTwoTopTabsItems,
   buildThreeTopTabsItems,
@@ -670,10 +671,11 @@ export default function MenuBuilder() {
   ]);
 
   useLayoutEffect(() => {
-    const isTabsFlyoutTemplate =
-      previewMenu?.submenuTemplate === "two-level-tabs" ||
-      previewMenu?.submenuTemplate === "three-level-tabs" ||
-      previewMenu?.submenuTemplate === "simple-left-tabs";
+                      const isTabsFlyoutTemplate =
+                        previewMenu?.submenuTemplate === "two-level-tabs" ||
+                        previewMenu?.submenuTemplate === "three-level-tabs" ||
+                        previewMenu?.submenuTemplate === "simple-left-tabs" ||
+                        previewMenu?.submenuTemplate === "simple-right-tabs";
     if (!isTabsFlyoutTemplate || !activeDropdownItemId) {
       if (dropdownMainPanelMinHeight !== null) {
         setDropdownMainPanelMinHeight(null);
@@ -1554,6 +1556,51 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-left-tabs") : undefined}
+                        disabled={!isPlusPlan}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Simple Right Tabs",
+                onSelect: () => handleApplySubmenuTemplate("simple-right-tabs"),
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                showSelectButton: false,
+                showTitle: false,
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <div className="flex h-full w-full flex-col gap-2 rounded-2xl bg-gray-100 p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-10 rounded-full bg-gray-300" />
+                        <div className="h-3 w-10 rounded-full bg-gray-300" />
+                        <div className="h-3 w-10 rounded-full bg-gray-300" />
+                      </div>
+                      <div className="flex flex-1 gap-2">
+                        <div className="flex-[1.4] rounded-lg bg-gray-300" />
+                        <div className="flex-1 rounded-lg bg-gray-300" />
+                        <div className="flex-1 rounded-lg bg-gray-300" />
+                      </div>
+                    </div>
+                    <div
+                      className="absolute right-3 top-3 z-10"
+                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
+                    >
+                      <Badge tone="warning">Plus</Badge>
+                    </div>
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Simple Right Tabs
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-right-tabs") : undefined}
                         disabled={!isPlusPlan}
                         size="slim"
                         variant="primary"
@@ -3936,6 +3983,7 @@ export default function MenuBuilder() {
       !isPlusPlan &&
       (templateId === "tabs" ||
         templateId === "simple-left-tabs" ||
+        templateId === "simple-right-tabs" ||
         templateId === "simple-top-tabs" ||
         templateId === "two-top-tabs" ||
         templateId === "three-top-tabs" ||
@@ -3947,6 +3995,8 @@ export default function MenuBuilder() {
     const isDropdownTemplate =
       templateId === "dropdown" ||
       templateId === "simple-left-tabs" ||
+      templateId === "simple-right-tabs" ||
+      templateId === "simple-right-tabs" ||
       templateId === "two-level-tabs" ||
       templateId === "three-level-tabs";
     const isHorizontalDropdownTemplate =
@@ -3974,6 +4024,8 @@ export default function MenuBuilder() {
     const dropdownItems =
       templateId === "simple-left-tabs"
         ? buildSimpleLeftTabsItems()
+        : templateId === "simple-right-tabs"
+          ? buildSimpleRightTabsItems()
         : templateId === "simple-top-tabs"
           ? buildSimpleTopTabsItems()
           : templateId === "two-top-tabs"
@@ -4510,6 +4562,7 @@ export default function MenuBuilder() {
                                 parentItem?.submenuType === "dropdown" ||
                                 parentItem?.submenuTemplate === "dropdown" ||
                                 parentItem?.submenuTemplate === "simple-left-tabs" ||
+                                parentItem?.submenuTemplate === "simple-right-tabs" ||
                                 parentItem?.submenuTemplate === "two-level-tabs" ||
                                 parentItem?.submenuTemplate === "three-level-tabs";
                               if (hasBlockChildren && !item.blockTemplate) {
@@ -9691,13 +9744,15 @@ export default function MenuBuilder() {
                         dropdownItems.find((child) => child.id === activeDropdownItemId) ?? null;
                       const isSimpleLeftTabsTemplate =
                         previewMenu?.submenuTemplate === "simple-left-tabs";
+                      const isSimpleRightTabsTemplate =
+                        previewMenu?.submenuTemplate === "simple-right-tabs";
                       const isTwoLevelTabsTemplate =
                         previewMenu?.submenuTemplate === "two-level-tabs";
                       const isThreeLevelTabsTemplate =
                         previewMenu?.submenuTemplate === "three-level-tabs";
                       const activeDropdownChildren = activeDropdownItem?.children ?? [];
                       const activeDropdownHasBlocks =
-                        isSimpleLeftTabsTemplate &&
+                        (isSimpleLeftTabsTemplate || isSimpleRightTabsTemplate) &&
                         activeDropdownChildren.some((child) => child.blockTemplate);
                       const activeSecondLevelItem =
                         isTwoLevelTabsTemplate || isThreeLevelTabsTemplate
@@ -9772,7 +9827,7 @@ export default function MenuBuilder() {
                         : baseBlockPanelWidth;
                       const dropdownFlyoutStyle: CSSProperties =
                         isTwoLevelTabsTemplate || isThreeLevelTabsTemplate
-                        ? {
+                          ? {
                           background: "transparent",
                           border: "none",
                           borderRadius: 0,
@@ -9798,6 +9853,10 @@ export default function MenuBuilder() {
                             overflow: "visible",
                           }
                           : dropdownPanelStyle;
+                      const openFlyoutToLeft = isPreviewLeftAligned || isSimpleRightTabsTemplate;
+                      const flyoutOffset = activeDropdownHasBlocks
+                        ? resolvedSimpleLeftTabsPanelWidth
+                        : dropdownPanelPixelWidth;
 
                       // Seçili item'ın top pozisyonunu bul
                       let activeItemOffsetTop = 0;
@@ -10067,11 +10126,12 @@ export default function MenuBuilder() {
                                 style={{
                                   ...dropdownFlyoutStyle,
                                   position: "absolute",
-                                  left: isPreviewLeftAligned
-                                    ? `-${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`
-                                    : `${dropdownPanelWidth === "100%" ? "100%" : (typeof dropdownPanelWidth === "number" ? dropdownPanelWidth : parseInt(dropdownPanelWidth))}px`,
+                                  left: openFlyoutToLeft ? -flyoutOffset : dropdownPanelPixelWidth,
                                   top:
-                                    isTwoLevelTabsTemplate || isThreeLevelTabsTemplate || isSimpleLeftTabsTemplate
+                                    isTwoLevelTabsTemplate ||
+                                    isThreeLevelTabsTemplate ||
+                                    isSimpleLeftTabsTemplate ||
+                                    isSimpleRightTabsTemplate
                                       ? 0
                                       : activeItemOffsetTop,
                                 }}

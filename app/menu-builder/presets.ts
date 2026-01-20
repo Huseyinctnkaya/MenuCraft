@@ -137,6 +137,10 @@ export const buildSimpleLeftTabsItems = () => {
   ];
 };
 
+export const buildSimpleRightTabsItems = () => {
+  return buildSimpleLeftTabsItems();
+};
+
 export const buildSimpleTopTabsItems = () => {
   const blockItems = buildMultiBlockTwoColumnsTwoPhotos();
   return [

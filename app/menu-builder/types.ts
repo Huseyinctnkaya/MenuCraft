@@ -71,6 +71,7 @@ export type SubmenuTemplateId =
   | "custom"
   | "tabs"
   | "simple-left-tabs"
+  | "simple-right-tabs"
   | "simple-top-tabs"
   | "two-top-tabs"
   | "three-top-tabs"

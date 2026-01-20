@@ -29,6 +29,7 @@ import {
   ArrowLeftIcon,
   BlogIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   CodeIcon,
   CollectionIcon,
@@ -1576,18 +1577,11 @@ export default function MenuBuilder() {
                 showTitle: false,
                 preview: (
                   <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                    <div className="flex h-full w-full flex-col gap-2 rounded-2xl bg-gray-100 p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-10 rounded-full bg-gray-300" />
-                        <div className="h-3 w-10 rounded-full bg-gray-300" />
-                        <div className="h-3 w-10 rounded-full bg-gray-300" />
-                      </div>
-                      <div className="flex flex-1 gap-2">
-                        <div className="flex-[1.4] rounded-lg bg-gray-300" />
-                        <div className="flex-1 rounded-lg bg-gray-300" />
-                        <div className="flex-1 rounded-lg bg-gray-300" />
-                      </div>
-                    </div>
+                    <img
+                      src="/simple-right-tabs.png"
+                      alt="Simple Right Tabs template"
+                      className="h-full w-full object-contain"
+                    />
                     <div
                       className="absolute right-3 top-3 z-10"
                       style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
@@ -9811,6 +9805,11 @@ export default function MenuBuilder() {
                         availableRight && availableRight > 0
                           ? Math.floor(availableRight)
                           : simpleLeftTabsPanelWidth;
+                      const availableLeft = dropdownAnchor?.left ?? dropdownPanelPixelWidth;
+                      const resolvedRightTabsPanelWidth = Math.max(0, availableLeft);
+                      const resolvedTabsPanelWidth = isSimpleRightTabsTemplate
+                        ? resolvedRightTabsPanelWidth
+                        : resolvedSimpleLeftTabsPanelWidth;
                       const { background, border, borderRadius, boxShadow } = dropdownPanelStyle;
                       const blockPanelChildren = secondLevelHasBlocks
                         ? secondLevelChildren
@@ -9846,8 +9845,8 @@ export default function MenuBuilder() {
                             border,
                             borderRadius,
                             boxShadow,
-                            width: resolvedSimpleLeftTabsPanelWidth,
-                            maxWidth: resolvedSimpleLeftTabsPanelWidth,
+                            width: resolvedTabsPanelWidth,
+                            maxWidth: resolvedTabsPanelWidth,
                             height: "auto",
                             maxHeight: "none",
                             overflow: "visible",
@@ -9855,7 +9854,13 @@ export default function MenuBuilder() {
                           : dropdownPanelStyle;
                       const openFlyoutToLeft = isPreviewLeftAligned || isSimpleRightTabsTemplate;
                       const flyoutOffset = activeDropdownHasBlocks
-                        ? resolvedSimpleLeftTabsPanelWidth
+                        ? resolvedTabsPanelWidth
+                        : dropdownPanelPixelWidth;
+                      const menuBarLeftOffset = dropdownAnchor?.left ?? 0;
+                      const flyoutLeft = openFlyoutToLeft
+                        ? isSimpleRightTabsTemplate
+                          ? -resolvedRightTabsPanelWidth
+                          : -flyoutOffset
                         : dropdownPanelPixelWidth;
 
                       // Seçili item'ın top pozisyonunu bul
@@ -9891,6 +9896,7 @@ export default function MenuBuilder() {
                                 {dropdownItems.map((child) => {
                                   const hasChildren = Boolean(child.children?.length);
                                   const isActiveChild = activeDropdownItem?.id === child.id;
+                                  const showLeftChevron = isSimpleRightTabsTemplate && hasChildren;
                                   return (
                                     <div
                                       key={child.id}
@@ -9958,7 +9964,7 @@ export default function MenuBuilder() {
                                         style={{
                                           display: "flex",
                                           alignItems: "center",
-                                          justifyContent: "space-between",
+                                          justifyContent: showLeftChevron ? "flex-start" : "space-between",
                                           gap: 10,
                                           minHeight: dropdownItemHeight,
                                           padding: "8px 10px",
@@ -9972,10 +9978,13 @@ export default function MenuBuilder() {
                                           lineHeight: 1.2,
                                         }}
                                       >
+                                        {showLeftChevron ? (
+                                          <ChevronLeftIcon width="14" height="14" fill={previewColors.submenuText} />
+                                        ) : null}
                                         <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
                                           {child.label}
                                         </span>
-                                        {hasChildren ? (
+                                        {!showLeftChevron && hasChildren ? (
                                           <ChevronRightIcon width="14" height="14" fill={previewColors.submenuText} />
                                         ) : null}
                                       </button>
@@ -10126,7 +10135,7 @@ export default function MenuBuilder() {
                                 style={{
                                   ...dropdownFlyoutStyle,
                                   position: "absolute",
-                                  left: openFlyoutToLeft ? -flyoutOffset : dropdownPanelPixelWidth,
+                                  left: flyoutLeft,
                                   top:
                                     isTwoLevelTabsTemplate ||
                                     isThreeLevelTabsTemplate ||

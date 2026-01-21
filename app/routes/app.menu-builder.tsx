@@ -427,6 +427,7 @@ export default function MenuBuilder() {
   const fullscreenExitArmedRef = useRef(false);
   const fullscreenExitArmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fullscreenExitNavigateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exitGuardRef = useRef({ isDirty: false, requiresExplicitSave: false, isSaving: false });
   const [fullscreenPhase, setFullscreenPhase] = useState<"entering" | "ready" | "exiting">("entering");
 
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
@@ -456,55 +457,6 @@ export default function MenuBuilder() {
     const next = search.toString();
     return next ? `?${next}` : "";
   }, [location.search]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const host = new URLSearchParams(location.search).get("host");
-    if (!apiKey || !host) return;
-    if (!appBridgeRef.current) {
-      appBridgeRef.current = createApp({ apiKey, host, forceRedirect: true });
-    }
-    setFullscreenPhase("entering");
-    fullscreenExitRequestedRef.current = false;
-    fullscreenExitArmedRef.current = false;
-    if (fullscreenExitArmTimeoutRef.current) {
-      clearTimeout(fullscreenExitArmTimeoutRef.current);
-      fullscreenExitArmTimeoutRef.current = null;
-    }
-    if (fullscreenExitNavigateTimeoutRef.current) {
-      clearTimeout(fullscreenExitNavigateTimeoutRef.current);
-      fullscreenExitNavigateTimeoutRef.current = null;
-    }
-    const appBridge = appBridgeRef.current;
-    const unsubscribe = appBridge.subscribe(Fullscreen.Action.EXIT, () => {
-      if (fullscreenExitRequestedRef.current || !fullscreenExitArmedRef.current) return;
-      fullscreenExitRequestedRef.current = true;
-      setFullscreenPhase("exiting");
-      fullscreenExitNavigateTimeoutRef.current = setTimeout(() => {
-        fullscreenExitNavigateTimeoutRef.current = null;
-        navigate({ pathname: returnToPath, search: returnToSearch });
-      }, 120);
-    });
-    appBridge.dispatch(Fullscreen.enter());
-    fullscreenExitArmTimeoutRef.current = setTimeout(() => {
-      fullscreenExitArmedRef.current = true;
-      setFullscreenPhase("ready");
-      fullscreenExitArmTimeoutRef.current = null;
-    }, 300);
-    return () => {
-      if (fullscreenExitArmTimeoutRef.current) {
-        clearTimeout(fullscreenExitArmTimeoutRef.current);
-        fullscreenExitArmTimeoutRef.current = null;
-      }
-      if (fullscreenExitNavigateTimeoutRef.current) {
-        clearTimeout(fullscreenExitNavigateTimeoutRef.current);
-        fullscreenExitNavigateTimeoutRef.current = null;
-      }
-      fullscreenExitRequestedRef.current = true;
-      unsubscribe();
-      appBridge.dispatch(Fullscreen.exit());
-    };
-  }, [apiKey, location.search, navigate, returnToPath, returnToSearch]);
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(normalizedMenuItems);
   const [builderSettings, setBuilderSettings] = useState<BuilderSettings>({
@@ -545,6 +497,8 @@ export default function MenuBuilder() {
   const blockTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [pendingDeleteItemLabel, setPendingDeleteItemLabel] = useState<string>("");
+  const [discardChangesModalOpen, setDiscardChangesModalOpen] = useState(false);
+  const [pendingExitIntent, setPendingExitIntent] = useState(false);
   const [openColorPicker, setOpenColorPicker] = useState<keyof BuilderSettings | null>(null);
   const [colorPickerHsb, setColorPickerHsb] = useState<HsbColor | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -9122,7 +9076,30 @@ export default function MenuBuilder() {
     [menuStatus, menuItems, builderSettings]
   );
   const isDirty = currentFingerprint !== savedFingerprint;
-  const backDisabled = isDirty || isSaving || requiresExplicitSave;
+  const backDisabled = isSaving;
+
+  const discardUnsavedChanges = () => {
+    try {
+      const snapshot = JSON.parse(savedFingerprint) as {
+        status?: "active" | "draft";
+        items?: MenuItem[];
+        settings?: BuilderSettings;
+      };
+      const nextStatus = snapshot.status ?? menu.status ?? "draft";
+      const nextItems = snapshot.items ?? normalizedMenuItems;
+      const nextSettings = snapshot.settings ?? { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings };
+      setMenuStatus(nextStatus === "active" ? "active" : "draft");
+      setMenuItems(nextItems);
+      setSelectedItemId(nextItems[0]?.id ?? null);
+      setBuilderSettings(nextSettings);
+      setRequiresExplicitSave(false);
+      setActiveSaveAction(null);
+      setSubmenuTemplateTargetId(null);
+      setBlockTemplateTargetId(null);
+    } catch (error) {
+      console.error("Failed to discard changes:", error);
+    }
+  };
 
   useEffect(() => {
     if (saveFetcher.state === "idle" && saveFetcher.data?.ok) {
@@ -9133,6 +9110,78 @@ export default function MenuBuilder() {
       }
     }
   }, [saveFetcher.state, saveFetcher.data, currentFingerprint]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isDirty && !requiresExplicitSave) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty, requiresExplicitSave]);
+
+  useEffect(() => {
+    exitGuardRef.current = { isDirty, requiresExplicitSave, isSaving };
+  }, [isDirty, requiresExplicitSave, isSaving]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const host = new URLSearchParams(location.search).get("host");
+    if (!apiKey || !host) return;
+    if (!appBridgeRef.current) {
+      appBridgeRef.current = createApp({ apiKey, host, forceRedirect: true });
+    }
+    setFullscreenPhase("entering");
+    fullscreenExitRequestedRef.current = false;
+    fullscreenExitArmedRef.current = false;
+    if (fullscreenExitArmTimeoutRef.current) {
+      clearTimeout(fullscreenExitArmTimeoutRef.current);
+      fullscreenExitArmTimeoutRef.current = null;
+    }
+    if (fullscreenExitNavigateTimeoutRef.current) {
+      clearTimeout(fullscreenExitNavigateTimeoutRef.current);
+      fullscreenExitNavigateTimeoutRef.current = null;
+    }
+    const appBridge = appBridgeRef.current;
+    const unsubscribe = appBridge.subscribe(Fullscreen.Action.EXIT, () => {
+      if (fullscreenExitRequestedRef.current || !fullscreenExitArmedRef.current) return;
+      const { isDirty: hasUnsaved, requiresExplicitSave: needsExplicitSave, isSaving: saving } =
+        exitGuardRef.current;
+      if (hasUnsaved || needsExplicitSave || saving) {
+        setPendingExitIntent(true);
+        setDiscardChangesModalOpen(true);
+        appBridge.dispatch(Fullscreen.enter());
+        return;
+      }
+      fullscreenExitRequestedRef.current = true;
+      setFullscreenPhase("exiting");
+      fullscreenExitNavigateTimeoutRef.current = setTimeout(() => {
+        fullscreenExitNavigateTimeoutRef.current = null;
+        navigate({ pathname: returnToPath, search: returnToSearch });
+      }, 120);
+    });
+    appBridge.dispatch(Fullscreen.enter());
+    fullscreenExitArmTimeoutRef.current = setTimeout(() => {
+      fullscreenExitArmedRef.current = true;
+      setFullscreenPhase("ready");
+      fullscreenExitArmTimeoutRef.current = null;
+    }, 300);
+    return () => {
+      if (fullscreenExitArmTimeoutRef.current) {
+        clearTimeout(fullscreenExitArmTimeoutRef.current);
+        fullscreenExitArmTimeoutRef.current = null;
+      }
+      if (fullscreenExitNavigateTimeoutRef.current) {
+        clearTimeout(fullscreenExitNavigateTimeoutRef.current);
+        fullscreenExitNavigateTimeoutRef.current = null;
+      }
+      fullscreenExitRequestedRef.current = true;
+      unsubscribe();
+      appBridge.dispatch(Fullscreen.exit());
+    };
+  }, [apiKey, location.search, navigate, returnToPath, returnToSearch]);
 
   useEffect(() => {
     if (prevMenuIdRef.current === menu.id) {
@@ -9214,6 +9263,45 @@ export default function MenuBuilder() {
           </Text>
         </Modal.Section>
       </Modal>
+      <Modal
+        open={discardChangesModalOpen}
+        onClose={() => {
+          setDiscardChangesModalOpen(false);
+          setPendingExitIntent(false);
+          appBridgeRef.current?.dispatch(Fullscreen.enter());
+        }}
+        title="Kaydedilmemiş tüm değişiklikleri sil"
+        primaryAction={{
+          content: "Değişiklikleri sil",
+          destructive: true,
+          onAction: () => {
+            discardUnsavedChanges();
+            setDiscardChangesModalOpen(false);
+            if (pendingExitIntent) {
+              setPendingExitIntent(false);
+              navigate({ pathname: returnToPath, search: returnToSearch });
+              return;
+            }
+          },
+        }}
+        secondaryActions={[
+          {
+            content: "Düzenlemeye devam et",
+            onAction: () => {
+              setDiscardChangesModalOpen(false);
+              setPendingExitIntent(false);
+              appBridgeRef.current?.dispatch(Fullscreen.enter());
+            },
+          },
+        ]}
+      >
+        <Modal.Section>
+          <Text as="p" variant="bodySm">
+            Değişiklikleri silerseniz, son kaydettiğinizden bu yana yaptığınız tüm düzenlemeleri silmiş
+            olursunuz.
+          </Text>
+        </Modal.Section>
+      </Modal>
       <style>
         {`
           @keyframes menucraftCarouselFade {
@@ -9235,7 +9323,13 @@ export default function MenuBuilder() {
               variant="tertiary"
               icon={ArrowLeftIcon}
               disabled={backDisabled}
-              onClick={() => navigate({ pathname: returnToPath, search: returnToSearch })}
+              onClick={() => {
+                if (isDirty || requiresExplicitSave) {
+                  setDiscardChangesModalOpen(true);
+                  return;
+                }
+                navigate({ pathname: returnToPath, search: returnToSearch });
+              }}
             >
               Back
             </Button>

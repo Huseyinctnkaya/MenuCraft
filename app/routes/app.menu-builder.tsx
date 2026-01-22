@@ -8949,9 +8949,22 @@ export default function MenuBuilder() {
   };
   const isMobilePreview = previewMode === "mobile";
   const isVerticalMenu = isMobilePreview || builderSettings.layoutOrientation === "vertical";
+  const rightTabsMenuItems = useMemo(
+    () => menuItems.filter((item) => item.submenuTemplate === "simple-right-tabs"),
+    [menuItems]
+  );
+  const standardMenuItems = useMemo(
+    () => menuItems.filter((item) => item.submenuTemplate !== "simple-right-tabs"),
+    [menuItems]
+  );
+  const menuItemsForMainRow = isVerticalMenu ? menuItems : standardMenuItems;
+  const rightAlignedMenuItems = isVerticalMenu ? [] : rightTabsMenuItems;
   const menuRowHeight = isMobilePreview
     ? Math.max(builderSettings.spacingMainRowHeight, 64)
     : builderSettings.spacingMainRowHeight;
+  const dropdownTop = isVerticalMenu
+    ? dropdownAnchor?.top ?? menuRowHeight
+    : menuRowHeight;
   const showDividers =
     previewMode === "mobile"
       ? builderSettings.elementsShowMobileDivider
@@ -9046,6 +9059,20 @@ export default function MenuBuilder() {
         ? "flex-end"
         : "flex-start";
   const dropdownPanelWidth = previewMenu?.submenuWidth === "content" ? 200 : "100%";
+  const previewContainerWidth =
+    previewContainerRef.current?.getBoundingClientRect().width ?? menuMaxWidth ?? 1260;
+  const dropdownPanelPixelWidth =
+    dropdownPanelWidth === "100%"
+      ? previewContainerWidth
+      : typeof dropdownPanelWidth === "number"
+        ? dropdownPanelWidth
+        : parseInt(dropdownPanelWidth);
+  const dropdownLeft = dropdownAnchor
+    ? Math.min(
+        Math.max(0, dropdownAnchor.left),
+        Math.max(0, previewContainerWidth - dropdownPanelPixelWidth)
+      )
+    : 0;
 
   const handleSaveMenu = (
     nextStatus?: "active" | "draft",
@@ -9226,6 +9253,286 @@ export default function MenuBuilder() {
   }, [blockTemplateTargetId]);
 
   const isTemplatePickerOpen = Boolean(submenuTemplateTargetId || blockTemplateTargetId);
+  const renderMenuItemButton = (item: MenuItem) => {
+    const isActive = openMenuId === item.id;
+    const isHovered = hoveredMenuId === item.id;
+    const itemBackground = isActive
+      ? previewColors.tabBackgroundActive
+      : isHovered
+        ? previewColors.mainBackgroundHover
+        : previewColors.mainBackground;
+    const itemTextColor = isActive
+      ? previewColors.tabHeadingActive
+      : isHovered
+        ? previewColors.mainTextHover
+        : previewColors.mainText;
+
+    return (
+      <div
+        key={item.id}
+        className="relative inline-flex"
+        style={{ height: isVerticalMenu ? "auto" : "100%" }}
+        onMouseEnter={() => handlePreviewHoverStart(item.id)}
+        onMouseLeave={handlePreviewHoverEnd}
+      >
+        {hoveredMenuId === item.id && (
+          <div
+            className="absolute z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md"
+            style={
+              isMobilePreview
+                ? {
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                }
+                : { top: "-40px", left: 0 }
+            }
+            onMouseEnter={() => handlePreviewHoverStart(item.id)}
+            onMouseLeave={handlePreviewHoverEnd}
+          >
+            <button
+              type="button"
+              onClick={() => handleSelectItem(item.id, true)}
+              aria-label="Edit item"
+              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+            >
+              <Icon source={EditIcon} />
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDuplicateItem(item.id)}
+              aria-label="Duplicate item"
+              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
+            >
+              <Icon source={DuplicateIcon} />
+            </button>
+            <button
+              type="button"
+              onClick={() => openDeleteItemDialog(item.id)}
+              aria-label="Delete item"
+              className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+            >
+              <Icon source={DeleteIcon} />
+            </button>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            handleSelectItem(item.id);
+            setOpenMenuId((prev) => (prev === item.id ? null : item.id));
+          }}
+          ref={registerPreviewMenuItem(item.id)}
+          draggable
+          onDragStart={(event) => {
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", item.id);
+            lastDragOverIdRef.current = null;
+            setDraggedItemId(item.id);
+            setDraggedParentId(null);
+            setOpenMenuId(item.id);
+          }}
+          onDragOver={(event) => {
+            if (!draggedItemId) return;
+            if (draggedParentId !== null) return;
+            if (draggedItemId === item.id) return;
+            event.preventDefault();
+            if (lastDragOverIdRef.current === item.id) return;
+            lastDragOverIdRef.current = item.id;
+            setMenuItems((items) => moveItem(items, draggedItemId, item.id));
+          }}
+          onDragEnd={() => {
+            setDraggedItemId(null);
+            setDraggedParentId(null);
+            lastDragOverIdRef.current = null;
+          }}
+          style={{
+            background: itemBackground,
+            borderRight:
+              showDividers && !isVerticalMenu
+                ? `1px solid ${previewColors.mainDivider}`
+                : "none",
+            borderBottom:
+              showDividers && isVerticalMenu
+                ? `1px solid ${previewColors.mainDivider}`
+                : "none",
+            borderRadius: 0,
+            height: isVerticalMenu ? menuRowHeight : "100%",
+            minWidth: isVerticalMenu ? "100%" : 80,
+            padding: isVerticalMenu ? (isMobilePreview ? "0 20px" : "0 12px") : "0 18px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: isVerticalMenu ? "space-between" : "flex-start",
+            gap: 6,
+            color: itemTextColor,
+            cursor: "grab",
+          }}
+        >
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: 1 }}>
+            {item.icon ? (
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                {renderMenuIcon(item.icon, {
+                  size: 14,
+                  color: itemTextColor,
+                  className: "text-current",
+                })}
+              </span>
+            ) : null}
+            <span
+              style={{
+                ...(isActive ? tabTypography : mainTypography),
+                lineHeight: 1.2,
+              }}
+            >
+              {item.label}
+            </span>
+          </span>
+          {builderSettings.elementsShowIndicators && item.children?.length ? (
+            <span style={{ display: "inline-flex", marginLeft: "auto" }}>
+              <ChevronDownIcon width="14" height="14" fill={itemTextColor} />
+            </span>
+          ) : null}
+        </button>
+        {isActive && dropdownGroups.length === 0 && (
+          isVerticalMenu ? (
+            <div style={{ width: "100%" }}>
+              <button
+                type="button"
+                onClick={() => handleAddChild(item.id, "group")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  padding: isMobilePreview ? "16px 18px" : "12px 16px",
+                  width: "100%",
+                  borderRadius: 0,
+                  border: "1px dashed #cbd5e1",
+                  background: "#ffffff",
+                  color: "#111827",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+                Add submenu
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                top: "100%",
+                marginTop: 0,
+                zIndex: 15,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => handleAddChild(item.id, "group")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "12px 16px",
+                  minWidth: 180,
+                  borderRadius: 0,
+                  border: "1px dashed #cbd5e1",
+                  background: previewColors.submenuBackground,
+                  color: previewColors.submenuText,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+                Add submenu
+              </button>
+            </div>
+          )
+        )}
+      </div>
+    );
+  };
+  const renderSearchControl = (marginLeft?: string | number) => {
+    if (!builderSettings.elementsShowSearch || isMobilePreview) return null;
+    return (
+      <div
+        style={{
+          marginLeft: isVerticalMenu ? 0 : marginLeft ?? "auto",
+          position: "relative",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: isVerticalMenu ? menuRowHeight : "100%",
+          width: isVerticalMenu ? "100%" : 56,
+          borderLeft:
+            showDividers && !isVerticalMenu ? `1px solid ${previewColors.mainDivider}` : "none",
+          borderTop:
+            showDividers && isVerticalMenu ? `1px solid ${previewColors.mainDivider}` : "none",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setIsSearchOpen((prev) => !prev)}
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: previewColors.mainText,
+            background: isSearchOpen ? previewColors.mainBackgroundHover : previewColors.mainBackground,
+          }}
+          onMouseEnter={(event) => {
+            event.currentTarget.style.background = previewColors.mainBackgroundHover;
+          }}
+          onMouseLeave={(event) => {
+            event.currentTarget.style.background = isSearchOpen
+              ? previewColors.mainBackgroundHover
+              : previewColors.mainBackground;
+          }}
+        >
+          <SearchIcon width="18" height="18" fill={previewColors.mainText} />
+        </button>
+        {isSearchOpen && (
+          <div
+            style={{
+              position: "absolute",
+              right: 0,
+              top: "100%",
+              marginTop: 0,
+              background: previewColors.submenuBackground,
+              border: `1px solid ${previewColors.submenuBorder}`,
+              borderRadius: 0,
+              minWidth: isVerticalMenu ? "100%" : 180,
+              padding: "14px 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              color: previewColors.submenuText,
+              boxShadow: "0 12px 24px rgba(15, 23, 42, 0.12)",
+              zIndex: 20,
+            }}
+          >
+            <span
+              style={{
+                flex: 1,
+                fontSize: 16,
+                color: previewColors.submenuText,
+                opacity: 0.7,
+              }}
+            >
+              Search for...
+            </span>
+            <SearchIcon width="18" height="18" fill={previewColors.submenuText} />
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
@@ -9479,213 +9786,14 @@ export default function MenuBuilder() {
                   style={{
                     display: "flex",
                     flexDirection: isVerticalMenu ? "column" : "row",
+                    alignItems: "stretch",
                     justifyContent: isVerticalMenu ? "flex-start" : menuAlignmentMap[builderSettings.layoutAlignment],
                     gap: 0,
                     height: isVerticalMenu ? "auto" : menuRowHeight,
                     color: previewColors.mainText,
                   }}
                 >
-                  {menuItems.map((item) => {
-                    const isActive = openMenuId === item.id;
-                    const isHovered = hoveredMenuId === item.id;
-                    const itemBackground = isActive
-                      ? previewColors.tabBackgroundActive
-                      : isHovered
-                        ? previewColors.mainBackgroundHover
-                        : previewColors.mainBackground;
-                    const itemTextColor = isActive
-                      ? previewColors.tabHeadingActive
-                      : isHovered
-                        ? previewColors.mainTextHover
-                        : previewColors.mainText;
-                    return (
-                      <div
-                        key={item.id}
-                        className="relative inline-flex"
-                        onMouseEnter={() => handlePreviewHoverStart(item.id)}
-                        onMouseLeave={handlePreviewHoverEnd}
-                      >
-                        {hoveredMenuId === item.id && (
-                          <div
-                            className="absolute z-20 flex items-center gap-1 rounded-lg bg-gray-900 px-2 py-1 shadow-md"
-                            style={
-                              isMobilePreview
-                                ? {
-                                  top: "50%",
-                                  left: "50%",
-                                  transform: "translate(-50%, -50%)",
-                                }
-                                : { top: "-40px", left: 0 }
-                            }
-                            onMouseEnter={() => handlePreviewHoverStart(item.id)}
-                            onMouseLeave={handlePreviewHoverEnd}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleSelectItem(item.id, true)}
-                              aria-label="Edit item"
-                              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                            >
-                              <Icon source={EditIcon} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDuplicateItem(item.id)}
-                              aria-label="Duplicate item"
-                              className="flex h-6 w-6 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                            >
-                              <Icon source={DuplicateIcon} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => openDeleteItemDialog(item.id)}
-                              aria-label="Delete item"
-                              className="flex h-6 w-6 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                            >
-                              <Icon source={DeleteIcon} />
-                            </button>
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            handleSelectItem(item.id);
-                            setOpenMenuId((prev) => (prev === item.id ? null : item.id));
-                          }}
-                          ref={registerPreviewMenuItem(item.id)}
-                          draggable
-                          onDragStart={(event) => {
-                            event.dataTransfer.effectAllowed = "move";
-                            event.dataTransfer.setData("text/plain", item.id);
-                            lastDragOverIdRef.current = null;
-                            setDraggedItemId(item.id);
-                            setDraggedParentId(null);
-                            setOpenMenuId(item.id);
-                          }}
-                          onDragOver={(event) => {
-                            if (!draggedItemId) return;
-                            if (draggedParentId !== null) return;
-                            if (draggedItemId === item.id) return;
-                            event.preventDefault();
-                            if (lastDragOverIdRef.current === item.id) return;
-                            lastDragOverIdRef.current = item.id;
-                            setMenuItems((items) => moveItem(items, draggedItemId, item.id));
-                          }}
-                          onDragEnd={() => {
-                            setDraggedItemId(null);
-                            setDraggedParentId(null);
-                            lastDragOverIdRef.current = null;
-                          }}
-                          style={{
-                            background: itemBackground,
-                            borderRight:
-                              showDividers && !isVerticalMenu
-                                ? `1px solid ${previewColors.mainDivider}`
-                                : "none",
-                            borderBottom:
-                              showDividers && isVerticalMenu
-                                ? `1px solid ${previewColors.mainDivider}`
-                                : "none",
-                            borderRadius: 0,
-                            height: isVerticalMenu ? menuRowHeight : "100%",
-                            minWidth: isVerticalMenu ? "100%" : 80,
-                            padding: isVerticalMenu ? (isMobilePreview ? "0 20px" : "0 12px") : "0 18px",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: isVerticalMenu ? "space-between" : "flex-start",
-                            gap: 6,
-                            color: itemTextColor,
-                            cursor: "grab",
-                          }}
-                        >
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: 1 }}>
-                            {item.icon ? (
-                              <span style={{ display: "inline-flex", alignItems: "center" }}>
-                                {renderMenuIcon(item.icon, {
-                                  size: 14,
-                                  color: itemTextColor,
-                                  className: "text-current",
-                                })}
-                              </span>
-                            ) : null}
-                            <span
-                              style={{
-                                ...(isActive ? tabTypography : mainTypography),
-                                lineHeight: 1.2,
-                              }}
-                            >
-                              {item.label}
-                            </span>
-                          </span>
-                          {builderSettings.elementsShowIndicators && item.children?.length ? (
-                            <span style={{ display: "inline-flex", marginLeft: "auto" }}>
-                              <ChevronDownIcon width="14" height="14" fill={itemTextColor} />
-                            </span>
-                          ) : null}
-                        </button>
-                        {isActive && dropdownGroups.length === 0 && (
-                          isVerticalMenu ? (
-                            <div style={{ width: "100%" }}>
-                              <button
-                                type="button"
-                                onClick={() => handleAddChild(item.id, "group")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: 10,
-                                  padding: isMobilePreview ? "16px 18px" : "12px 16px",
-                                  width: "100%",
-                                  borderRadius: 0,
-                                  border: "1px dashed #cbd5e1",
-                                  background: "#ffffff",
-                                  color: "#111827",
-                                  fontSize: 14,
-                                  fontWeight: 500,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-                                Add submenu
-                              </button>
-                            </div>
-                          ) : (
-                            <div
-                              style={{
-                                position: "absolute",
-                                left: 0,
-                                top: "100%",
-                                marginTop: 0,
-                                zIndex: 15,
-                              }}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => handleAddChild(item.id, "group")}
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 10,
-                                  padding: "12px 16px",
-                                  minWidth: 180,
-                                  borderRadius: 0,
-                                  border: "1px dashed #cbd5e1",
-                                  background: previewColors.submenuBackground,
-                                  color: previewColors.submenuText,
-                                  fontSize: 14,
-                                  fontWeight: 500,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-                                Add submenu
-                              </button>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    );
-                  })}
+                {menuItemsForMainRow.map((item) => renderMenuItemButton(item))}
                   <button
                     type="button"
                     onClick={() => handleOpenAddRoot()}
@@ -9720,85 +9828,23 @@ export default function MenuBuilder() {
                   >
                     +
                   </button>
-                  {builderSettings.elementsShowSearch && !isMobilePreview && (
+                  {rightAlignedMenuItems.length > 0 ? (
                     <div
                       style={{
                         marginLeft: isVerticalMenu ? 0 : "auto",
-                        position: "relative",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: isVerticalMenu ? menuRowHeight : "100%",
-                        width: isVerticalMenu ? "100%" : 56,
-                        borderLeft:
-                          showDividers && !isVerticalMenu
-                            ? `1px solid ${previewColors.mainDivider}`
-                            : "none",
-                        borderTop:
-                          showDividers && isVerticalMenu
-                            ? `1px solid ${previewColors.mainDivider}`
-                            : "none",
+                        display: isVerticalMenu ? "block" : "flex",
+                        alignItems: "stretch",
+                        height: isVerticalMenu ? "auto" : "100%",
                       }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => setIsSearchOpen((prev) => !prev)}
-                        style={{
-                          height: "100%",
-                          width: "100%",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: previewColors.mainText,
-                          background: isSearchOpen
-                            ? previewColors.mainBackgroundHover
-                            : previewColors.mainBackground,
-                        }}
-                        onMouseEnter={(event) => {
-                          event.currentTarget.style.background = previewColors.mainBackgroundHover;
-                        }}
-                        onMouseLeave={(event) => {
-                          event.currentTarget.style.background = isSearchOpen
-                            ? previewColors.mainBackgroundHover
-                            : previewColors.mainBackground;
-                        }}
-                      >
-                        <SearchIcon width="18" height="18" fill={previewColors.mainText} />
-                      </button>
-                      {isSearchOpen && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            right: 0,
-                            top: "100%",
-                            marginTop: 0,
-                            background: previewColors.submenuBackground,
-                            border: `1px solid ${previewColors.submenuBorder}`,
-                            borderRadius: 0,
-                            minWidth: isVerticalMenu ? "100%" : 180,
-                            padding: "14px 16px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                            color: previewColors.submenuText,
-                            boxShadow: "0 12px 24px rgba(15, 23, 42, 0.12)",
-                            zIndex: 20,
-                          }}
-                        >
-                          <span
-                            style={{
-                              flex: 1,
-                              fontSize: 16,
-                              color: previewColors.submenuText,
-                              opacity: 0.7,
-                            }}
-                          >
-                            Search for...
-                          </span>
-                          <SearchIcon width="18" height="18" fill={previewColors.submenuText} />
-                        </div>
-                      )}
+                      {rightAlignedMenuItems.map((item) => renderMenuItemButton(item))}
+                      {renderSearchControl(0)}
                     </div>
+                  ) : (
+                    <>
+                      {rightAlignedMenuItems.map((item) => renderMenuItemButton(item))}
+                      {renderSearchControl("auto")}
+                    </>
                   )}
                 </div>
                 </div>
@@ -9811,8 +9857,8 @@ export default function MenuBuilder() {
                     marginTop: 0,
                     padding: 0,
                     position: "absolute",
-                    top: dropdownAnchor?.top ?? menuRowHeight,
-                    left: dropdownAnchor?.left ?? 0,
+                    top: dropdownTop,
+                    left: dropdownLeft,
                     zIndex: 20,
                   }}
                 >
@@ -9881,16 +9927,6 @@ export default function MenuBuilder() {
                         overflowY: allowDropdownScroll ? "auto" : "visible",
                         maxHeight: allowDropdownScroll ? 420 : "none",
                       };
-                      const previewContainerWidth =
-                        previewContainerRef.current?.getBoundingClientRect().width ??
-                        menuMaxWidth ??
-                        1260;
-                      const dropdownPanelPixelWidth =
-                        dropdownPanelWidth === "100%"
-                          ? previewContainerWidth
-                          : typeof dropdownPanelWidth === "number"
-                            ? dropdownPanelWidth
-                            : parseInt(dropdownPanelWidth);
                       const availableRight = dropdownAnchor
                         ? previewContainerWidth - (dropdownAnchor.left + dropdownPanelPixelWidth)
                         : null;
@@ -9899,8 +9935,11 @@ export default function MenuBuilder() {
                         availableRight && availableRight > 0
                           ? Math.floor(availableRight)
                           : simpleLeftTabsPanelWidth;
-                      const availableLeft = dropdownAnchor?.left ?? dropdownPanelPixelWidth;
-                      const resolvedRightTabsPanelWidth = Math.max(0, availableLeft);
+                      const availableLeft = dropdownAnchor?.left ?? dropdownLeft;
+                      const resolvedRightTabsPanelWidth = Math.max(
+                        0,
+                        Math.min(availableLeft, dropdownLeft)
+                      );
                       const resolvedTabsPanelWidth = isSimpleRightTabsTemplate
                         ? resolvedRightTabsPanelWidth
                         : resolvedSimpleLeftTabsPanelWidth;

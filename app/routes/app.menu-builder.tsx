@@ -113,6 +113,7 @@ import {
   buildTwoLevelTabsItems,
   buildTwoNestedTabsRightItems,
   buildThreeNestedTabsRightItems,
+  buildCustomNormalDropdownItems,
   buildThreeColumnLinkItems,
   buildTwoColumnLinkItems,
 } from "../menu-builder/presets";
@@ -634,7 +635,8 @@ export default function MenuBuilder() {
                         previewMenu?.submenuTemplate === "simple-left-tabs" ||
                         previewMenu?.submenuTemplate === "simple-right-tabs" ||
                         previewMenu?.submenuTemplate === "two-nested-tabs-right" ||
-                        previewMenu?.submenuTemplate === "three-nested-tabs-right";
+                        previewMenu?.submenuTemplate === "three-nested-tabs-right" ||
+                        previewMenu?.submenuTemplate === "custom-normal-dropdown";
     if (!isTabsFlyoutTemplate || !activeDropdownItemId) {
       if (dropdownMainPanelMinHeight !== null) {
         setDropdownMainPanelMinHeight(null);
@@ -1954,6 +1956,48 @@ export default function MenuBuilder() {
             </div>
           );
         case "custom":
+          return (
+            <div className="flex flex-col gap-0">
+              {renderTemplatePreviewCard({
+                title: "Normal Dropdown",
+                onSelect: () => handleApplySubmenuTemplate("custom-normal-dropdown"),
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                showSelectButton: false,
+                showTitle: false,
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-gray-400 bg-white/70">
+                      <span className="text-xs font-semibold text-gray-600">Normal Dropdown</span>
+                      <span className="text-[10px] text-gray-500">Preview coming soon</span>
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={() => handleApplySubmenuTemplate("custom-normal-dropdown")}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Custom menu",
+                onSelect: selectTemplate,
+                preview: (
+                  <div className="h-28 rounded-lg bg-[#a7b2c0] p-2">
+                    <div className="h-6 rounded-md bg-white/80" />
+                    <div className="mt-2 h-4 w-2/3 rounded-md bg-white/70" />
+                    <div className="mt-2 h-4 w-1/2 rounded-md bg-white/70" />
+                  </div>
+                ),
+              })}
+            </div>
+          );
         default:
           return renderTemplatePreviewCard({
             title: "Custom menu",
@@ -4032,6 +4076,7 @@ export default function MenuBuilder() {
       templateId === "simple-right-tabs" ||
       templateId === "two-nested-tabs-right" ||
       templateId === "three-nested-tabs-right" ||
+      templateId === "custom-normal-dropdown" ||
       templateId === "two-level-tabs" ||
       templateId === "three-level-tabs";
     const isHorizontalDropdownTemplate =
@@ -4065,6 +4110,8 @@ export default function MenuBuilder() {
           ? buildTwoNestedTabsRightItems()
         : templateId === "three-nested-tabs-right"
           ? buildThreeNestedTabsRightItems()
+        : templateId === "custom-normal-dropdown"
+          ? buildCustomNormalDropdownItems()
         : templateId === "simple-top-tabs"
           ? buildSimpleTopTabsItems()
           : templateId === "two-top-tabs"
@@ -4604,6 +4651,7 @@ export default function MenuBuilder() {
                                 parentItem?.submenuTemplate === "simple-right-tabs" ||
                                 parentItem?.submenuTemplate === "two-nested-tabs-right" ||
                                 parentItem?.submenuTemplate === "three-nested-tabs-right" ||
+                                parentItem?.submenuTemplate === "custom-normal-dropdown" ||
                                 parentItem?.submenuTemplate === "two-level-tabs" ||
                                 parentItem?.submenuTemplate === "three-level-tabs";
                               if (hasBlockChildren && !item.blockTemplate) {
@@ -9989,6 +10037,10 @@ export default function MenuBuilder() {
                         previewMenu?.submenuTemplate === "two-nested-tabs-right";
                       const isThreeNestedRightTabsTemplate =
                         previewMenu?.submenuTemplate === "three-nested-tabs-right";
+                      const isCustomNormalDropdownTemplate =
+                        previewMenu?.submenuTemplate === "custom-normal-dropdown";
+                      const isLeftTabsStyleTemplate =
+                        isSimpleLeftTabsTemplate || isCustomNormalDropdownTemplate;
                       const isRightTabsTemplate =
                         isSimpleRightTabsTemplate ||
                         isTwoNestedRightTabsTemplate ||
@@ -10003,7 +10055,7 @@ export default function MenuBuilder() {
                         isThreeLevelTabsTemplate || isThreeNestedRightTabsTemplate;
                       const activeDropdownChildren = activeDropdownItem?.children ?? [];
                       const activeDropdownHasBlocks =
-                        (isSimpleLeftTabsTemplate || isRightTabsTemplate) &&
+                        (isLeftTabsStyleTemplate || isRightTabsTemplate) &&
                         activeDropdownChildren.some((child) => child.blockTemplate);
                       const activeSecondLevelItem =
                         isTwoLevelTabsVariant || isThreeLevelTabsVariant
@@ -10024,6 +10076,7 @@ export default function MenuBuilder() {
                         thirdLevelChildren.length === 1 &&
                         (thirdLevelChildren[0]?.blockTemplate === "image" ||
                           thirdLevelChildren[0]?.blockTemplate === "image2");
+                      const useCustomNormalDropdownLayout = isCustomNormalDropdownTemplate;
                       const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
                       const hasBlockPanel =
                         activeDropdownHasBlocks || secondLevelHasBlocks || thirdLevelHasBlocks;
@@ -11215,7 +11268,7 @@ export default function MenuBuilder() {
                                     <div
                                       className="menu-builder-hide-scrollbar"
                                       style={{
-                                        overflowX: "auto",
+                                        overflowX: useCustomNormalDropdownLayout ? "hidden" : "auto",
                                         overflowY: "hidden",
                                         scrollbarWidth: "none",
                                         msOverflowStyle: "none",
@@ -11223,12 +11276,25 @@ export default function MenuBuilder() {
                                     >
                                       <div
                                         style={{
-                                          display: "flex",
-                                          flexWrap: "nowrap",
-                                          gap: 24,
+                                          display: useCustomNormalDropdownLayout ? "grid" : "flex",
+                                          gridTemplateColumns: useCustomNormalDropdownLayout
+                                            ? "repeat(4, minmax(0, 1fr))"
+                                            : undefined,
+                                          columnGap: useCustomNormalDropdownLayout ? 0 : undefined,
+                                          rowGap: useCustomNormalDropdownLayout ? 0 : undefined,
+                                          flexWrap: useCustomNormalDropdownLayout ? undefined : "nowrap",
+                                          gap: useCustomNormalDropdownLayout ? undefined : 24,
                                           alignItems: "flex-start",
-                                          justifyContent: useSimpleLeftTabsCompactLayout ? "space-between" : undefined,
-                                          minWidth: useSimpleLeftTabsCompactLayout ? undefined : 960,
+                                          justifyContent: useCustomNormalDropdownLayout
+                                            ? undefined
+                                            : useSimpleLeftTabsCompactLayout
+                                              ? "space-between"
+                                              : undefined,
+                                          minWidth: useCustomNormalDropdownLayout
+                                            ? undefined
+                                            : useSimpleLeftTabsCompactLayout
+                                              ? undefined
+                                              : 960,
                                         }}
                                       >
                                         {activeDropdownChildren.map((child) => {
@@ -11238,15 +11304,17 @@ export default function MenuBuilder() {
                                             const linkFlexBasis =
                                               columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
                                             return renderLinkListBlock(child, {
-                                              flex: `0 0 ${linkFlexBasis}`,
-                                              wrapperStyle: { minWidth: 0 },
+                                              ...(useCustomNormalDropdownLayout
+                                                ? { wrapperStyle: { minWidth: 0 } }
+                                                : { flex: `0 0 ${linkFlexBasis}`, wrapperStyle: { minWidth: 0 } }),
                                               toolbarPlacement: "floating",
                                             });
                                           }
                                           if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
                                             return renderImageBlock(child, {
-                                              flex: "0 0 20%",
-                                              wrapperStyle: { minWidth: 0 },
+                                              ...(useCustomNormalDropdownLayout
+                                                ? { wrapperStyle: { minWidth: 0 } }
+                                                : { flex: "0 0 20%", wrapperStyle: { minWidth: 0 } }),
                                             });
                                           }
                                           if (child.blockTemplate === "html") {

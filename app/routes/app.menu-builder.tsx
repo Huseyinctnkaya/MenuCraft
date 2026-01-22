@@ -1765,17 +1765,19 @@ export default function MenuBuilder() {
                 showTitle: false,
                 preview: (
                   <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-gray-400 bg-white/70">
-                      <span className="text-xs font-semibold text-gray-600">
-                        Three Nested Tabs on the Right
-                      </span>
-                      <span className="text-[10px] text-gray-500">Preview coming soon</span>
-                    </div>
+                    <img
+                      src="/three-nested-tabs.png"
+                      alt="Three Nested Tabs on the Right template"
+                      className="h-full w-full object-contain"
+                    />
                     <div
                       className="absolute right-3 top-3 z-10"
                       style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
                     >
                       <Badge tone="warning">Plus</Badge>
+                    </div>
+                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                      Three Nested Tabs on the Right
                     </div>
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button

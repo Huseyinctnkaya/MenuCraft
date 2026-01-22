@@ -629,14 +629,14 @@ export default function MenuBuilder() {
   ]);
 
   useLayoutEffect(() => {
-                      const isTabsFlyoutTemplate =
-                        previewMenu?.submenuTemplate === "two-level-tabs" ||
-                        previewMenu?.submenuTemplate === "three-level-tabs" ||
-                        previewMenu?.submenuTemplate === "simple-left-tabs" ||
-                        previewMenu?.submenuTemplate === "simple-right-tabs" ||
-                        previewMenu?.submenuTemplate === "two-nested-tabs-right" ||
-                        previewMenu?.submenuTemplate === "three-nested-tabs-right" ||
-                        previewMenu?.submenuTemplate === "custom-normal-dropdown";
+    const isTabsFlyoutTemplate =
+      previewMenu?.submenuTemplate === "two-level-tabs" ||
+      previewMenu?.submenuTemplate === "three-level-tabs" ||
+      previewMenu?.submenuTemplate === "simple-left-tabs" ||
+      previewMenu?.submenuTemplate === "simple-right-tabs" ||
+      previewMenu?.submenuTemplate === "two-nested-tabs-right" ||
+      previewMenu?.submenuTemplate === "three-nested-tabs-right" ||
+      previewMenu?.submenuTemplate === "custom-normal-dropdown";
     if (!isTabsFlyoutTemplate || !activeDropdownItemId) {
       if (dropdownMainPanelMinHeight !== null) {
         setDropdownMainPanelMinHeight(null);
@@ -4106,23 +4106,23 @@ export default function MenuBuilder() {
         ? buildSimpleLeftTabsItems()
         : templateId === "simple-right-tabs"
           ? buildSimpleRightTabsItems()
-        : templateId === "two-nested-tabs-right"
-          ? buildTwoNestedTabsRightItems()
-        : templateId === "three-nested-tabs-right"
-          ? buildThreeNestedTabsRightItems()
-        : templateId === "custom-normal-dropdown"
-          ? buildCustomNormalDropdownItems()
-        : templateId === "simple-top-tabs"
-          ? buildSimpleTopTabsItems()
-          : templateId === "two-top-tabs"
-            ? buildTwoTopTabsItems()
-            : templateId === "three-top-tabs"
-              ? buildThreeTopTabsItems()
-        : templateId === "two-level-tabs"
-          ? buildTwoLevelTabsItems()
-          : templateId === "three-level-tabs"
-            ? buildThreeLevelTabsItems()
-          : buildDropdownMenuItems();
+          : templateId === "two-nested-tabs-right"
+            ? buildTwoNestedTabsRightItems()
+            : templateId === "three-nested-tabs-right"
+              ? buildThreeNestedTabsRightItems()
+              : templateId === "custom-normal-dropdown"
+                ? buildCustomNormalDropdownItems()
+                : templateId === "simple-top-tabs"
+                  ? buildSimpleTopTabsItems()
+                  : templateId === "two-top-tabs"
+                    ? buildTwoTopTabsItems()
+                    : templateId === "three-top-tabs"
+                      ? buildThreeTopTabsItems()
+                      : templateId === "two-level-tabs"
+                        ? buildTwoLevelTabsItems()
+                        : templateId === "three-level-tabs"
+                          ? buildThreeLevelTabsItems()
+                          : buildDropdownMenuItems();
     setMenuItems((items) =>
       updateItemById(items, submenuTemplateTargetId, (item) => {
         const hasChildren = Boolean(item.children?.length);
@@ -9040,7 +9040,7 @@ export default function MenuBuilder() {
     ? activeHorizontalChildren.find((child) => child.id === activeHorizontalChildId) ?? null
     : isThreeTopTabsTemplate
       ? activeHorizontalChildren.find((child) => child.id === activeHorizontalChildId) ?? null
-    : null;
+      : null;
   const activeHorizontalChildChildren = activeHorizontalChild?.children ?? [];
   const activeHorizontalChildHasBlocks = activeHorizontalChildChildren.some((child) => child.blockTemplate);
   const activeHorizontalGrandchild = isThreeTopTabsTemplate
@@ -9220,9 +9220,9 @@ export default function MenuBuilder() {
         : parseInt(dropdownPanelWidth);
   const dropdownLeft = dropdownAnchor
     ? Math.min(
-        Math.max(0, dropdownAnchor.left),
-        Math.max(0, previewContainerWidth - dropdownPanelPixelWidth)
-      )
+      Math.max(0, dropdownAnchor.left),
+      Math.max(0, previewContainerWidth - dropdownPanelPixelWidth)
+    )
     : 0;
 
   const handleSaveMenu = (
@@ -9909,21 +9909,21 @@ export default function MenuBuilder() {
               ) : null}
               <div style={{ position: "relative", width: "100%" }}>
                 {builderSettings.elementsShowSearch && isMobilePreview ? (
-                <div
-                  style={{
-                    background: "#ffffff",
-                    color: "#1f2937",
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "14px 20px",
-                    borderRadius: 0,
-                  }}
-                >
-                  <span style={{ color: "#6b7280", fontSize: 18 }}>Search for...</span>
-                  <span style={{ marginLeft: "auto", display: "inline-flex", color: "#111827" }}>
-                    <SearchIcon width="18" height="18" fill="#111827" />
-                  </span>
-                </div>
+                  <div
+                    style={{
+                      background: "#ffffff",
+                      color: "#1f2937",
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "14px 20px",
+                      borderRadius: 0,
+                    }}
+                  >
+                    <span style={{ color: "#6b7280", fontSize: 18 }}>Search for...</span>
+                    <span style={{ marginLeft: "auto", display: "inline-flex", color: "#111827" }}>
+                      <SearchIcon width="18" height="18" fill="#111827" />
+                    </span>
+                  </div>
                 ) : null}
                 <div
                   style={{
@@ -9933,1045 +9933,554 @@ export default function MenuBuilder() {
                     position: "relative",
                   }}
                 >
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: isVerticalMenu ? "column" : "row",
-                    alignItems: "stretch",
-                    justifyContent: isVerticalMenu ? "flex-start" : menuAlignmentMap[builderSettings.layoutAlignment],
-                    gap: 0,
-                    height: isVerticalMenu ? "auto" : menuRowHeight,
-                    color: previewColors.mainText,
-                  }}
-                >
-                {menuItemsForMainRow.map((item) => renderMenuItemButton(item))}
-                  <button
-                    type="button"
-                    onClick={() => handleOpenAddRoot()}
-                    style={{
-                      color: previewColors.mainText,
-                      height: isVerticalMenu ? menuRowHeight : "100%",
-                      minWidth: isVerticalMenu ? "100%" : 50,
-                      padding: isVerticalMenu ? "0 12px" : "0 18px",
-                      borderRight:
-                        showDividers && !isVerticalMenu
-                          ? `1px solid ${previewColors.mainDivider}`
-                          : "none",
-                      borderBottom:
-                        showDividers && isVerticalMenu
-                          ? `1px solid ${previewColors.mainDivider}`
-                          : "none",
-                      borderRadius: 0,
-                      background: previewColors.mainBackground,
-                      transition: "background 150ms ease",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: isVerticalMenu ? "center" : "flex-start",
-                    }}
-                    onMouseEnter={(event) => {
-                      event.currentTarget.style.background = previewColors.mainBackgroundHover;
-                      event.currentTarget.style.color = previewColors.mainTextHover;
-                    }}
-                    onMouseLeave={(event) => {
-                      event.currentTarget.style.background = previewColors.mainBackground;
-                      event.currentTarget.style.color = previewColors.mainText;
-                    }}
-                  >
-                    +
-                  </button>
-                  {rightAlignedMenuItems.length > 0 ? (
-                    <div
-                      style={{
-                        marginLeft: isVerticalMenu ? 0 : "auto",
-                        display: isVerticalMenu ? "block" : "flex",
-                        alignItems: "stretch",
-                        height: isVerticalMenu ? "auto" : "100%",
-                      }}
-                    >
-                      {rightAlignedMenuItems.map((item) => renderMenuItemButton(item))}
-                      {renderSearchControl(0)}
-                    </div>
-                  ) : (
-                    <>
-                      {rightAlignedMenuItems.map((item) => renderMenuItemButton(item))}
-                      {renderSearchControl("auto")}
-                    </>
-                  )}
-                </div>
-                </div>
-
-              {isDropdownMenu && previewMenu ? (
-                <div
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    marginTop: 0,
-                    padding: 0,
-                    position: "absolute",
-                    top: dropdownTop,
-                    left: dropdownLeft,
-                    zIndex: 20,
-                  }}
-                >
                   <div
-                    className="relative"
                     style={{
                       display: "flex",
-                      flexDirection: "column",
+                      flexDirection: isVerticalMenu ? "column" : "row",
+                      alignItems: "stretch",
+                      justifyContent: isVerticalMenu ? "flex-start" : menuAlignmentMap[builderSettings.layoutAlignment],
                       gap: 0,
-                      justifyContent: dropdownAlignJustify,
-                      alignItems: "flex-start",
-                      color: previewColors.submenuText,
+                      height: isVerticalMenu ? "auto" : menuRowHeight,
+                      color: previewColors.mainText,
                     }}
                   >
-                    {(() => {
-                      const activeDropdownItem =
-                        dropdownItems.find((child) => child.id === activeDropdownItemId) ?? null;
-                      const isSimpleLeftTabsTemplate =
-                        previewMenu?.submenuTemplate === "simple-left-tabs";
-                      const isSimpleRightTabsTemplate =
-                        previewMenu?.submenuTemplate === "simple-right-tabs";
-                      const isTwoNestedRightTabsTemplate =
-                        previewMenu?.submenuTemplate === "two-nested-tabs-right";
-                      const isThreeNestedRightTabsTemplate =
-                        previewMenu?.submenuTemplate === "three-nested-tabs-right";
-                      const isCustomNormalDropdownTemplate =
-                        previewMenu?.submenuTemplate === "custom-normal-dropdown";
-                      const isLeftTabsStyleTemplate =
-                        isSimpleLeftTabsTemplate || isCustomNormalDropdownTemplate;
-                      const isRightTabsTemplate =
-                        isSimpleRightTabsTemplate ||
-                        isTwoNestedRightTabsTemplate ||
-                        isThreeNestedRightTabsTemplate;
-                      const isTwoLevelTabsTemplate =
-                        previewMenu?.submenuTemplate === "two-level-tabs";
-                      const isThreeLevelTabsTemplate =
-                        previewMenu?.submenuTemplate === "three-level-tabs";
-                      const isTwoLevelTabsVariant =
-                        isTwoLevelTabsTemplate || isTwoNestedRightTabsTemplate;
-                      const isThreeLevelTabsVariant =
-                        isThreeLevelTabsTemplate || isThreeNestedRightTabsTemplate;
-                      const activeDropdownChildren = activeDropdownItem?.children ?? [];
-                      const activeDropdownHasBlocks =
-                        (isLeftTabsStyleTemplate || isRightTabsTemplate) &&
-                        activeDropdownChildren.some((child) => child.blockTemplate);
-                      const activeSecondLevelItem =
-                        isTwoLevelTabsVariant || isThreeLevelTabsVariant
-                          ? activeDropdownChildren.find((child) => child.id === activeDropdownChildId) ?? null
-                          : null;
-                      const secondLevelChildren = activeSecondLevelItem?.children ?? [];
-                      const secondLevelHasBlocks =
-                        isTwoLevelTabsVariant &&
-                        secondLevelChildren.some((child) => child.blockTemplate);
-                      const activeThirdLevelItem = isThreeLevelTabsVariant
-                        ? secondLevelChildren.find((child) => child.id === activeDropdownGrandchildId) ?? null
-                        : null;
-                      const thirdLevelChildren = activeThirdLevelItem?.children ?? [];
-                      const thirdLevelHasBlocks =
-                        isThreeLevelTabsVariant &&
-                        thirdLevelChildren.some((child) => child.blockTemplate);
-                      const isSoloImagePanel =
-                        thirdLevelChildren.length === 1 &&
-                        (thirdLevelChildren[0]?.blockTemplate === "image" ||
-                          thirdLevelChildren[0]?.blockTemplate === "image2");
-                      const useCustomNormalDropdownLayout = isCustomNormalDropdownTemplate;
-                      const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
-                      const hasBlockPanel =
-                        activeDropdownHasBlocks || secondLevelHasBlocks || thirdLevelHasBlocks;
-                      const allowDropdownScroll =
-                        dropdownOverflowY &&
-                        !isTwoLevelTabsVariant &&
-                        !isThreeLevelTabsVariant &&
-                        !hasBlockPanel;
-                      const dropdownPanelStyle: CSSProperties = {
-                        background: previewColors.submenuBackground,
-                        border: builderSettings.submenuShowBorder
-                          ? `1px solid ${previewColors.submenuBorder}`
-                          : "none",
+                    {menuItemsForMainRow.map((item) => renderMenuItemButton(item))}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAddRoot()}
+                      style={{
+                        color: previewColors.mainText,
+                        height: isVerticalMenu ? menuRowHeight : "100%",
+                        minWidth: isVerticalMenu ? "100%" : 50,
+                        padding: isVerticalMenu ? "0 12px" : "0 18px",
+                        borderRight:
+                          showDividers && !isVerticalMenu
+                            ? `1px solid ${previewColors.mainDivider}`
+                            : "none",
+                        borderBottom:
+                          showDividers && isVerticalMenu
+                            ? `1px solid ${previewColors.mainDivider}`
+                            : "none",
                         borderRadius: 0,
-                        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
-                        width: dropdownPanelWidth,
-                        maxWidth: submenuMaxWidth ?? undefined,
-                        overflowY: allowDropdownScroll ? "auto" : "visible",
-                        maxHeight: allowDropdownScroll ? 420 : "none",
-                      };
-                      const availableRight = dropdownAnchor
-                        ? previewContainerWidth - (dropdownAnchor.left + dropdownPanelPixelWidth)
-                        : null;
-                      const simpleLeftTabsPanelWidth = submenuMaxWidth ?? 720;
-                      const resolvedSimpleLeftTabsPanelWidth =
-                        availableRight && availableRight > 0
-                          ? Math.floor(availableRight)
-                          : simpleLeftTabsPanelWidth;
-                      const availableLeft = dropdownAnchor?.left ?? dropdownLeft;
-                      const resolvedRightTabsPanelWidth = Math.max(
-                        0,
-                        Math.min(availableLeft, dropdownLeft)
-                      );
-                      const resolvedTabsPanelWidth = isRightTabsTemplate
-                        ? resolvedRightTabsPanelWidth
-                        : resolvedSimpleLeftTabsPanelWidth;
-                      const { background, border, borderRadius, boxShadow } = dropdownPanelStyle;
-                      const blockPanelChildren = secondLevelHasBlocks
-                        ? secondLevelChildren
-                        : thirdLevelHasBlocks
-                          ? thirdLevelChildren
-                          : [];
-                      const blockPanelCount = blockPanelChildren.filter((child) => child.blockTemplate).length;
-                      const baseBlockPanelWidth = Math.min(
-                        resolvedSimpleLeftTabsPanelWidth,
-                        Math.max(360, blockPanelCount * 240 || 480)
-                      );
-                      const blockPanelWidth = isSoloImagePanel
-                        ? Math.max(280, Math.round(baseBlockPanelWidth * 0.7))
-                        : baseBlockPanelWidth;
-                      const rightNestedListPanels = isThreeNestedRightTabsTemplate
-                        ? activeSecondLevelItem
-                          ? 2
-                          : 1
-                        : 1;
-                      const rightNestedBlockWidth = isThreeNestedRightTabsTemplate
-                        ? thirdLevelHasBlocks
-                          ? blockPanelWidth
-                          : 0
-                        : secondLevelHasBlocks
-                          ? blockPanelWidth
-                          : 0;
-                      const rightNestedFlyoutWidth =
-                        dropdownPanelPixelWidth * rightNestedListPanels + rightNestedBlockWidth;
-                      const dropdownFlyoutStyle: CSSProperties =
-                        isTwoLevelTabsVariant || isThreeLevelTabsVariant
-                          ? {
-                          background: "transparent",
-                          border: "none",
-                          borderRadius: 0,
-                          boxShadow: "none",
-                          width: "auto",
-                          maxWidth: "none",
-                          height: "auto",
-                          maxHeight: "none",
-                          overflow: "visible",
-                          display: "flex",
-                          flexDirection:
-                            isTwoNestedRightTabsTemplate || isThreeNestedRightTabsTemplate
-                              ? "row-reverse"
-                              : "row",
-                          gap: 0,
-                        }
-                        : activeDropdownHasBlocks
-                          ? {
-                            background,
-                            border,
-                            borderRadius,
-                            boxShadow,
-                            width: resolvedTabsPanelWidth,
-                            maxWidth: resolvedTabsPanelWidth,
-                            height: "auto",
-                            maxHeight: "none",
-                            overflow: "visible",
-                          }
-                          : dropdownPanelStyle;
-                      const openFlyoutToLeft = isPreviewLeftAligned || isRightTabsTemplate;
-                      const flyoutOffset = activeDropdownHasBlocks
-                        ? resolvedTabsPanelWidth
-                        : dropdownPanelPixelWidth;
-                      const menuBarLeftOffset = dropdownAnchor?.left ?? 0;
-                      const flyoutLeft = openFlyoutToLeft
-                        ? isTwoNestedRightTabsTemplate || isThreeNestedRightTabsTemplate
-                          ? -rightNestedFlyoutWidth
-                          : isRightTabsTemplate
-                            ? -resolvedRightTabsPanelWidth
-                            : -flyoutOffset
-                        : dropdownPanelPixelWidth;
+                        background: previewColors.mainBackground,
+                        transition: "background 150ms ease",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: isVerticalMenu ? "center" : "flex-start",
+                      }}
+                      onMouseEnter={(event) => {
+                        event.currentTarget.style.background = previewColors.mainBackgroundHover;
+                        event.currentTarget.style.color = previewColors.mainTextHover;
+                      }}
+                      onMouseLeave={(event) => {
+                        event.currentTarget.style.background = previewColors.mainBackground;
+                        event.currentTarget.style.color = previewColors.mainText;
+                      }}
+                    >
+                      +
+                    </button>
+                    {rightAlignedMenuItems.length > 0 ? (
+                      <div
+                        style={{
+                          marginLeft: isVerticalMenu ? 0 : "auto",
+                          display: isVerticalMenu ? "block" : "flex",
+                          alignItems: "stretch",
+                          height: isVerticalMenu ? "auto" : "100%",
+                        }}
+                      >
+                        {rightAlignedMenuItems.map((item) => renderMenuItemButton(item))}
+                        {renderSearchControl(0)}
+                      </div>
+                    ) : (
+                      <>
+                        {rightAlignedMenuItems.map((item) => renderMenuItemButton(item))}
+                        {renderSearchControl("auto")}
+                      </>
+                    )}
+                  </div>
+                </div>
 
-                      // Seçili item'ın top pozisyonunu bul
-                      let activeItemOffsetTop = 0;
-                      if (activeDropdownItem) {
-                        const mainPanel = document.querySelector('[data-dropdown-main-panel]');
-                        const activeItemElement = mainPanel?.querySelector(`[data-dropdown-item-id="${activeDropdownItem.id}"]`);
-                        if (activeItemElement) {
-                          activeItemOffsetTop = (activeItemElement as HTMLElement).offsetTop + dropdownItemHeight;
+                {isDropdownMenu && previewMenu ? (
+                  <div
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      marginTop: 0,
+                      padding: 0,
+                      position: "absolute",
+                      top: dropdownTop,
+                      left: dropdownLeft,
+                      zIndex: 20,
+                    }}
+                  >
+                    <div
+                      className="relative"
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0,
+                        justifyContent: dropdownAlignJustify,
+                        alignItems: "flex-start",
+                        color: previewColors.submenuText,
+                      }}
+                    >
+                      {(() => {
+                        const activeDropdownItem =
+                          dropdownItems.find((child) => child.id === activeDropdownItemId) ?? null;
+                        const isSimpleLeftTabsTemplate =
+                          previewMenu?.submenuTemplate === "simple-left-tabs";
+                        const isSimpleRightTabsTemplate =
+                          previewMenu?.submenuTemplate === "simple-right-tabs";
+                        const isTwoNestedRightTabsTemplate =
+                          previewMenu?.submenuTemplate === "two-nested-tabs-right";
+                        const isThreeNestedRightTabsTemplate =
+                          previewMenu?.submenuTemplate === "three-nested-tabs-right";
+                        const isCustomNormalDropdownTemplate =
+                          previewMenu?.submenuTemplate === "custom-normal-dropdown";
+                        const isLeftTabsStyleTemplate =
+                          isSimpleLeftTabsTemplate || isCustomNormalDropdownTemplate;
+                        const isRightTabsTemplate =
+                          isSimpleRightTabsTemplate ||
+                          isTwoNestedRightTabsTemplate ||
+                          isThreeNestedRightTabsTemplate;
+                        const isTwoLevelTabsTemplate =
+                          previewMenu?.submenuTemplate === "two-level-tabs";
+                        const isThreeLevelTabsTemplate =
+                          previewMenu?.submenuTemplate === "three-level-tabs";
+                        const isTwoLevelTabsVariant =
+                          isTwoLevelTabsTemplate || isTwoNestedRightTabsTemplate;
+                        const isThreeLevelTabsVariant =
+                          isThreeLevelTabsTemplate || isThreeNestedRightTabsTemplate;
+                        const activeDropdownChildren = activeDropdownItem?.children ?? [];
+                        const activeDropdownHasBlocks =
+                          (isLeftTabsStyleTemplate || isRightTabsTemplate) &&
+                          activeDropdownChildren.some((child) => child.blockTemplate);
+                        const activeSecondLevelItem =
+                          isTwoLevelTabsVariant || isThreeLevelTabsVariant
+                            ? activeDropdownChildren.find((child) => child.id === activeDropdownChildId) ?? null
+                            : null;
+                        const secondLevelChildren = activeSecondLevelItem?.children ?? [];
+                        const secondLevelHasBlocks =
+                          isTwoLevelTabsVariant &&
+                          secondLevelChildren.some((child) => child.blockTemplate);
+                        const activeThirdLevelItem = isThreeLevelTabsVariant
+                          ? secondLevelChildren.find((child) => child.id === activeDropdownGrandchildId) ?? null
+                          : null;
+                        const thirdLevelChildren = activeThirdLevelItem?.children ?? [];
+                        const thirdLevelHasBlocks =
+                          isThreeLevelTabsVariant &&
+                          thirdLevelChildren.some((child) => child.blockTemplate);
+                        const isSoloImagePanel =
+                          thirdLevelChildren.length === 1 &&
+                          (thirdLevelChildren[0]?.blockTemplate === "image" ||
+                            thirdLevelChildren[0]?.blockTemplate === "image2");
+                        const useCustomNormalDropdownLayout = isCustomNormalDropdownTemplate;
+                        const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
+                        const hasBlockPanel =
+                          activeDropdownHasBlocks || secondLevelHasBlocks || thirdLevelHasBlocks;
+                        const allowDropdownScroll =
+                          dropdownOverflowY &&
+                          !isTwoLevelTabsVariant &&
+                          !isThreeLevelTabsVariant &&
+                          !hasBlockPanel;
+                        const dropdownPanelStyle: CSSProperties = {
+                          background: previewColors.submenuBackground,
+                          border: builderSettings.submenuShowBorder
+                            ? `1px solid ${previewColors.submenuBorder}`
+                            : "none",
+                          borderRadius: 0,
+                          boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
+                          width: dropdownPanelWidth,
+                          maxWidth: submenuMaxWidth ?? undefined,
+                          overflowY: allowDropdownScroll ? "auto" : "visible",
+                          maxHeight: allowDropdownScroll ? 420 : "none",
+                        };
+                        const availableRight = dropdownAnchor
+                          ? previewContainerWidth - (dropdownAnchor.left + dropdownPanelPixelWidth)
+                          : null;
+                        const simpleLeftTabsPanelWidth = submenuMaxWidth ?? 720;
+                        const resolvedSimpleLeftTabsPanelWidth =
+                          availableRight && availableRight > 0
+                            ? Math.floor(availableRight)
+                            : simpleLeftTabsPanelWidth;
+                        const availableLeft = dropdownAnchor?.left ?? dropdownLeft;
+                        const resolvedRightTabsPanelWidth = Math.max(
+                          0,
+                          Math.min(availableLeft, dropdownLeft)
+                        );
+                        const resolvedTabsPanelWidth = isRightTabsTemplate
+                          ? resolvedRightTabsPanelWidth
+                          : resolvedSimpleLeftTabsPanelWidth;
+                        const { background, border, borderRadius, boxShadow } = dropdownPanelStyle;
+                        const blockPanelChildren = secondLevelHasBlocks
+                          ? secondLevelChildren
+                          : thirdLevelHasBlocks
+                            ? thirdLevelChildren
+                            : [];
+                        const blockPanelCount = blockPanelChildren.filter((child) => child.blockTemplate).length;
+                        const baseBlockPanelWidth = Math.min(
+                          resolvedSimpleLeftTabsPanelWidth,
+                          Math.max(360, blockPanelCount * 240 || 480)
+                        );
+                        const blockPanelWidth = isSoloImagePanel
+                          ? Math.max(280, Math.round(baseBlockPanelWidth * 0.7))
+                          : baseBlockPanelWidth;
+                        const rightNestedListPanels = isThreeNestedRightTabsTemplate
+                          ? activeSecondLevelItem
+                            ? 2
+                            : 1
+                          : 1;
+                        const rightNestedBlockWidth = isThreeNestedRightTabsTemplate
+                          ? thirdLevelHasBlocks
+                            ? blockPanelWidth
+                            : 0
+                          : secondLevelHasBlocks
+                            ? blockPanelWidth
+                            : 0;
+                        const rightNestedFlyoutWidth =
+                          dropdownPanelPixelWidth * rightNestedListPanels + rightNestedBlockWidth;
+                        const dropdownFlyoutStyle: CSSProperties =
+                          isTwoLevelTabsVariant || isThreeLevelTabsVariant
+                            ? {
+                              background: "transparent",
+                              border: "none",
+                              borderRadius: 0,
+                              boxShadow: "none",
+                              width: "auto",
+                              maxWidth: "none",
+                              height: "auto",
+                              maxHeight: "none",
+                              overflow: "visible",
+                              display: "flex",
+                              flexDirection:
+                                isTwoNestedRightTabsTemplate || isThreeNestedRightTabsTemplate
+                                  ? "row-reverse"
+                                  : "row",
+                              gap: 0,
+                            }
+                            : activeDropdownHasBlocks
+                              ? {
+                                background,
+                                border,
+                                borderRadius,
+                                boxShadow,
+                                width: resolvedTabsPanelWidth,
+                                maxWidth: resolvedTabsPanelWidth,
+                                height: "auto",
+                                maxHeight: "none",
+                                overflow: "visible",
+                              }
+                              : dropdownPanelStyle;
+                        const openFlyoutToLeft = isPreviewLeftAligned || isRightTabsTemplate;
+                        const flyoutOffset = activeDropdownHasBlocks
+                          ? resolvedTabsPanelWidth
+                          : dropdownPanelPixelWidth;
+                        const menuBarLeftOffset = dropdownAnchor?.left ?? 0;
+                        const flyoutLeft = openFlyoutToLeft
+                          ? isTwoNestedRightTabsTemplate || isThreeNestedRightTabsTemplate
+                            ? -rightNestedFlyoutWidth
+                            : isRightTabsTemplate
+                              ? -resolvedRightTabsPanelWidth
+                              : -flyoutOffset
+                          : dropdownPanelPixelWidth;
+
+                        // Seçili item'ın top pozisyonunu bul
+                        let activeItemOffsetTop = 0;
+                        if (activeDropdownItem) {
+                          const mainPanel = document.querySelector('[data-dropdown-main-panel]');
+                          const activeItemElement = mainPanel?.querySelector(`[data-dropdown-item-id="${activeDropdownItem.id}"]`);
+                          if (activeItemElement) {
+                            activeItemOffsetTop = (activeItemElement as HTMLElement).offsetTop + dropdownItemHeight;
+                          }
                         }
-                      }
-                      const mainPanelStyle: CSSProperties = dropdownMainPanelMinHeight
-                        ? { ...dropdownPanelStyle, minHeight: dropdownMainPanelMinHeight }
-                        : dropdownPanelStyle;
-                      return (
-                        <>
-                          <div style={{ display: "flex", gap: 0, position: "relative" }}>
-                            <div
-                              className="relative"
-                              style={{ ...mainPanelStyle, display: "flex", flexDirection: "column" }}
-                              data-dropdown-main-panel
-                              ref={dropdownMainPanelRef}
-                            >
+                        const mainPanelStyle: CSSProperties = dropdownMainPanelMinHeight
+                          ? { ...dropdownPanelStyle, minHeight: dropdownMainPanelMinHeight }
+                          : dropdownPanelStyle;
+                        return (
+                          <>
+                            <div style={{ display: "flex", gap: 0, position: "relative" }}>
                               <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  gap: 0,
-                                  padding: 12,
-                                  flex: 1,
-                                }}
+                                className="relative"
+                                style={{ ...mainPanelStyle, display: "flex", flexDirection: "column" }}
+                                data-dropdown-main-panel
+                                ref={dropdownMainPanelRef}
                               >
-                                {dropdownItems.map((child) => {
-                                  const hasChildren = Boolean(child.children?.length);
-                                  const isActiveChild = activeDropdownItem?.id === child.id;
-                                  const showLeftChevron = isRightTabsTemplate && hasChildren;
-                                  const needsNestedReset =
-                                    isTwoLevelTabsVariant || isThreeLevelTabsVariant;
-                                  return (
-                                    <div
-                                      key={child.id}
-                                      className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
-                                      ref={registerPreviewRow(child.id)}
-                                      style={{ willChange: "transform" }}
-                                      data-dropdown-item-id={child.id}
-                                      draggable
-                                      onDragStart={(event) => {
-                                        event.dataTransfer.effectAllowed = "move";
-                                        event.dataTransfer.setData("text/plain", child.id);
-                                        setDraggedItemId(child.id);
-                                        const parentId = findParentId(menuItems, child.id);
-                                        setDraggedParentId(parentId ?? null);
-                                        lastDragOverIdRef.current = null;
-                                      }}
-                                      onDragEnd={() => {
-                                        setDraggedItemId(null);
-                                        setDraggedParentId(null);
-                                        lastDragOverIdRef.current = null;
-                                      }}
-                                      onDragOver={(event) => {
-                                        if (!draggedItemId || draggedItemId === child.id) return;
-                                        const targetParentId = findParentId(menuItems, child.id);
-                                        if (draggedParentId !== targetParentId) return;
-                                        event.preventDefault();
-                                        if (lastDragOverIdRef.current === child.id) return;
-                                        lastDragOverIdRef.current = child.id;
-                                        setMenuItems((items) => moveItem(items, draggedItemId, child.id));
-                                      }}
-                                      onDrop={(event) => {
-                                        event.preventDefault();
-                                        setDraggedItemId(null);
-                                        setDraggedParentId(null);
-                                        lastDragOverIdRef.current = null;
-                                      }}
-                                    >
-                                      <button
-                                        type="button"
-                                        className="cursor-grab active:cursor-grabbing"
-                                        onClick={() => {
-                                          handleSelectItem(child.id);
-                                          if (hasChildren) {
-                                            setActiveDropdownItemId((prev) =>
-                                              prev === child.id ? null : child.id
-                                            );
-                                            if (needsNestedReset) {
-                                              setActiveDropdownChildId(null);
-                                              setActiveDropdownGrandchildId(null);
-                                            }
-                                          } else {
-                                            setActiveDropdownItemId(null);
-                                            if (needsNestedReset) {
-                                              setActiveDropdownChildId(null);
-                                              setActiveDropdownGrandchildId(null);
-                                            }
-                                          }
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 0,
+                                    padding: 12,
+                                    flex: 1,
+                                  }}
+                                >
+                                  {dropdownItems.map((child) => {
+                                    const hasChildren = Boolean(child.children?.length);
+                                    const isActiveChild = activeDropdownItem?.id === child.id;
+                                    const showLeftChevron = isRightTabsTemplate && hasChildren;
+                                    const needsNestedReset =
+                                      isTwoLevelTabsVariant || isThreeLevelTabsVariant;
+                                    return (
+                                      <div
+                                        key={child.id}
+                                        className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                        ref={registerPreviewRow(child.id)}
+                                        style={{ willChange: "transform" }}
+                                        data-dropdown-item-id={child.id}
+                                        draggable
+                                        onDragStart={(event) => {
+                                          event.dataTransfer.effectAllowed = "move";
+                                          event.dataTransfer.setData("text/plain", child.id);
+                                          setDraggedItemId(child.id);
+                                          const parentId = findParentId(menuItems, child.id);
+                                          setDraggedParentId(parentId ?? null);
+                                          lastDragOverIdRef.current = null;
                                         }}
-                                        onMouseEnter={(event) => {
-                                          event.currentTarget.style.color = previewColors.submenuTextHover;
+                                        onDragEnd={() => {
+                                          setDraggedItemId(null);
+                                          setDraggedParentId(null);
+                                          lastDragOverIdRef.current = null;
                                         }}
-                                        onMouseLeave={(event) => {
-                                          event.currentTarget.style.color = previewColors.submenuText;
+                                        onDragOver={(event) => {
+                                          if (!draggedItemId || draggedItemId === child.id) return;
+                                          const targetParentId = findParentId(menuItems, child.id);
+                                          if (draggedParentId !== targetParentId) return;
+                                          event.preventDefault();
+                                          if (lastDragOverIdRef.current === child.id) return;
+                                          lastDragOverIdRef.current = child.id;
+                                          setMenuItems((items) => moveItem(items, draggedItemId, child.id));
                                         }}
-                                        style={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: showLeftChevron ? "flex-start" : "space-between",
-                                          gap: 10,
-                                          minHeight: dropdownItemHeight,
-                                          padding: "8px 10px",
-                                          borderRadius: 0,
-                                          border: "2px solid transparent",
-                                          background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
-                                          color: previewColors.submenuText,
-                                          width: "100%",
-                                          textAlign: dropdownContentAlign,
-                                          ...subtextTypography,
-                                          lineHeight: 1.2,
+                                        onDrop={(event) => {
+                                          event.preventDefault();
+                                          setDraggedItemId(null);
+                                          setDraggedParentId(null);
+                                          lastDragOverIdRef.current = null;
                                         }}
                                       >
-                                        {showLeftChevron ? (
-                                          <ChevronLeftIcon width="14" height="14" fill={previewColors.submenuText} />
-                                        ) : null}
-                                        <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
-                                          {child.label}
-                                        </span>
-                                        {!showLeftChevron && hasChildren ? (
-                                          <ChevronRightIcon width="14" height="14" fill={previewColors.submenuText} />
-                                        ) : null}
-                                      </button>
-                                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                                        <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                                          <button
-                                            type="button"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleSelectItem(child.id, true);
-                                            }}
-                                            aria-label="Edit item"
-                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                          >
-                                            <Icon source={EditIcon} />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              handleDuplicateItem(child.id);
-                                            }}
-                                            aria-label="Duplicate item"
-                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                          >
-                                            <Icon source={DuplicateIcon} />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={(event) => {
-                                              event.stopPropagation();
-                                              openDeleteItemDialog(child.id);
-                                            }}
-                                            aria-label="Delete item"
-                                            className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                                          >
-                                            <Icon source={DeleteIcon} />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenAddRoot(previewMenu.id)}
-                                  className="text-sm font-medium"
-                                  style={{
-                                    alignSelf: "stretch",
-                                    minHeight: dropdownItemHeight,
-                                    textAlign: dropdownContentAlign,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: dropdownAlignJustify,
-                                    gap: 8,
-                                    width: "100%",
-                                    padding: "6px 8px",
-                                    color: themeSettings.menuActive,
-                                    background: "transparent",
-                                    border: "none",
-                                    ...descriptionTypography,
-                                  }}
-                                  onMouseEnter={(event) => {
-                                    event.currentTarget.style.color = previewColors.submenuTextHover;
-                                  }}
-                                  onMouseLeave={(event) => {
-                                    event.currentTarget.style.color = themeSettings.menuActive;
-                                  }}
-                                >
-                                  <span
-                                    aria-hidden="true"
-                                    style={{
-                                      width: 20,
-                                      height: 20,
-                                      borderRadius: 9999,
-                                      border: "2px solid currentColor",
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      fontSize: 14,
-                                      lineHeight: 1,
-                                    }}
-                                  >
-                                    +
-                                  </span>
-                                  Add item
-                                </button>
-                              </div>
-                              <div
-                                className="flex items-center gap-0"
-                                style={{
-                                  background: "rgb(17, 24, 39)",
-                                  padding: "4px",
-                                  borderRadius: "0",
-                                  width: "100%",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <button
-                                  type="button"
-                                  aria-label="Align left"
-                                  className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
-                                  onClick={() =>
-                                    setMenuItems((items) =>
-                                      updateItemById(items, previewMenu.id, () => ({
-                                        ...previewMenu,
-                                        submenuContentAlign: "left",
-                                      }))
-                                    )
-                                  }
-                                >
-                                  <Icon source={TextAlignLeftIcon} />
-                                </button>
-                                <button
-                                  type="button"
-                                  aria-label="Align center"
-                                  className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
-                                  onClick={() =>
-                                    setMenuItems((items) =>
-                                      updateItemById(items, previewMenu.id, () => ({
-                                        ...previewMenu,
-                                        submenuContentAlign: "center",
-                                      }))
-                                    )
-                                  }
-                                >
-                                  <Icon source={TextAlignCenterIcon} />
-                                </button>
-                                <button
-                                  type="button"
-                                  aria-label="Align right"
-                                  className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
-                                  onClick={() =>
-                                    setMenuItems((items) =>
-                                      updateItemById(items, previewMenu.id, () => ({
-                                        ...previewMenu,
-                                        submenuContentAlign: "right",
-                                      }))
-                                    )
-                                  }
-                                >
-                                  <Icon source={TextAlignRightIcon} />
-                                </button>
-                              </div>
-                            </div>
-                            {activeDropdownItem ? (
-                              <div
-                                style={{
-                                  ...dropdownFlyoutStyle,
-                                  position: "absolute",
-                                  left: flyoutLeft,
-                                  top:
-                                    isTwoLevelTabsVariant ||
-                                    isThreeLevelTabsVariant ||
-                                    isSimpleLeftTabsTemplate ||
-                                    isRightTabsTemplate
-                                      ? 0
-                                      : activeItemOffsetTop,
-                                }}
-                                data-submenu-panel
-                                ref={dropdownFlyoutRef}
-                              >
-                                {isTwoLevelTabsVariant ? (
-                                  <>
-                                    <div style={dropdownPanelStyle}>
-                                      <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
-                                        {activeDropdownChildren.map((child) => {
-                                          const hasBlocks = Boolean(
-                                            child.children?.some((grandChild) => grandChild.blockTemplate)
-                                          );
-                                          const isActiveChild = activeDropdownChildId === child.id;
-                                          const showNestedLeftChevron =
-                                            isTwoNestedRightTabsTemplate && hasBlocks;
-                                          return (
-                                            <div
-                                              key={child.id}
-                                              className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
-                                              ref={registerPreviewRow(child.id)}
-                                              style={{ willChange: "transform" }}
-                                              draggable
-                                              onDragStart={(event) => {
-                                                event.dataTransfer.effectAllowed = "move";
-                                                event.dataTransfer.setData("text/plain", child.id);
-                                                setDraggedItemId(child.id);
-                                                const parentId = findParentId(menuItems, child.id);
-                                                setDraggedParentId(parentId ?? null);
-                                                lastDragOverIdRef.current = null;
-                                              }}
-                                              onDragEnd={() => {
-                                                setDraggedItemId(null);
-                                                setDraggedParentId(null);
-                                                lastDragOverIdRef.current = null;
-                                              }}
-                                              onDragOver={(event) => {
-                                                if (!draggedItemId || draggedItemId === child.id) return;
-                                                const targetParentId = findParentId(menuItems, child.id);
-                                                if (draggedParentId !== targetParentId) return;
-                                                event.preventDefault();
-                                                if (lastDragOverIdRef.current === child.id) return;
-                                                lastDragOverIdRef.current = child.id;
-                                                setMenuItems((items) => moveItem(items, draggedItemId, child.id));
-                                              }}
-                                              onDrop={(event) => {
-                                                event.preventDefault();
-                                                setDraggedItemId(null);
-                                                setDraggedParentId(null);
-                                                lastDragOverIdRef.current = null;
-                                              }}
-                                            >
-                                              <button
-                                                type="button"
-                                                className="cursor-grab active:cursor-grabbing"
-                                                onClick={() => {
-                                                  handleSelectItem(child.id);
-                                                  if (hasBlocks) {
-                                                    setActiveDropdownChildId((prev) =>
-                                                      prev === child.id ? null : child.id
-                                                    );
-                                                  } else {
-                                                    setActiveDropdownChildId(null);
-                                                  }
-                                                }}
-                                                onMouseEnter={(event) => {
-                                                  event.currentTarget.style.color = previewColors.submenuTextHover;
-                                                }}
-                                                onMouseLeave={(event) => {
-                                                  event.currentTarget.style.color = previewColors.submenuText;
-                                                }}
-                                                style={{
-                                                  display: "flex",
-                                                  alignItems: "center",
-                                                  justifyContent: showNestedLeftChevron ? "flex-start" : "space-between",
-                                                  gap: 10,
-                                                  minHeight: dropdownItemHeight,
-                                                  padding: "8px 10px",
-                                                  borderRadius: 0,
-                                                  border: "2px solid transparent",
-                                                  background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
-                                                  color: previewColors.submenuText,
-                                                  width: "100%",
-                                                  textAlign: dropdownContentAlign,
-                                                  ...subtextTypography,
-                                                  lineHeight: 1.2,
-                                                }}
-                                              >
-                                                {showNestedLeftChevron ? (
-                                                  <ChevronLeftIcon
-                                                    width="14"
-                                                    height="14"
-                                                    fill={previewColors.submenuText}
-                                                  />
-                                                ) : null}
-                                                <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
-                                                  {child.label}
-                                                </span>
-                                                {!showNestedLeftChevron && hasBlocks ? (
-                                                  <ChevronRightIcon
-                                                    width="14"
-                                                    height="14"
-                                                    fill={previewColors.submenuText}
-                                                  />
-                                                ) : null}
-                                              </button>
-                                              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                                                <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                                                  <button
-                                                    type="button"
-                                                    onClick={(event) => {
-                                                      event.stopPropagation();
-                                                      handleSelectItem(child.id, true);
-                                                    }}
-                                                    aria-label="Edit item"
-                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                                  >
-                                                    <Icon source={EditIcon} />
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={(event) => {
-                                                      event.stopPropagation();
-                                                      handleDuplicateItem(child.id);
-                                                    }}
-                                                    aria-label="Duplicate item"
-                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                                  >
-                                                    <Icon source={DuplicateIcon} />
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={(event) => {
-                                                      event.stopPropagation();
-                                                      openDeleteItemDialog(child.id);
-                                                    }}
-                                                    aria-label="Delete item"
-                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                                                  >
-                                                    <Icon source={DeleteIcon} />
-                                                  </button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
                                         <button
                                           type="button"
-                                          onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
-                                          className="text-sm font-medium"
-                                          style={{
-                                            alignSelf: "stretch",
-                                            minHeight: dropdownItemHeight,
-                                            textAlign: dropdownContentAlign,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: dropdownAlignJustify,
-                                            gap: 8,
-                                            width: "100%",
-                                            padding: "6px 8px",
-                                            color: themeSettings.menuActive,
-                                            background: "transparent",
-                                            border: "none",
-                                            ...descriptionTypography,
+                                          className="cursor-grab active:cursor-grabbing"
+                                          onClick={() => {
+                                            handleSelectItem(child.id);
+                                            if (hasChildren) {
+                                              setActiveDropdownItemId((prev) =>
+                                                prev === child.id ? null : child.id
+                                              );
+                                              if (needsNestedReset) {
+                                                setActiveDropdownChildId(null);
+                                                setActiveDropdownGrandchildId(null);
+                                              }
+                                            } else {
+                                              setActiveDropdownItemId(null);
+                                              if (needsNestedReset) {
+                                                setActiveDropdownChildId(null);
+                                                setActiveDropdownGrandchildId(null);
+                                              }
+                                            }
                                           }}
                                           onMouseEnter={(event) => {
                                             event.currentTarget.style.color = previewColors.submenuTextHover;
                                           }}
                                           onMouseLeave={(event) => {
-                                            event.currentTarget.style.color = themeSettings.menuActive;
+                                            event.currentTarget.style.color = previewColors.submenuText;
                                           }}
-                                        >
-                                          <span
-                                            aria-hidden="true"
-                                            style={{
-                                              width: 20,
-                                              height: 20,
-                                              borderRadius: 9999,
-                                              border: "2px solid currentColor",
-                                              display: "inline-flex",
-                                              alignItems: "center",
-                                              justifyContent: "center",
-                                              fontSize: 14,
-                                              lineHeight: 1,
-                                            }}
-                                          >
-                                            +
-                                          </span>
-                                          Add item
-                                        </button>
-                                      </div>
-                                    </div>
-                                    {secondLevelHasBlocks ? (
-                                      <div
-                                        style={{
-                                          ...dropdownPanelStyle,
-                                          width: blockPanelWidth,
-                                          maxWidth: blockPanelWidth,
-                                          overflow: "visible",
-                                        }}
-                                      >
-                                        <div
                                           style={{
                                             display: "flex",
-                                            flexDirection: "column",
-                                            gap: isSoloImagePanel ? 8 : 12,
-                                            padding: isSoloImagePanel ? 8 : 12,
+                                            alignItems: "center",
+                                            justifyContent: showLeftChevron ? "flex-start" : "space-between",
+                                            gap: 10,
+                                            minHeight: dropdownItemHeight,
+                                            padding: "8px 10px",
+                                            borderRadius: 0,
+                                            border: "2px solid transparent",
+                                            background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
+                                            color: previewColors.submenuText,
+                                            width: "100%",
+                                            textAlign: dropdownContentAlign,
+                                            ...subtextTypography,
+                                            lineHeight: 1.2,
                                           }}
                                         >
-                                          <div
-                                            className="menu-builder-hide-scrollbar"
-                                            style={{
-                                              overflowX: "auto",
-                                              overflowY: "hidden",
-                                              scrollbarWidth: "none",
-                                              msOverflowStyle: "none",
-                                            }}
-                                          >
-                                            <div
-                                              style={{
-                                                display: "flex",
-                                                flexWrap: "nowrap",
-                                                gap: 24,
-                                                alignItems: "flex-start",
-                                                justifyContent: "flex-start",
-                                                minWidth: 0,
+                                          {showLeftChevron ? (
+                                            <ChevronLeftIcon width="14" height="14" fill={previewColors.submenuText} />
+                                          ) : null}
+                                          <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                            {child.label}
+                                          </span>
+                                          {!showLeftChevron && hasChildren ? (
+                                            <ChevronRightIcon width="14" height="14" fill={previewColors.submenuText} />
+                                          ) : null}
+                                        </button>
+                                        <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                          <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                            <button
+                                              type="button"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleSelectItem(child.id, true);
                                               }}
+                                              aria-label="Edit item"
+                                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
                                             >
-                                              {secondLevelChildren.map((child) => {
-                                                if (child.blockTemplate === "links") {
-                                                  const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                                  const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
-                                                  const linkFlexBasis =
-                                                    columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
-                                                  return renderLinkListBlock(child, {
-                                                    flex: `0 0 ${linkFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                    toolbarPlacement: "floating",
-                                                  });
-                                                }
-                                                if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                                  const isSoloImagePanel = thirdLevelChildren.length === 1;
-                                                  const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
-                                                  const imageFlexBasis = Math.max(
-                                                    40,
-                                                    Math.round((imageWidth / 12) * 100)
-                                                  );
-                                                  return renderImageBlock(child, {
-                                                    flex: isSoloImagePanel
-                                                      ? "0 0 70%"
-                                                      : `0 0 ${imageFlexBasis}%`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                    imagePreviewHeight: isSoloImagePanel ? 220 : undefined,
-                                                    imageScale: isSoloImagePanel ? "100%" : undefined,
-                                                  });
-                                                }
-                                                if (child.blockTemplate === "html") {
-                                                  const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
-                                                  const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
-                                                  return renderHtmlBlock(child, {
-                                                    flex: `0 0 ${htmlFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                  });
-                                                }
-                                                if (
-                                                  child.blockTemplate === "product" ||
-                                                  child.blockTemplate === "product-horizontal" ||
-                                                  child.blockTemplate === "product-grid" ||
-                                                  child.blockTemplate === "product-carousel" ||
-                                                  child.blockTemplate === "product-grid-horizontal"
-                                                ) {
-                                                  const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
-                                                  const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
-                                                  return renderProductBlock(child, {
-                                                    flex: `0 0 ${productFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                  });
-                                                }
-                                                if (
-                                                  child.blockTemplate === "collection" ||
-                                                  child.blockTemplate === "collection-horizontal"
-                                                ) {
-                                                  const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
-                                                  const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
-                                                  return renderCollectionBlock(child, {
-                                                    flex: `0 0 ${collectionFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                  });
-                                                }
-                                                if (
-                                                  child.blockTemplate === "blogs" ||
-                                                  child.blockTemplate === "blogs-latest"
-                                                ) {
-                                                  const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
-                                                  const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
-                                                  return renderBlogBlock(child, {
-                                                    flex: `0 0 ${blogFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                  });
-                                                }
-                                                return null;
-                                              })}
-                                            </div>
+                                              <Icon source={EditIcon} />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                handleDuplicateItem(child.id);
+                                              }}
+                                              aria-label="Duplicate item"
+                                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                            >
+                                              <Icon source={DuplicateIcon} />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                openDeleteItemDialog(child.id);
+                                              }}
+                                              aria-label="Delete item"
+                                              className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                            >
+                                              <Icon source={DeleteIcon} />
+                                            </button>
                                           </div>
                                         </div>
                                       </div>
-                                    ) : null}
-                                  </>
-                                ) : isThreeLevelTabsVariant ? (
-                                  <>
-                                    <div style={dropdownPanelStyle}>
-                                      <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
-                                        {activeDropdownChildren.map((child) => {
-                                          const hasChildren = Boolean(child.children?.length);
-                                          const isActiveChild = activeDropdownChildId === child.id;
-                                          const showNestedLeftChevron =
-                                            isThreeNestedRightTabsTemplate && hasChildren;
-                                          return (
-                                            <div
-                                              key={child.id}
-                                              className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
-                                              ref={registerPreviewRow(child.id)}
-                                              style={{ willChange: "transform" }}
-                                              draggable
-                                              onDragStart={(event) => {
-                                                event.dataTransfer.effectAllowed = "move";
-                                                event.dataTransfer.setData("text/plain", child.id);
-                                                setDraggedItemId(child.id);
-                                                const parentId = findParentId(menuItems, child.id);
-                                                setDraggedParentId(parentId ?? null);
-                                                lastDragOverIdRef.current = null;
-                                              }}
-                                              onDragEnd={() => {
-                                                setDraggedItemId(null);
-                                                setDraggedParentId(null);
-                                                lastDragOverIdRef.current = null;
-                                              }}
-                                              onDragOver={(event) => {
-                                                if (!draggedItemId || draggedItemId === child.id) return;
-                                                const targetParentId = findParentId(menuItems, child.id);
-                                                if (draggedParentId !== targetParentId) return;
-                                                event.preventDefault();
-                                                if (lastDragOverIdRef.current === child.id) return;
-                                                lastDragOverIdRef.current = child.id;
-                                                setMenuItems((items) => moveItem(items, draggedItemId, child.id));
-                                              }}
-                                              onDrop={(event) => {
-                                                event.preventDefault();
-                                                setDraggedItemId(null);
-                                                setDraggedParentId(null);
-                                                lastDragOverIdRef.current = null;
-                                              }}
-                                            >
-                                              <button
-                                                type="button"
-                                                className="cursor-grab active:cursor-grabbing"
-                                                onClick={() => {
-                                                  handleSelectItem(child.id);
-                                                  if (hasChildren) {
-                                                    setActiveDropdownChildId((prev) =>
-                                                      prev === child.id ? null : child.id
-                                                    );
-                                                    setActiveDropdownGrandchildId(null);
-                                                  } else {
-                                                    setActiveDropdownChildId(null);
-                                                    setActiveDropdownGrandchildId(null);
-                                                  }
-                                                }}
-                                                onMouseEnter={(event) => {
-                                                  event.currentTarget.style.color = previewColors.submenuTextHover;
-                                                }}
-                                                onMouseLeave={(event) => {
-                                                  event.currentTarget.style.color = previewColors.submenuText;
-                                                }}
-                                                style={{
-                                                  display: "flex",
-                                                  alignItems: "center",
-                                                  justifyContent: showNestedLeftChevron
-                                                    ? "flex-start"
-                                                    : "space-between",
-                                                  gap: 10,
-                                                  minHeight: dropdownItemHeight,
-                                                  padding: "8px 10px",
-                                                  borderRadius: 0,
-                                                  border: "2px solid transparent",
-                                                  background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
-                                                  color: previewColors.submenuText,
-                                                  width: "100%",
-                                                  textAlign: dropdownContentAlign,
-                                                  ...subtextTypography,
-                                                  lineHeight: 1.2,
-                                                }}
-                                              >
-                                                {showNestedLeftChevron ? (
-                                                  <ChevronLeftIcon
-                                                    width="14"
-                                                    height="14"
-                                                    fill={previewColors.submenuText}
-                                                  />
-                                                ) : null}
-                                                <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
-                                                  {child.label}
-                                                </span>
-                                                {!showNestedLeftChevron && hasChildren ? (
-                                                  <ChevronRightIcon
-                                                    width="14"
-                                                    height="14"
-                                                    fill={previewColors.submenuText}
-                                                  />
-                                                ) : null}
-                                              </button>
-                                              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                                                <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                                                  <button
-                                                    type="button"
-                                                    onClick={(event) => {
-                                                      event.stopPropagation();
-                                                      handleSelectItem(child.id, true);
-                                                    }}
-                                                    aria-label="Edit item"
-                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                                  >
-                                                    <Icon source={EditIcon} />
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={(event) => {
-                                                      event.stopPropagation();
-                                                      handleDuplicateItem(child.id);
-                                                    }}
-                                                    aria-label="Duplicate item"
-                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                                  >
-                                                    <Icon source={DuplicateIcon} />
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={(event) => {
-                                                      event.stopPropagation();
-                                                      openDeleteItemDialog(child.id);
-                                                    }}
-                                                    aria-label="Delete item"
-                                                    className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                                                  >
-                                                    <Icon source={DeleteIcon} />
-                                                  </button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                        <button
-                                          type="button"
-                                          onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
-                                          className="text-sm font-medium"
-                                          style={{
-                                            alignSelf: "stretch",
-                                            minHeight: dropdownItemHeight,
-                                            textAlign: dropdownContentAlign,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: dropdownAlignJustify,
-                                            gap: 8,
-                                            width: "100%",
-                                            padding: "6px 8px",
-                                            color: themeSettings.menuActive,
-                                            background: "transparent",
-                                            border: "none",
-                                            ...descriptionTypography,
-                                          }}
-                                          onMouseEnter={(event) => {
-                                            event.currentTarget.style.color = previewColors.submenuTextHover;
-                                          }}
-                                          onMouseLeave={(event) => {
-                                            event.currentTarget.style.color = themeSettings.menuActive;
-                                          }}
-                                        >
-                                          <span
-                                            aria-hidden="true"
-                                            style={{
-                                              width: 20,
-                                              height: 20,
-                                              borderRadius: 9999,
-                                              border: "2px solid currentColor",
-                                              display: "inline-flex",
-                                              alignItems: "center",
-                                              justifyContent: "center",
-                                              fontSize: 14,
-                                              lineHeight: 1,
-                                            }}
-                                          >
-                                            +
-                                          </span>
-                                          Add item
-                                        </button>
-                                      </div>
-                                    </div>
-                                    {activeSecondLevelItem ? (
+                                    );
+                                  })}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenAddRoot(previewMenu.id)}
+                                    className="text-sm font-medium"
+                                    style={{
+                                      alignSelf: "stretch",
+                                      minHeight: dropdownItemHeight,
+                                      textAlign: dropdownContentAlign,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: dropdownAlignJustify,
+                                      gap: 8,
+                                      width: "100%",
+                                      padding: "6px 8px",
+                                      color: themeSettings.menuActive,
+                                      background: "transparent",
+                                      border: "none",
+                                      ...descriptionTypography,
+                                    }}
+                                    onMouseEnter={(event) => {
+                                      event.currentTarget.style.color = previewColors.submenuTextHover;
+                                    }}
+                                    onMouseLeave={(event) => {
+                                      event.currentTarget.style.color = themeSettings.menuActive;
+                                    }}
+                                  >
+                                    <span
+                                      aria-hidden="true"
+                                      style={{
+                                        width: 20,
+                                        height: 20,
+                                        borderRadius: 9999,
+                                        border: "2px solid currentColor",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: 14,
+                                        lineHeight: 1,
+                                      }}
+                                    >
+                                      +
+                                    </span>
+                                    Add item
+                                  </button>
+                                </div>
+                                <div
+                                  className="flex items-center gap-0"
+                                  style={{
+                                    background: "rgb(17, 24, 39)",
+                                    padding: "4px",
+                                    borderRadius: "0",
+                                    width: "100%",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <button
+                                    type="button"
+                                    aria-label="Align left"
+                                    className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                    onClick={() =>
+                                      setMenuItems((items) =>
+                                        updateItemById(items, previewMenu.id, () => ({
+                                          ...previewMenu,
+                                          submenuContentAlign: "left",
+                                        }))
+                                      )
+                                    }
+                                  >
+                                    <Icon source={TextAlignLeftIcon} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    aria-label="Align center"
+                                    className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                    onClick={() =>
+                                      setMenuItems((items) =>
+                                        updateItemById(items, previewMenu.id, () => ({
+                                          ...previewMenu,
+                                          submenuContentAlign: "center",
+                                        }))
+                                      )
+                                    }
+                                  >
+                                    <Icon source={TextAlignCenterIcon} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    aria-label="Align right"
+                                    className="flex flex-1 h-6 items-center justify-center text-white hover:bg-gray-700"
+                                    onClick={() =>
+                                      setMenuItems((items) =>
+                                        updateItemById(items, previewMenu.id, () => ({
+                                          ...previewMenu,
+                                          submenuContentAlign: "right",
+                                        }))
+                                      )
+                                    }
+                                  >
+                                    <Icon source={TextAlignRightIcon} />
+                                  </button>
+                                </div>
+                              </div>
+                              {activeDropdownItem ? (
+                                <div
+                                  style={{
+                                    ...dropdownFlyoutStyle,
+                                    position: "absolute",
+                                    left: flyoutLeft,
+                                    top:
+                                      isTwoLevelTabsVariant ||
+                                        isThreeLevelTabsVariant ||
+                                        isLeftTabsStyleTemplate ||
+                                        isRightTabsTemplate
+                                        ? 0
+                                        : activeItemOffsetTop,
+                                  }}
+                                  data-submenu-panel
+                                  ref={dropdownFlyoutRef}
+                                >
+                                  {isTwoLevelTabsVariant ? (
+                                    <>
                                       <div style={dropdownPanelStyle}>
                                         <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
-                                          {secondLevelChildren.map((child) => {
+                                          {activeDropdownChildren.map((child) => {
                                             const hasBlocks = Boolean(
                                               child.children?.some((grandChild) => grandChild.blockTemplate)
                                             );
-                                            const isActiveChild = activeDropdownGrandchildId === child.id;
+                                            const isActiveChild = activeDropdownChildId === child.id;
                                             const showNestedLeftChevron =
-                                              isThreeNestedRightTabsTemplate && hasBlocks;
+                                              isTwoNestedRightTabsTemplate && hasBlocks;
                                             return (
                                               <div
                                                 key={child.id}
@@ -11014,11 +10523,11 @@ export default function MenuBuilder() {
                                                   onClick={() => {
                                                     handleSelectItem(child.id);
                                                     if (hasBlocks) {
-                                                      setActiveDropdownGrandchildId((prev) =>
+                                                      setActiveDropdownChildId((prev) =>
                                                         prev === child.id ? null : child.id
                                                       );
                                                     } else {
-                                                      setActiveDropdownGrandchildId(null);
+                                                      setActiveDropdownChildId(null);
                                                     }
                                                   }}
                                                   onMouseEnter={(event) => {
@@ -11030,17 +10539,13 @@ export default function MenuBuilder() {
                                                   style={{
                                                     display: "flex",
                                                     alignItems: "center",
-                                                    justifyContent: showNestedLeftChevron
-                                                      ? "flex-start"
-                                                      : "space-between",
+                                                    justifyContent: showNestedLeftChevron ? "flex-start" : "space-between",
                                                     gap: 10,
                                                     minHeight: dropdownItemHeight,
                                                     padding: "8px 10px",
                                                     borderRadius: 0,
                                                     border: "2px solid transparent",
-                                                    background: isActiveChild
-                                                      ? "rgba(59, 130, 246, 0.08)"
-                                                      : "transparent",
+                                                    background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
                                                     color: previewColors.submenuText,
                                                     width: "100%",
                                                     textAlign: dropdownContentAlign,
@@ -11108,7 +10613,7 @@ export default function MenuBuilder() {
                                           })}
                                           <button
                                             type="button"
-                                            onClick={() => handleOpenAddRoot(activeSecondLevelItem.id)}
+                                            onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
                                             className="text-sm font-medium"
                                             style={{
                                               alignSelf: "stretch",
@@ -11152,617 +10657,916 @@ export default function MenuBuilder() {
                                           </button>
                                         </div>
                                       </div>
-                                    ) : null}
-                                    {thirdLevelHasBlocks ? (
-                                      <div
-                                        style={{
-                                          ...dropdownPanelStyle,
-                                          width: blockPanelWidth,
-                                          maxWidth: blockPanelWidth,
-                                          overflow: "visible",
-                                        }}
-                                      >
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                                      {secondLevelHasBlocks ? (
+                                        <div
+                                          style={{
+                                            ...dropdownPanelStyle,
+                                            width: blockPanelWidth,
+                                            maxWidth: blockPanelWidth,
+                                            overflow: "visible",
+                                          }}
+                                        >
                                           <div
-                                            className="menu-builder-hide-scrollbar"
                                             style={{
-                                              overflowX: "auto",
-                                              overflowY: "hidden",
-                                              scrollbarWidth: "none",
-                                              msOverflowStyle: "none",
+                                              display: "flex",
+                                              flexDirection: "column",
+                                              gap: isSoloImagePanel ? 8 : 12,
+                                              padding: isSoloImagePanel ? 8 : 12,
                                             }}
                                           >
                                             <div
+                                              className="menu-builder-hide-scrollbar"
                                               style={{
-                                                display: "flex",
-                                                flexWrap: "nowrap",
-                                                gap: 24,
-                                                alignItems: "flex-start",
-                                                justifyContent: "flex-start",
-                                                minWidth: 0,
+                                                overflowX: "auto",
+                                                overflowY: "hidden",
+                                                scrollbarWidth: "none",
+                                                msOverflowStyle: "none",
                                               }}
                                             >
-                                              {thirdLevelChildren.map((child) => {
-                                                if (child.blockTemplate === "links") {
-                                                  const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                                  const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
-                                                  const linkFlexBasis =
-                                                    columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
-                                                  return renderLinkListBlock(child, {
-                                                    flex: `0 0 ${linkFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                    toolbarPlacement: "floating",
-                                                  });
-                                                }
-                                                if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                                  const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
-                                                  const imageFlexBasis = Math.max(
-                                                    40,
-                                                    Math.round((imageWidth / 12) * 100)
-                                                  );
-                                                  return renderImageBlock(child, {
-                                                    flex: isSoloImagePanel
-                                                      ? "0 0 100%"
-                                                      : `0 0 ${imageFlexBasis}%`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                    imagePreviewHeight: isSoloImagePanel ? 220 : undefined,
-                                                    imageScale: isSoloImagePanel ? "100%" : undefined,
-                                                  });
-                                                }
-                                                if (child.blockTemplate === "html") {
-                                                  const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
-                                                  const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
-                                                  return renderHtmlBlock(child, {
-                                                    flex: `0 0 ${htmlFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                  });
-                                                }
-                                                if (
-                                                  child.blockTemplate === "product" ||
-                                                  child.blockTemplate === "product-horizontal" ||
-                                                  child.blockTemplate === "product-grid" ||
-                                                  child.blockTemplate === "product-carousel" ||
-                                                  child.blockTemplate === "product-grid-horizontal"
-                                                ) {
-                                                  const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
-                                                  const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
-                                                  return renderProductBlock(child, {
-                                                    flex: `0 0 ${productFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                  });
-                                                }
-                                                if (
-                                                  child.blockTemplate === "collection" ||
-                                                  child.blockTemplate === "collection-horizontal"
-                                                ) {
-                                                  const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
-                                                  const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
-                                                  return renderCollectionBlock(child, {
-                                                    flex: `0 0 ${collectionFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                  });
-                                                }
-                                                if (
-                                                  child.blockTemplate === "blogs" ||
-                                                  child.blockTemplate === "blogs-latest"
-                                                ) {
-                                                  const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
-                                                  const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
-                                                  return renderBlogBlock(child, {
-                                                    flex: `0 0 ${blogFlexBasis}`,
-                                                    wrapperStyle: { minWidth: 0 },
-                                                  });
-                                                }
-                                                return null;
-                                              })}
+                                              <div
+                                                style={{
+                                                  display: "flex",
+                                                  flexWrap: "nowrap",
+                                                  gap: 24,
+                                                  alignItems: "flex-start",
+                                                  justifyContent: "flex-start",
+                                                  minWidth: 0,
+                                                }}
+                                              >
+                                                {secondLevelChildren.map((child) => {
+                                                  if (child.blockTemplate === "links") {
+                                                    const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                                    const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                                    const linkFlexBasis =
+                                                      columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                                                    return renderLinkListBlock(child, {
+                                                      flex: `0 0 ${linkFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                      toolbarPlacement: "floating",
+                                                    });
+                                                  }
+                                                  if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                                    const isSoloImagePanel = thirdLevelChildren.length === 1;
+                                                    const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                    const imageFlexBasis = Math.max(
+                                                      40,
+                                                      Math.round((imageWidth / 12) * 100)
+                                                    );
+                                                    return renderImageBlock(child, {
+                                                      flex: isSoloImagePanel
+                                                        ? "0 0 70%"
+                                                        : `0 0 ${imageFlexBasis}%`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                      imagePreviewHeight: isSoloImagePanel ? 220 : undefined,
+                                                      imageScale: isSoloImagePanel ? "100%" : undefined,
+                                                    });
+                                                  }
+                                                  if (child.blockTemplate === "html") {
+                                                    const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                    const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
+                                                    return renderHtmlBlock(child, {
+                                                      flex: `0 0 ${htmlFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                    });
+                                                  }
+                                                  if (
+                                                    child.blockTemplate === "product" ||
+                                                    child.blockTemplate === "product-horizontal" ||
+                                                    child.blockTemplate === "product-grid" ||
+                                                    child.blockTemplate === "product-carousel" ||
+                                                    child.blockTemplate === "product-grid-horizontal"
+                                                  ) {
+                                                    const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
+                                                    const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
+                                                    return renderProductBlock(child, {
+                                                      flex: `0 0 ${productFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                    });
+                                                  }
+                                                  if (
+                                                    child.blockTemplate === "collection" ||
+                                                    child.blockTemplate === "collection-horizontal"
+                                                  ) {
+                                                    const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                    const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
+                                                    return renderCollectionBlock(child, {
+                                                      flex: `0 0 ${collectionFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                    });
+                                                  }
+                                                  if (
+                                                    child.blockTemplate === "blogs" ||
+                                                    child.blockTemplate === "blogs-latest"
+                                                  ) {
+                                                    const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                    const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
+                                                    return renderBlogBlock(child, {
+                                                      flex: `0 0 ${blogFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                    });
+                                                  }
+                                                  return null;
+                                                })}
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
+                                      ) : null}
+                                    </>
+                                  ) : isThreeLevelTabsVariant ? (
+                                    <>
+                                      <div style={dropdownPanelStyle}>
+                                        <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
+                                          {activeDropdownChildren.map((child) => {
+                                            const hasChildren = Boolean(child.children?.length);
+                                            const isActiveChild = activeDropdownChildId === child.id;
+                                            const showNestedLeftChevron =
+                                              isThreeNestedRightTabsTemplate && hasChildren;
+                                            return (
+                                              <div
+                                                key={child.id}
+                                                className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                                ref={registerPreviewRow(child.id)}
+                                                style={{ willChange: "transform" }}
+                                                draggable
+                                                onDragStart={(event) => {
+                                                  event.dataTransfer.effectAllowed = "move";
+                                                  event.dataTransfer.setData("text/plain", child.id);
+                                                  setDraggedItemId(child.id);
+                                                  const parentId = findParentId(menuItems, child.id);
+                                                  setDraggedParentId(parentId ?? null);
+                                                  lastDragOverIdRef.current = null;
+                                                }}
+                                                onDragEnd={() => {
+                                                  setDraggedItemId(null);
+                                                  setDraggedParentId(null);
+                                                  lastDragOverIdRef.current = null;
+                                                }}
+                                                onDragOver={(event) => {
+                                                  if (!draggedItemId || draggedItemId === child.id) return;
+                                                  const targetParentId = findParentId(menuItems, child.id);
+                                                  if (draggedParentId !== targetParentId) return;
+                                                  event.preventDefault();
+                                                  if (lastDragOverIdRef.current === child.id) return;
+                                                  lastDragOverIdRef.current = child.id;
+                                                  setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                                }}
+                                                onDrop={(event) => {
+                                                  event.preventDefault();
+                                                  setDraggedItemId(null);
+                                                  setDraggedParentId(null);
+                                                  lastDragOverIdRef.current = null;
+                                                }}
+                                              >
+                                                <button
+                                                  type="button"
+                                                  className="cursor-grab active:cursor-grabbing"
+                                                  onClick={() => {
+                                                    handleSelectItem(child.id);
+                                                    if (hasChildren) {
+                                                      setActiveDropdownChildId((prev) =>
+                                                        prev === child.id ? null : child.id
+                                                      );
+                                                      setActiveDropdownGrandchildId(null);
+                                                    } else {
+                                                      setActiveDropdownChildId(null);
+                                                      setActiveDropdownGrandchildId(null);
+                                                    }
+                                                  }}
+                                                  onMouseEnter={(event) => {
+                                                    event.currentTarget.style.color = previewColors.submenuTextHover;
+                                                  }}
+                                                  onMouseLeave={(event) => {
+                                                    event.currentTarget.style.color = previewColors.submenuText;
+                                                  }}
+                                                  style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: showNestedLeftChevron
+                                                      ? "flex-start"
+                                                      : "space-between",
+                                                    gap: 10,
+                                                    minHeight: dropdownItemHeight,
+                                                    padding: "8px 10px",
+                                                    borderRadius: 0,
+                                                    border: "2px solid transparent",
+                                                    background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
+                                                    color: previewColors.submenuText,
+                                                    width: "100%",
+                                                    textAlign: dropdownContentAlign,
+                                                    ...subtextTypography,
+                                                    lineHeight: 1.2,
+                                                  }}
+                                                >
+                                                  {showNestedLeftChevron ? (
+                                                    <ChevronLeftIcon
+                                                      width="14"
+                                                      height="14"
+                                                      fill={previewColors.submenuText}
+                                                    />
+                                                  ) : null}
+                                                  <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                                    {child.label}
+                                                  </span>
+                                                  {!showNestedLeftChevron && hasChildren ? (
+                                                    <ChevronRightIcon
+                                                      width="14"
+                                                      height="14"
+                                                      fill={previewColors.submenuText}
+                                                    />
+                                                  ) : null}
+                                                </button>
+                                                <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                                  <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                                    <button
+                                                      type="button"
+                                                      onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleSelectItem(child.id, true);
+                                                      }}
+                                                      aria-label="Edit item"
+                                                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                                    >
+                                                      <Icon source={EditIcon} />
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        handleDuplicateItem(child.id);
+                                                      }}
+                                                      aria-label="Duplicate item"
+                                                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                                    >
+                                                      <Icon source={DuplicateIcon} />
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        openDeleteItemDialog(child.id);
+                                                      }}
+                                                      aria-label="Delete item"
+                                                      className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                                    >
+                                                      <Icon source={DeleteIcon} />
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                          <button
+                                            type="button"
+                                            onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
+                                            className="text-sm font-medium"
+                                            style={{
+                                              alignSelf: "stretch",
+                                              minHeight: dropdownItemHeight,
+                                              textAlign: dropdownContentAlign,
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: dropdownAlignJustify,
+                                              gap: 8,
+                                              width: "100%",
+                                              padding: "6px 8px",
+                                              color: themeSettings.menuActive,
+                                              background: "transparent",
+                                              border: "none",
+                                              ...descriptionTypography,
+                                            }}
+                                            onMouseEnter={(event) => {
+                                              event.currentTarget.style.color = previewColors.submenuTextHover;
+                                            }}
+                                            onMouseLeave={(event) => {
+                                              event.currentTarget.style.color = themeSettings.menuActive;
+                                            }}
+                                          >
+                                            <span
+                                              aria-hidden="true"
+                                              style={{
+                                                width: 20,
+                                                height: 20,
+                                                borderRadius: 9999,
+                                                border: "2px solid currentColor",
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                fontSize: 14,
+                                                lineHeight: 1,
+                                              }}
+                                            >
+                                              +
+                                            </span>
+                                            Add item
+                                          </button>
+                                        </div>
                                       </div>
-                                    ) : null}
-                                  </>
-                                ) : activeDropdownHasBlocks ? (
-                                  <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                                    <div
-                                      className="menu-builder-hide-scrollbar"
-                                      style={{
-                                        overflowX: useCustomNormalDropdownLayout ? "hidden" : "auto",
-                                        overflowY: "hidden",
-                                        scrollbarWidth: "none",
-                                        msOverflowStyle: "none",
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          display: useCustomNormalDropdownLayout ? "grid" : "flex",
-                                          gridTemplateColumns: useCustomNormalDropdownLayout
-                                            ? "repeat(4, minmax(0, 1fr))"
-                                            : undefined,
-                                          columnGap: useCustomNormalDropdownLayout ? 0 : undefined,
-                                          rowGap: useCustomNormalDropdownLayout ? 0 : undefined,
-                                          flexWrap: useCustomNormalDropdownLayout ? undefined : "nowrap",
-                                          gap: useCustomNormalDropdownLayout ? undefined : 24,
-                                          alignItems: "flex-start",
-                                          justifyContent: useCustomNormalDropdownLayout
-                                            ? undefined
-                                            : useSimpleLeftTabsCompactLayout
-                                              ? "space-between"
-                                              : undefined,
-                                          minWidth: useCustomNormalDropdownLayout
-                                            ? undefined
-                                            : useSimpleLeftTabsCompactLayout
-                                              ? undefined
-                                              : 960,
-                                        }}
-                                      >
-                                        {activeDropdownChildren.map((child) => {
-                                          if (child.blockTemplate === "links") {
-                                            const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                            const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
-                                            const linkFlexBasis =
-                                              columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
-                                            return renderLinkListBlock(child, {
-                                              ...(useCustomNormalDropdownLayout
-                                                ? { wrapperStyle: { minWidth: 0 } }
-                                                : { flex: `0 0 ${linkFlexBasis}`, wrapperStyle: { minWidth: 0 } }),
-                                              toolbarPlacement: "floating",
-                                            });
-                                          }
-                                          if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                            return renderImageBlock(child, {
-                                              ...(useCustomNormalDropdownLayout
-                                                ? { wrapperStyle: { minWidth: 0 } }
-                                                : { flex: "0 0 20%", wrapperStyle: { minWidth: 0 } }),
-                                            });
-                                          }
-                                          if (child.blockTemplate === "html") {
-                                            const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
-                                            const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
-                                            return renderHtmlBlock(child, {
-                                              flex: `0 0 ${htmlFlexBasis}`,
-                                              wrapperStyle: { minWidth: 0 },
-                                            });
-                                          }
-                                          if (
-                                            child.blockTemplate === "product" ||
-                                            child.blockTemplate === "product-horizontal" ||
-                                            child.blockTemplate === "product-grid" ||
-                                            child.blockTemplate === "product-carousel" ||
-                                            child.blockTemplate === "product-grid-horizontal"
-                                          ) {
-                                            const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
-                                            const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
-                                            return renderProductBlock(child, {
-                                              flex: `0 0 ${productFlexBasis}`,
-                                              wrapperStyle: { minWidth: 0 },
-                                            });
-                                          }
-                                          if (
-                                            child.blockTemplate === "collection" ||
-                                            child.blockTemplate === "collection-horizontal"
-                                          ) {
-                                            const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
-                                            const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
-                                            return renderCollectionBlock(child, {
-                                              flex: `0 0 ${collectionFlexBasis}`,
-                                              wrapperStyle: { minWidth: 0 },
-                                            });
-                                          }
-                                          if (
-                                            child.blockTemplate === "blogs" ||
-                                            child.blockTemplate === "blogs-latest"
-                                          ) {
-                                            const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
-                                            const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
-                                            return renderBlogBlock(child, {
-                                              flex: `0 0 ${blogFlexBasis}`,
-                                              wrapperStyle: { minWidth: 0 },
-                                            });
-                                          }
-                                          return null;
-                                        })}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
-                                    {activeDropdownChildren.map((child) => (
-                                      <div
-                                        key={child.id}
-                                        className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
-                                        ref={registerPreviewRow(child.id)}
-                                        style={{ willChange: "transform" }}
-                                        draggable
-                                        onDragStart={(event) => {
-                                          event.dataTransfer.effectAllowed = "move";
-                                          event.dataTransfer.setData("text/plain", child.id);
-                                          setDraggedItemId(child.id);
-                                          const parentId = findParentId(menuItems, child.id);
-                                          setDraggedParentId(parentId ?? null);
-                                          lastDragOverIdRef.current = null;
-                                        }}
-                                        onDragEnd={() => {
-                                          setDraggedItemId(null);
-                                          setDraggedParentId(null);
-                                          lastDragOverIdRef.current = null;
-                                        }}
-                                        onDragOver={(event) => {
-                                          if (!draggedItemId || draggedItemId === child.id) return;
-                                          const targetParentId = findParentId(menuItems, child.id);
-                                          if (draggedParentId !== targetParentId) return;
-                                          event.preventDefault();
-                                          if (lastDragOverIdRef.current === child.id) return;
-                                          lastDragOverIdRef.current = child.id;
-                                          setMenuItems((items) => moveItem(items, draggedItemId, child.id));
-                                        }}
-                                        onDrop={(event) => {
-                                          event.preventDefault();
-                                          setDraggedItemId(null);
-                                          setDraggedParentId(null);
-                                          lastDragOverIdRef.current = null;
-                                        }}
-                                      >
-                                        <button
-                                          type="button"
-                                          className="cursor-grab active:cursor-grabbing"
-                                          onClick={() => handleSelectItem(child.id)}
-                                          onMouseEnter={(event) => {
-                                            event.currentTarget.style.color = previewColors.submenuTextHover;
-                                          }}
-                                          onMouseLeave={(event) => {
-                                            event.currentTarget.style.color = previewColors.submenuText;
-                                          }}
-                                          style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                            gap: 10,
-                                            minHeight: dropdownItemHeight,
-                                            padding: "8px 10px",
-                                            borderRadius: 0,
-                                            border: "2px solid transparent",
-                                            background: "transparent",
-                                            color: previewColors.submenuText,
-                                            width: "100%",
-                                            textAlign: dropdownContentAlign,
-                                            ...subtextTypography,
-                                            lineHeight: 1.2,
-                                          }}
-                                        >
-                                          <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
-                                            {child.label}
-                                          </span>
-                                        </button>
-                                        <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                                          <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                      {activeSecondLevelItem ? (
+                                        <div style={dropdownPanelStyle}>
+                                          <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
+                                            {secondLevelChildren.map((child) => {
+                                              const hasBlocks = Boolean(
+                                                child.children?.some((grandChild) => grandChild.blockTemplate)
+                                              );
+                                              const isActiveChild = activeDropdownGrandchildId === child.id;
+                                              const showNestedLeftChevron =
+                                                isThreeNestedRightTabsTemplate && hasBlocks;
+                                              return (
+                                                <div
+                                                  key={child.id}
+                                                  className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                                  ref={registerPreviewRow(child.id)}
+                                                  style={{ willChange: "transform" }}
+                                                  draggable
+                                                  onDragStart={(event) => {
+                                                    event.dataTransfer.effectAllowed = "move";
+                                                    event.dataTransfer.setData("text/plain", child.id);
+                                                    setDraggedItemId(child.id);
+                                                    const parentId = findParentId(menuItems, child.id);
+                                                    setDraggedParentId(parentId ?? null);
+                                                    lastDragOverIdRef.current = null;
+                                                  }}
+                                                  onDragEnd={() => {
+                                                    setDraggedItemId(null);
+                                                    setDraggedParentId(null);
+                                                    lastDragOverIdRef.current = null;
+                                                  }}
+                                                  onDragOver={(event) => {
+                                                    if (!draggedItemId || draggedItemId === child.id) return;
+                                                    const targetParentId = findParentId(menuItems, child.id);
+                                                    if (draggedParentId !== targetParentId) return;
+                                                    event.preventDefault();
+                                                    if (lastDragOverIdRef.current === child.id) return;
+                                                    lastDragOverIdRef.current = child.id;
+                                                    setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                                  }}
+                                                  onDrop={(event) => {
+                                                    event.preventDefault();
+                                                    setDraggedItemId(null);
+                                                    setDraggedParentId(null);
+                                                    lastDragOverIdRef.current = null;
+                                                  }}
+                                                >
+                                                  <button
+                                                    type="button"
+                                                    className="cursor-grab active:cursor-grabbing"
+                                                    onClick={() => {
+                                                      handleSelectItem(child.id);
+                                                      if (hasBlocks) {
+                                                        setActiveDropdownGrandchildId((prev) =>
+                                                          prev === child.id ? null : child.id
+                                                        );
+                                                      } else {
+                                                        setActiveDropdownGrandchildId(null);
+                                                      }
+                                                    }}
+                                                    onMouseEnter={(event) => {
+                                                      event.currentTarget.style.color = previewColors.submenuTextHover;
+                                                    }}
+                                                    onMouseLeave={(event) => {
+                                                      event.currentTarget.style.color = previewColors.submenuText;
+                                                    }}
+                                                    style={{
+                                                      display: "flex",
+                                                      alignItems: "center",
+                                                      justifyContent: showNestedLeftChevron
+                                                        ? "flex-start"
+                                                        : "space-between",
+                                                      gap: 10,
+                                                      minHeight: dropdownItemHeight,
+                                                      padding: "8px 10px",
+                                                      borderRadius: 0,
+                                                      border: "2px solid transparent",
+                                                      background: isActiveChild
+                                                        ? "rgba(59, 130, 246, 0.08)"
+                                                        : "transparent",
+                                                      color: previewColors.submenuText,
+                                                      width: "100%",
+                                                      textAlign: dropdownContentAlign,
+                                                      ...subtextTypography,
+                                                      lineHeight: 1.2,
+                                                    }}
+                                                  >
+                                                    {showNestedLeftChevron ? (
+                                                      <ChevronLeftIcon
+                                                        width="14"
+                                                        height="14"
+                                                        fill={previewColors.submenuText}
+                                                      />
+                                                    ) : null}
+                                                    <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                                      {child.label}
+                                                    </span>
+                                                    {!showNestedLeftChevron && hasBlocks ? (
+                                                      <ChevronRightIcon
+                                                        width="14"
+                                                        height="14"
+                                                        fill={previewColors.submenuText}
+                                                      />
+                                                    ) : null}
+                                                  </button>
+                                                  <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                                    <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                                      <button
+                                                        type="button"
+                                                        onClick={(event) => {
+                                                          event.stopPropagation();
+                                                          handleSelectItem(child.id, true);
+                                                        }}
+                                                        aria-label="Edit item"
+                                                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                                      >
+                                                        <Icon source={EditIcon} />
+                                                      </button>
+                                                      <button
+                                                        type="button"
+                                                        onClick={(event) => {
+                                                          event.stopPropagation();
+                                                          handleDuplicateItem(child.id);
+                                                        }}
+                                                        aria-label="Duplicate item"
+                                                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                                      >
+                                                        <Icon source={DuplicateIcon} />
+                                                      </button>
+                                                      <button
+                                                        type="button"
+                                                        onClick={(event) => {
+                                                          event.stopPropagation();
+                                                          openDeleteItemDialog(child.id);
+                                                        }}
+                                                        aria-label="Delete item"
+                                                        className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                                      >
+                                                        <Icon source={DeleteIcon} />
+                                                      </button>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
                                             <button
                                               type="button"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleSelectItem(child.id, true);
+                                              onClick={() => handleOpenAddRoot(activeSecondLevelItem.id)}
+                                              className="text-sm font-medium"
+                                              style={{
+                                                alignSelf: "stretch",
+                                                minHeight: dropdownItemHeight,
+                                                textAlign: dropdownContentAlign,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: dropdownAlignJustify,
+                                                gap: 8,
+                                                width: "100%",
+                                                padding: "6px 8px",
+                                                color: themeSettings.menuActive,
+                                                background: "transparent",
+                                                border: "none",
+                                                ...descriptionTypography,
                                               }}
-                                              aria-label="Edit item"
-                                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                            >
-                                              <Icon source={EditIcon} />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleDuplicateItem(child.id);
+                                              onMouseEnter={(event) => {
+                                                event.currentTarget.style.color = previewColors.submenuTextHover;
                                               }}
-                                              aria-label="Duplicate item"
-                                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                            >
-                                              <Icon source={DuplicateIcon} />
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={(event) => {
-                                                event.stopPropagation();
-                                                openDeleteItemDialog(child.id);
+                                              onMouseLeave={(event) => {
+                                                event.currentTarget.style.color = themeSettings.menuActive;
                                               }}
-                                              aria-label="Delete item"
-                                              className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
                                             >
-                                              <Icon source={DeleteIcon} />
+                                              <span
+                                                aria-hidden="true"
+                                                style={{
+                                                  width: 20,
+                                                  height: 20,
+                                                  borderRadius: 9999,
+                                                  border: "2px solid currentColor",
+                                                  display: "inline-flex",
+                                                  alignItems: "center",
+                                                  justifyContent: "center",
+                                                  fontSize: 14,
+                                                  lineHeight: 1,
+                                                }}
+                                              >
+                                                +
+                                              </span>
+                                              Add item
                                             </button>
                                           </div>
                                         </div>
-                                      </div>
-                                    ))}
-                                    <button
-                                      type="button"
-                                      onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
-                                      className="text-sm font-medium"
-                                      style={{
-                                        alignSelf: "stretch",
-                                        minHeight: dropdownItemHeight,
-                                        textAlign: dropdownContentAlign,
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: dropdownAlignJustify,
-                                        gap: 8,
-                                        width: "100%",
-                                        padding: "6px 8px",
-                                        color: themeSettings.menuActive,
-                                        background: "transparent",
-                                        border: "none",
-                                        ...descriptionTypography,
-                                      }}
-                                      onMouseEnter={(event) => {
-                                        event.currentTarget.style.color = previewColors.submenuTextHover;
-                                      }}
-                                      onMouseLeave={(event) => {
-                                        event.currentTarget.style.color = themeSettings.menuActive;
-                                      }}
-                                    >
-                                      <span
-                                        aria-hidden="true"
+                                      ) : null}
+                                      {thirdLevelHasBlocks ? (
+                                        <div
+                                          style={{
+                                            ...dropdownPanelStyle,
+                                            width: blockPanelWidth,
+                                            maxWidth: blockPanelWidth,
+                                            overflow: "visible",
+                                          }}
+                                        >
+                                          <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                                            <div
+                                              className="menu-builder-hide-scrollbar"
+                                              style={{
+                                                overflowX: "auto",
+                                                overflowY: "hidden",
+                                                scrollbarWidth: "none",
+                                                msOverflowStyle: "none",
+                                              }}
+                                            >
+                                              <div
+                                                style={{
+                                                  display: "flex",
+                                                  flexWrap: "nowrap",
+                                                  gap: 24,
+                                                  alignItems: "flex-start",
+                                                  justifyContent: "flex-start",
+                                                  minWidth: 0,
+                                                }}
+                                              >
+                                                {thirdLevelChildren.map((child) => {
+                                                  if (child.blockTemplate === "links") {
+                                                    const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                                    const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                                    const linkFlexBasis =
+                                                      columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                                                    return renderLinkListBlock(child, {
+                                                      flex: `0 0 ${linkFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                      toolbarPlacement: "floating",
+                                                    });
+                                                  }
+                                                  if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                                    const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                    const imageFlexBasis = Math.max(
+                                                      40,
+                                                      Math.round((imageWidth / 12) * 100)
+                                                    );
+                                                    return renderImageBlock(child, {
+                                                      flex: isSoloImagePanel
+                                                        ? "0 0 100%"
+                                                        : `0 0 ${imageFlexBasis}%`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                      imagePreviewHeight: isSoloImagePanel ? 220 : undefined,
+                                                      imageScale: isSoloImagePanel ? "100%" : undefined,
+                                                    });
+                                                  }
+                                                  if (child.blockTemplate === "html") {
+                                                    const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                    const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
+                                                    return renderHtmlBlock(child, {
+                                                      flex: `0 0 ${htmlFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                    });
+                                                  }
+                                                  if (
+                                                    child.blockTemplate === "product" ||
+                                                    child.blockTemplate === "product-horizontal" ||
+                                                    child.blockTemplate === "product-grid" ||
+                                                    child.blockTemplate === "product-carousel" ||
+                                                    child.blockTemplate === "product-grid-horizontal"
+                                                  ) {
+                                                    const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
+                                                    const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
+                                                    return renderProductBlock(child, {
+                                                      flex: `0 0 ${productFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                    });
+                                                  }
+                                                  if (
+                                                    child.blockTemplate === "collection" ||
+                                                    child.blockTemplate === "collection-horizontal"
+                                                  ) {
+                                                    const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                    const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
+                                                    return renderCollectionBlock(child, {
+                                                      flex: `0 0 ${collectionFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                    });
+                                                  }
+                                                  if (
+                                                    child.blockTemplate === "blogs" ||
+                                                    child.blockTemplate === "blogs-latest"
+                                                  ) {
+                                                    const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                    const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
+                                                    return renderBlogBlock(child, {
+                                                      flex: `0 0 ${blogFlexBasis}`,
+                                                      wrapperStyle: { minWidth: 0 },
+                                                    });
+                                                  }
+                                                  return null;
+                                                })}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ) : null}
+                                    </>
+                                  ) : activeDropdownHasBlocks ? (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                                      <div
+                                        className="menu-builder-hide-scrollbar"
                                         style={{
-                                          width: 20,
-                                          height: 20,
-                                          borderRadius: 9999,
-                                          border: "2px solid currentColor",
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                          fontSize: 14,
-                                          lineHeight: 1,
+                                          overflowX: useCustomNormalDropdownLayout ? "hidden" : "auto",
+                                          overflowY: "hidden",
+                                          scrollbarWidth: "none",
+                                          msOverflowStyle: "none",
                                         }}
                                       >
-                                        +
-                                      </span>
-                                      Add item
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            ) : null}
-                          </div>
-                        </>
-                      );
-                    })()}
+                                        <div
+                                          style={{
+                                            display: useCustomNormalDropdownLayout ? "grid" : "flex",
+                                            gridTemplateColumns: useCustomNormalDropdownLayout
+                                              ? "repeat(4, minmax(0, 1fr))"
+                                              : undefined,
+                                            columnGap: useCustomNormalDropdownLayout ? 0 : undefined,
+                                            rowGap: useCustomNormalDropdownLayout ? 0 : undefined,
+                                            flexWrap: useCustomNormalDropdownLayout ? undefined : "nowrap",
+                                            gap: useCustomNormalDropdownLayout ? undefined : 24,
+                                            alignItems: "flex-start",
+                                            justifyContent: useCustomNormalDropdownLayout
+                                              ? undefined
+                                              : useSimpleLeftTabsCompactLayout
+                                                ? "space-between"
+                                                : undefined,
+                                            minWidth: useCustomNormalDropdownLayout
+                                              ? undefined
+                                              : useSimpleLeftTabsCompactLayout
+                                                ? undefined
+                                                : 960,
+                                          }}
+                                        >
+                                          {activeDropdownChildren.map((child) => {
+                                            if (child.blockTemplate === "links") {
+                                              const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                              const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                              const linkFlexBasis =
+                                                columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                                              return renderLinkListBlock(child, {
+                                                ...(useCustomNormalDropdownLayout
+                                                  ? { wrapperStyle: { minWidth: 0 } }
+                                                  : { flex: `0 0 ${linkFlexBasis}`, wrapperStyle: { minWidth: 0 } }),
+                                                toolbarPlacement: "floating",
+                                              });
+                                            }
+                                            if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                              return renderImageBlock(child, {
+                                                ...(useCustomNormalDropdownLayout
+                                                  ? { wrapperStyle: { minWidth: 0 } }
+                                                  : { flex: "0 0 20%", wrapperStyle: { minWidth: 0 } }),
+                                              });
+                                            }
+                                            if (child.blockTemplate === "html") {
+                                              const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                              const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
+                                              return renderHtmlBlock(child, {
+                                                flex: `0 0 ${htmlFlexBasis}`,
+                                                wrapperStyle: { minWidth: 0 },
+                                              });
+                                            }
+                                            if (
+                                              child.blockTemplate === "product" ||
+                                              child.blockTemplate === "product-horizontal" ||
+                                              child.blockTemplate === "product-grid" ||
+                                              child.blockTemplate === "product-carousel" ||
+                                              child.blockTemplate === "product-grid-horizontal"
+                                            ) {
+                                              const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
+                                              const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
+                                              return renderProductBlock(child, {
+                                                flex: `0 0 ${productFlexBasis}`,
+                                                wrapperStyle: { minWidth: 0 },
+                                              });
+                                            }
+                                            if (
+                                              child.blockTemplate === "collection" ||
+                                              child.blockTemplate === "collection-horizontal"
+                                            ) {
+                                              const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                              const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
+                                              return renderCollectionBlock(child, {
+                                                flex: `0 0 ${collectionFlexBasis}`,
+                                                wrapperStyle: { minWidth: 0 },
+                                              });
+                                            }
+                                            if (
+                                              child.blockTemplate === "blogs" ||
+                                              child.blockTemplate === "blogs-latest"
+                                            ) {
+                                              const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                              const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
+                                              return renderBlogBlock(child, {
+                                                flex: `0 0 ${blogFlexBasis}`,
+                                                wrapperStyle: { minWidth: 0 },
+                                              });
+                                            }
+                                            return null;
+                                          })}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: 12 }}>
+                                      {activeDropdownChildren.map((child) => (
+                                        <div
+                                          key={child.id}
+                                          className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                          ref={registerPreviewRow(child.id)}
+                                          style={{ willChange: "transform" }}
+                                          draggable
+                                          onDragStart={(event) => {
+                                            event.dataTransfer.effectAllowed = "move";
+                                            event.dataTransfer.setData("text/plain", child.id);
+                                            setDraggedItemId(child.id);
+                                            const parentId = findParentId(menuItems, child.id);
+                                            setDraggedParentId(parentId ?? null);
+                                            lastDragOverIdRef.current = null;
+                                          }}
+                                          onDragEnd={() => {
+                                            setDraggedItemId(null);
+                                            setDraggedParentId(null);
+                                            lastDragOverIdRef.current = null;
+                                          }}
+                                          onDragOver={(event) => {
+                                            if (!draggedItemId || draggedItemId === child.id) return;
+                                            const targetParentId = findParentId(menuItems, child.id);
+                                            if (draggedParentId !== targetParentId) return;
+                                            event.preventDefault();
+                                            if (lastDragOverIdRef.current === child.id) return;
+                                            lastDragOverIdRef.current = child.id;
+                                            setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                          }}
+                                          onDrop={(event) => {
+                                            event.preventDefault();
+                                            setDraggedItemId(null);
+                                            setDraggedParentId(null);
+                                            lastDragOverIdRef.current = null;
+                                          }}
+                                        >
+                                          <button
+                                            type="button"
+                                            className="cursor-grab active:cursor-grabbing"
+                                            onClick={() => handleSelectItem(child.id)}
+                                            onMouseEnter={(event) => {
+                                              event.currentTarget.style.color = previewColors.submenuTextHover;
+                                            }}
+                                            onMouseLeave={(event) => {
+                                              event.currentTarget.style.color = previewColors.submenuText;
+                                            }}
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              justifyContent: "space-between",
+                                              gap: 10,
+                                              minHeight: dropdownItemHeight,
+                                              padding: "8px 10px",
+                                              borderRadius: 0,
+                                              border: "2px solid transparent",
+                                              background: "transparent",
+                                              color: previewColors.submenuText,
+                                              width: "100%",
+                                              textAlign: dropdownContentAlign,
+                                              ...subtextTypography,
+                                              lineHeight: 1.2,
+                                            }}
+                                          >
+                                            <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                                              {child.label}
+                                            </span>
+                                          </button>
+                                          <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                            <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                              <button
+                                                type="button"
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  handleSelectItem(child.id, true);
+                                                }}
+                                                aria-label="Edit item"
+                                                className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                              >
+                                                <Icon source={EditIcon} />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  handleDuplicateItem(child.id);
+                                                }}
+                                                aria-label="Duplicate item"
+                                                className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                              >
+                                                <Icon source={DuplicateIcon} />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={(event) => {
+                                                  event.stopPropagation();
+                                                  openDeleteItemDialog(child.id);
+                                                }}
+                                                aria-label="Delete item"
+                                                className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                              >
+                                                <Icon source={DeleteIcon} />
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
+                                        className="text-sm font-medium"
+                                        style={{
+                                          alignSelf: "stretch",
+                                          minHeight: dropdownItemHeight,
+                                          textAlign: dropdownContentAlign,
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: dropdownAlignJustify,
+                                          gap: 8,
+                                          width: "100%",
+                                          padding: "6px 8px",
+                                          color: themeSettings.menuActive,
+                                          background: "transparent",
+                                          border: "none",
+                                          ...descriptionTypography,
+                                        }}
+                                        onMouseEnter={(event) => {
+                                          event.currentTarget.style.color = previewColors.submenuTextHover;
+                                        }}
+                                        onMouseLeave={(event) => {
+                                          event.currentTarget.style.color = themeSettings.menuActive;
+                                        }}
+                                      >
+                                        <span
+                                          aria-hidden="true"
+                                          style={{
+                                            width: 20,
+                                            height: 20,
+                                            borderRadius: 9999,
+                                            border: "2px solid currentColor",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: 14,
+                                            lineHeight: 1,
+                                          }}
+                                        >
+                                          +
+                                        </span>
+                                        Add item
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : null}
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                ) : null}
 
-              {/* Horizontal Dropdown */}
-              {isHorizontalDropdownMenu && horizontalDropdownItems.length > 0 ? (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    right: 0,
-                    zIndex: 40,
-                    width: "100%",
-                  }}
-                >
+                {/* Horizontal Dropdown */}
+                {isHorizontalDropdownMenu && horizontalDropdownItems.length > 0 ? (
                   <div
-                    className="group relative"
                     style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 0,
-                      color: previewColors.submenuText,
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      right: 0,
+                      zIndex: 40,
                       width: "100%",
                     }}
                   >
-                    <div style={{ display: "flex", gap: 0, position: "relative", width: "100%" }}>
-                      <div
-                        className="relative"
-                        style={{
-                          background: previewColors.submenuBackground,
-                          border: builderSettings.submenuShowBorder
-                            ? `1px solid ${previewColors.submenuBorder}`
-                            : "none",
-                          borderRadius: 0,
-                          boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
-                          width: "100%",
-                        }}
-                      >
-                        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%" }}>
-                          <div style={{ display: "flex", flexDirection: "row", gap: 0, flexWrap: "wrap", alignItems: "center", justifyContent: menuAlignmentMap[previewMenu.submenuContentAlign || 'center'], flex: 1, padding: "0 12px" }}>
-                            {horizontalDropdownItems.map((child) => {
-                              const isActive = activeHorizontalItem?.id === child.id;
-                              return (
-                                <div
-                                  key={child.id}
-                                  className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
-                                  ref={registerPreviewRow(child.id)}
-                                  style={{ willChange: "transform" }}
-                                  draggable
-                                  onDragStart={(event) => {
-                                    event.dataTransfer.effectAllowed = "move";
-                                    event.dataTransfer.setData("text/plain", child.id);
-                                    setDraggedItemId(child.id);
-                                    const parentId = findParentId(menuItems, child.id);
-                                    setDraggedParentId(parentId ?? null);
-                                    lastDragOverIdRef.current = null;
-                                  }}
-                                  onDragEnd={() => {
-                                    setDraggedItemId(null);
-                                    setDraggedParentId(null);
-                                    lastDragOverIdRef.current = null;
-                                  }}
-                                  onDragOver={(event) => {
-                                    if (!draggedItemId || draggedItemId === child.id) return;
-                                    const targetParentId = findParentId(menuItems, child.id);
-                                    if (draggedParentId !== targetParentId) return;
-                                    event.preventDefault();
-                                    if (lastDragOverIdRef.current === child.id) return;
-                                    lastDragOverIdRef.current = child.id;
-                                    setMenuItems((items) => moveItem(items, draggedItemId, child.id));
-                                  }}
-                                  onDrop={(event) => {
-                                    event.preventDefault();
-                                    setDraggedItemId(null);
-                                    setDraggedParentId(null);
-                                    lastDragOverIdRef.current = null;
-                                  }}
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      handleSelectItem(child.id);
-                                    if (isTopTabsTemplate) {
-                                      setActiveHorizontalItemId((prev) =>
-                                        prev === child.id ? null : child.children?.length ? child.id : null
-                                      );
-                                      setActiveHorizontalChildId(null);
-                                      setActiveHorizontalGrandchildId(null);
-                                    }
-                                    }}
-                                    onMouseEnter={(event) => {
-                                      event.currentTarget.style.color = previewColors.submenuTextHover;
-                                    }}
-                                    onMouseLeave={(event) => {
-                                      event.currentTarget.style.color = isActive ? previewColors.submenuTextHover : previewColors.submenuText;
-                                    }}
-                                    className="cursor-grab active:cursor-grabbing"
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      gap: 10,
-                                      minHeight: builderSettings.spacingLinkListRowHeight,
-                                      padding: "16px",
-                                      borderRadius: 0,
-                                      border: "2px solid transparent",
-                                      background: "transparent",
-                                      color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
-                                      textAlign: "center",
-                                      ...subtextTypography,
-                                      lineHeight: 1.2,
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
-                                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                      <span>{child.label}</span>
-                                      {Boolean(child.children?.length) && (
-                                        <Icon source={ChevronDownIcon} tone="subdued" />
-                                      )}
-                                    </div>
-                                  </button>
-                                  <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                                    <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                                      <button
-                                        type="button"
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          handleSelectItem(child.id, true);
-                                        }}
-                                        aria-label="Edit item"
-                                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                      >
-                                        <Icon source={EditIcon} />
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          handleDuplicateItem(child.id);
-                                        }}
-                                        aria-label="Copy item"
-                                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                      >
-                                        <Icon source={DuplicateIcon} />
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          handleDeleteItem(child.id);
-                                        }}
-                                        aria-label="Delete item"
-                                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                      >
-                                        <Icon source={DeleteIcon} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                            <button
-                              type="button"
-                              onClick={() => handleAddChild(previewMenu.id, "item")}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 8,
-                                padding: "16px",
-                                borderRadius: 0,
-                                border: "none",
-                                background: "transparent",
-                                color: "#3b82f6",
-                                fontSize: 14,
-                                fontWeight: 500,
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              + Öğe Ekle
-                            </button>
-                          </div>
-
-                          {/* Alignment Buttons for Row 1 */}
-                          <div style={{ background: "rgb(17, 24, 39)", padding: "4px", borderRadius: "4px", marginRight: "12px", display: "flex", gap: 0 }}>
-                            <button
-                              type="button"
-                              className={`flex h-6 w-6 items-center justify-center rounded text-white ${previewMenu.submenuContentAlign === "left" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                              onClick={() => setMenuItems((items) => updateItemById(items, previewMenu.id, (item) => ({ ...item, submenuContentAlign: "left" })))}
-                            >
-                              <Icon source={TextAlignLeftIcon} />
-                            </button>
-                            <button
-                              type="button"
-                              className={`flex h-6 w-6 items-center justify-center rounded text-white ${previewMenu.submenuContentAlign === "center" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                              onClick={() => setMenuItems((items) => updateItemById(items, previewMenu.id, (item) => ({ ...item, submenuContentAlign: "center" })))}
-                            >
-                              <Icon source={TextAlignCenterIcon} />
-                            </button>
-                            <button
-                              type="button"
-                              className={`flex h-6 w-6 items-center justify-center rounded text-white ${previewMenu.submenuContentAlign === "right" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                              onClick={() => setMenuItems((items) => updateItemById(items, previewMenu.id, (item) => ({ ...item, submenuContentAlign: "right" })))}
-                            >
-                              <Icon source={TextAlignRightIcon} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Second level horizontal dropdown */}
-                        {activeHorizontalItem && !activeHorizontalHasBlocks ? (
-                          <div
-                            style={{
-                              borderTop: `1px solid ${previewColors.submenuBorder}`,
-                              display: "flex",
-                              flexDirection: "row",
-                              alignItems: "center",
-                              width: "100%",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "row",
-                                gap: 0,
-                                flexWrap: "wrap",
-                                alignItems: "center",
-                                justifyContent: menuAlignmentMap[activeHorizontalItem.submenuContentAlign || "center"],
-                                flex: 1,
-                                padding: "0 12px",
-                              }}
-                            >
-                              {activeHorizontalChildren.map((child) => {
-                                const isActive =
-                                  selectedItemId === child.id || selectedItemPath?.some((p) => p.id === child.id);
-                                const hasBlockChildren = Boolean(
-                                  child.children?.some((grandChild) => grandChild.blockTemplate)
-                                );
+                    <div
+                      className="group relative"
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0,
+                        color: previewColors.submenuText,
+                        width: "100%",
+                      }}
+                    >
+                      <div style={{ display: "flex", gap: 0, position: "relative", width: "100%" }}>
+                        <div
+                          className="relative"
+                          style={{
+                            background: previewColors.submenuBackground,
+                            border: builderSettings.submenuShowBorder
+                              ? `1px solid ${previewColors.submenuBorder}`
+                              : "none",
+                            borderRadius: 0,
+                            boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
+                            width: "100%",
+                          }}
+                        >
+                          <div style={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%" }}>
+                            <div style={{ display: "flex", flexDirection: "row", gap: 0, flexWrap: "wrap", alignItems: "center", justifyContent: menuAlignmentMap[previewMenu.submenuContentAlign || 'center'], flex: 1, padding: "0 12px" }}>
+                              {horizontalDropdownItems.map((child) => {
+                                const isActive = activeHorizontalItem?.id === child.id;
                                 return (
                                   <div
                                     key={child.id}
@@ -11803,547 +11607,743 @@ export default function MenuBuilder() {
                                       type="button"
                                       onClick={() => {
                                         handleSelectItem(child.id);
-                                        if (isTwoTopTabsTemplate) {
-                                          setActiveHorizontalChildId((prev) =>
+                                        if (isTopTabsTemplate) {
+                                          setActiveHorizontalItemId((prev) =>
+                                            prev === child.id ? null : child.children?.length ? child.id : null
+                                          );
+                                          setActiveHorizontalChildId(null);
+                                          setActiveHorizontalGrandchildId(null);
+                                        }
+                                      }}
+                                      onMouseEnter={(event) => {
+                                        event.currentTarget.style.color = previewColors.submenuTextHover;
+                                      }}
+                                      onMouseLeave={(event) => {
+                                        event.currentTarget.style.color = isActive ? previewColors.submenuTextHover : previewColors.submenuText;
+                                      }}
+                                      className="cursor-grab active:cursor-grabbing"
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        gap: 10,
+                                        minHeight: builderSettings.spacingLinkListRowHeight,
+                                        padding: "16px",
+                                        borderRadius: 0,
+                                        border: "2px solid transparent",
+                                        background: "transparent",
+                                        color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
+                                        textAlign: "center",
+                                        ...subtextTypography,
+                                        lineHeight: 1.2,
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                        <span>{child.label}</span>
+                                        {Boolean(child.children?.length) && (
+                                          <Icon source={ChevronDownIcon} tone="subdued" />
+                                        )}
+                                      </div>
+                                    </button>
+                                    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                      <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                        <button
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleSelectItem(child.id, true);
+                                          }}
+                                          aria-label="Edit item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                        >
+                                          <Icon source={EditIcon} />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleDuplicateItem(child.id);
+                                          }}
+                                          aria-label="Copy item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                        >
+                                          <Icon source={DuplicateIcon} />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleDeleteItem(child.id);
+                                          }}
+                                          aria-label="Delete item"
+                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                        >
+                                          <Icon source={DeleteIcon} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                              <button
+                                type="button"
+                                onClick={() => handleAddChild(previewMenu.id, "item")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 8,
+                                  padding: "16px",
+                                  borderRadius: 0,
+                                  border: "none",
+                                  background: "transparent",
+                                  color: "#3b82f6",
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                + Öğe Ekle
+                              </button>
+                            </div>
+
+                            {/* Alignment Buttons for Row 1 */}
+                            <div style={{ background: "rgb(17, 24, 39)", padding: "4px", borderRadius: "4px", marginRight: "12px", display: "flex", gap: 0 }}>
+                              <button
+                                type="button"
+                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${previewMenu.submenuContentAlign === "left" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                onClick={() => setMenuItems((items) => updateItemById(items, previewMenu.id, (item) => ({ ...item, submenuContentAlign: "left" })))}
+                              >
+                                <Icon source={TextAlignLeftIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${previewMenu.submenuContentAlign === "center" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                onClick={() => setMenuItems((items) => updateItemById(items, previewMenu.id, (item) => ({ ...item, submenuContentAlign: "center" })))}
+                              >
+                                <Icon source={TextAlignCenterIcon} />
+                              </button>
+                              <button
+                                type="button"
+                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${previewMenu.submenuContentAlign === "right" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                onClick={() => setMenuItems((items) => updateItemById(items, previewMenu.id, (item) => ({ ...item, submenuContentAlign: "right" })))}
+                              >
+                                <Icon source={TextAlignRightIcon} />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Second level horizontal dropdown */}
+                          {activeHorizontalItem && !activeHorizontalHasBlocks ? (
+                            <div
+                              style={{
+                                borderTop: `1px solid ${previewColors.submenuBorder}`,
+                                display: "flex",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                width: "100%",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "row",
+                                  gap: 0,
+                                  flexWrap: "wrap",
+                                  alignItems: "center",
+                                  justifyContent: menuAlignmentMap[activeHorizontalItem.submenuContentAlign || "center"],
+                                  flex: 1,
+                                  padding: "0 12px",
+                                }}
+                              >
+                                {activeHorizontalChildren.map((child) => {
+                                  const isActive =
+                                    selectedItemId === child.id || selectedItemPath?.some((p) => p.id === child.id);
+                                  const hasBlockChildren = Boolean(
+                                    child.children?.some((grandChild) => grandChild.blockTemplate)
+                                  );
+                                  return (
+                                    <div
+                                      key={child.id}
+                                      className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                      ref={registerPreviewRow(child.id)}
+                                      style={{ willChange: "transform" }}
+                                      draggable
+                                      onDragStart={(event) => {
+                                        event.dataTransfer.effectAllowed = "move";
+                                        event.dataTransfer.setData("text/plain", child.id);
+                                        setDraggedItemId(child.id);
+                                        const parentId = findParentId(menuItems, child.id);
+                                        setDraggedParentId(parentId ?? null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                      onDragEnd={() => {
+                                        setDraggedItemId(null);
+                                        setDraggedParentId(null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                      onDragOver={(event) => {
+                                        if (!draggedItemId || draggedItemId === child.id) return;
+                                        const targetParentId = findParentId(menuItems, child.id);
+                                        if (draggedParentId !== targetParentId) return;
+                                        event.preventDefault();
+                                        if (lastDragOverIdRef.current === child.id) return;
+                                        lastDragOverIdRef.current = child.id;
+                                        setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                      }}
+                                      onDrop={(event) => {
+                                        event.preventDefault();
+                                        setDraggedItemId(null);
+                                        setDraggedParentId(null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleSelectItem(child.id);
+                                          if (isTwoTopTabsTemplate) {
+                                            setActiveHorizontalChildId((prev) =>
+                                              prev === child.id ? null : hasBlockChildren ? child.id : null
+                                            );
+                                            setActiveHorizontalGrandchildId(null);
+                                          }
+                                          if (isThreeTopTabsTemplate) {
+                                            const hasNestedChildren = Boolean(child.children?.length);
+                                            setActiveHorizontalChildId((prev) =>
+                                              prev === child.id ? null : hasNestedChildren ? child.id : null
+                                            );
+                                            setActiveHorizontalGrandchildId(null);
+                                          }
+                                        }}
+                                        onMouseEnter={(event) => {
+                                          event.currentTarget.style.color = previewColors.submenuTextHover;
+                                        }}
+                                        onMouseLeave={(event) => {
+                                          event.currentTarget.style.color = isActive
+                                            ? previewColors.submenuTextHover
+                                            : previewColors.submenuText;
+                                        }}
+                                        className="cursor-grab active:cursor-grabbing"
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          gap: 10,
+                                          minHeight: builderSettings.spacingLinkListRowHeight,
+                                          padding: "16px",
+                                          borderRadius: 0,
+                                          border: "2px solid transparent",
+                                          background: "transparent",
+                                          color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
+                                          textAlign: "center",
+                                          ...subtextTypography,
+                                          lineHeight: 1.2,
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                          <span>{child.label}</span>
+                                          {Boolean(child.children?.length) && (
+                                            <Icon source={ChevronDownIcon} tone="subdued" />
+                                          )}
+                                        </div>
+                                      </button>
+                                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                        <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleSelectItem(child.id, true);
+                                            }}
+                                            aria-label="Edit item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                          >
+                                            <Icon source={EditIcon} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleDuplicateItem(child.id);
+                                            }}
+                                            aria-label="Copy item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                          >
+                                            <Icon source={DuplicateIcon} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleDeleteItem(child.id);
+                                            }}
+                                            aria-label="Delete item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                          >
+                                            <Icon source={DeleteIcon} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddChild(activeHorizontalItem.id, "item")}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 8,
+                                    padding: "16px",
+                                    borderRadius: 0,
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "#3b82f6",
+                                    fontSize: 14,
+                                    fontWeight: 500,
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  + Öğe Ekle
+                                </button>
+                              </div>
+
+                              {/* Alignment Buttons for Row 2 */}
+                              <div
+                                style={{
+                                  background: "rgb(17, 24, 39)",
+                                  padding: "4px",
+                                  borderRadius: "4px",
+                                  marginRight: "12px",
+                                  display: "flex",
+                                  gap: 0,
+                                }}
+                              >
+                                <button
+                                  type="button"
+                                  className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "left" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, activeHorizontalItem.id, (item) => ({
+                                        ...item,
+                                        submenuContentAlign: "left",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignLeftIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "center" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, activeHorizontalItem.id, (item) => ({
+                                        ...item,
+                                        submenuContentAlign: "center",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignCenterIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "right" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, activeHorizontalItem.id, (item) => ({
+                                        ...item,
+                                        submenuContentAlign: "right",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignRightIcon} />
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
+                          {isThreeTopTabsTemplate && activeHorizontalChild && !activeHorizontalChildHasBlocks ? (
+                            <div
+                              style={{
+                                borderTop: `1px solid ${previewColors.submenuBorder}`,
+                                display: "flex",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                width: "100%",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "row",
+                                  gap: 0,
+                                  flexWrap: "wrap",
+                                  alignItems: "center",
+                                  justifyContent: menuAlignmentMap[activeHorizontalChild.submenuContentAlign || "center"],
+                                  flex: 1,
+                                  padding: "0 12px",
+                                }}
+                              >
+                                {activeHorizontalChildChildren.map((child) => {
+                                  const isActive =
+                                    selectedItemId === child.id || selectedItemPath?.some((p) => p.id === child.id);
+                                  const hasBlockChildren = Boolean(
+                                    child.children?.some((grandChild) => grandChild.blockTemplate)
+                                  );
+                                  return (
+                                    <div
+                                      key={child.id}
+                                      className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
+                                      ref={registerPreviewRow(child.id)}
+                                      style={{ willChange: "transform" }}
+                                      draggable
+                                      onDragStart={(event) => {
+                                        event.dataTransfer.effectAllowed = "move";
+                                        event.dataTransfer.setData("text/plain", child.id);
+                                        setDraggedItemId(child.id);
+                                        const parentId = findParentId(menuItems, child.id);
+                                        setDraggedParentId(parentId ?? null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                      onDragEnd={() => {
+                                        setDraggedItemId(null);
+                                        setDraggedParentId(null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                      onDragOver={(event) => {
+                                        if (!draggedItemId || draggedItemId === child.id) return;
+                                        const targetParentId = findParentId(menuItems, child.id);
+                                        if (draggedParentId !== targetParentId) return;
+                                        event.preventDefault();
+                                        if (lastDragOverIdRef.current === child.id) return;
+                                        lastDragOverIdRef.current = child.id;
+                                        setMenuItems((items) => moveItem(items, draggedItemId, child.id));
+                                      }}
+                                      onDrop={(event) => {
+                                        event.preventDefault();
+                                        setDraggedItemId(null);
+                                        setDraggedParentId(null);
+                                        lastDragOverIdRef.current = null;
+                                      }}
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleSelectItem(child.id);
+                                          setActiveHorizontalGrandchildId((prev) =>
                                             prev === child.id ? null : hasBlockChildren ? child.id : null
                                           );
-                                          setActiveHorizontalGrandchildId(null);
-                                        }
-                                        if (isThreeTopTabsTemplate) {
-                                          const hasNestedChildren = Boolean(child.children?.length);
-                                          setActiveHorizontalChildId((prev) =>
-                                            prev === child.id ? null : hasNestedChildren ? child.id : null
-                                          );
-                                          setActiveHorizontalGrandchildId(null);
-                                        }
-                                      }}
-                                      onMouseEnter={(event) => {
-                                        event.currentTarget.style.color = previewColors.submenuTextHover;
-                                      }}
-                                      onMouseLeave={(event) => {
-                                        event.currentTarget.style.color = isActive
-                                          ? previewColors.submenuTextHover
-                                          : previewColors.submenuText;
-                                      }}
-                                      className="cursor-grab active:cursor-grabbing"
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: 10,
-                                        minHeight: builderSettings.spacingLinkListRowHeight,
-                                        padding: "16px",
-                                        borderRadius: 0,
-                                        border: "2px solid transparent",
-                                        background: "transparent",
-                                        color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
-                                        textAlign: "center",
-                                        ...subtextTypography,
-                                        lineHeight: 1.2,
-                                        whiteSpace: "nowrap",
-                                      }}
-                                    >
-                                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                        <span>{child.label}</span>
-                                        {Boolean(child.children?.length) && (
-                                          <Icon source={ChevronDownIcon} tone="subdued" />
-                                        )}
-                                      </div>
-                                    </button>
-                                    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                                      <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                                        <button
-                                          type="button"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            handleSelectItem(child.id, true);
-                                          }}
-                                          aria-label="Edit item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                        >
-                                          <Icon source={EditIcon} />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            handleDuplicateItem(child.id);
-                                          }}
-                                          aria-label="Copy item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                        >
-                                          <Icon source={DuplicateIcon} />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            handleDeleteItem(child.id);
-                                          }}
-                                          aria-label="Delete item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                        >
-                                          <Icon source={DeleteIcon} />
-                                        </button>
+                                        }}
+                                        onMouseEnter={(event) => {
+                                          event.currentTarget.style.color = previewColors.submenuTextHover;
+                                        }}
+                                        onMouseLeave={(event) => {
+                                          event.currentTarget.style.color = isActive
+                                            ? previewColors.submenuTextHover
+                                            : previewColors.submenuText;
+                                        }}
+                                        className="cursor-grab active:cursor-grabbing"
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          gap: 10,
+                                          minHeight: builderSettings.spacingLinkListRowHeight,
+                                          padding: "16px",
+                                          borderRadius: 0,
+                                          border: "2px solid transparent",
+                                          background: "transparent",
+                                          color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
+                                          textAlign: "center",
+                                          ...subtextTypography,
+                                          lineHeight: 1.2,
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                          <span>{child.label}</span>
+                                          {Boolean(child.children?.length) && (
+                                            <Icon source={ChevronDownIcon} tone="subdued" />
+                                          )}
+                                        </div>
+                                      </button>
+                                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                                        <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleSelectItem(child.id, true);
+                                            }}
+                                            aria-label="Edit item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                          >
+                                            <Icon source={EditIcon} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleDuplicateItem(child.id);
+                                            }}
+                                            aria-label="Copy item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                          >
+                                            <Icon source={DuplicateIcon} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              handleDeleteItem(child.id);
+                                            }}
+                                            aria-label="Delete item"
+                                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                          >
+                                            <Icon source={DeleteIcon} />
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                );
-                              })}
-                              <button
-                                type="button"
-                                onClick={() => handleAddChild(activeHorizontalItem.id, "item")}
+                                  );
+                                })}
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddChild(activeHorizontalChild.id, "item")}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 8,
+                                    padding: "16px",
+                                    borderRadius: 0,
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "#3b82f6",
+                                    fontSize: 14,
+                                    fontWeight: 500,
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  + Öğe Ekle
+                                </button>
+                              </div>
+                              <div
                                 style={{
+                                  background: "rgb(17, 24, 39)",
+                                  padding: "4px",
+                                  borderRadius: "4px",
+                                  marginRight: "12px",
                                   display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: 8,
-                                  padding: "16px",
-                                  borderRadius: 0,
-                                  border: "none",
-                                  background: "transparent",
-                                  color: "#3b82f6",
-                                  fontSize: 14,
-                                  fontWeight: 500,
-                                  whiteSpace: "nowrap",
+                                  gap: 0,
                                 }}
                               >
-                                + Öğe Ekle
-                              </button>
+                                <button
+                                  type="button"
+                                  className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "left" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, activeHorizontalChild.id, (item) => ({
+                                        ...item,
+                                        submenuContentAlign: "left",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignLeftIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "center" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, activeHorizontalChild.id, (item) => ({
+                                        ...item,
+                                        submenuContentAlign: "center",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignCenterIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "right" ? "bg-gray-700" : "hover:bg-gray-800"}`}
+                                  onClick={() =>
+                                    setMenuItems((items) =>
+                                      updateItemById(items, activeHorizontalChild.id, (item) => ({
+                                        ...item,
+                                        submenuContentAlign: "right",
+                                      }))
+                                    )
+                                  }
+                                >
+                                  <Icon source={TextAlignRightIcon} />
+                                </button>
+                              </div>
                             </div>
-
-                            {/* Alignment Buttons for Row 2 */}
+                          ) : null}
+                          {isTwoTopTabsTemplate && activeHorizontalChildHasBlocks ? (
                             <div
                               style={{
-                                background: "rgb(17, 24, 39)",
-                                padding: "4px",
-                                borderRadius: "4px",
-                                marginRight: "12px",
-                                display: "flex",
-                                gap: 0,
+                                borderTop: `1px solid ${previewColors.submenuBorder}`,
+                                width: "100%",
                               }}
                             >
-                              <button
-                                type="button"
-                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "left" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, activeHorizontalItem.id, (item) => ({
-                                      ...item,
-                                      submenuContentAlign: "left",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignLeftIcon} />
-                              </button>
-                              <button
-                                type="button"
-                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "center" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, activeHorizontalItem.id, (item) => ({
-                                      ...item,
-                                      submenuContentAlign: "center",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignCenterIcon} />
-                              </button>
-                              <button
-                                type="button"
-                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalItem.submenuContentAlign === "right" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, activeHorizontalItem.id, (item) => ({
-                                      ...item,
-                                      submenuContentAlign: "right",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignRightIcon} />
-                              </button>
-                            </div>
-                          </div>
-                        ) : null}
-                        {isThreeTopTabsTemplate && activeHorizontalChild && !activeHorizontalChildHasBlocks ? (
-                          <div
-                            style={{
-                              borderTop: `1px solid ${previewColors.submenuBorder}`,
-                              display: "flex",
-                              flexDirection: "row",
-                              alignItems: "center",
-                              width: "100%",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "row",
-                                gap: 0,
-                                flexWrap: "wrap",
-                                alignItems: "center",
-                                justifyContent: menuAlignmentMap[activeHorizontalChild.submenuContentAlign || "center"],
-                                flex: 1,
-                                padding: "0 12px",
-                              }}
-                            >
-                              {activeHorizontalChildChildren.map((child) => {
-                                const isActive =
-                                  selectedItemId === child.id || selectedItemPath?.some((p) => p.id === child.id);
-                                const hasBlockChildren = Boolean(
-                                  child.children?.some((grandChild) => grandChild.blockTemplate)
-                                );
-                                return (
+                              <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
+                                <div
+                                  className="menu-builder-hide-scrollbar"
+                                  style={{
+                                    overflowX: "auto",
+                                    overflowY: "hidden",
+                                    scrollbarWidth: "none",
+                                    msOverflowStyle: "none",
+                                  }}
+                                >
                                   <div
-                                    key={child.id}
-                                    className={`group/item relative ${draggedItemId === child.id ? "opacity-50" : ""}`}
-                                    ref={registerPreviewRow(child.id)}
-                                    style={{ willChange: "transform" }}
-                                    draggable
-                                    onDragStart={(event) => {
-                                      event.dataTransfer.effectAllowed = "move";
-                                      event.dataTransfer.setData("text/plain", child.id);
-                                      setDraggedItemId(child.id);
-                                      const parentId = findParentId(menuItems, child.id);
-                                      setDraggedParentId(parentId ?? null);
-                                      lastDragOverIdRef.current = null;
-                                    }}
-                                    onDragEnd={() => {
-                                      setDraggedItemId(null);
-                                      setDraggedParentId(null);
-                                      lastDragOverIdRef.current = null;
-                                    }}
-                                    onDragOver={(event) => {
-                                      if (!draggedItemId || draggedItemId === child.id) return;
-                                      const targetParentId = findParentId(menuItems, child.id);
-                                      if (draggedParentId !== targetParentId) return;
-                                      event.preventDefault();
-                                      if (lastDragOverIdRef.current === child.id) return;
-                                      lastDragOverIdRef.current = child.id;
-                                      setMenuItems((items) => moveItem(items, draggedItemId, child.id));
-                                    }}
-                                    onDrop={(event) => {
-                                      event.preventDefault();
-                                      setDraggedItemId(null);
-                                      setDraggedParentId(null);
-                                      lastDragOverIdRef.current = null;
+                                    style={{
+                                      display: "flex",
+                                      flexWrap: "nowrap",
+                                      gap: 24,
+                                      alignItems: "flex-start",
+                                      justifyContent: "space-between",
+                                      minWidth: 0,
                                     }}
                                   >
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        handleSelectItem(child.id);
-                                        setActiveHorizontalGrandchildId((prev) =>
-                                          prev === child.id ? null : hasBlockChildren ? child.id : null
-                                        );
-                                      }}
-                                      onMouseEnter={(event) => {
-                                        event.currentTarget.style.color = previewColors.submenuTextHover;
-                                      }}
-                                      onMouseLeave={(event) => {
-                                        event.currentTarget.style.color = isActive
-                                          ? previewColors.submenuTextHover
-                                          : previewColors.submenuText;
-                                      }}
-                                      className="cursor-grab active:cursor-grabbing"
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: 10,
-                                        minHeight: builderSettings.spacingLinkListRowHeight,
-                                        padding: "16px",
-                                        borderRadius: 0,
-                                        border: "2px solid transparent",
-                                        background: "transparent",
-                                        color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
-                                        textAlign: "center",
-                                        ...subtextTypography,
-                                        lineHeight: 1.2,
-                                        whiteSpace: "nowrap",
-                                      }}
-                                    >
-                                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                        <span>{child.label}</span>
-                                        {Boolean(child.children?.length) && (
-                                          <Icon source={ChevronDownIcon} tone="subdued" />
-                                        )}
-                                      </div>
-                                    </button>
-                                    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                                      <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                                        <button
-                                          type="button"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            handleSelectItem(child.id, true);
-                                          }}
-                                          aria-label="Edit item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                        >
-                                          <Icon source={EditIcon} />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            handleDuplicateItem(child.id);
-                                          }}
-                                          aria-label="Copy item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                        >
-                                          <Icon source={DuplicateIcon} />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={(event) => {
-                                            event.stopPropagation();
-                                            handleDeleteItem(child.id);
-                                          }}
-                                          aria-label="Delete item"
-                                          className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                                        >
-                                          <Icon source={DeleteIcon} />
-                                        </button>
-                                      </div>
-                                    </div>
+                                    {activeHorizontalChildBlocks.map((child) => {
+                                      if (child.blockTemplate === "links") {
+                                        const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                        const rawLinkWidth = child.linkWidth ?? 6;
+                                        const linkWidth = Math.max(1, Math.min(12, rawLinkWidth));
+                                        const resolvedLinkWidth =
+                                          isTwoTopTabsTemplate && rawLinkWidth === 6 ? 4 : linkWidth;
+                                        const linkFlexBasis =
+                                          columnCount === 3
+                                            ? "70%"
+                                            : `${Math.round((resolvedLinkWidth / 12) * 100)}%`;
+                                        return renderLinkListBlock(child, {
+                                          flex: `0 0 ${linkFlexBasis}`,
+                                          wrapperStyle: { minWidth: 0 },
+                                          toolbarPlacement: "floating",
+                                        });
+                                      }
+                                      if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                        return renderImageBlock(child, {
+                                          flex: "0 0 20%",
+                                          wrapperStyle: { minWidth: 0 },
+                                        });
+                                      }
+                                      return null;
+                                    })}
                                   </div>
-                                );
-                              })}
-                              <button
-                                type="button"
-                                onClick={() => handleAddChild(activeHorizontalChild.id, "item")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: 8,
-                                  padding: "16px",
-                                  borderRadius: 0,
-                                  border: "none",
-                                  background: "transparent",
-                                  color: "#3b82f6",
-                                  fontSize: 14,
-                                  fontWeight: 500,
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                + Öğe Ekle
-                              </button>
+                                </div>
+                              </div>
                             </div>
+                          ) : null}
+                          {isThreeTopTabsTemplate && activeHorizontalGrandchildHasBlocks ? (
                             <div
                               style={{
-                                background: "rgb(17, 24, 39)",
-                                padding: "4px",
-                                borderRadius: "4px",
-                                marginRight: "12px",
-                                display: "flex",
-                                gap: 0,
+                                borderTop: `1px solid ${previewColors.submenuBorder}`,
+                                width: "100%",
                               }}
                             >
-                              <button
-                                type="button"
-                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "left" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, activeHorizontalChild.id, (item) => ({
-                                      ...item,
-                                      submenuContentAlign: "left",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignLeftIcon} />
-                              </button>
-                              <button
-                                type="button"
-                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "center" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, activeHorizontalChild.id, (item) => ({
-                                      ...item,
-                                      submenuContentAlign: "center",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignCenterIcon} />
-                              </button>
-                              <button
-                                type="button"
-                                className={`flex h-6 w-6 items-center justify-center rounded text-white ${activeHorizontalChild.submenuContentAlign === "right" ? "bg-gray-700" : "hover:bg-gray-800"}`}
-                                onClick={() =>
-                                  setMenuItems((items) =>
-                                    updateItemById(items, activeHorizontalChild.id, (item) => ({
-                                      ...item,
-                                      submenuContentAlign: "right",
-                                    }))
-                                  )
-                                }
-                              >
-                                <Icon source={TextAlignRightIcon} />
-                              </button>
-                            </div>
-                          </div>
-                        ) : null}
-                        {isTwoTopTabsTemplate && activeHorizontalChildHasBlocks ? (
-                          <div
-                            style={{
-                              borderTop: `1px solid ${previewColors.submenuBorder}`,
-                              width: "100%",
-                            }}
-                          >
-                            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                              <div
-                                className="menu-builder-hide-scrollbar"
-                                style={{
-                                  overflowX: "auto",
-                                  overflowY: "hidden",
-                                  scrollbarWidth: "none",
-                                  msOverflowStyle: "none",
-                                }}
-                              >
+                              <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
                                 <div
+                                  className="menu-builder-hide-scrollbar"
                                   style={{
-                                    display: "flex",
-                                    flexWrap: "nowrap",
-                                    gap: 24,
-                                    alignItems: "flex-start",
-                                    justifyContent: "space-between",
-                                    minWidth: 0,
+                                    overflowX: "auto",
+                                    overflowY: "hidden",
+                                    scrollbarWidth: "none",
+                                    msOverflowStyle: "none",
                                   }}
                                 >
-                                  {activeHorizontalChildBlocks.map((child) => {
-                                    if (child.blockTemplate === "links") {
-                                      const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                      const rawLinkWidth = child.linkWidth ?? 6;
-                                      const linkWidth = Math.max(1, Math.min(12, rawLinkWidth));
-                                      const resolvedLinkWidth =
-                                        isTwoTopTabsTemplate && rawLinkWidth === 6 ? 4 : linkWidth;
-                                      const linkFlexBasis =
-                                        columnCount === 3
-                                          ? "70%"
-                                          : `${Math.round((resolvedLinkWidth / 12) * 100)}%`;
-                                      return renderLinkListBlock(child, {
-                                        flex: `0 0 ${linkFlexBasis}`,
-                                        wrapperStyle: { minWidth: 0 },
-                                        toolbarPlacement: "floating",
-                                      });
-                                    }
-                                    if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                      return renderImageBlock(child, {
-                                        flex: "0 0 20%",
-                                        wrapperStyle: { minWidth: 0 },
-                                      });
-                                    }
-                                    return null;
-                                  })}
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      flexWrap: "nowrap",
+                                      gap: 24,
+                                      alignItems: "flex-start",
+                                      justifyContent: "space-between",
+                                      minWidth: 0,
+                                    }}
+                                  >
+                                    {activeHorizontalGrandchildBlocks.map((child) => {
+                                      if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                        return renderImageBlock(child, {
+                                          flex: "0 0 20%",
+                                          wrapperStyle: { minWidth: 0 },
+                                        });
+                                      }
+                                      return null;
+                                    })}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ) : null}
-                        {isThreeTopTabsTemplate && activeHorizontalGrandchildHasBlocks ? (
-                          <div
-                            style={{
-                              borderTop: `1px solid ${previewColors.submenuBorder}`,
-                              width: "100%",
-                            }}
-                          >
-                            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                              <div
-                                className="menu-builder-hide-scrollbar"
-                                style={{
-                                  overflowX: "auto",
-                                  overflowY: "hidden",
-                                  scrollbarWidth: "none",
-                                  msOverflowStyle: "none",
-                                }}
-                              >
+                          ) : null}
+                          {activeHorizontalItem && activeHorizontalHasBlocks ? (
+                            <div
+                              style={{
+                                borderTop: `1px solid ${previewColors.submenuBorder}`,
+                                width: "100%",
+                              }}
+                            >
+                              <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
                                 <div
+                                  className="menu-builder-hide-scrollbar"
                                   style={{
-                                    display: "flex",
-                                    flexWrap: "nowrap",
-                                    gap: 24,
-                                    alignItems: "flex-start",
-                                    justifyContent: "space-between",
-                                    minWidth: 0,
+                                    overflowX: "auto",
+                                    overflowY: "hidden",
+                                    scrollbarWidth: "none",
+                                    msOverflowStyle: "none",
                                   }}
                                 >
-                                  {activeHorizontalGrandchildBlocks.map((child) => {
-                                    if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                      return renderImageBlock(child, {
-                                        flex: "0 0 20%",
-                                        wrapperStyle: { minWidth: 0 },
-                                      });
-                                    }
-                                    return null;
-                                  })}
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      flexWrap: "nowrap",
+                                      gap: 24,
+                                      alignItems: "flex-start",
+                                      justifyContent: "space-between",
+                                      minWidth: 0,
+                                    }}
+                                  >
+                                    {activeHorizontalChildren.map((child) => {
+                                      if (child.blockTemplate === "links") {
+                                        const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                        const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                        const linkFlexBasis =
+                                          columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                                        return renderLinkListBlock(child, {
+                                          flex: `0 0 ${linkFlexBasis}`,
+                                          wrapperStyle: { minWidth: 0 },
+                                          toolbarPlacement: "floating",
+                                        });
+                                      }
+                                      if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                        return renderImageBlock(child, {
+                                          flex: "0 0 20%",
+                                          wrapperStyle: { minWidth: 0 },
+                                        });
+                                      }
+                                      return null;
+                                    })}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ) : null}
-                        {activeHorizontalItem && activeHorizontalHasBlocks ? (
-                          <div
-                            style={{
-                              borderTop: `1px solid ${previewColors.submenuBorder}`,
-                              width: "100%",
-                            }}
-                          >
-                            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 12 }}>
-                              <div
-                                className="menu-builder-hide-scrollbar"
-                                style={{
-                                  overflowX: "auto",
-                                  overflowY: "hidden",
-                                  scrollbarWidth: "none",
-                                  msOverflowStyle: "none",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    flexWrap: "nowrap",
-                                    gap: 24,
-                                    alignItems: "flex-start",
-                                    justifyContent: "space-between",
-                                    minWidth: 0,
-                                  }}
-                                >
-                                  {activeHorizontalChildren.map((child) => {
-                                    if (child.blockTemplate === "links") {
-                                      const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                      const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
-                                      const linkFlexBasis =
-                                        columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
-                                      return renderLinkListBlock(child, {
-                                        flex: `0 0 ${linkFlexBasis}`,
-                                        wrapperStyle: { minWidth: 0 },
-                                        toolbarPlacement: "floating",
-                                      });
-                                    }
-                                    if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                      return renderImageBlock(child, {
-                                        flex: "0 0 20%",
-                                        wrapperStyle: { minWidth: 0 },
-                                      });
-                                    }
-                                    return null;
-                                  })}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : null}
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : null}
+                ) : null}
               </div>
 
               {dropdownGroups.length > 0 && !isDropdownMenu && !isHorizontalDropdownMenu && (

@@ -111,6 +111,7 @@ import {
   buildThreeTopTabsItems,
   buildThreeLevelTabsItems,
   buildTwoLevelTabsItems,
+  buildTwoNestedTabsRightItems,
   buildThreeColumnLinkItems,
   buildTwoColumnLinkItems,
 } from "../menu-builder/presets";
@@ -630,7 +631,8 @@ export default function MenuBuilder() {
                         previewMenu?.submenuTemplate === "two-level-tabs" ||
                         previewMenu?.submenuTemplate === "three-level-tabs" ||
                         previewMenu?.submenuTemplate === "simple-left-tabs" ||
-                        previewMenu?.submenuTemplate === "simple-right-tabs";
+                        previewMenu?.submenuTemplate === "simple-right-tabs" ||
+                        previewMenu?.submenuTemplate === "two-nested-tabs-right";
     if (!isTabsFlyoutTemplate || !activeDropdownItemId) {
       if (dropdownMainPanelMinHeight !== null) {
         setDropdownMainPanelMinHeight(null);
@@ -1701,6 +1703,42 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-level-tabs") : undefined}
+                        disabled={!isPlusPlan}
+                        size="slim"
+                        variant="primary"
+                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
+                ),
+              })}
+              {renderTemplatePreviewCard({
+                title: "Two Nested Tabs on the Right",
+                onSelect: () => handleApplySubmenuTemplate("two-nested-tabs-right"),
+                previewHeightClassName: "h-44",
+                previewContainerClassName: "bg-transparent p-0",
+                showSelectButton: false,
+                showTitle: false,
+                preview: (
+                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-gray-400 bg-white/70">
+                      <span className="text-xs font-semibold text-gray-600">Two Nested Tabs on the Right</span>
+                      <span className="text-[10px] text-gray-500">Preview coming soon</span>
+                    </div>
+                    <div
+                      className="absolute right-3 top-3 z-10"
+                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
+                    >
+                      <Badge tone="warning">Plus</Badge>
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                      <Button
+                        fullWidth
+                        onClick={
+                          isPlusPlan ? () => handleApplySubmenuTemplate("two-nested-tabs-right") : undefined
+                        }
                         disabled={!isPlusPlan}
                         size="slim"
                         variant="primary"
@@ -3932,6 +3970,7 @@ export default function MenuBuilder() {
       (templateId === "tabs" ||
         templateId === "simple-left-tabs" ||
         templateId === "simple-right-tabs" ||
+        templateId === "two-nested-tabs-right" ||
         templateId === "simple-top-tabs" ||
         templateId === "two-top-tabs" ||
         templateId === "three-top-tabs" ||
@@ -3944,7 +3983,7 @@ export default function MenuBuilder() {
       templateId === "dropdown" ||
       templateId === "simple-left-tabs" ||
       templateId === "simple-right-tabs" ||
-      templateId === "simple-right-tabs" ||
+      templateId === "two-nested-tabs-right" ||
       templateId === "two-level-tabs" ||
       templateId === "three-level-tabs";
     const isHorizontalDropdownTemplate =
@@ -3974,6 +4013,8 @@ export default function MenuBuilder() {
         ? buildSimpleLeftTabsItems()
         : templateId === "simple-right-tabs"
           ? buildSimpleRightTabsItems()
+        : templateId === "two-nested-tabs-right"
+          ? buildTwoNestedTabsRightItems()
         : templateId === "simple-top-tabs"
           ? buildSimpleTopTabsItems()
           : templateId === "two-top-tabs"
@@ -4511,6 +4552,7 @@ export default function MenuBuilder() {
                                 parentItem?.submenuTemplate === "dropdown" ||
                                 parentItem?.submenuTemplate === "simple-left-tabs" ||
                                 parentItem?.submenuTemplate === "simple-right-tabs" ||
+                                parentItem?.submenuTemplate === "two-nested-tabs-right" ||
                                 parentItem?.submenuTemplate === "two-level-tabs" ||
                                 parentItem?.submenuTemplate === "three-level-tabs";
                               if (hasBlockChildren && !item.blockTemplate) {
@@ -8950,11 +8992,21 @@ export default function MenuBuilder() {
   const isMobilePreview = previewMode === "mobile";
   const isVerticalMenu = isMobilePreview || builderSettings.layoutOrientation === "vertical";
   const rightTabsMenuItems = useMemo(
-    () => menuItems.filter((item) => item.submenuTemplate === "simple-right-tabs"),
+    () =>
+      menuItems.filter(
+        (item) =>
+          item.submenuTemplate === "simple-right-tabs" ||
+          item.submenuTemplate === "two-nested-tabs-right"
+      ),
     [menuItems]
   );
   const standardMenuItems = useMemo(
-    () => menuItems.filter((item) => item.submenuTemplate !== "simple-right-tabs"),
+    () =>
+      menuItems.filter(
+        (item) =>
+          item.submenuTemplate !== "simple-right-tabs" &&
+          item.submenuTemplate !== "two-nested-tabs-right"
+      ),
     [menuItems]
   );
   const menuItemsForMainRow = isVerticalMenu ? menuItems : standardMenuItems;
@@ -9880,21 +9932,27 @@ export default function MenuBuilder() {
                         previewMenu?.submenuTemplate === "simple-left-tabs";
                       const isSimpleRightTabsTemplate =
                         previewMenu?.submenuTemplate === "simple-right-tabs";
+                      const isTwoNestedRightTabsTemplate =
+                        previewMenu?.submenuTemplate === "two-nested-tabs-right";
+                      const isRightTabsTemplate =
+                        isSimpleRightTabsTemplate || isTwoNestedRightTabsTemplate;
                       const isTwoLevelTabsTemplate =
                         previewMenu?.submenuTemplate === "two-level-tabs";
                       const isThreeLevelTabsTemplate =
                         previewMenu?.submenuTemplate === "three-level-tabs";
+                      const isTwoLevelTabsVariant =
+                        isTwoLevelTabsTemplate || isTwoNestedRightTabsTemplate;
                       const activeDropdownChildren = activeDropdownItem?.children ?? [];
                       const activeDropdownHasBlocks =
-                        (isSimpleLeftTabsTemplate || isSimpleRightTabsTemplate) &&
+                        (isSimpleLeftTabsTemplate || isRightTabsTemplate) &&
                         activeDropdownChildren.some((child) => child.blockTemplate);
                       const activeSecondLevelItem =
-                        isTwoLevelTabsTemplate || isThreeLevelTabsTemplate
+                        isTwoLevelTabsVariant || isThreeLevelTabsTemplate
                           ? activeDropdownChildren.find((child) => child.id === activeDropdownChildId) ?? null
                           : null;
                       const secondLevelChildren = activeSecondLevelItem?.children ?? [];
                       const secondLevelHasBlocks =
-                        isTwoLevelTabsTemplate &&
+                        isTwoLevelTabsVariant &&
                         secondLevelChildren.some((child) => child.blockTemplate);
                       const activeThirdLevelItem = isThreeLevelTabsTemplate
                         ? secondLevelChildren.find((child) => child.id === activeDropdownGrandchildId) ?? null
@@ -9912,7 +9970,7 @@ export default function MenuBuilder() {
                         activeDropdownHasBlocks || secondLevelHasBlocks || thirdLevelHasBlocks;
                       const allowDropdownScroll =
                         dropdownOverflowY &&
-                        !isTwoLevelTabsTemplate &&
+                        !isTwoLevelTabsVariant &&
                         !isThreeLevelTabsTemplate &&
                         !hasBlockPanel;
                       const dropdownPanelStyle: CSSProperties = {
@@ -9940,7 +9998,7 @@ export default function MenuBuilder() {
                         0,
                         Math.min(availableLeft, dropdownLeft)
                       );
-                      const resolvedTabsPanelWidth = isSimpleRightTabsTemplate
+                      const resolvedTabsPanelWidth = isRightTabsTemplate
                         ? resolvedRightTabsPanelWidth
                         : resolvedSimpleLeftTabsPanelWidth;
                       const { background, border, borderRadius, boxShadow } = dropdownPanelStyle;
@@ -9957,8 +10015,10 @@ export default function MenuBuilder() {
                       const blockPanelWidth = isSoloImagePanel
                         ? Math.max(280, Math.round(baseBlockPanelWidth * 0.7))
                         : baseBlockPanelWidth;
+                      const rightNestedFlyoutWidth =
+                        dropdownPanelPixelWidth + (secondLevelHasBlocks ? blockPanelWidth : 0);
                       const dropdownFlyoutStyle: CSSProperties =
-                        isTwoLevelTabsTemplate || isThreeLevelTabsTemplate
+                        isTwoLevelTabsVariant || isThreeLevelTabsTemplate
                           ? {
                           background: "transparent",
                           border: "none",
@@ -9970,6 +10030,7 @@ export default function MenuBuilder() {
                           maxHeight: "none",
                           overflow: "visible",
                           display: "flex",
+                          flexDirection: isTwoNestedRightTabsTemplate ? "row-reverse" : "row",
                           gap: 0,
                         }
                         : activeDropdownHasBlocks
@@ -9985,15 +10046,17 @@ export default function MenuBuilder() {
                             overflow: "visible",
                           }
                           : dropdownPanelStyle;
-                      const openFlyoutToLeft = isPreviewLeftAligned || isSimpleRightTabsTemplate;
+                      const openFlyoutToLeft = isPreviewLeftAligned || isRightTabsTemplate;
                       const flyoutOffset = activeDropdownHasBlocks
                         ? resolvedTabsPanelWidth
                         : dropdownPanelPixelWidth;
                       const menuBarLeftOffset = dropdownAnchor?.left ?? 0;
                       const flyoutLeft = openFlyoutToLeft
-                        ? isSimpleRightTabsTemplate
-                          ? -resolvedRightTabsPanelWidth
-                          : -flyoutOffset
+                        ? isTwoNestedRightTabsTemplate
+                          ? -rightNestedFlyoutWidth
+                          : isRightTabsTemplate
+                            ? -resolvedRightTabsPanelWidth
+                            : -flyoutOffset
                         : dropdownPanelPixelWidth;
 
                       // Seçili item'ın top pozisyonunu bul
@@ -10029,7 +10092,9 @@ export default function MenuBuilder() {
                                 {dropdownItems.map((child) => {
                                   const hasChildren = Boolean(child.children?.length);
                                   const isActiveChild = activeDropdownItem?.id === child.id;
-                                  const showLeftChevron = isSimpleRightTabsTemplate && hasChildren;
+                                  const showLeftChevron = isRightTabsTemplate && hasChildren;
+                                  const needsNestedReset =
+                                    isTwoLevelTabsVariant || isThreeLevelTabsTemplate;
                                   return (
                                     <div
                                       key={child.id}
@@ -10076,13 +10141,13 @@ export default function MenuBuilder() {
                                             setActiveDropdownItemId((prev) =>
                                               prev === child.id ? null : child.id
                                             );
-                                            if (isTwoLevelTabsTemplate || isThreeLevelTabsTemplate) {
+                                            if (needsNestedReset) {
                                               setActiveDropdownChildId(null);
                                               setActiveDropdownGrandchildId(null);
                                             }
                                           } else {
                                             setActiveDropdownItemId(null);
-                                            if (isTwoLevelTabsTemplate || isThreeLevelTabsTemplate) {
+                                            if (needsNestedReset) {
                                               setActiveDropdownChildId(null);
                                               setActiveDropdownGrandchildId(null);
                                             }
@@ -10270,17 +10335,17 @@ export default function MenuBuilder() {
                                   position: "absolute",
                                   left: flyoutLeft,
                                   top:
-                                    isTwoLevelTabsTemplate ||
+                                    isTwoLevelTabsVariant ||
                                     isThreeLevelTabsTemplate ||
                                     isSimpleLeftTabsTemplate ||
-                                    isSimpleRightTabsTemplate
+                                    isRightTabsTemplate
                                       ? 0
                                       : activeItemOffsetTop,
                                 }}
                                 data-submenu-panel
                                 ref={dropdownFlyoutRef}
                               >
-                                {isTwoLevelTabsTemplate ? (
+                                {isTwoLevelTabsVariant ? (
                                   <>
                                     <div style={dropdownPanelStyle}>
                                       <div style={{ display: "flex", flexDirection: "column", padding: 12 }}>
@@ -10289,6 +10354,8 @@ export default function MenuBuilder() {
                                             child.children?.some((grandChild) => grandChild.blockTemplate)
                                           );
                                           const isActiveChild = activeDropdownChildId === child.id;
+                                          const showNestedLeftChevron =
+                                            isTwoNestedRightTabsTemplate && hasBlocks;
                                           return (
                                             <div
                                               key={child.id}
@@ -10347,7 +10414,7 @@ export default function MenuBuilder() {
                                                 style={{
                                                   display: "flex",
                                                   alignItems: "center",
-                                                  justifyContent: "space-between",
+                                                  justifyContent: showNestedLeftChevron ? "flex-start" : "space-between",
                                                   gap: 10,
                                                   minHeight: dropdownItemHeight,
                                                   padding: "8px 10px",
@@ -10361,10 +10428,17 @@ export default function MenuBuilder() {
                                                   lineHeight: 1.2,
                                                 }}
                                               >
+                                                {showNestedLeftChevron ? (
+                                                  <ChevronLeftIcon
+                                                    width="14"
+                                                    height="14"
+                                                    fill={previewColors.submenuText}
+                                                  />
+                                                ) : null}
                                                 <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
                                                   {child.label}
                                                 </span>
-                                                {hasBlocks ? (
+                                                {!showNestedLeftChevron && hasBlocks ? (
                                                   <ChevronRightIcon
                                                     width="14"
                                                     height="14"

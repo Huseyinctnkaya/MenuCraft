@@ -406,6 +406,8 @@ export const buildThreeLevelTabsItems = () => {
   ];
 };
 
+export const buildTwoNestedTabsRightItems = () => buildTwoLevelTabsItems();
+
 export const buildEasyColumnWithIcons = () => {
   const [firstIcon, secondIcon] = (() => {
     if (!ICON_LIBRARY.length) return [undefined, undefined];

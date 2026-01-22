@@ -1956,48 +1956,44 @@ export default function MenuBuilder() {
             </div>
           );
         case "custom":
-          return (
-            <div className="flex flex-col gap-0">
-              {renderTemplatePreviewCard({
-                title: "Normal Dropdown",
-                onSelect: () => handleApplySubmenuTemplate("custom-normal-dropdown"),
-                previewHeightClassName: "h-44",
-                previewContainerClassName: "bg-transparent p-0",
-                showSelectButton: false,
-                showTitle: false,
-                preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                    <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-gray-400 bg-white/70">
-                      <span className="text-xs font-semibold text-gray-600">Normal Dropdown</span>
-                      <span className="text-[10px] text-gray-500">Preview coming soon</span>
-                    </div>
-                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                      <Button
-                        fullWidth
-                        onClick={() => handleApplySubmenuTemplate("custom-normal-dropdown")}
-                        size="slim"
-                        variant="primary"
-                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                      >
-                        Select
-                      </Button>
-                    </div>
-                  </div>
-                ),
-              })}
-              {renderTemplatePreviewCard({
-                title: "Custom menu",
-                onSelect: selectTemplate,
-                preview: (
-                  <div className="h-28 rounded-lg bg-[#a7b2c0] p-2">
-                    <div className="h-6 rounded-md bg-white/80" />
-                    <div className="mt-2 h-4 w-2/3 rounded-md bg-white/70" />
-                    <div className="mt-2 h-4 w-1/2 rounded-md bg-white/70" />
-                  </div>
-                ),
-              })}
-            </div>
-          );
+          return renderTemplatePreviewCard({
+            title: "Custom menu",
+            onSelect: () => isPlusPlan ? handleApplySubmenuTemplate("custom-normal-dropdown") : undefined,
+            previewHeightClassName: "h-44",
+            previewContainerClassName: "bg-transparent p-0",
+            showSelectButton: false,
+            showTitle: false,
+            preview: (
+              <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                <img
+                  src="/custom menu image.png"
+                  alt="Custom menu template"
+                  className="h-full w-full object-contain"
+                />
+                <div
+                  className="absolute right-3 top-3 z-10"
+                  style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
+                >
+                  <Badge tone="warning">Plus</Badge>
+                </div>
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                  Custom menu
+                </div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+                  <Button
+                    fullWidth
+                    onClick={isPlusPlan ? () => handleApplySubmenuTemplate("custom-normal-dropdown") : undefined}
+                    disabled={!isPlusPlan}
+                    size="slim"
+                    variant="primary"
+                    style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
+                  >
+                    Select
+                  </Button>
+                </div>
+              </div>
+            ),
+          });
         default:
           return renderTemplatePreviewCard({
             title: "Custom menu",

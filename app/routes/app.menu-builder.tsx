@@ -9115,9 +9115,7 @@ export default function MenuBuilder() {
   const menuRowHeight = isMobilePreview
     ? Math.max(builderSettings.spacingMainRowHeight, 64)
     : builderSettings.spacingMainRowHeight;
-  const dropdownTop = isVerticalMenu
-    ? dropdownAnchor?.top ?? menuRowHeight
-    : menuRowHeight;
+  const dropdownTop = dropdownAnchor?.top ?? menuRowHeight;
   const showDividers =
     previewMode === "mobile"
       ? builderSettings.elementsShowMobileDivider

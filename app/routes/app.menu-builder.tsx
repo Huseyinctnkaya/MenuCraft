@@ -2515,20 +2515,71 @@ export default function MenuBuilder() {
             </div>
           );
         case "tabs":
-          return renderBlockTemplatePreviewCard({
-            title: "Tabs",
-            onSelect: selectTemplate,
-            preview: (
-              <div className="h-28 rounded-none bg-[#f3f4f6] p-2">
-                <div className="flex gap-2 rounded-md bg-white px-2 py-1">
-                  <div className="h-2 w-10 rounded-full bg-gray-300" />
-                  <div className="h-2 w-10 rounded-full bg-gray-200" />
-                  <div className="h-2 w-10 rounded-full bg-gray-200" />
-                </div>
-                <div className="mt-3 h-14 rounded-md bg-white" />
-              </div>
-            ),
-          });
+          return (
+            <div className="flex flex-col gap-0">
+              {(
+                [
+                  {
+                    id: "simple-left-tabs",
+                    label: "Simple Left Tabs",
+                    image: "/simple-left-tabs.png",
+                  },
+                  {
+                    id: "simple-right-tabs",
+                    label: "Simple Right Tabs",
+                    image: "/simple-right-tabs.png",
+                  },
+                  {
+                    id: "simple-top-tabs",
+                    label: "Simple Top Tabs",
+                    image: "/simple-top-tabs.png",
+                  },
+                  { id: "two-top-tabs", label: "Two Top Tabs", image: "/two-top-tabs.png" },
+                  { id: "three-top-tabs", label: "Three Top Tabs", image: "/three-top-tabs.png" },
+                  { id: "two-level-tabs", label: "Two Level Tabs", image: "/two-level-tabs.png" },
+                  {
+                    id: "two-nested-tabs-right",
+                    label: "Two Nested Tabs on the Right",
+                    image: "/two-nested-tabs.png",
+                  },
+                  {
+                    id: "three-nested-tabs-right",
+                    label: "Three Nested Tabs on the Right",
+                    image: "/three-nested-tabs.png",
+                  },
+                  { id: "three-level-tabs", label: "Three Level Tabs", image: "/three-level-tabs.png" },
+                ] as Array<{ id: SubmenuTemplateId; label: string; image: string }>
+              ).map((template) => {
+                const isAllowed = isPlusPlan;
+                return renderBlockTemplatePreviewCard({
+                  title: template.label,
+                  onSelect: () => {
+                    if (!isAllowed) return;
+                    handleApplyTabsBlockTemplate(template.id);
+                  },
+                  badge: "Plus",
+                  selectLabel: isAllowed ? "Select" : "Upgrade to use",
+                  selectDisabled: !isAllowed,
+                  showSelectButton: true,
+                  showTitle: false,
+                  previewHeightClassName: "h-44",
+                  previewContainerClassName: "bg-transparent p-0",
+                  preview: (
+                    <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
+                      <img
+                        src={template.image}
+                        alt={`${template.label} template`}
+                        className="h-full w-full object-contain"
+                      />
+                      <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
+                        {template.label}
+                      </div>
+                    </div>
+                  ),
+                });
+              })}
+            </div>
+          );
         case "image":
           return (
             <div className="flex flex-col gap-0">
@@ -4026,6 +4077,116 @@ export default function MenuBuilder() {
         ...item,
         expanded: item.expanded ?? false,
         children: item.children ? [...item.children, newBlock] : [newBlock],
+      }))
+    );
+    setBlockTemplateTargetId(null);
+  };
+
+  const extractBlockItemsFromTemplate = (items: MenuItem[]): MenuItem[] => {
+    for (const item of items) {
+      const children = item.children ?? [];
+      if (children.some((child) => child.blockTemplate)) {
+        return children.filter((child) => child.blockTemplate);
+      }
+      if (children.length) {
+        const nested = extractBlockItemsFromTemplate(children);
+        if (nested.length) return nested;
+      }
+    }
+    return [];
+  };
+
+  const buildTabsBlockItems = (templateId: SubmenuTemplateId): MenuItem[] => {
+    const items =
+      templateId === "simple-left-tabs"
+        ? buildSimpleLeftTabsItems()
+        : templateId === "simple-right-tabs"
+          ? buildSimpleRightTabsItems()
+          : templateId === "simple-top-tabs"
+            ? buildSimpleTopTabsItems()
+            : templateId === "two-top-tabs"
+              ? buildTwoTopTabsItems()
+              : templateId === "three-top-tabs"
+                ? buildThreeTopTabsItems()
+                : templateId === "two-level-tabs"
+                  ? buildTwoLevelTabsItems()
+                  : templateId === "three-level-tabs"
+                    ? buildThreeLevelTabsItems()
+                    : templateId === "two-nested-tabs-right"
+                      ? buildTwoNestedTabsRightItems()
+                      : templateId === "three-nested-tabs-right"
+                        ? buildThreeNestedTabsRightItems()
+                        : [];
+    return extractBlockItemsFromTemplate(items);
+  };
+
+  const buildTabsTemplateItems = (templateId: SubmenuTemplateId): MenuItem[] => {
+    if (templateId === "simple-left-tabs") return buildSimpleLeftTabsItems();
+    if (templateId === "simple-right-tabs") return buildSimpleRightTabsItems();
+    if (templateId === "simple-top-tabs") return buildSimpleTopTabsItems();
+    if (templateId === "two-top-tabs") return buildTwoTopTabsItems();
+    if (templateId === "three-top-tabs") return buildThreeTopTabsItems();
+    if (templateId === "two-level-tabs") return buildTwoLevelTabsItems();
+    if (templateId === "three-level-tabs") return buildThreeLevelTabsItems();
+    if (templateId === "two-nested-tabs-right") return buildTwoNestedTabsRightItems();
+    if (templateId === "three-nested-tabs-right") return buildThreeNestedTabsRightItems();
+    return [];
+  };
+
+  const handleApplyTabsBlockTemplate = (templateId: SubmenuTemplateId) => {
+    if (!blockTemplateTargetId) return;
+    const path = findItemPath(menuItems, blockTemplateTargetId);
+    const targetItem = path?.[path.length - 1];
+    if (!targetItem) return;
+    if (targetItem.role === "menu") {
+      const isDropdownTemplate =
+        templateId === "dropdown" ||
+        templateId === "simple-left-tabs" ||
+        templateId === "simple-right-tabs" ||
+        templateId === "two-nested-tabs-right" ||
+        templateId === "three-nested-tabs-right" ||
+        templateId === "two-level-tabs" ||
+        templateId === "three-level-tabs";
+      const isHorizontalDropdownTemplate =
+        templateId === "horizontal-dropdown" ||
+        templateId === "simple-top-tabs" ||
+        templateId === "two-top-tabs" ||
+        templateId === "three-top-tabs";
+      const dropdownItems = buildTabsTemplateItems(templateId);
+      if (!dropdownItems.length) return;
+      setMenuItems((items) =>
+        updateItemById(items, blockTemplateTargetId, (item) => ({
+          ...item,
+          expanded: true,
+          submenuTemplate: templateId,
+          submenuType: isDropdownTemplate
+            ? "dropdown"
+            : isHorizontalDropdownTemplate
+              ? "horizontal-dropdown"
+              : item.submenuType,
+          submenuWidth:
+            isDropdownTemplate || isHorizontalDropdownTemplate
+              ? item.submenuWidth ?? "content"
+              : item.submenuWidth,
+          submenuContentAlign:
+            isDropdownTemplate
+              ? item.submenuContentAlign ?? "left"
+              : isHorizontalDropdownTemplate
+                ? item.submenuContentAlign ?? "center"
+                : item.submenuContentAlign,
+          children: dropdownItems,
+        }))
+      );
+      setBlockTemplateTargetId(null);
+      return;
+    }
+    const newBlocks = buildTabsBlockItems(templateId);
+    if (!newBlocks.length) return;
+    setMenuItems((items) =>
+      updateItemById(items, blockTemplateTargetId, (item) => ({
+        ...item,
+        expanded: true,
+        children: item.children ? [...item.children, ...newBlocks] : newBlocks,
       }))
     );
     setBlockTemplateTargetId(null);
@@ -9038,6 +9199,7 @@ export default function MenuBuilder() {
       ? activeHorizontalChildren.find((child) => child.id === activeHorizontalChildId) ?? null
       : null;
   const activeHorizontalChildChildren = activeHorizontalChild?.children ?? [];
+  const activeHorizontalChildBlocks = activeHorizontalChildChildren;
   const activeHorizontalChildHasBlocks = activeHorizontalChildChildren.some((child) => child.blockTemplate);
   const activeHorizontalGrandchild = isThreeTopTabsTemplate
     ? activeHorizontalChildChildren.find((child) => child.id === activeHorizontalGrandchildId) ?? null

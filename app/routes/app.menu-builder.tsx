@@ -10011,9 +10011,9 @@ export default function MenuBuilder() {
           setPendingExitIntent(false);
           appBridgeRef.current?.dispatch(Fullscreen.enter());
         }}
-        title="Kaydedilmemiş tüm değişiklikleri sil"
+        title="Discard unsaved changes"
         primaryAction={{
-          content: "Değişiklikleri sil",
+          content: "Discard changes",
           destructive: true,
           onAction: () => {
             discardUnsavedChanges();
@@ -10027,7 +10027,7 @@ export default function MenuBuilder() {
         }}
         secondaryActions={[
           {
-            content: "Düzenlemeye devam et",
+            content: "Keep editing",
             onAction: () => {
               setDiscardChangesModalOpen(false);
               setPendingExitIntent(false);
@@ -10038,8 +10038,7 @@ export default function MenuBuilder() {
       >
         <Modal.Section>
           <Text as="p" variant="bodySm">
-            Değişiklikleri silerseniz, son kaydettiğinizden bu yana yaptığınız tüm düzenlemeleri silmiş
-            olursunuz.
+            If you discard changes, you will lose all edits made since your last save.
           </Text>
         </Modal.Section>
       </Modal>

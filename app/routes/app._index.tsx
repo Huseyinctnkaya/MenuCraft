@@ -54,10 +54,12 @@ const hasAppBlockInThemeAssets = async (
     return "";
   };
   const appBlockPattern = /shopify:\/\/apps\/[^/]+\/blocks\/menu-block[^"\\]*/i;
-  try {
-    for (const key of defaultKeys) {
+  const scanKeys = async (keys: Iterable<string>) => {
+    for (const key of keys) {
       const assetResponse = await fetch(
-        `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=${encodeURIComponent(key)}`,
+        `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=${encodeURIComponent(
+          key
+        )}`,
         { headers: restHeaders }
       );
       if (!assetResponse.ok) {
@@ -68,13 +70,37 @@ const hasAppBlockInThemeAssets = async (
       }
       const assetData = await assetResponse.json().catch(() => ({}));
       const value = readAssetValue(assetData);
-      if (typeof value === "string") {
-        const hasBlock = appBlockPattern.test(value);
-        if (hasBlock) {
-          appBlockCache.set(cacheKey, { value: true, expiresAt: now + 30_000 });
-          return true;
-        }
+      if (typeof value === "string" && appBlockPattern.test(value)) {
+        appBlockCache.set(cacheKey, { value: true, expiresAt: now + 30_000 });
+        return true;
       }
+    }
+    return false;
+  };
+  try {
+    const keysToScan = new Set<string>(defaultKeys);
+    try {
+      const listResponse = await fetch(
+        `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json`,
+        { headers: restHeaders }
+      );
+      if (listResponse.ok) {
+        const listData = await listResponse.json().catch(() => ({}));
+        const assetKeys: string[] = (listData?.assets ?? [])
+          .map((asset: { key?: string }) => asset?.key)
+          .filter((key: string | undefined): key is string => Boolean(key))
+          .filter(
+            (key) =>
+              (key.startsWith("sections/") || key.startsWith("templates/")) && key.endsWith(".json")
+          );
+        assetKeys.forEach((key) => keysToScan.add(key));
+      }
+    } catch (error) {
+      console.error("Failed to list theme assets", error);
+    }
+
+    if (await scanKeys(keysToScan)) {
+      return true;
     }
   } catch (error) {
     console.error("Failed to scan theme assets for app block", error);

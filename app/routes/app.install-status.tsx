@@ -2,6 +2,7 @@ import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
 import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -38,10 +39,12 @@ const hasAppBlockInThemeAssets = async (
     return "";
   };
   const appBlockPattern = /shopify:\/\/apps\/[^/]+\/blocks\/menu-block[^"\\]*/i;
-  try {
-    for (const key of defaultKeys) {
+  const scanKeys = async (keys: Iterable<string>) => {
+    for (const key of keys) {
       const assetResponse = await fetch(
-        `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=${encodeURIComponent(key)}`,
+        `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json?asset[key]=${encodeURIComponent(
+          key
+        )}`,
         { headers: restHeaders }
       );
       if (!assetResponse.ok) {
@@ -52,13 +55,37 @@ const hasAppBlockInThemeAssets = async (
       }
       const assetData = await assetResponse.json().catch(() => ({}));
       const value = readAssetValue(assetData);
-      if (typeof value === "string") {
-        const hasBlock = appBlockPattern.test(value);
-        if (hasBlock) {
-          appBlockCache.set(cacheKey, { value: true, expiresAt: now + 30_000 });
-          return true;
-        }
+      if (typeof value === "string" && appBlockPattern.test(value)) {
+        appBlockCache.set(cacheKey, { value: true, expiresAt: now + 30_000 });
+        return true;
       }
+    }
+    return false;
+  };
+  try {
+    const keysToScan = new Set<string>(defaultKeys);
+    try {
+      const listResponse = await fetch(
+        `https://${shop}/admin/api/2025-01/themes/${themeId}/assets.json`,
+        { headers: restHeaders }
+      );
+      if (listResponse.ok) {
+        const listData = await listResponse.json().catch(() => ({}));
+        const assetKeys: string[] = (listData?.assets ?? [])
+          .map((asset: { key?: string }) => asset?.key)
+          .filter((key: string | undefined): key is string => Boolean(key))
+          .filter(
+            (key) =>
+              (key.startsWith("sections/") || key.startsWith("templates/")) && key.endsWith(".json")
+          );
+        assetKeys.forEach((key) => keysToScan.add(key));
+      }
+    } catch (error) {
+      console.error("Failed to list theme assets", error);
+    }
+
+    if (await scanKeys(keysToScan)) {
+      return true;
     }
   } catch (error) {
     console.error("Failed to scan theme assets for app block", error);
@@ -72,9 +99,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = session.shop;
   const appEmbedPattern = /shopify:\/\/apps\/[^/]+\/blocks\/app-embed[^"\\]*/i;
   const appBlockPattern = /shopify:\/\/apps\/[^/]+\/blocks\/menu-block[^"\\]*/i;
+  const shopPreferenceClient = (prisma as {
+    shopPreference?: {
+      findUnique: typeof prisma.billingSubscription.findUnique;
+    };
+  }).shopPreference;
+  const preferences = shopPreferenceClient
+    ? await shopPreferenceClient.findUnique({ where: { shop } })
+    : null;
   let themeName = "Unknown";
+  let connectedThemeId: string | null = preferences?.connectedThemeId ?? null;
+  let connectedThemeName: string | null = preferences?.connectedThemeName ?? null;
+  let themes: Array<{ id: string; name: string; role?: string | null; editorUrl?: string }> = [];
   let appEmbedEnabled = false;
   let appBlockAdded = false;
+  const restHeaders = session.accessToken
+    ? {
+        "X-Shopify-Access-Token": session.accessToken,
+        "Content-Type": "application/json",
+      }
+    : null;
 
   try {
     const response = await admin.graphql(
@@ -89,21 +133,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }`
     );
     const data = await response.json();
-    const themes = data?.data?.themes?.nodes ?? [];
+    themes = data?.data?.themes?.nodes ?? [];
     const mainTheme = themes.find((theme: { role?: string }) => theme.role === "MAIN") ?? themes[0];
-    if (mainTheme?.name) {
-      themeName = mainTheme.name;
+    const preferredTheme = connectedThemeId
+      ? themes.find((theme: { id: string }) => theme.id === connectedThemeId) ?? null
+      : null;
+    const activeTheme = preferredTheme ?? mainTheme ?? themes[0];
+    if (activeTheme?.name) {
+      themeName = activeTheme.name;
+    }
+    if (activeTheme?.id) {
+      connectedThemeId = activeTheme.id;
+      connectedThemeName = activeTheme.name ?? connectedThemeName;
     }
 
-    if (mainTheme?.id) {
-      const themeIdMatch = mainTheme.id.match(/\/(\d+)$/);
+    if (activeTheme?.id) {
+      const themeIdMatch = activeTheme.id.match(/\/(\d+)$/);
       const themeId = themeIdMatch?.[1];
-      const restHeaders = session.accessToken
-        ? {
-            "X-Shopify-Access-Token": session.accessToken,
-            "Content-Type": "application/json",
-          }
-        : null;
       let rawSettings: unknown = "";
       if (themeId && restHeaders) {
         try {
@@ -190,11 +236,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     }
 
-    if (!appBlockAdded && session.accessToken) {
-      const restHeaders = {
-        "X-Shopify-Access-Token": session.accessToken,
-        "Content-Type": "application/json",
-      };
+    if (!appBlockAdded && restHeaders) {
       for (const theme of themes) {
         const candidateId = typeof theme?.id === "string" ? theme.id.match(/\/(\d+)$/)?.[1] : null;
         if (!candidateId) continue;
@@ -208,10 +250,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     console.error("Failed to load theme status", error);
   }
 
-  const themeEditorUrl = `https://${shop}/admin/themes/current/editor?context=apps`;
+  themes = themes.map((theme) => {
+    const themeIdMatch = theme.id.match(/\/(\d+)$/);
+    const themeId = themeIdMatch?.[1];
+    const editorUrl = themeId
+      ? `https://${shop}/admin/themes/${themeId}/editor?context=apps`
+      : `https://${shop}/admin/themes/current/editor?context=apps`;
+    return { ...theme, editorUrl };
+  });
+  const connectedTheme = connectedThemeId
+    ? themes.find((theme) => theme.id === connectedThemeId) ?? null
+    : null;
+  const themeEditorUrl =
+    connectedTheme?.editorUrl ?? `https://${shop}/admin/themes/current/editor?context=apps`;
 
   return json({
-    themeName,
+    themeName: connectedThemeName ?? themeName,
     appEmbedEnabled,
     appBlockAdded,
     themeEditorUrl,

@@ -34,7 +34,7 @@ export default function Templates() {
     { id: 1, name: "Minimal Fashion", category: "Fashion", pro: false, new: true },
     { id: 2, name: "Modern E-commerce", category: "General", pro: true, new: false },
     { id: 3, name: "Tech Store", category: "Electronics", pro: true, new: true },
-    { id: 4, name: "Simple Navigation", category: "Minimal", pro: false, new: false },
+    { id: 4, name: "Simple Navigation", category: "Minimal", pro: true, new: false },
     { id: 5, name: "Mega Store", category: "Enterprise", pro: true, new: false },
     { id: 6, name: "Boutique Menu", category: "Fashion", pro: true, new: true },
   ];

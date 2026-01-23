@@ -168,6 +168,29 @@ const PREVIEW_IMAGE_SOURCES = [
 const HOVER_PREVIEW_DELAY_MS = 0;
 const HOVER_PREVIEW_CLEAR_DELAY_MS = 180;
 
+const applySidebarDefaultExpansion = (items: MenuItem[]): MenuItem[] => {
+  if (items.length === 0) return items;
+  const homeRoot =
+    items.find(
+      (item) =>
+        item.role === "menu" &&
+        ((item.label || "").toLowerCase() === "home" || item.url === "/")
+    ) ?? items[0];
+  const homeId = homeRoot?.id ?? "";
+
+  const collapseItems = (list: MenuItem[], depth = 0): MenuItem[] =>
+    list.map((item) => {
+      const isHomeRoot = depth === 0 && item.id === homeId;
+      const nextChildren = item.children ? collapseItems(item.children, depth + 1) : item.children;
+      if (item.role === "item") {
+        return item.children ? { ...item, children: nextChildren } : item;
+      }
+      return { ...item, expanded: isHomeRoot, children: nextChildren };
+    });
+
+  return collapseItems(items);
+};
+
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: polarisStyles },
 ];
@@ -458,6 +481,10 @@ export default function MenuBuilder() {
     () => normalizeMultiBlocks(initialMenuItems),
     [initialMenuItems]
   );
+  const defaultExpandedMenuItems = useMemo(
+    () => applySidebarDefaultExpansion(normalizedMenuItems),
+    [normalizedMenuItems]
+  );
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const apiKey = appData?.apiKey ?? "";
   const planTier = (appData as { planTier?: string } | null)?.planTier ?? "plus";
@@ -531,7 +558,7 @@ export default function MenuBuilder() {
     return next ? `?${next}` : "";
   }, [location.search]);
 
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(normalizedMenuItems);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultExpandedMenuItems);
   const [builderSettings, setBuilderSettings] = useState<BuilderSettings>({
     ...DEFAULT_BUILDER_SETTINGS,
     ...menuSettings,
@@ -9618,7 +9645,7 @@ export default function MenuBuilder() {
     }
     prevMenuIdRef.current = menu.id;
     setMenuStatus(menu.status === "active" ? "active" : "draft");
-    setMenuItems(normalizedMenuItems);
+    setMenuItems(defaultExpandedMenuItems);
     setSelectedItemId(normalizedMenuItems[0]?.id ?? null);
     setBuilderSettings({ ...DEFAULT_BUILDER_SETTINGS, ...menuSettings });
     setRequiresExplicitSave(false);
@@ -9632,7 +9659,7 @@ export default function MenuBuilder() {
         settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
       })
     );
-  }, [menu.id, menuSettings, normalizedMenuItems]);
+  }, [menu.id, menuSettings, normalizedMenuItems, defaultExpandedMenuItems]);
 
   useEffect(() => {
     if (submenuTemplateTargetId) return;

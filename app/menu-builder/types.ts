@@ -153,6 +153,12 @@ export type LatestArticleSummary = {
   blog?: { handle: string } | null;
 };
 
+export type PageSummary = {
+  id: string;
+  title: string;
+  handle: string;
+};
+
 export type AddableItem = {
   id: string;
   label: string;

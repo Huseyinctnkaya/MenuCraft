@@ -17,6 +17,7 @@ import {
   Checkbox,
   ChoiceList,
   Divider,
+  DropZone,
   InlineStack,
   Modal,
   RangeSlider,
@@ -67,6 +68,7 @@ import type {
   IconPickerState,
   LatestArticleSummary,
   MenuItem,
+  PageSummary,
   ProductSummary,
   RailPanel,
   SubmenuTemplateId,
@@ -206,10 +208,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let products: ProductSummary[] = [];
   let blogs: BlogSummary[] = [];
   let latestArticles: LatestArticleSummary[] = [];
+  let pages: PageSummary[] = [];
 
   try {
     const response = await admin.graphql(
-      `query MenuItemPicker($collectionsFirst: Int!, $productsFirst: Int!, $blogsFirst: Int!, $articlesFirst: Int!, $latestArticlesFirst: Int!) {
+      `query MenuItemPicker($collectionsFirst: Int!, $productsFirst: Int!, $blogsFirst: Int!, $articlesFirst: Int!, $latestArticlesFirst: Int!, $pagesFirst: Int!) {
         collections(first: $collectionsFirst, sortKey: TITLE) {
           nodes {
             id
@@ -270,6 +273,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             }
           }
         }
+        pages(first: $pagesFirst, sortKey: TITLE) {
+          nodes {
+            id
+            title
+            handle
+          }
+        }
       }`,
       {
         variables: {
@@ -278,23 +288,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           blogsFirst: 20,
           articlesFirst: 4,
           latestArticlesFirst: 4,
+          pagesFirst: 50,
         },
       }
     );
     const data = await response.json();
     if ((data as any)?.errors?.length) {
-      console.error("Collections/products/blogs query errors", (data as any).errors);
+      console.error("Collections/products/blogs/pages query errors", (data as any).errors);
     }
     collections = data?.data?.collections?.nodes ?? [];
     products = data?.data?.products?.nodes ?? [];
     blogs = data?.data?.blogs?.nodes ?? [];
     latestArticles = data?.data?.articles?.nodes ?? [];
+    pages = data?.data?.pages?.nodes ?? [];
   } catch (error) {
-    console.error("Failed to fetch collections/products/blogs", error);
+    console.error("Failed to fetch collections/products/blogs/pages", error);
     collections = [];
     products = [];
     blogs = [];
     latestArticles = [];
+    pages = [];
   }
 
   return json({
@@ -309,6 +322,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     products,
     blogs,
     latestArticles,
+    pages,
   });
 };
 
@@ -430,8 +444,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function MenuBuilder() {
-  const { menu, menuItems: initialMenuItems, menuSettings, collections, products, blogs, latestArticles } =
-    useLoaderData<typeof loader>();
+  const {
+    menu,
+    menuItems: initialMenuItems,
+    menuSettings,
+    collections,
+    products,
+    blogs,
+    latestArticles,
+    pages,
+  } = useLoaderData<typeof loader>();
   const normalizedMenuItems = useMemo(
     () => normalizeMultiBlocks(initialMenuItems),
     [initialMenuItems]
@@ -3597,43 +3619,16 @@ export default function MenuBuilder() {
           </InlineStack>
         </div>
         <div className="flex-1 px-4 py-4">
-          <label
-            className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => {
-              event.preventDefault();
-              const file = event.dataTransfer.files?.[0];
+          <DropZone
+            allowMultiple={false}
+            accept="image/*"
+            onDrop={(_files, acceptedFiles) => {
+              const file = acceptedFiles[0] ?? null;
               handleIconUploadFile(iconPickerState.itemId, file, iconPickerState.target);
             }}
           >
-            <Button
-              variant="tertiary"
-              onClick={(event) => {
-                event.preventDefault();
-                const input = event.currentTarget
-                  .closest("label")
-                  ?.querySelector("input[type=file]") as HTMLInputElement | null;
-                input?.click();
-              }}
-            >
-              Add image
-            </Button>
-            <Text as="p" variant="bodySm" tone="subdued">
-              Drag and drop your image
-            </Text>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(event) =>
-                handleIconUploadFile(
-                  iconPickerState.itemId,
-                  event.target.files?.[0] ?? null,
-                  iconPickerState.target
-                )
-              }
-            />
-          </label>
+            <DropZone.FileUpload actionTitle="Add image" actionHint="Drag and drop your image" />
+          </DropZone>
         </div>
       </div>
     );
@@ -6284,6 +6279,11 @@ export default function MenuBuilder() {
         label: collection.title,
         url: `/collections/${collection.handle}`,
       }));
+      const pageItems: AddableItem[] = pages.map((page) => ({
+        id: `page-${page.id}`,
+        label: page.title,
+        url: `/pages/${page.handle}`,
+      }));
       const productItems: AddableItem[] = products.map((product) => ({
         id: `product-${product.id}`,
         label: product.title,
@@ -6378,6 +6378,15 @@ export default function MenuBuilder() {
                         </Text>
                         <BlockStack gap="200">
                           {filterItems(collectionItems).map(renderCheckboxItem)}
+                        </BlockStack>
+                      </BlockStack>
+                      <Divider />
+                      <BlockStack gap="200">
+                        <Text as="h3" variant="headingSm">
+                          Pages
+                        </Text>
+                        <BlockStack gap="200">
+                          {filterItems(pageItems).map(renderCheckboxItem)}
                         </BlockStack>
                       </BlockStack>
                       <Divider />

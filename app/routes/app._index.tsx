@@ -532,11 +532,7 @@ export default function Dashboard() {
                         {integrationStatus === "active" ? "Active" : "Pending"}
                       </Badge>
                     </div>
-                    <p className="text-xs text-gray-600">
-                      {integrationStatus === "active"
-                        ? "Theme integration active"
-                        : "Theme integration pending"}
-                    </p>
+                    <p className="text-xs text-gray-600">Theme integration</p>
                   </div>
                 </div>
                 <Button
@@ -552,23 +548,26 @@ export default function Dashboard() {
                 </Button>
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm text-gray-900">Connected Theme</p>
-                  <p className="text-xs text-gray-600">{activeThemeName}</p>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-900">Connected Theme</p>
+                      <Badge variant="success">Active</Badge>
+                    </div>
+                    <p className="text-xs text-gray-600">{activeThemeName}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="success">Active</Badge>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedThemeId(activeThemeId || selectedThemeId);
-                      setThemeConfigOpen((prev) => !prev);
-                    }}
-                  >
-                    Configure
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedThemeId(activeThemeId || selectedThemeId);
+                    setThemeConfigOpen((prev) => !prev);
+                  }}
+                >
+                  Configure
+                </Button>
               </div>
               {themeConfigOpen ? (
                 <div className="rounded-lg border border-gray-200 bg-white p-3">

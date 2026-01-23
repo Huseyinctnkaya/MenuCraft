@@ -3816,8 +3816,13 @@ export default function MenuBuilder() {
     animateMap(previewRowRefs, prevPreviewPositionsRef);
   }, [menuItems]);
 
-  const handleSelectItem = (id: string, openEdit = false) => {
+  const handleSelectItem = (
+    id: string,
+    openEdit = false,
+    options?: { keepPanel?: boolean }
+  ) => {
     setSelectedItemId(id);
+    if (options?.keepPanel && activePanel !== "menu") return;
     setActivePanel("menu");
     setMenuView(openEdit ? "edit" : "list");
   };
@@ -9748,7 +9753,7 @@ export default function MenuBuilder() {
         <button
           type="button"
           onClick={() => {
-            handleSelectItem(item.id);
+            handleSelectItem(item.id, false, { keepPanel: true });
             setOpenMenuId((prev) => (prev === item.id ? null : item.id));
           }}
           ref={registerPreviewMenuItem(item.id)}

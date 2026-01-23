@@ -110,6 +110,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let themeName = "Unknown";
   let connectedThemeId: string | null = preferences?.connectedThemeId ?? null;
   let connectedThemeName: string | null = preferences?.connectedThemeName ?? null;
+  const connectedThemeSelected = preferences?.connectedThemeSelected ?? false;
   let themes: Array<{ id: string; name: string; role?: string | null; editorUrl?: string }> = [];
   let appEmbedEnabled = false;
   let appBlockAdded = false;
@@ -134,22 +135,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }`
     );
     const data = await response.json();
-    themes = data?.data?.themes?.nodes ?? [];
+    themes = (data?.data?.themes?.nodes ?? []).filter(
+      (theme: { name?: string; role?: string | null }) =>
+        !/app ext\. host/i.test(theme.name ?? "") && theme.role !== "APP"
+    );
     const mainTheme = themes.find((theme: { role?: string }) => theme.role === "MAIN") ?? themes[0];
     const preferredTheme = connectedThemeId
       ? themes.find((theme: { id: string }) => theme.id === connectedThemeId) ?? null
       : null;
-    const activeTheme = preferredTheme ?? mainTheme ?? themes[0];
-    if (activeTheme?.name) {
-      themeName = activeTheme.name;
+    const scanTheme = preferredTheme ?? mainTheme ?? themes[0];
+    if (scanTheme?.name) {
+      themeName = scanTheme.name;
     }
-    if (activeTheme?.id) {
-      connectedThemeId = activeTheme.id;
-      connectedThemeName = activeTheme.name ?? connectedThemeName;
+    if (preferredTheme?.id) {
+      connectedThemeName = preferredTheme.name ?? connectedThemeName;
     }
 
-    if (activeTheme?.id) {
-      const themeIdMatch = activeTheme.id.match(/\/(\d+)$/);
+    if (scanTheme?.id) {
+      const themeIdMatch = scanTheme.id.match(/\/(\d+)$/);
       const themeId = themeIdMatch?.[1];
       let rawSettings: unknown = "";
       if (themeId && restHeaders) {
@@ -266,7 +269,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     connectedTheme?.editorUrl ?? `https://${shop}/admin/themes/current/editor?context=apps`;
 
   return json({
-    themeName: connectedThemeName ?? themeName,
+    themeName,
+    connectedThemeId,
+    connectedThemeName,
+    connectedThemeSelected,
     appEmbedEnabled,
     appBlockAdded,
     themeEditorUrl,
@@ -274,9 +280,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function InstallStatus() {
-  const { themeName, appEmbedEnabled, themeEditorUrl } = useLoaderData<typeof loader>();
+  const {
+    themeName,
+    connectedThemeId,
+    connectedThemeName,
+    connectedThemeSelected,
+    appEmbedEnabled,
+    themeEditorUrl,
+  } =
+    useLoaderData<typeof loader>();
+  const hasConnectedTheme = Boolean(connectedThemeSelected && connectedThemeId);
+  const displayThemeName = hasConnectedTheme ? connectedThemeName ?? themeName : "Not selected";
   const checks = [
-    { label: "Shopify Online Store 2.0", status: "success", message: "Active" },
+    {
+      label: "Shopify Online Store 2.0",
+      status: hasConnectedTheme ? "success" : "warning",
+      message: hasConnectedTheme ? "Active" : "Deactive",
+    },
     {
       label: "App Embed Enabled",
       status: appEmbedEnabled ? "success" : "warning",
@@ -344,15 +364,17 @@ export default function InstallStatus() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Current Theme:</span>
-              <span className="text-gray-900">{themeName}</span>
+              <span className="text-gray-900">{displayThemeName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Version:</span>
-              <span className="text-gray-900">10.0.0</span>
+              <span className="text-gray-900">{hasConnectedTheme ? "10.0.0" : "-"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">OS 2.0 Compatible:</span>
-              <Badge variant="success">Yes</Badge>
+              <Badge variant={hasConnectedTheme ? "success" : "danger"}>
+                {hasConnectedTheme ? "Yes" : "No"}
+              </Badge>
             </div>
           </div>
         </Card>

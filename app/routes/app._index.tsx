@@ -133,6 +133,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let themeName = "Unknown";
   let connectedThemeId: string | null = preferences?.connectedThemeId ?? null;
   let connectedThemeName: string | null = preferences?.connectedThemeName ?? null;
+  const connectedThemeSelected = preferences?.connectedThemeSelected ?? false;
   let themes: Array<{ id: string; name: string; role?: string | null; editorUrl?: string }> = [];
   let appEmbedEnabled = false;
   let appBlockAdded = false;
@@ -299,6 +300,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     themeName,
     connectedThemeId,
     connectedThemeName,
+    connectedThemeSelected,
     themes,
     integrationStatus,
     appEmbedEnabled,
@@ -338,8 +340,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   await shopPreferenceClient.upsert({
     where: { shop },
-    update: { connectedThemeId: themeId, connectedThemeName: themeName },
-    create: { shop, connectedThemeId: themeId, connectedThemeName: themeName },
+    update: { connectedThemeId: themeId, connectedThemeName: themeName, connectedThemeSelected: true },
+    create: { shop, connectedThemeId: themeId, connectedThemeName: themeName, connectedThemeSelected: true },
   });
 
   return json({ ok: true });
@@ -350,6 +352,7 @@ export default function Dashboard() {
     themeName,
     connectedThemeId,
     connectedThemeName,
+    connectedThemeSelected,
     themes,
     integrationStatus,
     appEmbedEnabled,
@@ -358,7 +361,7 @@ export default function Dashboard() {
     themeEditorUrl,
   } = useLoaderData<typeof loader>();
   const sanitizedConnectedThemeId =
-    connectedThemeId && themes.some((theme) => theme.id === connectedThemeId)
+    connectedThemeSelected && connectedThemeId && themes.some((theme) => theme.id === connectedThemeId)
       ? connectedThemeId
       : "";
   const themeFetcher = useFetcher<typeof action>();
@@ -402,8 +405,9 @@ export default function Dashboard() {
   ];
 
   const setupSteps = [
-    { title: "Create your first menu", completed: hasMenu },
+    { title: "Select theme", completed: Boolean(activeThemeId) },
     { title: "Enable app embed", completed: appEmbedEnabled },
+    { title: "Create your first menu", completed: hasMenu },
     { title: "Publish and go live", completed: hasActiveMenu },
   ];
 

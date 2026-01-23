@@ -31,12 +31,12 @@ export default function Templates() {
   };
 
   const templates = [
-    { id: 1, name: "Minimal Fashion", category: "Fashion", pro: false, new: true },
-    { id: 2, name: "Modern E-commerce", category: "General", pro: true, new: false },
-    { id: 3, name: "Tech Store", category: "Electronics", pro: true, new: true },
-    { id: 4, name: "Simple Navigation", category: "Minimal", pro: true, new: false },
-    { id: 5, name: "Mega Store", category: "Enterprise", pro: true, new: false },
-    { id: 6, name: "Boutique Menu", category: "Fashion", pro: true, new: true },
+    { id: 1, name: "Fashion Edit", category: "Fashion", pro: false, new: true },
+    { id: 2, name: "Tech Essentials", category: "Electronics", pro: true, new: false },
+    { id: 3, name: "Beauty Studio", category: "Beauty", pro: true, new: true },
+    { id: 4, name: "Fresh Market", category: "Grocery", pro: true, new: false },
+    { id: 5, name: "Home & Living", category: "Home", pro: true, new: false },
+    { id: 6, name: "Outdoor Gear", category: "Sports", pro: true, new: true },
   ];
 
   return (

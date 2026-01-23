@@ -291,7 +291,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const themeEditorUrl =
     connectedTheme?.editorUrl ?? `https://${shop}/admin/themes/current/editor?context=apps`;
 
-  const integrationStatus: "active" | "pending" = appEmbedEnabled ? "active" : "pending";
+  const integrationStatus: "active" | "deactive" = appEmbedEnabled ? "active" : "deactive";
 
   return json({
     themeName,
@@ -547,8 +547,8 @@ export default function Dashboard() {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-gray-900">Installation Status</p>
-                      <Badge variant={integrationStatus === "active" ? "success" : "warning"}>
-                        {integrationStatus === "active" ? "Active" : "Pending"}
+                      <Badge variant={integrationStatus === "active" ? "success" : "danger"}>
+                        {integrationStatus === "active" ? "Active" : "Deactive"}
                       </Badge>
                     </div>
                     <p className="text-xs text-gray-600">Theme integration</p>

@@ -276,11 +276,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function InstallStatus() {
   const { themeName, appEmbedEnabled, themeEditorUrl } = useLoaderData<typeof loader>();
   const checks = [
-    { label: "Shopify Online Store 2.0", status: "success", message: "Theme is compatible" },
+    { label: "Shopify Online Store 2.0", status: "success", message: "Active" },
     {
       label: "App Embed Enabled",
       status: appEmbedEnabled ? "success" : "warning",
-      message: appEmbedEnabled ? "Enabled" : "Enable in theme editor",
+      message: appEmbedEnabled ? "Active" : "Deactive",
     },
   ];
 
@@ -307,8 +307,8 @@ export default function InstallStatus() {
                     <p className="text-xs text-gray-600">{check.message}</p>
                   </div>
                 </div>
-                <Badge variant={check.status === "success" ? "success" : "warning"}>
-                  {check.status === "success" ? "Complete" : "Pending"}
+                <Badge variant={check.status === "success" ? "success" : "danger"}>
+                  {check.status === "success" ? "Active" : "Deactive"}
                 </Badge>
               </div>
             ))}

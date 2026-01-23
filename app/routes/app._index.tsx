@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useLoaderData, useLocation, useNavigate } from "@remix-run/react";
-import { json, type LoaderFunctionArgs } from "@remix-run/node";
+import { useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react";
+import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import {
   AlertCircle,
   CheckCircle2,
@@ -12,11 +12,15 @@ import {
   Smartphone,
   Star,
 } from "lucide-react";
+import { Select } from "@shopify/polaris";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+
+export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 const appBlockCache = new Map<string, { value: boolean; expiresAt: number }>();
 
@@ -90,7 +94,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         "Content-Type": "application/json",
       }
     : null;
+  const shopPreferenceClient = (prisma as {
+    shopPreference?: {
+      findUnique: typeof prisma.billingSubscription.findUnique;
+      upsert: typeof prisma.billingSubscription.upsert;
+    };
+  }).shopPreference;
+  const preferences = shopPreferenceClient
+    ? await shopPreferenceClient.findUnique({ where: { shop } })
+    : null;
+
   let themeName = "Unknown";
+  let connectedThemeId: string | null = preferences?.connectedThemeId ?? null;
+  let connectedThemeName: string | null = preferences?.connectedThemeName ?? null;
+  let themes: Array<{ id: string; name: string; role?: string | null; editorUrl?: string }> = [];
   let appEmbedEnabled = false;
   let appBlockAdded = false;
   let hasMenu = false;
@@ -109,14 +126,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }`
     );
     const data = await response.json();
-    const themes = data?.data?.themes?.nodes ?? [];
+    themes = data?.data?.themes?.nodes ?? [];
     const mainTheme = themes.find((theme: { role?: string }) => theme.role === "MAIN") ?? themes[0];
-    if (mainTheme?.name) {
-      themeName = mainTheme.name;
+    const preferredTheme = connectedThemeId
+      ? themes.find((theme: { id: string }) => theme.id === connectedThemeId) ?? null
+      : null;
+    const activeTheme = preferredTheme ?? mainTheme ?? themes[0];
+    if (activeTheme?.name) {
+      themeName = activeTheme.name;
+    }
+    if (activeTheme?.id) {
+      connectedThemeId = activeTheme.id;
+      connectedThemeName = activeTheme.name ?? connectedThemeName;
     }
 
-    if (mainTheme?.id) {
-      const themeIdMatch = mainTheme.id.match(/\/(\d+)$/);
+    if (activeTheme?.id) {
+      const themeIdMatch = activeTheme.id.match(/\/(\d+)$/);
       const themeId = themeIdMatch?.[1];
       let rawSettings: unknown = "";
       if (themeId && restHeaders) {
@@ -225,12 +250,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     console.error("Failed to load theme status", error);
   }
 
-  const themeEditorUrl = `https://${shop}/admin/themes/current/editor?context=apps`;
+  themes = themes.map((theme) => {
+    const themeIdMatch = theme.id.match(/\/(\d+)$/);
+    const themeId = themeIdMatch?.[1];
+    const editorUrl = themeId
+      ? `https://${shop}/admin/themes/${themeId}/editor?context=apps`
+      : `https://${shop}/admin/themes/current/editor?context=apps`;
+    return { ...theme, editorUrl };
+  });
+  const connectedTheme = connectedThemeId
+    ? themes.find((theme) => theme.id === connectedThemeId) ?? null
+    : null;
+  const themeEditorUrl =
+    connectedTheme?.editorUrl ?? `https://${shop}/admin/themes/current/editor?context=apps`;
 
   const integrationStatus: "active" | "pending" = appEmbedEnabled ? "active" : "pending";
 
   return json({
     themeName,
+    connectedThemeId,
+    connectedThemeName: connectedThemeName ?? themeName,
+    themes,
     integrationStatus,
     appEmbedEnabled,
     appBlockAdded,
@@ -240,12 +280,63 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 };
 
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { session } = await authenticate.admin(request);
+  const shop = session.shop;
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent !== "update-connected-theme") {
+    return json({ ok: false, error: "Unknown intent" }, { status: 400 });
+  }
+
+  const themeId = typeof formData.get("themeId") === "string" ? formData.get("themeId") : null;
+  const themeName = typeof formData.get("themeName") === "string" ? formData.get("themeName") : null;
+  if (!themeId || !themeName) {
+    return json({ ok: false, error: "Missing theme data" }, { status: 400 });
+  }
+
+  const shopPreferenceClient = (prisma as {
+    shopPreference?: {
+      findUnique: typeof prisma.billingSubscription.findUnique;
+      upsert: typeof prisma.billingSubscription.upsert;
+    };
+  }).shopPreference;
+
+  if (!shopPreferenceClient) {
+    return json({ ok: false, error: "Preferences unavailable" }, { status: 500 });
+  }
+
+  await shopPreferenceClient.upsert({
+    where: { shop },
+    update: { connectedThemeId: themeId, connectedThemeName: themeName },
+    create: { shop, connectedThemeId: themeId, connectedThemeName: themeName },
+  });
+
+  return json({ ok: true });
+};
+
 export default function Dashboard() {
-  const { themeName, integrationStatus, appEmbedEnabled, appBlockAdded, hasMenu, hasActiveMenu, themeEditorUrl } =
-    useLoaderData<typeof loader>();
+  const {
+    themeName,
+    connectedThemeId,
+    connectedThemeName,
+    themes,
+    integrationStatus,
+    appEmbedEnabled,
+    appBlockAdded,
+    hasMenu,
+    hasActiveMenu,
+    themeEditorUrl,
+  } = useLoaderData<typeof loader>();
+  const themeFetcher = useFetcher<typeof action>();
   const navigate = useNavigate();
   const location = useLocation();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [themeConfigOpen, setThemeConfigOpen] = useState(false);
+  const [selectedThemeId, setSelectedThemeId] = useState(connectedThemeId ?? "");
+  const [activeThemeId, setActiveThemeId] = useState(connectedThemeId ?? "");
+  const [activeThemeName, setActiveThemeName] = useState(connectedThemeName ?? themeName);
 
   const withSearch = (path: string) => ({
     pathname: path,
@@ -282,6 +373,27 @@ export default function Dashboard() {
     { title: "Publish and go live", completed: hasActiveMenu },
   ];
 
+  const themeOptions = themes.map((theme) => ({
+    label: theme.name,
+    value: theme.id,
+  }));
+  const activeTheme = themes.find((theme) => theme.id === activeThemeId) ?? themes[0] ?? null;
+  const selectedTheme = themes.find((theme) => theme.id === selectedThemeId) ?? activeTheme;
+  const resolvedThemeEditorUrl = activeTheme?.editorUrl ?? themeEditorUrl;
+  const isThemeSaving = themeFetcher.state !== "idle";
+
+  const handleSaveConnectedTheme = () => {
+    if (!selectedTheme) return;
+    const payload = new FormData();
+    payload.set("intent", "update-connected-theme");
+    payload.set("themeId", selectedTheme.id);
+    payload.set("themeName", selectedTheme.name);
+    themeFetcher.submit(payload, { method: "post" });
+    setActiveThemeId(selectedTheme.id);
+    setActiveThemeName(selectedTheme.name);
+    setThemeConfigOpen(false);
+  };
+
   const setupButtonLabel = hasMenu ? "Continue Setup" : "Start Setup";
   const handleSetupClick = () => {
     if (!hasMenu) {
@@ -290,13 +402,13 @@ export default function Dashboard() {
     }
     if (!appEmbedEnabled) {
       if (typeof window !== "undefined") {
-        window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
+        window.open(resolvedThemeEditorUrl, "_blank", "noopener,noreferrer");
       }
       return;
     }
     if (!appBlockAdded) {
       if (typeof window !== "undefined") {
-        window.open(`${themeEditorUrl}&template=index`, "_blank", "noopener,noreferrer");
+        window.open(`${resolvedThemeEditorUrl}&template=index`, "_blank", "noopener,noreferrer");
       }
       return;
     }
@@ -391,7 +503,7 @@ export default function Dashboard() {
                   size="sm"
                   onClick={() => {
                     if (typeof window !== "undefined") {
-                      window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
+                      window.open(resolvedThemeEditorUrl, "_blank", "noopener,noreferrer");
                     }
                   }}
                 >
@@ -401,10 +513,54 @@ export default function Dashboard() {
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="text-sm text-gray-900">Connected Theme</p>
-                  <p className="text-xs text-gray-600">{themeName}</p>
+                  <p className="text-xs text-gray-600">{activeThemeName}</p>
                 </div>
-                <Badge variant="success">Active</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="success">Active</Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedThemeId(activeThemeId || selectedThemeId);
+                      setThemeConfigOpen((prev) => !prev);
+                    }}
+                  >
+                    Configure
+                  </Button>
+                </div>
               </div>
+              {themeConfigOpen ? (
+                <div className="rounded-lg border border-gray-200 bg-white p-3">
+                  <div className="text-sm text-gray-900 font-medium mb-2">Select theme</div>
+                  <Select
+                    label="Select theme"
+                    labelHidden
+                    options={themeOptions}
+                    value={selectedThemeId}
+                    onChange={setSelectedThemeId}
+                    disabled={themeOptions.length === 0}
+                  />
+                  <div className="mt-3 flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedThemeId(activeThemeId);
+                        setThemeConfigOpen(false);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveConnectedTheme}
+                      disabled={!selectedTheme || isThemeSaving}
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </Card>
 

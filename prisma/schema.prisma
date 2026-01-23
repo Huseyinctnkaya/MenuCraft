@@ -82,6 +82,8 @@ model ShopPreference {
   language           String   @default("en")
   emailNotifications Boolean  @default(true)
   marketingEmails    Boolean  @default(false)
+  connectedThemeId   String?
+  connectedThemeName String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }

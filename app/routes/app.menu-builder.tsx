@@ -118,6 +118,54 @@ import {
   buildTwoColumnLinkItems,
 } from "../menu-builder/presets";
 
+const PREVIEW_IMAGE_SOURCES = [
+  "/vertical-dropdown.png",
+  "/horizantal-dropdown.png",
+  "/simple-left-tabs.png",
+  "/simple-right-tabs.png",
+  "/simple-top-tabs.png",
+  "/two-top-tabs.png",
+  "/three-top-tabs.png",
+  "/two-level-tabs.png",
+  "/three-level-tabs.png",
+  "/two-nested-tabs.png",
+  "/three-nested-tabs.png",
+  "/Space.png",
+  "/4-product-list.png",
+  "/link-list-multiblock.png",
+  "/1link-list+3product-columns.png",
+  "/3columns+1photo.png",
+  "/product-carousel.png",
+  "/2columns+2photos.png",
+  "/1link-list+product-carousel.png",
+  "/1column%20+%203photos.png",
+  "/image+product-carousel.png",
+  "/4images.png",
+  "/4products.png",
+  "/map-contact-adres.png",
+  "/custom menu image.png",
+  "/image%201.png",
+  "/I%CC%87mage%202.png",
+  "/two-columns.png",
+  "/3-columns.png",
+  "/easy-column.png",
+  "/columns-with-icons.png",
+  "/product-grid.png",
+  "/product.png",
+  "/product-yatay.png",
+  "/product-list.png",
+  "/product-grid-horizontal.png",
+  "/collection-list.png",
+  "/horizontal-collection-list.png",
+  "/articles-blog.png",
+  "/latest-blog.png",
+  "/contact%20form.png",
+  "/custom-html.png",
+];
+
+const HOVER_PREVIEW_DELAY_MS = 0;
+const HOVER_PREVIEW_CLEAR_DELAY_MS = 180;
+
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: polarisStyles },
 ];
@@ -498,6 +546,7 @@ export default function MenuBuilder() {
   const [blockTemplateHoverId, setBlockTemplateHoverId] = useState<BlockTemplateId | null>(null);
   const [blockTemplatePanelHover, setBlockTemplatePanelHover] = useState(false);
   const blockTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewImageCacheRef = useRef<Set<string>>(new Set());
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [pendingDeleteItemLabel, setPendingDeleteItemLabel] = useState<string>("");
   const [discardChangesModalOpen, setDiscardChangesModalOpen] = useState(false);
@@ -554,6 +603,29 @@ export default function MenuBuilder() {
     () => (openMenuId ? menuItems.find((item) => item.id === openMenuId) ?? null : null),
     [menuItems, openMenuId]
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const preload = () => {
+      PREVIEW_IMAGE_SOURCES.forEach((src) => {
+        if (previewImageCacheRef.current.has(src)) return;
+        const img = new Image();
+        img.decoding = "async";
+        img.src = src;
+        previewImageCacheRef.current.add(src);
+      });
+    };
+    const requestIdle =
+      "requestIdleCallback" in window
+        ? (window as unknown as { requestIdleCallback: (cb: () => void) => number }).requestIdleCallback
+        : (cb: () => void) => window.setTimeout(cb, 200);
+    const cancelIdle =
+      "cancelIdleCallback" in window
+        ? (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback
+        : (id: number) => window.clearTimeout(id);
+    const idleId = requestIdle(preload);
+    return () => cancelIdle(idleId);
+  }, []);
 
   useEffect(() => {
     if (menuView !== "edit") {
@@ -1252,13 +1324,20 @@ export default function MenuBuilder() {
     submenuTemplateHoverTimeoutRef.current = null;
   };
 
+  const scheduleSubmenuTemplateHover = (templateId: SubmenuTemplateId) => {
+    clearSubmenuTemplateHoverTimeout();
+    submenuTemplateHoverTimeoutRef.current = setTimeout(() => {
+      setSubmenuTemplateHoverId(templateId);
+    }, HOVER_PREVIEW_DELAY_MS);
+  };
+
   const scheduleSubmenuTemplateHoverClear = () => {
     clearSubmenuTemplateHoverTimeout();
     submenuTemplateHoverTimeoutRef.current = setTimeout(() => {
       if (!submenuTemplatePanelHover) {
         setSubmenuTemplateHoverId(null);
       }
-    }, 80);
+    }, HOVER_PREVIEW_CLEAR_DELAY_MS);
   };
 
   const clearBlockTemplateHoverTimeout = () => {
@@ -1267,13 +1346,20 @@ export default function MenuBuilder() {
     blockTemplateHoverTimeoutRef.current = null;
   };
 
+  const scheduleBlockTemplateHover = (templateId: BlockTemplateId) => {
+    clearBlockTemplateHoverTimeout();
+    blockTemplateHoverTimeoutRef.current = setTimeout(() => {
+      setBlockTemplateHoverId(templateId);
+    }, HOVER_PREVIEW_DELAY_MS);
+  };
+
   const scheduleBlockTemplateHoverClear = () => {
     clearBlockTemplateHoverTimeout();
     blockTemplateHoverTimeoutRef.current = setTimeout(() => {
       if (!blockTemplatePanelHover) {
         setBlockTemplateHoverId(null);
       }
-    }, 80);
+    }, HOVER_PREVIEW_CLEAR_DELAY_MS);
   };
 
   const renderTemplatePreviewCard = ({
@@ -3261,8 +3347,7 @@ export default function MenuBuilder() {
                   type="button"
                   onClick={() => handleApplyBlockTemplate(template.id)}
                   onMouseEnter={() => {
-                    clearBlockTemplateHoverTimeout();
-                    setBlockTemplateHoverId(template.id);
+                    scheduleBlockTemplateHover(template.id);
                   }}
                   onMouseLeave={() => scheduleBlockTemplateHoverClear()}
                   className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors ${isHovered ? "bg-gray-100" : "hover:bg-gray-100"
@@ -3316,8 +3401,7 @@ export default function MenuBuilder() {
                   type="button"
                   onClick={() => handleApplySubmenuTemplate(template.id)}
                   onMouseEnter={() => {
-                    clearSubmenuTemplateHoverTimeout();
-                    setSubmenuTemplateHoverId(template.id);
+                    scheduleSubmenuTemplateHover(template.id);
                   }}
                   onMouseLeave={() => scheduleSubmenuTemplateHoverClear()}
                   className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors ${isHovered ? "bg-gray-100" : "hover:bg-gray-100"

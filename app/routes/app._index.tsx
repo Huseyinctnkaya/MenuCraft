@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react";
+import { useEffect, useState } from "react";
+import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator } from "@remix-run/react";
 import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import {
   AlertCircle,
@@ -330,6 +330,7 @@ export default function Dashboard() {
     themeEditorUrl,
   } = useLoaderData<typeof loader>();
   const themeFetcher = useFetcher<typeof action>();
+  const revalidator = useRevalidator();
   const navigate = useNavigate();
   const location = useLocation();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -393,6 +394,46 @@ export default function Dashboard() {
     setActiveThemeName(selectedTheme.name);
     setThemeConfigOpen(false);
   };
+
+  useEffect(() => {
+    if (integrationStatus === "active") return;
+    if (typeof document === "undefined" || typeof window === "undefined") return;
+
+    let intervalId: number | null = null;
+    const stop = () => {
+      if (intervalId === null) return;
+      window.clearInterval(intervalId);
+      intervalId = null;
+    };
+    const tick = () => {
+      if (revalidator.state !== "loading") {
+        revalidator.revalidate();
+      }
+    };
+    const start = () => {
+      if (intervalId !== null) return;
+      intervalId = window.setInterval(() => {
+        if (document.visibilityState === "visible") {
+          tick();
+        }
+      }, 15000);
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        tick();
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    handleVisibility();
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [integrationStatus, revalidator]);
 
   const setupButtonLabel = hasMenu ? "Continue Setup" : "Start Setup";
   const handleSetupClick = () => {

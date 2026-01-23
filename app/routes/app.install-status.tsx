@@ -113,6 +113,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let themes: Array<{ id: string; name: string; role?: string | null; editorUrl?: string }> = [];
   let appEmbedEnabled = false;
   let appBlockAdded = false;
+  const skipAppBlockScan = true;
   const restHeaders = session.accessToken
     ? {
         "X-Shopify-Access-Token": session.accessToken,
@@ -224,19 +225,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         appEmbedEnabled = embedEnabledMatch;
       }
 
-      if (!appBlockAdded) {
+      if (!skipAppBlockScan && !appBlockAdded) {
         const blockMatch = appBlockPattern.test(
           typeof rawSettings === "string" ? rawSettings : ""
         );
         appBlockAdded = blockMatch;
       }
 
-      if (!appBlockAdded && themeId && restHeaders) {
+      if (!skipAppBlockScan && !appBlockAdded && themeId && restHeaders) {
         appBlockAdded = await hasAppBlockInThemeAssets(shop, themeId, restHeaders);
       }
     }
 
-    if (!appBlockAdded && restHeaders) {
+    if (!skipAppBlockScan && !appBlockAdded && restHeaders) {
       for (const theme of themes) {
         const candidateId = typeof theme?.id === "string" ? theme.id.match(/\/(\d+)$/)?.[1] : null;
         if (!candidateId) continue;
@@ -273,19 +274,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function InstallStatus() {
-  const { themeName, appEmbedEnabled, appBlockAdded, themeEditorUrl } =
-    useLoaderData<typeof loader>();
+  const { themeName, appEmbedEnabled, themeEditorUrl } = useLoaderData<typeof loader>();
   const checks = [
     { label: "Shopify Online Store 2.0", status: "success", message: "Theme is compatible" },
     {
       label: "App Embed Enabled",
       status: appEmbedEnabled ? "success" : "warning",
       message: appEmbedEnabled ? "Enabled" : "Enable in theme editor",
-    },
-    {
-      label: "App Block Added",
-      status: appBlockAdded ? "success" : "warning",
-      message: appBlockAdded ? "Enabled" : "Action required",
     },
   ];
 
@@ -339,25 +334,6 @@ export default function InstallStatus() {
               >
                 <ExternalLink className="w-4 h-4" />
                 Theme Settings
-              </Button>
-            </div>
-
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="text-sm text-gray-900 mb-2">Step 2: Add App Block</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                Open your theme editor and add the MenuCraft block to your header section
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
-                  }
-                }}
-              >
-                <ExternalLink className="w-4 h-4" />
-                Open Theme Editor
               </Button>
             </div>
           </div>

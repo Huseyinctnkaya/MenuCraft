@@ -136,6 +136,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let themes: Array<{ id: string; name: string; role?: string | null; editorUrl?: string }> = [];
   let appEmbedEnabled = false;
   let appBlockAdded = false;
+  const skipAppBlockScan = true;
   let hasMenu = false;
   let hasActiveMenu = false;
 
@@ -243,19 +244,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         appEmbedEnabled = embedEnabledMatch;
       }
 
-      if (!appBlockAdded) {
+      if (!skipAppBlockScan && !appBlockAdded) {
         const blockMatch = appBlockPattern.test(
           typeof rawSettings === "string" ? rawSettings : ""
         );
         appBlockAdded = blockMatch;
       }
 
-      if (!appBlockAdded && themeId && restHeaders) {
+      if (!skipAppBlockScan && !appBlockAdded && themeId && restHeaders) {
         appBlockAdded = await hasAppBlockInThemeAssets(shop, themeId, restHeaders);
       }
     }
 
-    if (!appBlockAdded && restHeaders) {
+    if (!skipAppBlockScan && !appBlockAdded && restHeaders) {
       for (const theme of themes) {
         if (!theme?.id) continue;
         const themeIdMatch = theme.id.match(/\/(\d+)$/);
@@ -350,7 +351,6 @@ export default function Dashboard() {
     themes,
     integrationStatus,
     appEmbedEnabled,
-    appBlockAdded,
     hasMenu,
     hasActiveMenu,
     themeEditorUrl,
@@ -396,7 +396,6 @@ export default function Dashboard() {
   const setupSteps = [
     { title: "Create your first menu", completed: hasMenu },
     { title: "Enable app embed", completed: appEmbedEnabled },
-    { title: "Add menu block to your theme", completed: appBlockAdded },
     { title: "Publish and go live", completed: hasActiveMenu },
   ];
 
@@ -470,12 +469,6 @@ export default function Dashboard() {
     if (!appEmbedEnabled) {
       if (typeof window !== "undefined") {
         window.open(resolvedThemeEditorUrl, "_blank", "noopener,noreferrer");
-      }
-      return;
-    }
-    if (!appBlockAdded) {
-      if (typeof window !== "undefined") {
-        window.open(`${resolvedThemeEditorUrl}&template=index`, "_blank", "noopener,noreferrer");
       }
       return;
     }

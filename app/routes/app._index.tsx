@@ -153,22 +153,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }`
     );
     const data = await response.json();
-    themes = data?.data?.themes?.nodes ?? [];
+    themes = (data?.data?.themes?.nodes ?? []).filter(
+      (theme: { name?: string; role?: string | null }) =>
+        !/app ext\. host/i.test(theme.name ?? "") && theme.role !== "APP"
+    );
     const mainTheme = themes.find((theme: { role?: string }) => theme.role === "MAIN") ?? themes[0];
     const preferredTheme = connectedThemeId
       ? themes.find((theme: { id: string }) => theme.id === connectedThemeId) ?? null
       : null;
-    const activeTheme = preferredTheme ?? mainTheme ?? themes[0];
-    if (activeTheme?.name) {
-      themeName = activeTheme.name;
+    const scanTheme = preferredTheme ?? mainTheme ?? themes[0];
+    if (scanTheme?.name) {
+      themeName = scanTheme.name;
     }
-    if (activeTheme?.id) {
-      connectedThemeId = activeTheme.id;
-      connectedThemeName = activeTheme.name ?? connectedThemeName;
+    if (preferredTheme?.id) {
+      connectedThemeName = preferredTheme.name ?? connectedThemeName;
     }
 
-    if (activeTheme?.id) {
-      const themeIdMatch = activeTheme.id.match(/\/(\d+)$/);
+    if (scanTheme?.id) {
+      const themeIdMatch = scanTheme.id.match(/\/(\d+)$/);
       const themeId = themeIdMatch?.[1];
       let rawSettings: unknown = "";
       if (themeId && restHeaders) {
@@ -285,18 +287,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       : `https://${shop}/admin/themes/current/editor?context=apps`;
     return { ...theme, editorUrl };
   });
-  const connectedTheme = connectedThemeId
-    ? themes.find((theme) => theme.id === connectedThemeId) ?? null
-    : null;
-  const themeEditorUrl =
-    connectedTheme?.editorUrl ?? `https://${shop}/admin/themes/current/editor?context=apps`;
+    const connectedTheme = connectedThemeId
+      ? themes.find((theme) => theme.id === connectedThemeId) ?? null
+      : null;
+    const themeEditorUrl =
+      connectedTheme?.editorUrl ?? `https://${shop}/admin/themes/current/editor?context=apps`;
 
   const integrationStatus: "active" | "deactive" = appEmbedEnabled ? "active" : "deactive";
 
   return json({
     themeName,
     connectedThemeId,
-    connectedThemeName: connectedThemeName ?? themeName,
+    connectedThemeName,
     themes,
     integrationStatus,
     appEmbedEnabled,
@@ -355,15 +357,21 @@ export default function Dashboard() {
     hasActiveMenu,
     themeEditorUrl,
   } = useLoaderData<typeof loader>();
+  const sanitizedConnectedThemeId =
+    connectedThemeId && themes.some((theme) => theme.id === connectedThemeId)
+      ? connectedThemeId
+      : "";
   const themeFetcher = useFetcher<typeof action>();
   const revalidator = useRevalidator();
   const navigate = useNavigate();
   const location = useLocation();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [themeConfigOpen, setThemeConfigOpen] = useState(false);
-  const [selectedThemeId, setSelectedThemeId] = useState(connectedThemeId ?? "");
-  const [activeThemeId, setActiveThemeId] = useState(connectedThemeId ?? "");
-  const [activeThemeName, setActiveThemeName] = useState(connectedThemeName ?? themeName);
+  const [selectedThemeId, setSelectedThemeId] = useState(sanitizedConnectedThemeId);
+  const [activeThemeId, setActiveThemeId] = useState(sanitizedConnectedThemeId);
+  const [activeThemeName, setActiveThemeName] = useState(
+    sanitizedConnectedThemeId ? connectedThemeName ?? themeName : "Not selected"
+  );
 
   const withSearch = (path: string) => ({
     pathname: path,
@@ -403,10 +411,11 @@ export default function Dashboard() {
     label: theme.name,
     value: theme.id,
   }));
-  const activeTheme = themes.find((theme) => theme.id === activeThemeId) ?? themes[0] ?? null;
-  const selectedTheme = themes.find((theme) => theme.id === selectedThemeId) ?? activeTheme;
+  const activeTheme = themes.find((theme) => theme.id === activeThemeId) ?? null;
+  const selectedTheme = themes.find((theme) => theme.id === selectedThemeId) ?? themes[0] ?? null;
   const resolvedThemeEditorUrl = activeTheme?.editorUrl ?? themeEditorUrl;
   const isThemeSaving = themeFetcher.state !== "idle";
+  const hasConnectedTheme = Boolean(activeThemeId);
 
   const handleSaveConnectedTheme = () => {
     if (!selectedTheme) return;
@@ -421,7 +430,6 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (integrationStatus === "active") return;
     if (typeof document === "undefined" || typeof window === "undefined") return;
 
     let intervalId: number | null = null;
@@ -437,6 +445,7 @@ export default function Dashboard() {
     };
     const start = () => {
       if (intervalId !== null) return;
+      if (integrationStatus === "active") return;
       intervalId = window.setInterval(() => {
         if (document.visibilityState === "visible") {
           tick();
@@ -454,9 +463,11 @@ export default function Dashboard() {
 
     handleVisibility();
     document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
     return () => {
       stop();
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
     };
   }, [integrationStatus, revalidator]);
 
@@ -568,20 +579,28 @@ export default function Dashboard() {
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  {hasConnectedTheme ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-rose-600" />
+                  )}
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-gray-900">Connected Theme</p>
-                      <Badge variant="success">Active</Badge>
+                      <Badge variant={hasConnectedTheme ? "success" : "danger"}>
+                        {hasConnectedTheme ? "Active" : "Deactive"}
+                      </Badge>
                     </div>
-                    <p className="text-xs text-gray-600">{activeThemeName}</p>
+                    <p className="text-xs text-gray-600">
+                      {hasConnectedTheme ? activeThemeName : "Not selected"}
+                    </p>
                   </div>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setSelectedThemeId(activeThemeId || selectedThemeId);
+                    setSelectedThemeId(activeThemeId || selectedTheme?.id || "");
                     setThemeConfigOpen((prev) => !prev);
                   }}
                 >

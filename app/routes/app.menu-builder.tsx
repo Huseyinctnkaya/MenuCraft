@@ -3420,7 +3420,10 @@ export default function MenuBuilder() {
                 <button
                   key={template.id}
                   type="button"
-                  onClick={() => handleApplyBlockTemplate(template.id)}
+                  onClick={() => {
+                    clearBlockTemplateHoverTimeout();
+                    setBlockTemplateHoverId(template.id);
+                  }}
                   onMouseEnter={() => {
                     scheduleBlockTemplateHover(template.id);
                   }}
@@ -10437,7 +10440,7 @@ export default function MenuBuilder() {
                     });
                   }
                   if (group.blockTemplate === "collection") {
-                    return renderCollectionListBlock(group, {
+                    return renderCollectionBlock(group, {
                       flex: isMobileInline ? "1 1 100%" : useBlockFlexLayout ? "0 0 50%" : undefined,
                       wrapperStyle: { width: isMobileInline ? "100%" : undefined },
                     });

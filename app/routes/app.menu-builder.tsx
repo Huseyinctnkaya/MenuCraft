@@ -9573,7 +9573,15 @@ export default function MenuBuilder() {
 
   const dropdownGroups = previewMenu?.children ?? [];
   const isDropdownMenu =
-    previewMenu?.submenuType === "dropdown" || previewMenu?.submenuTemplate === "dropdown";
+    previewMenu?.submenuType === "dropdown" ||
+    previewMenu?.submenuTemplate === "dropdown" ||
+    previewMenu?.submenuTemplate === "simple-left-tabs" ||
+    previewMenu?.submenuTemplate === "simple-right-tabs" ||
+    previewMenu?.submenuTemplate === "two-nested-tabs-right" ||
+    previewMenu?.submenuTemplate === "three-nested-tabs-right" ||
+    previewMenu?.submenuTemplate === "two-level-tabs" ||
+    previewMenu?.submenuTemplate === "three-level-tabs" ||
+    previewMenu?.submenuTemplate === "custom-normal-dropdown";
   const isHorizontalDropdownMenu =
     previewMenu?.submenuType === "horizontal-dropdown" ||
     previewMenu?.submenuTemplate === "horizontal-dropdown" ||
@@ -9814,6 +9822,70 @@ export default function MenuBuilder() {
   const shouldInlineMobileDropdownPanel = isMobilePreview && isDropdownMenu;
   const shouldInlineMobileHorizontalDropdownPanel =
     isMobilePreview && previewMenu?.submenuType === "horizontal-dropdown";
+  const renderMobileBlockGroup = (group: MenuItem) => {
+    if (group.blockTemplate === "links") {
+      return renderLinkListBlock(group, {
+        flex: "1 1 100%",
+        wrapperStyle: { minWidth: 0, width: "100%" },
+        toolbarPlacement: "floating",
+      });
+    }
+    if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
+      return renderImageBlock(group, {
+        flex: "1 1 100%",
+        wrapperStyle: { minWidth: 0, width: "100%" },
+      });
+    }
+    if (group.blockTemplate === "contact") {
+      return renderContactBlock(group, {
+        flex: "1 1 100%",
+        wrapperStyle: { width: "100%" },
+      });
+    }
+    if (
+      group.blockTemplate === "product" ||
+      group.blockTemplate === "product-horizontal" ||
+      group.blockTemplate === "product-grid" ||
+      group.blockTemplate === "product-carousel" ||
+      group.blockTemplate === "product-grid-horizontal"
+    ) {
+      return renderProductBlock(group, {
+        flex: "1 1 100%",
+        wrapperStyle: { width: "100%" },
+      });
+    }
+    if (group.blockTemplate === "collection") {
+      return renderCollectionBlock(group, {
+        flex: "1 1 100%",
+        wrapperStyle: { width: "100%" },
+      });
+    }
+    if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
+      return renderBlogBlock(group, {
+        flex: "1 1 100%",
+        wrapperStyle: { width: "100%" },
+      });
+    }
+    if (group.blockTemplate === "html") {
+      return renderHtmlBlock(group, {
+        flex: "1 1 100%",
+        wrapperStyle: { width: "100%" },
+      });
+    }
+    if (group.blockTemplate === "space") {
+      return renderSpaceBlock(group, {
+        wrapperStyle: { width: "100%" },
+      });
+    }
+    if (group.blockTemplate === "multi") {
+      return (
+        <div key={group.id} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {group.children?.map((child) => renderMobileBlockGroup(child))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   const renderMobileDropdownPanel = () => {
     if (!previewMenu || !shouldInlineMobileDropdownPanel) return null;
@@ -9828,71 +9900,6 @@ export default function MenuBuilder() {
         }))
       );
     };
-    const renderMobileBlockGroup = (group: MenuItem) => {
-      if (group.blockTemplate === "links") {
-        return renderLinkListBlock(group, {
-          flex: "1 1 100%",
-          wrapperStyle: { minWidth: 0, width: "100%" },
-          toolbarPlacement: "floating",
-        });
-      }
-      if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
-        return renderImageBlock(group, {
-          flex: "1 1 100%",
-          wrapperStyle: { minWidth: 0, width: "100%" },
-        });
-      }
-      if (group.blockTemplate === "contact") {
-        return renderContactBlock(group, {
-          flex: "1 1 100%",
-          wrapperStyle: { width: "100%" },
-        });
-      }
-      if (
-        group.blockTemplate === "product" ||
-        group.blockTemplate === "product-horizontal" ||
-        group.blockTemplate === "product-grid" ||
-        group.blockTemplate === "product-carousel" ||
-        group.blockTemplate === "product-grid-horizontal"
-      ) {
-        return renderProductBlock(group, {
-          flex: "1 1 100%",
-          wrapperStyle: { width: "100%" },
-        });
-      }
-      if (group.blockTemplate === "collection") {
-        return renderCollectionBlock(group, {
-          flex: "1 1 100%",
-          wrapperStyle: { width: "100%" },
-        });
-      }
-      if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
-        return renderBlogBlock(group, {
-          flex: "1 1 100%",
-          wrapperStyle: { width: "100%" },
-        });
-      }
-      if (group.blockTemplate === "html") {
-        return renderHtmlBlock(group, {
-          flex: "1 1 100%",
-          wrapperStyle: { width: "100%" },
-        });
-      }
-      if (group.blockTemplate === "space") {
-        return renderSpaceBlock(group, {
-          wrapperStyle: { width: "100%" },
-        });
-      }
-      if (group.blockTemplate === "multi") {
-        return (
-          <div key={group.id} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {group.children?.map((child) => renderMobileBlockGroup(child))}
-          </div>
-        );
-      }
-      return null;
-    };
-
     return (
       <div
         style={{
@@ -10377,111 +10384,121 @@ export default function MenuBuilder() {
                       background: "#ffffff",
                     }}
                   >
-                    {(child.children ?? []).map((subItem) => (
-                      <div
-                        key={subItem.id}
-                        className="group/subitem relative"
-                        style={{ display: "flex", flexDirection: "column" }}
-                      >
+                    {(child.children ?? []).some((entry) => entry.blockTemplate) ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {(child.children ?? [])
+                          .filter((entry) => entry.blockTemplate)
+                          .map((entry) => renderMobileBlockGroup(entry))}
+                      </div>
+                    ) : (
+                      <>
+                        {(child.children ?? []).map((subItem) => (
+                          <div
+                            key={subItem.id}
+                            className="group/subitem relative"
+                            style={{ display: "flex", flexDirection: "column" }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleSelectItem(subItem.id)}
+                              style={{
+                                textAlign: dropdownContentAlign,
+                                border: "none",
+                                background: "transparent",
+                                color: previewColors.submenuText,
+                                padding: "14px 0",
+                                ...subtextTypography,
+                                lineHeight: 1.2,
+                                width: "100%",
+                              }}
+                            >
+                              {subItem.label}
+                            </button>
+                            <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/subitem:pointer-events-auto group-hover/subitem:opacity-100">
+                              <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleSelectItem(subItem.id, true);
+                                  }}
+                                  aria-label="Edit item"
+                                  className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                >
+                                  <Icon source={EditIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleDuplicateItem(subItem.id);
+                                  }}
+                                  aria-label="Duplicate item"
+                                  className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                >
+                                  <Icon source={DuplicateIcon} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openDeleteItemDialog(subItem.id);
+                                  }}
+                                  aria-label="Delete item"
+                                  className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                >
+                                  <Icon source={DeleteIcon} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                         <button
                           type="button"
-                          onClick={() => handleSelectItem(subItem.id)}
+                          onClick={() => handleOpenAddRoot(child.id)}
+                          className="text-sm font-medium"
                           style={{
-                            textAlign: dropdownContentAlign,
-                            border: "none",
-                            background: "transparent",
-                            color: previewColors.submenuText,
-                            padding: "14px 0",
-                            ...subtextTypography,
-                            lineHeight: 1.2,
+                            alignSelf: "stretch",
                             width: "100%",
+                            minHeight: dropdownItemHeight,
+                            textAlign: dropdownContentAlign,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: dropdownAlignJustify,
+                            gap: 8,
+                            padding: "6px 0",
+                            color: themeSettings.menuActive,
+                            background: "transparent",
+                            border: "none",
+                            ...descriptionTypography,
+                          }}
+                          onMouseEnter={(event) => {
+                            event.currentTarget.style.color = previewColors.submenuTextHover;
+                          }}
+                          onMouseLeave={(event) => {
+                            event.currentTarget.style.color = themeSettings.menuActive;
                           }}
                         >
-                          {subItem.label}
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: 9999,
+                              border: "2px solid currentColor",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 14,
+                              lineHeight: 1,
+                            }}
+                          >
+                            +
+                          </span>
+                          Add item
                         </button>
-                        <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/subitem:pointer-events-auto group-hover/subitem:opacity-100">
-                          <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleSelectItem(subItem.id, true);
-                              }}
-                              aria-label="Edit item"
-                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                            >
-                              <Icon source={EditIcon} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleDuplicateItem(subItem.id);
-                              }}
-                              aria-label="Duplicate item"
-                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                            >
-                              <Icon source={DuplicateIcon} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openDeleteItemDialog(subItem.id);
-                              }}
-                              aria-label="Delete item"
-                              className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                            >
-                              <Icon source={DeleteIcon} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenAddRoot(child.id)}
-                      className="text-sm font-medium"
-                      style={{
-                        alignSelf: "stretch",
-                        width: "100%",
-                        minHeight: dropdownItemHeight,
-                        textAlign: dropdownContentAlign,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: dropdownAlignJustify,
-                        gap: 8,
-                        padding: "6px 0",
-                        color: themeSettings.menuActive,
-                        background: "transparent",
-                        border: "none",
-                        ...descriptionTypography,
-                      }}
-                      onMouseEnter={(event) => {
-                        event.currentTarget.style.color = previewColors.submenuTextHover;
-                      }}
-                      onMouseLeave={(event) => {
-                        event.currentTarget.style.color = themeSettings.menuActive;
-                      }}
-                    >
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: 9999,
-                          border: "2px solid currentColor",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 14,
-                          lineHeight: 1,
-                        }}
-                      >
-                        +
-                      </span>
-                      Add item
-                    </button>
+                      </>
+                    )}
                   </div>
                 ) : null}
               </div>

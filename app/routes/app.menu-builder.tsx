@@ -9819,6 +9819,14 @@ export default function MenuBuilder() {
     const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
     const activeDropdownItem =
       dropdownItems.find((child) => child.id === activeDropdownItemId) ?? null;
+    const applyMobileDropdownAlign = (align: MenuItem["submenuContentAlign"]) => {
+      setMenuItems((items) =>
+        updateItemById(items, previewMenu.id, (item) => ({
+          ...item,
+          submenuContentAlign: align ?? "left",
+        }))
+      );
+    };
 
     return (
       <div
@@ -9873,12 +9881,12 @@ export default function MenuBuilder() {
                       background: "transparent",
                       color: previewColors.submenuText,
                       width: "100%",
-                      textAlign: "left",
+                    textAlign: dropdownContentAlign,
                       ...subtextTypography,
                       lineHeight: 1.2,
                     }}
                   >
-                    <span style={{ flex: 1 }}>{child.label}</span>
+                  <span style={{ flex: 1, textAlign: dropdownContentAlign }}>{child.label}</span>
                     {hasChildren ? (
                       <span
                         aria-hidden="true"
@@ -9954,13 +9962,13 @@ export default function MenuBuilder() {
                         <button
                           type="button"
                           onClick={() => handleSelectItem(subItem.id)}
-                          style={{
-                            textAlign: "left",
-                            border: "none",
-                            background: "transparent",
-                            color: previewColors.submenuText,
-                            padding: "14px 0",
-                            ...subtextTypography,
+                        style={{
+                          textAlign: dropdownContentAlign,
+                          border: "none",
+                          background: "transparent",
+                          color: previewColors.submenuText,
+                          padding: "14px 0",
+                          ...subtextTypography,
                             lineHeight: 1.2,
                             width: "100%",
                           }}
@@ -10011,11 +10019,13 @@ export default function MenuBuilder() {
                       onClick={() => handleOpenAddRoot(child.id)}
                       className="text-sm font-medium"
                       style={{
-                        alignSelf: "flex-start",
+                        alignSelf: "stretch",
+                        width: "100%",
                         minHeight: dropdownItemHeight,
-                        textAlign: "left",
+                        textAlign: dropdownContentAlign,
                         display: "flex",
                         alignItems: "center",
+                        justifyContent: dropdownAlignJustify,
                         gap: 8,
                         padding: "6px 0",
                         color: themeSettings.menuActive,
@@ -10058,11 +10068,13 @@ export default function MenuBuilder() {
             onClick={() => handleOpenAddRoot(previewMenu.id)}
             className="text-sm font-medium"
             style={{
-              alignSelf: "flex-start",
+              alignSelf: "stretch",
+              width: "100%",
               minHeight: dropdownItemHeight,
-              textAlign: "left",
+              textAlign: dropdownContentAlign,
               display: "flex",
               alignItems: "center",
+              justifyContent: dropdownAlignJustify,
               gap: 8,
               padding: "12px 20px 18px",
               color: themeSettings.menuActive,
@@ -10119,9 +10131,7 @@ export default function MenuBuilder() {
               <button
                 type="button"
                 aria-label="Align left"
-                onClick={() =>
-                  updateBuilderSetting("layoutAlignment", "left")
-                }
+                onClick={() => applyMobileDropdownAlign("left")}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
               >
                 <Icon source={TextAlignLeftIcon} />
@@ -10129,9 +10139,7 @@ export default function MenuBuilder() {
               <button
                 type="button"
                 aria-label="Align center"
-                onClick={() =>
-                  updateBuilderSetting("layoutAlignment", "center")
-                }
+                onClick={() => applyMobileDropdownAlign("center")}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
               >
                 <Icon source={TextAlignCenterIcon} />
@@ -10139,9 +10147,7 @@ export default function MenuBuilder() {
               <button
                 type="button"
                 aria-label="Align right"
-                onClick={() =>
-                  updateBuilderSetting("layoutAlignment", "right")
-                }
+                onClick={() => applyMobileDropdownAlign("right")}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
               >
                 <Icon source={TextAlignRightIcon} />

@@ -9811,8 +9811,9 @@ export default function MenuBuilder() {
       Math.max(0, previewContainerWidth - dropdownPanelPixelWidth)
     )
     : 0;
-  const shouldInlineMobileDropdownPanel =
-    isMobilePreview && isDropdownMenu && previewMenu?.submenuTemplate === "dropdown";
+  const shouldInlineMobileDropdownPanel = isMobilePreview && isDropdownMenu;
+  const shouldInlineMobileHorizontalDropdownPanel =
+    isMobilePreview && previewMenu?.submenuType === "horizontal-dropdown";
 
   const renderMobileDropdownPanel = () => {
     if (!previewMenu || !shouldInlineMobileDropdownPanel) return null;
@@ -10154,6 +10155,349 @@ export default function MenuBuilder() {
                 type="button"
                 aria-label="Align right"
                 onClick={() => applyMobileDropdownAlign("right")}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
+              >
+                <Icon source={TextAlignRightIcon} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMobileHorizontalDropdownPanel = () => {
+    if (!previewMenu || !shouldInlineMobileHorizontalDropdownPanel) return null;
+    const dropdownItemHeight = builderSettings.spacingLinkListRowHeight;
+    const activeItem =
+      horizontalDropdownItems.find((child) => child.id === activeHorizontalItemId) ?? null;
+    const applyMobileHorizontalAlign = (align: MenuItem["submenuContentAlign"]) => {
+      setMenuItems((items) =>
+        updateItemById(items, previewMenu.id, (item) => ({
+          ...item,
+          submenuContentAlign: align ?? "center",
+        }))
+      );
+    };
+
+    return (
+      <div
+        style={{
+          background: previewColors.submenuBackground,
+          border: builderSettings.submenuShowBorder
+            ? `1px solid ${previewColors.submenuBorder}`
+            : "none",
+          borderRadius: 0,
+          boxShadow: "0 10px 20px rgba(15, 23, 42, 0.12)",
+          width: "100%",
+          maxWidth: "100%",
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 0, padding: 0 }}>
+          {horizontalDropdownItems.map((child) => {
+            const hasChildren = Boolean(child.children?.length);
+            const isActive = activeItem?.id === child.id;
+            return (
+              <div key={child.id} style={{ display: "flex", flexDirection: "column" }}>
+                <div className="group/item relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSelectItem(child.id);
+                      if (hasChildren) {
+                        setActiveHorizontalItemId((prev) => (prev === child.id ? null : child.id));
+                        setActiveHorizontalChildId(null);
+                        setActiveHorizontalGrandchildId(null);
+                      } else {
+                        setActiveHorizontalItemId(null);
+                        setActiveHorizontalChildId(null);
+                        setActiveHorizontalGrandchildId(null);
+                      }
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: dropdownAlignJustify,
+                      gap: 12,
+                      minHeight: dropdownItemHeight,
+                      padding: "18px 20px",
+                      paddingRight: hasChildren ? 44 : 20,
+                      borderRadius: 0,
+                      border: "none",
+                      background: "transparent",
+                      color: previewColors.submenuText,
+                      width: "100%",
+                      textAlign: dropdownContentAlign,
+                      ...subtextTypography,
+                      lineHeight: 1.2,
+                      position: "relative",
+                    }}
+                  >
+                    <span style={{ flex: 1, textAlign: dropdownContentAlign }}>{child.label}</span>
+                    {hasChildren ? (
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transform: isActive ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 150ms ease",
+                          position: "absolute",
+                          right: 20,
+                        }}
+                      >
+                        <ChevronDownIcon width="14" height="14" fill={previewColors.submenuText} />
+                      </span>
+                    ) : null}
+                  </button>
+                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                    <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleSelectItem(child.id, true);
+                        }}
+                        aria-label="Edit item"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                      >
+                        <Icon source={EditIcon} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDuplicateItem(child.id);
+                        }}
+                        aria-label="Duplicate item"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                      >
+                        <Icon source={DuplicateIcon} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openDeleteItemDialog(child.id);
+                        }}
+                        aria-label="Delete item"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                      >
+                        <Icon source={DeleteIcon} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {isActive && hasChildren ? (
+                  <div
+                    style={{
+                      border: `1px solid ${previewColors.submenuBorder}`,
+                      borderBottom: "none",
+                      borderRadius: 0,
+                      padding: "12px 16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 6,
+                      background: "#ffffff",
+                    }}
+                  >
+                    {(child.children ?? []).map((subItem) => (
+                      <div
+                        key={subItem.id}
+                        className="group/subitem relative"
+                        style={{ display: "flex", flexDirection: "column" }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleSelectItem(subItem.id)}
+                          style={{
+                            textAlign: dropdownContentAlign,
+                            border: "none",
+                            background: "transparent",
+                            color: previewColors.submenuText,
+                            padding: "14px 0",
+                            ...subtextTypography,
+                            lineHeight: 1.2,
+                            width: "100%",
+                          }}
+                        >
+                          {subItem.label}
+                        </button>
+                        <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/subitem:pointer-events-auto group-hover/subitem:opacity-100">
+                          <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleSelectItem(subItem.id, true);
+                              }}
+                              aria-label="Edit item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                            >
+                              <Icon source={EditIcon} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleDuplicateItem(subItem.id);
+                              }}
+                              aria-label="Duplicate item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                            >
+                              <Icon source={DuplicateIcon} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openDeleteItemDialog(subItem.id);
+                              }}
+                              aria-label="Delete item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                            >
+                              <Icon source={DeleteIcon} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAddRoot(child.id)}
+                      className="text-sm font-medium"
+                      style={{
+                        alignSelf: "stretch",
+                        width: "100%",
+                        minHeight: dropdownItemHeight,
+                        textAlign: dropdownContentAlign,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: dropdownAlignJustify,
+                        gap: 8,
+                        padding: "6px 0",
+                        color: themeSettings.menuActive,
+                        background: "transparent",
+                        border: "none",
+                        ...descriptionTypography,
+                      }}
+                      onMouseEnter={(event) => {
+                        event.currentTarget.style.color = previewColors.submenuTextHover;
+                      }}
+                      onMouseLeave={(event) => {
+                        event.currentTarget.style.color = themeSettings.menuActive;
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: 9999,
+                          border: "2px solid currentColor",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 14,
+                          lineHeight: 1,
+                        }}
+                      >
+                        +
+                      </span>
+                      Add item
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => handleOpenAddRoot(previewMenu.id)}
+            className="text-sm font-medium"
+            style={{
+              alignSelf: "stretch",
+              width: "100%",
+              minHeight: dropdownItemHeight,
+              textAlign: dropdownContentAlign,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: dropdownAlignJustify,
+              gap: 8,
+              padding: "12px 20px 18px",
+              color: themeSettings.menuActive,
+              background: "transparent",
+              border: "none",
+              ...descriptionTypography,
+            }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = previewColors.submenuTextHover;
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = themeSettings.menuActive;
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 9999,
+                border: "2px solid currentColor",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 14,
+                lineHeight: 1,
+              }}
+            >
+              +
+            </span>
+            Add item
+          </button>
+          <div
+            style={{
+              marginTop: 0,
+              padding: "12px 0 0",
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                background: "#1f2933",
+                borderRadius: 0,
+                padding: "0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                width: "100%",
+              }}
+            >
+              <button
+                type="button"
+                aria-label="Align left"
+                onClick={() => applyMobileHorizontalAlign("left")}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
+              >
+                <Icon source={TextAlignLeftIcon} />
+              </button>
+              <button
+                type="button"
+                aria-label="Align center"
+                onClick={() => applyMobileHorizontalAlign("center")}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
+              >
+                <Icon source={TextAlignCenterIcon} />
+              </button>
+              <button
+                type="button"
+                aria-label="Align right"
+                onClick={() => applyMobileHorizontalAlign("right")}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
               >
                 <Icon source={TextAlignRightIcon} />
@@ -11151,6 +11495,9 @@ export default function MenuBuilder() {
                           : null}
                         {shouldInlineMobileDropdownPanel && openMenuId === item.id
                           ? renderMobileDropdownPanel()
+                          : null}
+                        {shouldInlineMobileHorizontalDropdownPanel && openMenuId === item.id
+                          ? renderMobileHorizontalDropdownPanel()
                           : null}
                       </div>
                     ))}
@@ -12738,7 +13085,9 @@ export default function MenuBuilder() {
                 ) : null}
 
                 {/* Horizontal Dropdown */}
-                {isHorizontalDropdownMenu && horizontalDropdownItems.length > 0 ? (
+                {isHorizontalDropdownMenu &&
+                horizontalDropdownItems.length > 0 &&
+                !shouldInlineMobileHorizontalDropdownPanel ? (
                   <div
                     style={{
                       position: "absolute",

@@ -4926,7 +4926,7 @@ export default function MenuBuilder() {
                               if (hasChildren) {
                                 handleOpenBlockTemplatePicker(item.id);
                               } else {
-                                handleAddChild(item.id, "group");
+                                setSubmenuTemplateTargetId(item.id);
                               }
                             }}
                             className="mt-2 flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-medium text-blue-600 hover:bg-gray-100 hover:text-blue-700"
@@ -10863,7 +10863,7 @@ export default function MenuBuilder() {
           >
             <button
               type="button"
-              onClick={() => handleAddChild(item.id, "group")}
+              onClick={() => setSubmenuTemplateTargetId(item.id)}
               style={{
                 display: "flex",
                 alignItems: "center",

@@ -650,6 +650,7 @@ export default function MenuBuilder() {
   const [activeHorizontalGrandchildId, setActiveHorizontalGrandchildId] = useState<string | null>(null);
   const [dropdownMainPanelMinHeight, setDropdownMainPanelMinHeight] = useState<number | null>(null);
   const [floatingLinkListToolbarId, setFloatingLinkListToolbarId] = useState<string | null>(null);
+  const [mobileLinkListExpandedById, setMobileLinkListExpandedById] = useState<Record<string, boolean>>({});
   const [floatingLinkListToolbarPosition, setFloatingLinkListToolbarPosition] = useState<{
     left: number;
     top: number;
@@ -7519,9 +7520,16 @@ export default function MenuBuilder() {
     const useFloatingToolbar = options.toolbarPlacement === "floating";
     const headingItem = group.children?.find((child) => child.isHeading);
     const linkItems = (group.children ?? []).filter((child) => !child.isHeading);
+    const isMobileLinkList = isMobilePreview && Boolean(headingItem);
+    const isMobileExpanded = !isMobileLinkList
+      ? true
+      : Boolean(mobileLinkListExpandedById[group.id]);
     const columnCount = Math.max(1, group.linkColumns ?? 2);
-    const itemsPerColumn = linkItems.length ? Math.ceil(linkItems.length / columnCount) : 0;
-    const columnsItems = Array.from({ length: columnCount }, (_, columnIndex) =>
+    const resolvedColumnCount = isMobilePreview ? 1 : columnCount;
+    const itemsPerColumn = linkItems.length
+      ? Math.ceil(linkItems.length / resolvedColumnCount)
+      : 0;
+    const columnsItems = Array.from({ length: resolvedColumnCount }, (_, columnIndex) =>
       linkItems.slice(columnIndex * itemsPerColumn, (columnIndex + 1) * itemsPerColumn)
     );
     const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 6));
@@ -7624,12 +7632,18 @@ export default function MenuBuilder() {
                   <button
                     type="button"
                     onClick={() => {
+                      if (isMobileLinkList) {
+                        setMobileLinkListExpandedById((prev) => ({
+                          ...prev,
+                          [group.id]: !isMobileExpanded,
+                        }));
+                      }
                       handleSelectItem(headingItem.id);
                     }}
                     style={{
                       width: "100%",
                       textAlign: linkTextAlign,
-                      border: headingSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
+                      border: "none",
                       borderRadius: 8,
                       padding: "4px 8px",
                       background: "transparent",
@@ -7643,28 +7657,53 @@ export default function MenuBuilder() {
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 6,
-                        justifyContent: linkJustify,
+                        gap: 8,
+                        justifyContent: "space-between",
                         width: "100%",
                       }}
                     >
-                      {headingIcon ? (
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          justifyContent: linkJustify,
+                          flex: 1,
+                        }}
+                      >
+                        {headingIcon ? (
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {renderMenuIcon(headingIcon, {
+                              size: 16,
+                              className: "text-gray-500",
+                              color: previewColors.submenuHeading,
+                            })}
+                          </span>
+                        ) : null}
+                        <span style={{ textAlign: linkTextAlign }}>{headingLabel}</span>
+                      </span>
+                      {isMobileLinkList ? (
                         <span
                           aria-hidden="true"
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            color: previewColors.submenuHeading,
+                            transform: isMobileExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                            transition: "transform 150ms ease",
                           }}
                         >
-                          {renderMenuIcon(headingIcon, {
-                            size: 16,
-                            className: "text-gray-500",
-                            color: previewColors.submenuHeading,
-                          })}
+                          <ChevronDownIcon width="16" height="16" fill={previewColors.submenuHeading} />
                         </span>
                       ) : null}
-                      <span style={{ textAlign: linkTextAlign }}>{headingLabel}</span>
                     </span>
                   </button>
                   <div className="pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/heading:pointer-events-auto group-hover/heading:opacity-100">
@@ -7705,130 +7744,132 @@ export default function MenuBuilder() {
               />
             </>
           ) : null}
-          <div
-            style={{
-              display: "flex",
-              gap: 32,
-            }}
-          >
-            {columnsItems.map((column, columnIndex) => (
-              <div key={`column-${columnIndex}`} style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 0" }}>
-                {column.map((child) => {
-                  const isChildSelected = selectedItemId === child.id;
-                  return (
-                    <div key={child.id} className="group/item relative">
-                      <button
-                        type="button"
-                        onClick={() => handleSelectItem(child.id)}
-                        onMouseEnter={(event) => {
-                          event.currentTarget.style.color = previewColors.submenuTextHover;
-                        }}
-                        onMouseLeave={(event) => {
-                          event.currentTarget.style.color = previewColors.submenuText;
-                        }}
-                        style={{
-                          textAlign: linkTextAlign,
-                          border: isChildSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
-                          borderRadius: 8,
-                          padding: "6px 8px",
-                          background: "transparent",
-                          color: previewColors.submenuText,
-                          width: "100%",
-                          ...subtextTypography,
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        <div
+          {!isMobileLinkList || isMobileExpanded ? (
+            <div
+              style={{
+                display: "flex",
+                gap: 32,
+              }}
+            >
+              {columnsItems.map((column, columnIndex) => (
+                <div key={`column-${columnIndex}`} style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 0" }}>
+                  {column.map((child) => {
+                    const isChildSelected = selectedItemId === child.id;
+                    return (
+                      <div key={child.id} className="group/item relative">
+                        <button
+                          type="button"
+                          onClick={() => handleSelectItem(child.id)}
+                          onMouseEnter={(event) => {
+                            event.currentTarget.style.color = previewColors.submenuTextHover;
+                          }}
+                          onMouseLeave={(event) => {
+                            event.currentTarget.style.color = previewColors.submenuText;
+                          }}
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            justifyContent: linkJustify,
+                            textAlign: linkTextAlign,
+                            border: isChildSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
+                            borderRadius: 8,
+                            padding: "6px 8px",
+                            background: "transparent",
+                            color: previewColors.submenuText,
                             width: "100%",
+                            ...subtextTypography,
+                            lineHeight: 1.2,
                           }}
                         >
-                          {child.icon ? (
-                            <span
-                              aria-hidden="true"
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              {renderMenuIcon(child.icon, {
-                                size: 16,
-                                className: "text-gray-500",
-                                color: previewColors.submenuText,
-                              })}
-                            </span>
-                          ) : null}
                           <div
                             style={{
                               display: "flex",
-                              flexDirection: "column",
-                              alignItems: linkAlignItems,
-                              textAlign: linkTextAlign,
+                              alignItems: "center",
+                              gap: 8,
+                              justifyContent: linkJustify,
+                              width: "100%",
                             }}
                           >
-                            <div
-                              style={{
-                                fontWeight: 600,
-                                ...subheadingTypography,
-                                lineHeight: 1.2,
-                              }}
-                            >
-                              {child.label}
-                            </div>
-                            {child.description ? (
-                              <div
+                            {child.icon ? (
+                              <span
+                                aria-hidden="true"
                                 style={{
-                                  fontSize: 12,
-                                  ...descriptionTypography,
-                                  lineHeight: 1.3,
-                                  color: previewColors.submenuDescription,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
                                 }}
                               >
-                                {child.description}
-                              </div>
+                                {renderMenuIcon(child.icon, {
+                                  size: 16,
+                                  className: "text-gray-500",
+                                  color: previewColors.submenuText,
+                                })}
+                              </span>
                             ) : null}
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: linkAlignItems,
+                                textAlign: linkTextAlign,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontWeight: 600,
+                                  ...subheadingTypography,
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {child.label}
+                              </div>
+                              {child.description ? (
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    ...descriptionTypography,
+                                    lineHeight: 1.3,
+                                    color: previewColors.submenuDescription,
+                                  }}
+                                >
+                                  {child.description}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </button>
+                        <div className="pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                          <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectItem(child.id, true)}
+                              aria-label="Edit item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                            >
+                              <Icon source={EditIcon} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDuplicateItem(child.id)}
+                              aria-label="Duplicate item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                            >
+                              <Icon source={DuplicateIcon} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openDeleteItemDialog(child.id)}
+                              aria-label="Delete item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                            >
+                              <Icon source={DeleteIcon} />
+                            </button>
                           </div>
                         </div>
-                      </button>
-                      <div className="pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                        <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                          <button
-                            type="button"
-                            onClick={() => handleSelectItem(child.id, true)}
-                            aria-label="Edit item"
-                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                          >
-                            <Icon source={EditIcon} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDuplicateItem(child.id)}
-                            aria-label="Duplicate item"
-                            className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                          >
-                            <Icon source={DuplicateIcon} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => openDeleteItemDialog(child.id)}
-                            aria-label="Delete item"
-                            className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                          >
-                            <Icon source={DeleteIcon} />
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          ) : null}
           <button
             type="button"
             onClick={() => handleOpenAddRoot(group.id)}
@@ -7936,7 +7977,7 @@ export default function MenuBuilder() {
     const imageScale = options.imageScale ?? `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
     const imageFill = !group.imageNoFill;
     const imagePreviewHeight =
-      options.imagePreviewHeight ?? (useImageSpaceLayout ? 220 : 150);
+      options.imagePreviewHeight ?? (isMobilePreview ? 500 : useImageSpaceLayout ? 220 : 150);
     const imageTextAlign = group.imageTextAlign ?? "left";
     const imageTextAlignItems =
       imageTextAlign === "center"

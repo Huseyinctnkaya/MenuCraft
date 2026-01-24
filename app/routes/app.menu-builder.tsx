@@ -9848,87 +9848,88 @@ export default function MenuBuilder() {
             return (
               <div
                 key={child.id}
-                className="group/item relative"
                 style={{ display: "flex", flexDirection: "column" }}
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleSelectItem(child.id);
-                    if (hasChildren) {
-                      setActiveDropdownItemId((prev) => (prev === child.id ? null : child.id));
-                    } else {
-                      setActiveDropdownItemId(null);
-                    }
-                  }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    minHeight: dropdownItemHeight,
-                    padding: "18px 20px",
-                    borderRadius: 0,
-                    border: "none",
-                    background: "transparent",
-                    color: previewColors.submenuText,
-                    width: "100%",
-                    textAlign: "left",
-                    ...subtextTypography,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  <span style={{ flex: 1 }}>{child.label}</span>
-                  {hasChildren ? (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transform: isActiveChild ? "rotate(180deg)" : "rotate(0deg)",
-                        transition: "transform 150ms ease",
-                      }}
-                    >
-                      <ChevronDownIcon width="14" height="14" fill={previewColors.submenuText} />
-                    </span>
-                  ) : null}
-                </button>
-                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
-                  <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleSelectItem(child.id, true);
-                      }}
-                      aria-label="Edit item"
-                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                    >
-                      <Icon source={EditIcon} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleDuplicateItem(child.id);
-                      }}
-                      aria-label="Duplicate item"
-                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
-                    >
-                      <Icon source={DuplicateIcon} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openDeleteItemDialog(child.id);
-                      }}
-                      aria-label="Delete item"
-                      className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
-                    >
-                      <Icon source={DeleteIcon} />
-                    </button>
+                <div className="group/item relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSelectItem(child.id);
+                      if (hasChildren) {
+                        setActiveDropdownItemId((prev) => (prev === child.id ? null : child.id));
+                      } else {
+                        setActiveDropdownItemId(null);
+                      }
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      minHeight: dropdownItemHeight,
+                      padding: "18px 20px",
+                      borderRadius: 0,
+                      border: "none",
+                      background: "transparent",
+                      color: previewColors.submenuText,
+                      width: "100%",
+                      textAlign: "left",
+                      ...subtextTypography,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    <span style={{ flex: 1 }}>{child.label}</span>
+                    {hasChildren ? (
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transform: isActiveChild ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 150ms ease",
+                        }}
+                      >
+                        <ChevronDownIcon width="14" height="14" fill={previewColors.submenuText} />
+                      </span>
+                    ) : null}
+                  </button>
+                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                    <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleSelectItem(child.id, true);
+                        }}
+                        aria-label="Edit item"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                      >
+                        <Icon source={EditIcon} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDuplicateItem(child.id);
+                        }}
+                        aria-label="Duplicate item"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                      >
+                        <Icon source={DuplicateIcon} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openDeleteItemDialog(child.id);
+                        }}
+                        aria-label="Delete item"
+                        className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                      >
+                        <Icon source={DeleteIcon} />
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {isActiveChild && hasChildren ? (
@@ -9945,22 +9946,65 @@ export default function MenuBuilder() {
                     }}
                   >
                     {(child.children ?? []).map((subItem) => (
-                      <button
+                      <div
                         key={subItem.id}
-                        type="button"
-                        onClick={() => handleSelectItem(subItem.id)}
-                        style={{
-                          textAlign: "left",
-                          border: "none",
-                          background: "transparent",
-                          color: previewColors.submenuText,
-                          padding: "14px 0",
-                          ...subtextTypography,
-                          lineHeight: 1.2,
-                        }}
+                        className="group/subitem relative"
+                        style={{ display: "flex", flexDirection: "column" }}
                       >
-                        {subItem.label}
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectItem(subItem.id)}
+                          style={{
+                            textAlign: "left",
+                            border: "none",
+                            background: "transparent",
+                            color: previewColors.submenuText,
+                            padding: "14px 0",
+                            ...subtextTypography,
+                            lineHeight: 1.2,
+                            width: "100%",
+                          }}
+                        >
+                          {subItem.label}
+                        </button>
+                        <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/subitem:pointer-events-auto group-hover/subitem:opacity-100">
+                          <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleSelectItem(subItem.id, true);
+                              }}
+                              aria-label="Edit item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                            >
+                              <Icon source={EditIcon} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleDuplicateItem(subItem.id);
+                              }}
+                              aria-label="Duplicate item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                            >
+                              <Icon source={DuplicateIcon} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openDeleteItemDialog(subItem.id);
+                              }}
+                              aria-label="Delete item"
+                              className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                            >
+                              <Icon source={DeleteIcon} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                     <button
                       type="button"

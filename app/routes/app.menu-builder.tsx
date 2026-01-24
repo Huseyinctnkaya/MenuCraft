@@ -9834,7 +9834,14 @@ export default function MenuBuilder() {
           overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 0, padding: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
+            padding: 0,
+          }}
+        >
           {dropdownItems.map((child) => {
             const hasChildren = Boolean(child.children?.length);
             const isActiveChild = activeDropdownItem?.id === child.id;
@@ -9887,6 +9894,7 @@ export default function MenuBuilder() {
                   <div
                     style={{
                       border: `1px solid ${previewColors.submenuBorder}`,
+                      borderBottom: "none",
                       borderRadius: 0,
                       padding: "12px 16px",
                       display: "flex",
@@ -9905,7 +9913,7 @@ export default function MenuBuilder() {
                           border: "none",
                           background: "transparent",
                           color: previewColors.submenuText,
-                          padding: "6px 0",
+                          padding: "14px 0",
                           ...subtextTypography,
                           lineHeight: 1.2,
                         }}
@@ -10002,6 +10010,59 @@ export default function MenuBuilder() {
             </span>
             Add item
           </button>
+          <div
+            style={{
+              marginTop: 0,
+              padding: "12px 0 0",
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                background: "#1f2933",
+                borderRadius: 0,
+                padding: "0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                width: "100%",
+              }}
+            >
+              <button
+                type="button"
+                aria-label="Align left"
+                onClick={() =>
+                  updateBuilderSetting("layoutAlignment", "left")
+                }
+                className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
+              >
+                <Icon source={TextAlignLeftIcon} />
+              </button>
+              <button
+                type="button"
+                aria-label="Align center"
+                onClick={() =>
+                  updateBuilderSetting("layoutAlignment", "center")
+                }
+                className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
+              >
+                <Icon source={TextAlignCenterIcon} />
+              </button>
+              <button
+                type="button"
+                aria-label="Align right"
+                onClick={() =>
+                  updateBuilderSetting("layoutAlignment", "right")
+                }
+                className="flex h-8 w-8 items-center justify-center rounded-md text-white hover:bg-gray-700"
+              >
+                <Icon source={TextAlignRightIcon} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

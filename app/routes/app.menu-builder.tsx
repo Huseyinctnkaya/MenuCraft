@@ -9726,7 +9726,7 @@ export default function MenuBuilder() {
             style={
               isMobilePreview
                 ? {
-                  top: "50%",
+                  top: `${menuRowHeight / 2}px`,
                   left: "50%",
                   transform: "translate(-50%, -50%)",
                 }

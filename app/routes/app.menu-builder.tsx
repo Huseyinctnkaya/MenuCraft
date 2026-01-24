@@ -10292,6 +10292,10 @@ export default function MenuBuilder() {
       panelStyle.maxWidth = "100%";
       panelStyle.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.12)";
     }
+    if (isMobileInline) {
+      panelStyle.overflowY = "visible";
+      panelStyle.maxHeight = "none";
+    }
 
     return (
       <div style={panelStyle}>

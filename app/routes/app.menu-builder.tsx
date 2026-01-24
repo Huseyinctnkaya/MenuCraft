@@ -9869,38 +9869,44 @@ export default function MenuBuilder() {
                         setActiveDropdownItemId(null);
                       }
                     }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      minHeight: dropdownItemHeight,
-                      padding: "18px 20px",
-                      borderRadius: 0,
-                      border: "none",
-                      background: "transparent",
-                      color: previewColors.submenuText,
-                      width: "100%",
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: dropdownAlignJustify,
+                    gap: 12,
+                    minHeight: dropdownItemHeight,
+                    padding: "18px 20px",
+                    paddingRight: hasChildren ? 44 : 20,
+                    borderRadius: 0,
+                    border: "none",
+                    background: "transparent",
+                    color: previewColors.submenuText,
+                    width: "100%",
                     textAlign: dropdownContentAlign,
-                      ...subtextTypography,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                  <span style={{ flex: 1, textAlign: dropdownContentAlign }}>{child.label}</span>
-                    {hasChildren ? (
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          transform: isActiveChild ? "rotate(180deg)" : "rotate(0deg)",
-                          transition: "transform 150ms ease",
-                        }}
-                      >
-                        <ChevronDownIcon width="14" height="14" fill={previewColors.submenuText} />
-                      </span>
-                    ) : null}
+                    ...subtextTypography,
+                    lineHeight: 1.2,
+                    position: "relative",
+                  }}
+                >
+                  <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                    {child.label}
+                  </span>
+                  {hasChildren ? (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transform: isActiveChild ? "rotate(180deg)" : "rotate(0deg)",
+                        transition: "transform 150ms ease",
+                        position: "absolute",
+                        right: 20,
+                      }}
+                    >
+                      <ChevronDownIcon width="14" height="14" fill={previewColors.submenuText} />
+                    </span>
+                  ) : null}
                   </button>
                   <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
                     <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">

@@ -191,6 +191,23 @@ const applySidebarDefaultExpansion = (items: MenuItem[]): MenuItem[] => {
   return collapseItems(items);
 };
 
+const stripExpandedFromItems = (items: MenuItem[]): MenuItem[] =>
+  items.map(({ expanded: _expanded, children, ...rest }) => ({
+    ...rest,
+    ...(children ? { children: stripExpandedFromItems(children) } : {}),
+  }));
+
+const buildMenuFingerprint = (
+  status: "active" | "draft",
+  items: MenuItem[],
+  settings: BuilderSettings
+) =>
+  JSON.stringify({
+    status,
+    items: stripExpandedFromItems(items),
+    settings,
+  });
+
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: polarisStyles },
 ];
@@ -485,6 +502,15 @@ export default function MenuBuilder() {
     () => applySidebarDefaultExpansion(normalizedMenuItems),
     [normalizedMenuItems]
   );
+  const savedSnapshotRef = useRef<{
+    status: "active" | "draft";
+    items: MenuItem[];
+    settings: BuilderSettings;
+  }>({
+    status: menu.status === "active" ? "active" : "draft",
+    items: defaultExpandedMenuItems,
+    settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
+  });
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const apiKey = appData?.apiKey ?? "";
   const planTier = (appData as { planTier?: string } | null)?.planTier ?? "plus";
@@ -636,11 +662,11 @@ export default function MenuBuilder() {
   const dropdownFlyoutRef = useRef<HTMLDivElement | null>(null);
   const [dropdownAnchor, setDropdownAnchor] = useState<{ left: number; top: number; width: number } | null>(null);
   const [savedFingerprint, setSavedFingerprint] = useState(() =>
-    JSON.stringify({
-      status: menu.status,
-      items: normalizedMenuItems,
-      settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
-    })
+    buildMenuFingerprint(
+      menu.status === "active" ? "active" : "draft",
+      defaultExpandedMenuItems,
+      { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings }
+    )
   );
   const lastSaveIntentRef = useRef<"save" | "publish" | "enable">("save");
 
@@ -9535,7 +9561,7 @@ export default function MenuBuilder() {
 
   const isSaving = saveFetcher.state !== "idle";
   const currentFingerprint = useMemo(
-    () => JSON.stringify({ status: menuStatus, items: menuItems, settings: builderSettings }),
+    () => buildMenuFingerprint(menuStatus, menuItems, builderSettings),
     [menuStatus, menuItems, builderSettings]
   );
   const isDirty = currentFingerprint !== savedFingerprint;
@@ -9543,11 +9569,7 @@ export default function MenuBuilder() {
 
   const discardUnsavedChanges = () => {
     try {
-      const snapshot = JSON.parse(savedFingerprint) as {
-        status?: "active" | "draft";
-        items?: MenuItem[];
-        settings?: BuilderSettings;
-      };
+      const snapshot = savedSnapshotRef.current;
       const nextStatus = snapshot.status ?? menu.status ?? "draft";
       const nextItems = snapshot.items ?? normalizedMenuItems;
       const nextSettings = snapshot.settings ?? { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings };
@@ -9569,10 +9591,22 @@ export default function MenuBuilder() {
       setActiveSaveAction(null);
       if (lastSaveIntentRef.current === "save") {
         setSavedFingerprint(currentFingerprint);
+        savedSnapshotRef.current = {
+          status: menuStatus,
+          items: menuItems,
+          settings: builderSettings,
+        };
         setRequiresExplicitSave(false);
       }
     }
-  }, [saveFetcher.state, saveFetcher.data, currentFingerprint]);
+  }, [
+    saveFetcher.state,
+    saveFetcher.data,
+    currentFingerprint,
+    menuStatus,
+    menuItems,
+    builderSettings,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -9659,12 +9693,17 @@ export default function MenuBuilder() {
     setActiveSaveAction(null);
     setSubmenuTemplateTargetId(null);
     setBlockTemplateTargetId(null);
+    savedSnapshotRef.current = {
+      status: menu.status === "active" ? "active" : "draft",
+      items: defaultExpandedMenuItems,
+      settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
+    };
     setSavedFingerprint(
-      JSON.stringify({
-        status: menu.status,
-        items: normalizedMenuItems,
-        settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
-      })
+      buildMenuFingerprint(
+        menu.status === "active" ? "active" : "draft",
+        defaultExpandedMenuItems,
+        { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings }
+      )
     );
   }, [menu.id, menuSettings, normalizedMenuItems, defaultExpandedMenuItems]);
 

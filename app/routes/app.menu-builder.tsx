@@ -9710,8 +9710,13 @@ export default function MenuBuilder() {
     return (
       <div
         key={item.id}
-        className="relative inline-flex"
-        style={{ height: isVerticalMenu ? "auto" : "100%" }}
+        className="relative"
+        style={{
+          height: isVerticalMenu ? "auto" : "100%",
+          width: isVerticalMenu ? "100%" : "auto",
+          display: "flex",
+          flexDirection: isVerticalMenu ? "column" : "row",
+        }}
         onMouseEnter={() => handlePreviewHoverStart(item.id)}
         onMouseLeave={handlePreviewHoverEnd}
       >
@@ -9834,64 +9839,49 @@ export default function MenuBuilder() {
           ) : null}
         </button>
         {isActive && dropdownGroups.length === 0 && (
-          isVerticalMenu ? (
-            <div style={{ width: "100%" }}>
-              <button
-                type="button"
-                onClick={() => handleAddChild(item.id, "group")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 10,
-                  padding: isMobilePreview ? "16px 18px" : "12px 16px",
-                  width: "100%",
-                  borderRadius: 0,
-                  border: "1px dashed #cbd5e1",
-                  background: "#ffffff",
-                  color: "#111827",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-                Add submenu
-              </button>
-            </div>
-          ) : (
-            <div
+          <div
+            style={{
+              width: "100%",
+              position: isVerticalMenu ? "static" : "absolute",
+              left: isVerticalMenu ? undefined : 0,
+              top: isVerticalMenu ? undefined : "100%",
+              marginTop: 0,
+              zIndex: 15,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => handleAddChild(item.id, "group")}
               style={{
-                position: "absolute",
-                left: 0,
-                top: "100%",
-                marginTop: 0,
-                zIndex: 15,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: isVerticalMenu ? "center" : "flex-start",
+                gap: isVerticalMenu ? 0 : 10,
+                padding: "12px 16px",
+                width: isVerticalMenu ? "100%" : "auto",
+                minWidth: isVerticalMenu ? "auto" : 180,
+                borderRadius: 0,
+                border: "1px dashed #cbd5e1",
+                background: isVerticalMenu ? "#ffffff" : previewColors.submenuBackground,
+                color: isVerticalMenu ? "#111827" : previewColors.submenuText,
+                fontSize: 14,
+                fontWeight: 500,
+                whiteSpace: "nowrap",
+                position: isVerticalMenu ? "relative" : "static",
               }}
             >
-              <button
-                type="button"
-                onClick={() => handleAddChild(item.id, "group")}
+              <span
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "12px 16px",
-                  minWidth: 180,
-                  borderRadius: 0,
-                  border: "1px dashed #cbd5e1",
-                  background: previewColors.submenuBackground,
-                  color: previewColors.submenuText,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  whiteSpace: "nowrap",
+                  fontSize: 16,
+                  lineHeight: 1,
+                  ...(isVerticalMenu ? { position: "absolute", left: 16 } : {}),
                 }}
               >
-                <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-                Add submenu
-              </button>
-            </div>
-          )
+                +
+              </span>
+              Add submenu
+            </button>
+          </div>
         )}
       </div>
     );
@@ -10112,7 +10102,6 @@ export default function MenuBuilder() {
                 const isGroupSelected = selectedItemId === group.id;
                 if (group.blockTemplate === "space") {
                   const spaceGridColumn = useImageSpaceLayout ? undefined : "1 / -1";
-                  const spaceMinHeight = useImageSpaceLayout ? 120 : 80;
                   const spaceFlex = useImageSpaceLayout
                     ? linkBlockCount >= 2
                       ? "0 0 100%"
@@ -10123,7 +10112,6 @@ export default function MenuBuilder() {
                     isSelected: isGroupSelected,
                     wrapperStyle: {
                       gridColumn: spaceGridColumn,
-                      minHeight: spaceMinHeight,
                       flex: spaceFlex,
                       order: spaceOrder,
                     },
@@ -12990,7 +12978,6 @@ export default function MenuBuilder() {
                           const isGroupSelected = selectedItemId === group.id;
                           if (group.blockTemplate === "space") {
                             const spaceGridColumn = useImageSpaceLayout ? undefined : "1 / -1";
-                            const spaceMinHeight = useImageSpaceLayout ? 120 : 80;
                             const spaceFlex = useImageSpaceLayout
                               ? linkBlockCount >= 2
                                 ? "0 0 100%"
@@ -13001,7 +12988,6 @@ export default function MenuBuilder() {
                               isSelected: isGroupSelected,
                               wrapperStyle: {
                                 gridColumn: spaceGridColumn,
-                                minHeight: spaceMinHeight,
                                 flex: spaceFlex,
                                 order: spaceOrder,
                               },

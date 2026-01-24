@@ -8587,7 +8587,7 @@ export default function MenuBuilder() {
         : group.productLayout ??
         (group.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
     const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
-    const productPreviewHeight = useImageSpaceLayout ? 220 : 150;
+    const productPreviewHeight = isMobilePreview ? 500 : useImageSpaceLayout ? 220 : 150;
     const isMultiLayout = Boolean(group.multiLayout);
     const resolvedProductFlexBasis =
       group.blockTemplate === "product-horizontal"
@@ -8799,7 +8799,7 @@ export default function MenuBuilder() {
                 const imageAlt = product?.featuredImage?.altText ?? title;
                 const hasImage = Boolean(imageSrc);
                 const isImageLeft = productLayout === "image-left";
-                const productImageSize = isImageLeft ? 74 : undefined;
+                const productImageSize = isImageLeft ? (isMobilePreview ? 150 : 74) : undefined;
                 const priceAmount = product?.priceRange?.minVariantPrice?.amount;
                 const priceCurrency = product?.priceRange?.minVariantPrice?.currencyCode;
                 const fallbackCurrency = priceCurrency || "USD";

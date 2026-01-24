@@ -9846,7 +9846,11 @@ export default function MenuBuilder() {
             const hasChildren = Boolean(child.children?.length);
             const isActiveChild = activeDropdownItem?.id === child.id;
             return (
-              <div key={child.id} style={{ display: "flex", flexDirection: "column" }}>
+              <div
+                key={child.id}
+                className="group/item relative"
+                style={{ display: "flex", flexDirection: "column" }}
+              >
                 <button
                   type="button"
                   onClick={() => {
@@ -9890,6 +9894,43 @@ export default function MenuBuilder() {
                     </span>
                   ) : null}
                 </button>
+                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
+                  <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleSelectItem(child.id, true);
+                      }}
+                      aria-label="Edit item"
+                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                    >
+                      <Icon source={EditIcon} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleDuplicateItem(child.id);
+                      }}
+                      aria-label="Duplicate item"
+                      className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                    >
+                      <Icon source={DuplicateIcon} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openDeleteItemDialog(child.id);
+                      }}
+                      aria-label="Delete item"
+                      className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                    >
+                      <Icon source={DeleteIcon} />
+                    </button>
+                  </div>
+                </div>
                 {isActiveChild && hasChildren ? (
                   <div
                     style={{

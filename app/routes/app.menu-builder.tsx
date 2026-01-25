@@ -613,6 +613,14 @@ export default function MenuBuilder() {
   const [productCarouselPageById, setProductCarouselPageById] = useState<Record<string, number>>({});
   const [submenuColorPickerOpen, setSubmenuColorPickerOpen] = useState(false);
   const [submenuColorPickerHsb, setSubmenuColorPickerHsb] = useState<HsbColor | null>(null);
+  const [itemColorPickerKey, setItemColorPickerKey] = useState<
+    | "customTextColor"
+    | "customBackgroundColor"
+    | "customTextHoverColor"
+    | "customBackgroundHoverColor"
+    | null
+  >(null);
+  const [itemColorPickerHsb, setItemColorPickerHsb] = useState<HsbColor | null>(null);
   const [submenuTemplateTargetId, setSubmenuTemplateTargetId] = useState<string | null>(null);
   const [submenuTemplateHoverId, setSubmenuTemplateHoverId] = useState<SubmenuTemplateId | null>(null);
   const [submenuTemplatePanelHover, setSubmenuTemplatePanelHover] = useState(false);
@@ -5027,6 +5035,15 @@ export default function MenuBuilder() {
       const linkListItems = isLinkListBlock ? editingItem.children ?? [] : [];
       const productListItems = isProductListBlock ? editingItem.children ?? [] : [];
       const collectionListItems = isCollectionListBlock ? editingItem.children ?? [] : [];
+      const itemColorOptions = [
+        { label: "Text color", key: "customTextColor" },
+        { label: "Background color", key: "customBackgroundColor" },
+        { label: "Hover text color", key: "customTextHoverColor" },
+        { label: "Hover background color", key: "customBackgroundHoverColor" },
+      ] as const;
+      const hasCustomItemColors = itemColorOptions.some(
+        (option) => Boolean(editingItem[option.key])
+      );
       if (iconPickerState?.target === "edit") {
         return (
           <Card padding="0">
@@ -5653,14 +5670,51 @@ export default function MenuBuilder() {
                               <Text as="p" variant="bodySm">
                                 Badge
                               </Text>
-                              <div className="flex h-6 w-10 items-center rounded-full bg-gray-200 px-0.5">
-                                <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
-                              </div>
+                              {isProPlan ? (
+                                <button
+                                  type="button"
+                                  role="switch"
+                                  aria-checked={Boolean(child.badgeEnabled)}
+                                  onClick={() =>
+                                    updateEditDraftItemById(child.id, (item) => ({
+                                      ...item,
+                                      badgeEnabled: !item.badgeEnabled,
+                                    }))
+                                  }
+                                  className={`flex h-6 w-10 items-center rounded-full px-0.5 transition-colors ${child.badgeEnabled ? "bg-blue-600" : "bg-gray-200"
+                                    }`}
+                                >
+                                  <span
+                                    className={`h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${child.badgeEnabled ? "translate-x-4" : "translate-x-0"
+                                      }`}
+                                  />
+                                </button>
+                              ) : (
+                                <div className="flex h-6 w-10 items-center rounded-full bg-gray-200 px-0.5">
+                                  <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
+                                </div>
+                              )}
                             </InlineStack>
-                            <Text as="p" variant="bodySm" tone="subdued">
-                              This option is available on the{" "}
-                              <span className="text-blue-600">Pro plan</span>
-                            </Text>
+                            {isProPlan ? (
+                              child.badgeEnabled ? (
+                                <TextField
+                                  label="Badge text"
+                                  value={child.badgeText ?? ""}
+                                  onChange={(value) =>
+                                    updateEditDraftItemById(child.id, (item) => ({
+                                      ...item,
+                                      badgeText: value,
+                                    }))
+                                  }
+                                  autoComplete="off"
+                                />
+                              ) : null
+                            ) : (
+                              <Text as="p" variant="bodySm" tone="subdued">
+                                This option is available on the{" "}
+                                <span className="text-blue-600">Pro plan</span>
+                              </Text>
+                            )}
                             {index < linkListItems.length - 1 ? <Divider /> : null}
                           </BlockStack>
                         );
@@ -5975,35 +6029,120 @@ export default function MenuBuilder() {
                       </Text>
                       <button
                         type="button"
-                        className="text-sm text-gray-400"
-                        disabled
+                        className={`text-sm ${isProPlan ? "text-gray-600 hover:text-gray-800" : "text-gray-400"}`}
+                        disabled={!isProPlan || !hasCustomItemColors}
+                        onClick={() => {
+                          if (!isProPlan) return;
+                          updateEditDraft("customTextColor", undefined);
+                          updateEditDraft("customBackgroundColor", undefined);
+                          updateEditDraft("customTextHoverColor", undefined);
+                          updateEditDraft("customBackgroundHoverColor", undefined);
+                          setItemColorPickerKey(null);
+                          setItemColorPickerHsb(null);
+                        }}
                       >
                         Clear settings
                       </button>
                     </InlineStack>
-                    <div className="relative rounded-lg border border-gray-200 p-3">
-                      <div className="pointer-events-none opacity-50">
-                        {[
-                          "Text color",
-                          "Background color",
-                          "Hover text color",
-                          "Hover background color",
-                        ].map((label) => (
-                          <div key={label} className="flex items-center justify-between py-2">
-                            <div className="flex items-center gap-3">
-                              <span className="h-6 w-6 rounded-full border border-gray-300 bg-white" />
-                              <Text as="span" variant="bodySm">
-                                {label}
+                    {isProPlan ? (
+                      <div className="relative rounded-lg border border-gray-200 p-3">
+                        {itemColorOptions.map((option) => {
+                          const value = editingItem[option.key] ?? "";
+                          const isOpen = itemColorPickerKey === option.key;
+                          const displayValue = value ? value.toUpperCase() : "Transparent";
+                          return (
+                            <div key={option.key} className="relative py-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setItemColorPickerKey((prev) => {
+                                        const next = prev === option.key ? null : option.key;
+                                        if (next) {
+                                          const current = value || "#FFFFFF";
+                                          setItemColorPickerHsb(hexToHsb(current));
+                                        } else {
+                                          setItemColorPickerHsb(null);
+                                        }
+                                        return next;
+                                      });
+                                    }}
+                                    className={`h-6 w-6 rounded-full border-2 shadow-sm ${isOpen ? "border-blue-500 ring-2 ring-blue-500/30" : "border-gray-300"}`}
+                                    style={{
+                                      backgroundColor: value || "transparent",
+                                      backgroundImage: value
+                                        ? undefined
+                                        : "linear-gradient(45deg,#e5e7eb 25%,transparent 25%),linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e7eb 75%),linear-gradient(-45deg,transparent 75%,#e5e7eb 75%)",
+                                      backgroundSize: "10px 10px",
+                                      backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
+                                    }}
+                                    aria-label={option.label}
+                                  />
+                                  <Text as="span" variant="bodySm">
+                                    {option.label}
+                                  </Text>
+                                </div>
+                                <Text as="span" variant="bodySm" tone="subdued">
+                                  {displayValue}
+                                </Text>
+                              </div>
+                              {isOpen ? (
+                                <div
+                                  className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
+                                  onMouseDown={(event) => event.stopPropagation()}
+                                >
+                                  <BlockStack gap="200">
+                                    <ColorPicker
+                                      color={itemColorPickerHsb ?? hexToHsb(value || "#FFFFFF")}
+                                      onChange={(color) => {
+                                        setItemColorPickerHsb({ ...color });
+                                        updateEditDraft(option.key, hsbToHex(color) as MenuItem[typeof option.key]);
+                                      }}
+                                    />
+                                    <TextField
+                                      label="Hex"
+                                      labelHidden
+                                      value={itemColorPickerHsb ? hsbToHex(itemColorPickerHsb) : value || "#FFFFFF"}
+                                      onChange={(next) => {
+                                        if (!next.trim()) {
+                                          updateEditDraft(option.key, undefined);
+                                          setItemColorPickerHsb(null);
+                                          return;
+                                        }
+                                        const normalized = normalizeHexInput(next);
+                                        updateEditDraft(option.key, normalized as MenuItem[typeof option.key]);
+                                        setItemColorPickerHsb(hexToHsb(normalized));
+                                      }}
+                                      autoComplete="off"
+                                    />
+                                  </BlockStack>
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="relative rounded-lg border border-gray-200 p-3">
+                        <div className="pointer-events-none opacity-50">
+                          {itemColorOptions.map((option) => (
+                            <div key={option.key} className="flex items-center justify-between py-2">
+                              <div className="flex items-center gap-3">
+                                <span className="h-6 w-6 rounded-full border border-gray-300 bg-white" />
+                                <Text as="span" variant="bodySm">
+                                  {option.label}
+                                </Text>
+                              </div>
+                              <Text as="span" variant="bodySm" tone="subdued">
+                                Transparent
                               </Text>
                             </div>
-                            <Text as="span" variant="bodySm" tone="subdued">
-                              Transparent
-                            </Text>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                        <p className="pt-2 text-sm text-gray-500">Available on the Pro plan</p>
                       </div>
-                      <p className="pt-2 text-sm text-gray-500">Available on the Pro plan</p>
-                    </div>
+                    )}
                   </BlockStack>
 
                   <Divider />
@@ -6013,13 +6152,42 @@ export default function MenuBuilder() {
                       <Text as="h3" variant="headingSm">
                         Badge
                       </Text>
-                      <div className="flex h-6 w-10 items-center rounded-full bg-gray-200 px-0.5">
-                        <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
-                      </div>
+                      {isProPlan ? (
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={Boolean(editingItem.badgeEnabled)}
+                          onClick={() =>
+                            updateEditDraft("badgeEnabled", !Boolean(editingItem.badgeEnabled))
+                          }
+                          className={`flex h-6 w-10 items-center rounded-full px-0.5 transition-colors ${editingItem.badgeEnabled ? "bg-blue-600" : "bg-gray-200"
+                            }`}
+                        >
+                          <span
+                            className={`h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${editingItem.badgeEnabled ? "translate-x-4" : "translate-x-0"
+                              }`}
+                          />
+                        </button>
+                      ) : (
+                        <div className="flex h-6 w-10 items-center rounded-full bg-gray-200 px-0.5">
+                          <span className="h-5 w-5 rounded-full bg-white shadow-sm" />
+                        </div>
+                      )}
                     </InlineStack>
-                    <Text as="p" variant="bodySm" tone="subdued">
-                      Available on the Pro plan
-                    </Text>
+                    {isProPlan ? (
+                      editingItem.badgeEnabled ? (
+                        <TextField
+                          label="Badge text"
+                          value={editingItem.badgeText ?? ""}
+                          onChange={(value) => updateEditDraft("badgeText", value)}
+                          autoComplete="off"
+                        />
+                      ) : null
+                    ) : (
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        Available on the Pro plan
+                      </Text>
+                    )}
                   </BlockStack>
 
                   {editingItem.role === "menu" && editingItem.children?.length ? (
@@ -7755,24 +7923,35 @@ export default function MenuBuilder() {
                 <div key={`column-${columnIndex}`} style={{ display: "flex", flexDirection: "column", gap: 6, flex: "1 1 0" }}>
                   {column.map((child) => {
                     const isChildSelected = selectedItemId === child.id;
+                    const childBaseTextColor = child.customTextColor ?? previewColors.submenuText;
+                    const childHoverTextColor =
+                      child.customTextHoverColor ?? previewColors.submenuTextHover;
+                    const childBaseBackground = child.customBackgroundColor ?? "transparent";
+                    const childHoverBackground =
+                      child.customBackgroundHoverColor ?? childBaseBackground;
+                    const childDescriptionColor =
+                      child.customTextColor ?? previewColors.submenuDescription;
+                    const childBadgeText = child.badgeEnabled ? (child.badgeText ?? "").trim() : "";
                     return (
                       <div key={child.id} className="group/item relative">
                         <button
                           type="button"
                           onClick={() => handleSelectItem(child.id)}
                           onMouseEnter={(event) => {
-                            event.currentTarget.style.color = previewColors.submenuTextHover;
+                            event.currentTarget.style.color = childHoverTextColor;
+                            event.currentTarget.style.background = childHoverBackground;
                           }}
                           onMouseLeave={(event) => {
-                            event.currentTarget.style.color = previewColors.submenuText;
+                            event.currentTarget.style.color = childBaseTextColor;
+                            event.currentTarget.style.background = childBaseBackground;
                           }}
                           style={{
                             textAlign: linkTextAlign,
                             border: isChildSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
                             borderRadius: 8,
                             padding: "6px 8px",
-                            background: "transparent",
-                            color: previewColors.submenuText,
+                            background: childBaseBackground,
+                            color: childBaseTextColor,
                             width: "100%",
                             ...subtextTypography,
                             lineHeight: 1.2,
@@ -7799,7 +7978,7 @@ export default function MenuBuilder() {
                                 {renderMenuIcon(child.icon, {
                                   size: 16,
                                   className: "text-gray-500",
-                                  color: previewColors.submenuText,
+                                  color: childBaseTextColor,
                                 })}
                               </span>
                             ) : null}
@@ -7813,12 +7992,32 @@ export default function MenuBuilder() {
                             >
                               <div
                                 style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  flexWrap: "wrap",
+                                  justifyContent: linkJustify,
                                   fontWeight: 600,
                                   ...subheadingTypography,
                                   lineHeight: 1.2,
                                 }}
                               >
-                                {child.label}
+                                <span>{child.label}</span>
+                                {childBadgeText ? (
+                                  <span
+                                    style={{
+                                      background: themeSettings.menuActive,
+                                      color: "#ffffff",
+                                      borderRadius: 9999,
+                                      padding: "2px 8px",
+                                      fontSize: 10,
+                                      fontWeight: 600,
+                                      letterSpacing: 0.2,
+                                    }}
+                                  >
+                                    {childBadgeText}
+                                  </span>
+                                ) : null}
                               </div>
                               {child.description ? (
                                 <div
@@ -7826,7 +8025,7 @@ export default function MenuBuilder() {
                                     fontSize: 12,
                                     ...descriptionTypography,
                                     lineHeight: 1.3,
-                                    color: previewColors.submenuDescription,
+                                    color: childDescriptionColor,
                                   }}
                                 >
                                   {child.description}
@@ -11735,20 +11934,29 @@ export default function MenuBuilder() {
   const renderMenuItemButton = (item: MenuItem) => {
     const isActive = openMenuId === item.id;
     const isHovered = hoveredMenuId === item.id;
-    const itemBackground = isActive
+    const defaultBackground = isActive
       ? isMobilePreview
         ? previewColors.mainBackgroundHover
         : previewColors.tabBackgroundActive
       : isHovered
         ? previewColors.mainBackgroundHover
         : previewColors.mainBackground;
-    const itemTextColor = isActive
+    const defaultTextColor = isActive
       ? isMobilePreview
         ? previewColors.mainTextHover
         : previewColors.tabHeadingActive
       : isHovered
         ? previewColors.mainTextHover
         : previewColors.mainText;
+    const itemBackground =
+      isActive || isHovered
+        ? item.customBackgroundHoverColor ?? item.customBackgroundColor ?? defaultBackground
+        : item.customBackgroundColor ?? defaultBackground;
+    const itemTextColor =
+      isActive || isHovered
+        ? item.customTextHoverColor ?? item.customTextColor ?? defaultTextColor
+        : item.customTextColor ?? defaultTextColor;
+    const badgeText = item.badgeEnabled ? (item.badgeText ?? "").trim() : "";
 
     return (
       <div
@@ -11868,11 +12076,29 @@ export default function MenuBuilder() {
             ) : null}
             <span
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
                 ...(isActive ? tabTypography : mainTypography),
                 lineHeight: 1.2,
               }}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {badgeText ? (
+                <span
+                  style={{
+                    background: themeSettings.menuActive,
+                    color: "#ffffff",
+                    borderRadius: 9999,
+                    padding: "2px 8px",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: 0.2,
+                  }}
+                >
+                  {badgeText}
+                </span>
+              ) : null}
             </span>
           </span>
           {builderSettings.elementsShowIndicators && item.children?.length ? (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator } from "@remix-run/react";
 import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import {
@@ -375,6 +375,7 @@ export default function Dashboard() {
   const [activeThemeName, setActiveThemeName] = useState(
     sanitizedConnectedThemeId ? connectedThemeName ?? themeName : "Not selected"
   );
+  const revalidateCooldownRef = useRef(0);
 
   const withSearch = (path: string) => ({
     pathname: path,
@@ -443,7 +444,10 @@ export default function Dashboard() {
       intervalId = null;
     };
     const tick = () => {
+      const now = Date.now();
+      if (now - revalidateCooldownRef.current < 5000) return;
       if (revalidator.state !== "loading") {
+        revalidateCooldownRef.current = now;
         revalidator.revalidate();
       }
     };

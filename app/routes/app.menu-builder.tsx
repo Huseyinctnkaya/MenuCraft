@@ -9925,6 +9925,38 @@ export default function MenuBuilder() {
           {dropdownItems.map((child) => {
             const hasChildren = Boolean(child.children?.length);
             const isActiveChild = activeDropdownItem?.id === child.id;
+            const hasDirectBlocks = (child.children ?? []).some((entry) => entry.blockTemplate);
+            const hasNestedBlocks =
+              !hasDirectBlocks &&
+              (child.children ?? []).some((entry) =>
+                (entry.children ?? []).some((grandchild) => grandchild.blockTemplate)
+              );
+            const hasDeepNestedBlocks =
+              !hasDirectBlocks &&
+              !hasNestedBlocks &&
+              (child.children ?? []).some((entry) =>
+                (entry.children ?? []).some((grandchild) =>
+                  (grandchild.children ?? []).some((leaf) => leaf.blockTemplate)
+                )
+              );
+            const activeNestedItem = hasNestedBlocks
+              ? (child.children ?? []).find((entry) => entry.id === activeDropdownChildId) ?? null
+              : null;
+            const activeNestedBlocks = (activeNestedItem?.children ?? []).filter(
+              (entry) => entry.blockTemplate
+            );
+            const activeNestedHasBlocks = activeNestedBlocks.length > 0;
+            const activeDeepParent = hasDeepNestedBlocks
+              ? (child.children ?? []).find((entry) => entry.id === activeDropdownChildId) ?? null
+              : null;
+            const deepChildren = activeDeepParent?.children ?? [];
+            const activeDeepChild = deepChildren.find(
+              (entry) => entry.id === activeDropdownGrandchildId
+            );
+            const activeDeepBlocks = (activeDeepChild?.children ?? []).filter(
+              (entry) => entry.blockTemplate
+            );
+            const activeDeepHasBlocks = activeDeepBlocks.length > 0;
             return (
               <div
                 key={child.id}
@@ -10031,12 +10063,450 @@ export default function MenuBuilder() {
                       background: "#ffffff",
                     }}
                   >
-                    {(child.children ?? []).some((entry) => entry.blockTemplate) ? (
+                    {hasDirectBlocks ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                         {(child.children ?? [])
                           .filter((entry) => entry.blockTemplate)
                           .map((entry) => renderMobileBlockGroup(entry))}
                       </div>
+                    ) : hasNestedBlocks ? (
+                      <>
+                        {(child.children ?? []).map((subItem) => {
+                          const subItemHasBlocks = (subItem.children ?? []).some(
+                            (entry) => entry.blockTemplate
+                          );
+                          const isSubItemActive = activeDropdownChildId === subItem.id;
+                          return (
+                            <div
+                              key={subItem.id}
+                              className="group/subitem relative"
+                              style={{ display: "flex", flexDirection: "column" }}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleSelectItem(subItem.id);
+                                  if (subItemHasBlocks) {
+                                    setActiveDropdownChildId((prev) =>
+                                      prev === subItem.id ? null : subItem.id
+                                    );
+                                  } else {
+                                    setActiveDropdownChildId(null);
+                                  }
+                                  setActiveDropdownGrandchildId(null);
+                                }}
+                                style={{
+                                  textAlign: dropdownContentAlign,
+                                  border: "none",
+                                  background: "transparent",
+                                  color: previewColors.submenuText,
+                                  padding: "14px 0",
+                                  paddingRight: subItemHasBlocks ? 24 : 0,
+                                  ...subtextTypography,
+                                  lineHeight: 1.2,
+                                  width: "100%",
+                                  position: "relative",
+                                }}
+                              >
+                                {subItem.label}
+                                {subItemHasBlocks ? (
+                                  <span
+                                    aria-hidden="true"
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      transform: `${
+                                        isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
+                                      } translateY(-50%)`,
+                                      transition: "transform 150ms ease",
+                                      position: "absolute",
+                                      right: 0,
+                                      top: "50%",
+                                    }}
+                                  >
+                                    <ChevronDownIcon
+                                      width="14"
+                                      height="14"
+                                      fill={previewColors.submenuText}
+                                    />
+                                  </span>
+                                ) : null}
+                              </button>
+                              <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/subitem:pointer-events-auto group-hover/subitem:opacity-100">
+                                <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleSelectItem(subItem.id, true);
+                                    }}
+                                    aria-label="Edit item"
+                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  >
+                                    <Icon source={EditIcon} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleDuplicateItem(subItem.id);
+                                    }}
+                                    aria-label="Duplicate item"
+                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  >
+                                    <Icon source={DuplicateIcon} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      openDeleteItemDialog(subItem.id);
+                                    }}
+                                    aria-label="Delete item"
+                                    className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                  >
+                                    <Icon source={DeleteIcon} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAddRoot(child.id)}
+                          className="text-sm font-medium"
+                          style={{
+                            alignSelf: "stretch",
+                            width: "100%",
+                            minHeight: dropdownItemHeight,
+                            textAlign: dropdownContentAlign,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: dropdownAlignJustify,
+                            gap: 8,
+                            padding: "6px 0",
+                            color: themeSettings.menuActive,
+                            background: "transparent",
+                            border: "none",
+                            ...descriptionTypography,
+                          }}
+                          onMouseEnter={(event) => {
+                            event.currentTarget.style.color = previewColors.submenuTextHover;
+                          }}
+                          onMouseLeave={(event) => {
+                            event.currentTarget.style.color = themeSettings.menuActive;
+                          }}
+                        >
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: 9999,
+                              border: "2px solid currentColor",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 14,
+                              lineHeight: 1,
+                            }}
+                          >
+                            +
+                          </span>
+                          Add item
+                        </button>
+                        {activeNestedHasBlocks ? (
+                          <div
+                            style={{
+                              marginTop: 8,
+                              paddingTop: 12,
+                              borderTop: `1px solid ${previewColors.submenuBorder}`,
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 12,
+                            }}
+                          >
+                            {activeNestedBlocks.map((entry) => renderMobileBlockGroup(entry))}
+                          </div>
+                        ) : null}
+                      </>
+                    ) : hasDeepNestedBlocks ? (
+                      <>
+                        {(child.children ?? []).map((subItem) => {
+                          const subItemHasChildren = Boolean(subItem.children?.length);
+                          const isSubItemActive = activeDropdownChildId === subItem.id;
+                          return (
+                            <div
+                              key={subItem.id}
+                              className="group/subitem relative"
+                              style={{ display: "flex", flexDirection: "column" }}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleSelectItem(subItem.id);
+                                  if (subItemHasChildren) {
+                                    setActiveDropdownChildId((prev) =>
+                                      prev === subItem.id ? null : subItem.id
+                                    );
+                                  } else {
+                                    setActiveDropdownChildId(null);
+                                  }
+                                  setActiveDropdownGrandchildId(null);
+                                }}
+                                style={{
+                                  textAlign: dropdownContentAlign,
+                                  border: "none",
+                                  background: "transparent",
+                                  color: previewColors.submenuText,
+                                  padding: "14px 0",
+                                  paddingRight: subItemHasChildren ? 24 : 0,
+                                  ...subtextTypography,
+                                  lineHeight: 1.2,
+                                  width: "100%",
+                                  position: "relative",
+                                }}
+                              >
+                                {subItem.label}
+                                {subItemHasChildren ? (
+                                  <span
+                                    aria-hidden="true"
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      transform: `${
+                                        isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
+                                      } translateY(-50%)`,
+                                      transition: "transform 150ms ease",
+                                      position: "absolute",
+                                      right: 0,
+                                      top: "50%",
+                                    }}
+                                  >
+                                    <ChevronDownIcon
+                                      width="14"
+                                      height="14"
+                                      fill={previewColors.submenuText}
+                                    />
+                                  </span>
+                                ) : null}
+                              </button>
+                              <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/subitem:pointer-events-auto group-hover/subitem:opacity-100">
+                                <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleSelectItem(subItem.id, true);
+                                    }}
+                                    aria-label="Edit item"
+                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  >
+                                    <Icon source={EditIcon} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleDuplicateItem(subItem.id);
+                                    }}
+                                    aria-label="Duplicate item"
+                                    className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                  >
+                                    <Icon source={DuplicateIcon} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      openDeleteItemDialog(subItem.id);
+                                    }}
+                                    aria-label="Delete item"
+                                    className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                  >
+                                    <Icon source={DeleteIcon} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAddRoot(child.id)}
+                          className="text-sm font-medium"
+                          style={{
+                            alignSelf: "stretch",
+                            width: "100%",
+                            minHeight: dropdownItemHeight,
+                            textAlign: dropdownContentAlign,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: dropdownAlignJustify,
+                            gap: 8,
+                            padding: "6px 0",
+                            color: themeSettings.menuActive,
+                            background: "transparent",
+                            border: "none",
+                            ...descriptionTypography,
+                          }}
+                          onMouseEnter={(event) => {
+                            event.currentTarget.style.color = previewColors.submenuTextHover;
+                          }}
+                          onMouseLeave={(event) => {
+                            event.currentTarget.style.color = themeSettings.menuActive;
+                          }}
+                        >
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: 9999,
+                              border: "2px solid currentColor",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 14,
+                              lineHeight: 1,
+                            }}
+                          >
+                            +
+                          </span>
+                          Add item
+                        </button>
+                        {activeDeepParent ? (
+                          <div
+                            style={{
+                              marginTop: 8,
+                              paddingTop: 12,
+                              borderTop: `1px solid ${previewColors.submenuBorder}`,
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 6,
+                            }}
+                          >
+                            {deepChildren.map((deepItem) => {
+                              const deepItemHasBlocks = (deepItem.children ?? []).some(
+                                (entry) => entry.blockTemplate
+                              );
+                              const isDeepActive = activeDropdownGrandchildId === deepItem.id;
+                              return (
+                                <div
+                                  key={deepItem.id}
+                                  className="group/subitem relative"
+                                  style={{ display: "flex", flexDirection: "column" }}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleSelectItem(deepItem.id);
+                                      if (deepItemHasBlocks) {
+                                        setActiveDropdownGrandchildId((prev) =>
+                                          prev === deepItem.id ? null : deepItem.id
+                                        );
+                                      } else {
+                                        setActiveDropdownGrandchildId(null);
+                                      }
+                                    }}
+                                    style={{
+                                      textAlign: dropdownContentAlign,
+                                      border: "none",
+                                      background: "transparent",
+                                      color: previewColors.submenuText,
+                                      padding: "14px 0",
+                                      paddingRight: deepItemHasBlocks ? 24 : 0,
+                                      ...subtextTypography,
+                                      lineHeight: 1.2,
+                                      width: "100%",
+                                      position: "relative",
+                                    }}
+                                  >
+                                    {deepItem.label}
+                                    {deepItemHasBlocks ? (
+                                      <span
+                                        aria-hidden="true"
+                                        style={{
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          transform: `${
+                                            isDeepActive ? "rotate(180deg)" : "rotate(0deg)"
+                                          } translateY(-50%)`,
+                                          transition: "transform 150ms ease",
+                                          position: "absolute",
+                                          right: 0,
+                                          top: "50%",
+                                        }}
+                                      >
+                                        <ChevronDownIcon
+                                          width="14"
+                                          height="14"
+                                          fill={previewColors.submenuText}
+                                        />
+                                      </span>
+                                    ) : null}
+                                  </button>
+                                  <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/subitem:pointer-events-auto group-hover/subitem:opacity-100">
+                                    <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          handleSelectItem(deepItem.id, true);
+                                        }}
+                                        aria-label="Edit item"
+                                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                      >
+                                        <Icon source={EditIcon} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          handleDuplicateItem(deepItem.id);
+                                        }}
+                                        aria-label="Duplicate item"
+                                        className="flex h-5 w-5 items-center justify-center rounded-md text-white hover:bg-gray-800"
+                                      >
+                                        <Icon source={DuplicateIcon} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          openDeleteItemDialog(deepItem.id);
+                                        }}
+                                        aria-label="Delete item"
+                                        className="flex h-5 w-5 items-center justify-center rounded-md text-red-400 hover:bg-gray-800"
+                                      >
+                                        <Icon source={DeleteIcon} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {activeDeepHasBlocks ? (
+                              <div
+                                style={{
+                                  marginTop: 8,
+                                  paddingTop: 12,
+                                  borderTop: `1px solid ${previewColors.submenuBorder}`,
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 12,
+                                }}
+                              >
+                                {activeDeepBlocks.map((entry) => renderMobileBlockGroup(entry))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </>
                     ) : (
                       <>
                         {(child.children ?? []).map((subItem) => (

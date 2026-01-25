@@ -6045,7 +6045,7 @@ export default function MenuBuilder() {
                       </button>
                     </InlineStack>
                     {isProPlan ? (
-                      <div className="relative rounded-lg border border-gray-200 p-3">
+                      <div className="relative rounded-lg p-3">
                         {itemColorOptions.map((option) => {
                           const value = editingItem[option.key] ?? "";
                           const isOpen = itemColorPickerKey === option.key;
@@ -6068,7 +6068,7 @@ export default function MenuBuilder() {
                                         return next;
                                       });
                                     }}
-                                    className={`h-6 w-6 rounded-full border-2 shadow-sm ${isOpen ? "border-blue-500 ring-2 ring-blue-500/30" : "border-gray-300"}`}
+                                    className={`h-10 w-10 rounded-full border-2 shadow-sm ${isOpen ? "border-blue-500 ring-2 ring-blue-500/30" : "border-gray-300"}`}
                                     style={{
                                       backgroundColor: value || "transparent",
                                       backgroundImage: value
@@ -6124,12 +6124,12 @@ export default function MenuBuilder() {
                         })}
                       </div>
                     ) : (
-                      <div className="relative rounded-lg border border-gray-200 p-3">
+                      <div className="relative rounded-lg p-3">
                         <div className="pointer-events-none opacity-50">
                           {itemColorOptions.map((option) => (
                             <div key={option.key} className="flex items-center justify-between py-2">
                               <div className="flex items-center gap-3">
-                                <span className="h-6 w-6 rounded-full border border-gray-300 bg-white" />
+                                <span className="h-10 w-10 rounded-full border border-gray-300 bg-white" />
                                 <Text as="span" variant="bodySm">
                                   {option.label}
                                 </Text>

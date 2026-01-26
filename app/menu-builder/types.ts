@@ -24,7 +24,7 @@ export type MenuItem = {
   submenuTemplate?: SubmenuTemplateId;
   submenuType?: "mega" | "dropdown" | "horizontal-dropdown";
   submenuWidth?: "full" | "content";
-  submenuContentAlign?: "left" | "center" | "right";
+  submenuContentAlign?: "left" | "center" | "right" | "space-between" | "space-around" | "space-evenly";
   submenuBackgroundColor?: string;
   submenuBackgroundImage?: string;
   imageUrl?: string;

@@ -1070,40 +1070,16 @@ export default function MenuBuilder() {
           </InlineStack>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-          <label
-            className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => {
-              event.preventDefault();
-              handleSubmenuBackgroundUpload(event.dataTransfer.files?.[0]);
+          <DropZone
+            accept="image/*"
+            allowMultiple={false}
+            onDrop={(files) => {
+              handleSubmenuBackgroundUpload(files?.[0]);
               setSubmenuImagePickerOpen(false);
             }}
           >
-            <Button
-              variant="tertiary"
-              onClick={(event) => {
-                event.preventDefault();
-                const input = event.currentTarget
-                  .closest("label")
-                  ?.querySelector("input[type=file]") as HTMLInputElement | null;
-                input?.click();
-              }}
-            >
-              Add image
-            </Button>
-            <Text as="p" variant="bodySm" tone="subdued">
-              Drag and drop your image
-            </Text>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(event) => {
-                handleSubmenuBackgroundUpload(event.target.files?.[0] ?? null);
-                setSubmenuImagePickerOpen(false);
-              }}
-            />
-          </label>
+            <DropZone.FileUpload actionTitle="Add image" actionHint="Drag and drop your image" />
+          </DropZone>
         </div>
       </div>
     );
@@ -6193,7 +6169,7 @@ export default function MenuBuilder() {
                   {editingItem.role === "menu" && editingItem.children?.length ? (
                     <>
                       <Divider />
-                      <BlockStack gap="300">
+                      <BlockStack gap="500">
                         <Text as="h3" variant="headingSm">
                           Submenu
                         </Text>
@@ -6306,15 +6282,11 @@ export default function MenuBuilder() {
                           <Text as="p" variant="bodySm" tone="subdued">
                             Background image
                           </Text>
-                          <button
-                            type="button"
-                            onClick={() => setSubmenuImagePickerOpen(true)}
-                            className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50"
-                          >
-                            <span className="rounded-full border border-gray-900 bg-gray-900 px-4 py-1 text-sm font-medium text-white shadow-sm">
+                          <div className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50">
+                            <Button variant="secondary" onClick={() => setSubmenuImagePickerOpen(true)}>
                               Select photo
-                            </span>
-                          </button>
+                            </Button>
+                          </div>
                           {editingItem.submenuBackgroundImage ? (
                             <div className="mt-2">
                               <img
@@ -6417,15 +6389,11 @@ export default function MenuBuilder() {
                           </div>
                         </div>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => setImagePickerOpen(true)}
-                          className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50"
-                        >
-                          <span className="rounded-full border border-gray-900 bg-gray-900 px-4 py-1 text-sm font-medium text-white shadow-sm">
+                        <div className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50">
+                          <Button variant="secondary" onClick={() => setImagePickerOpen(true)}>
                             Select photo
-                          </span>
-                        </button>
+                          </Button>
+                        </div>
                       )}
                     </div>
                     <InlineStack gap="200" blockAlign="center">

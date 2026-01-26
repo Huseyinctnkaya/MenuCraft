@@ -3917,6 +3917,41 @@ export default function MenuBuilder() {
     });
   };
 
+  const handleFlyoutTypeChange = (value: string) => {
+    setEditDraft((prev) => {
+      const base = prev ?? selectedItem;
+      if (!base) return prev;
+      if (value === "none") {
+        return {
+          ...base,
+          submenuType: undefined,
+          submenuTemplate: undefined,
+          children: [],
+          expanded: false,
+        };
+      }
+      const nextType = value === "horizontal" ? "horizontal-dropdown" : "dropdown";
+      const hasChildren = Boolean(base.children?.length);
+      const dropdownItems = hasChildren ? base.children : buildDropdownMenuItems();
+      return {
+        ...base,
+        submenuType: nextType,
+        submenuTemplate: nextType === "horizontal-dropdown" ? "horizontal-dropdown" : "dropdown",
+        submenuWidth: base.submenuWidth ?? "content",
+        submenuContentAlign:
+          base.submenuContentAlign ??
+          (nextType === "horizontal-dropdown" ? "center" : "left"),
+        expanded: true,
+        children: dropdownItems,
+      };
+    });
+  };
+
+  const handleFlyoutAlignmentChange = (value: string) => {
+    updateEditDraft("submenuWidth", "content");
+    updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"]);
+  };
+
   const resolveSubmenuWidthAlignment = (item: MenuItem) => {
     if (item.submenuWidth === "full") return "full";
     if (item.submenuContentAlign === "left") return "left";
@@ -6222,135 +6257,174 @@ export default function MenuBuilder() {
                         <Text as="h3" variant="headingSm">
                           Submenu
                         </Text>
-                        <Select
-                          label="Type"
-                          options={[
-                            { label: "None", value: "none" },
-                            { label: "Mega menu", value: "mega" },
-                          ]}
-                          value={editingItem.submenuType ? "mega" : "none"}
-                          onChange={handleSubmenuTypeChange}
-                        />
-                        {editingItem.submenuType !== undefined && (
+                        {editingItem.submenuType === "dropdown" ||
+                        editingItem.submenuType === "horizontal-dropdown" ||
+                        editingItem.submenuTemplate === "dropdown" ||
+                        editingItem.submenuTemplate === "horizontal-dropdown" ||
+                        editingItem.submenuTemplate === "custom-normal-dropdown" ? (
                           <>
                             <Select
-                              label="Width + alignment"
+                              label="Type"
                               options={[
-                                { label: "Full width", value: "full" },
-                                { label: "Center", value: "center" },
-                                { label: "Left", value: "left" },
-                                { label: "Right", value: "right" },
+                                { label: "None", value: "none" },
+                                { label: "Vertical dropdown", value: "vertical" },
+                                { label: "Horizontal dropdown", value: "horizontal" },
                               ]}
-                              value={resolveSubmenuWidthAlignment(editingItem)}
-                              onChange={handleSubmenuWidthAlignmentChange}
-                            />
-                            <Select
-                              label="Content alignment"
-                              options={[
-                                { label: "Center", value: "center" },
-                                { label: "Left", value: "left" },
-                                { label: "Right", value: "right" },
-                                { label: "Space around", value: "space-around" },
-                                { label: "Space between", value: "space-between" },
-                                { label: "Space evenly", value: "space-evenly" },
-                              ]}
-                              value={editingItem.submenuContentAlign ?? "center"}
-                              onChange={(value) =>
-                                updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"])
+                              value={
+                                editingItem.submenuType === "horizontal-dropdown"
+                                  ? "horizontal"
+                                  : editingItem.submenuType === "dropdown"
+                                    ? "vertical"
+                                    : "none"
                               }
+                              onChange={handleFlyoutTypeChange}
                             />
-                            <div className="relative">
-                              <InlineStack gap="400" blockAlign="center">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSubmenuColorPickerOpen((prev) => {
-                                      const next = !prev;
-                                      if (next) {
-                                        const current = editingItem.submenuBackgroundColor || "#FFFFFF";
-                                        setSubmenuColorPickerHsb(hexToHsb(current));
-                                      } else {
-                                        setSubmenuColorPickerHsb(null);
-                                      }
-                                      return next;
-                                    });
-                                  }}
-                                  className={`h-10 w-10 rounded-full border-2 shadow-sm ${submenuColorPickerOpen
-                                    ? "border-blue-500 ring-2 ring-blue-500/30"
-                                    : "border-gray-300"
-                                    }`}
-                                  style={{
-                                    backgroundColor: editingItem.submenuBackgroundColor || "transparent",
-                                    backgroundImage: editingItem.submenuBackgroundColor
-                                      ? undefined
-                                      : "linear-gradient(45deg,#e5e7eb 25%,transparent 25%),linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e7eb 75%),linear-gradient(-45deg,transparent 75%,#e5e7eb 75%)",
-                                    backgroundSize: "10px 10px",
-                                    backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
-                                  }}
-                                  aria-label="Background color"
+                            {editingItem.submenuType && (
+                              <Select
+                                label="Width + alignment"
+                                options={[
+                                  { label: "Center", value: "center" },
+                                  { label: "Left", value: "left" },
+                                  { label: "Right", value: "right" },
+                                ]}
+                                value={editingItem.submenuContentAlign ?? "center"}
+                                onChange={handleFlyoutAlignmentChange}
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <Select
+                              label="Type"
+                              options={[
+                                { label: "None", value: "none" },
+                                { label: "Mega menu", value: "mega" },
+                              ]}
+                              value={editingItem.submenuType ? "mega" : "none"}
+                              onChange={handleSubmenuTypeChange}
+                            />
+                            {editingItem.submenuType !== undefined && (
+                              <>
+                                <Select
+                                  label="Width + alignment"
+                                  options={[
+                                    { label: "Full width", value: "full" },
+                                    { label: "Center", value: "center" },
+                                    { label: "Left", value: "left" },
+                                    { label: "Right", value: "right" },
+                                  ]}
+                                  value={resolveSubmenuWidthAlignment(editingItem)}
+                                  onChange={handleSubmenuWidthAlignmentChange}
                                 />
-                                <BlockStack gap="100">
-                                  <Text as="p" variant="bodyMd">
-                                    Background color
-                                  </Text>
+                                <Select
+                                  label="Content alignment"
+                                  options={[
+                                    { label: "Center", value: "center" },
+                                    { label: "Left", value: "left" },
+                                    { label: "Right", value: "right" },
+                                    { label: "Space around", value: "space-around" },
+                                    { label: "Space between", value: "space-between" },
+                                    { label: "Space evenly", value: "space-evenly" },
+                                  ]}
+                                  value={editingItem.submenuContentAlign ?? "center"}
+                                  onChange={(value) =>
+                                    updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"])
+                                  }
+                                />
+                                <div className="relative">
+                                  <InlineStack gap="400" blockAlign="center">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSubmenuColorPickerOpen((prev) => {
+                                          const next = !prev;
+                                          if (next) {
+                                            const current = editingItem.submenuBackgroundColor || "#FFFFFF";
+                                            setSubmenuColorPickerHsb(hexToHsb(current));
+                                          } else {
+                                            setSubmenuColorPickerHsb(null);
+                                          }
+                                          return next;
+                                        });
+                                      }}
+                                      className={`h-10 w-10 rounded-full border-2 shadow-sm ${submenuColorPickerOpen
+                                        ? "border-blue-500 ring-2 ring-blue-500/30"
+                                        : "border-gray-300"
+                                        }`}
+                                      style={{
+                                        backgroundColor: editingItem.submenuBackgroundColor || "transparent",
+                                        backgroundImage: editingItem.submenuBackgroundColor
+                                          ? undefined
+                                          : "linear-gradient(45deg,#e5e7eb 25%,transparent 25%),linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e7eb 75%),linear-gradient(-45deg,transparent 75%,#e5e7eb 75%)",
+                                        backgroundSize: "10px 10px",
+                                        backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
+                                      }}
+                                      aria-label="Background color"
+                                    />
+                                    <BlockStack gap="100">
+                                      <Text as="p" variant="bodyMd">
+                                        Background color
+                                      </Text>
+                                      <Text as="p" variant="bodySm" tone="subdued">
+                                        {editingItem.submenuBackgroundColor
+                                          ? editingItem.submenuBackgroundColor.toUpperCase()
+                                          : "Transparent"}
+                                      </Text>
+                                    </BlockStack>
+                                  </InlineStack>
+                                  {submenuColorPickerOpen && (
+                                    <div
+                                      className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
+                                      onMouseDown={(event) => event.stopPropagation()}
+                                    >
+                                      <BlockStack gap="200">
+                                        <ColorPicker
+                                          color={submenuColorPickerHsb ?? hexToHsb("#FFFFFF")}
+                                          onChange={(color) => {
+                                            setSubmenuColorPickerHsb({ ...color });
+                                            updateEditDraft("submenuBackgroundColor", hsbToHex(color));
+                                          }}
+                                        />
+                                        <TextField
+                                          label="Hex"
+                                          labelHidden
+                                          value={
+                                            submenuColorPickerHsb
+                                              ? hsbToHex(submenuColorPickerHsb)
+                                              : editingItem.submenuBackgroundColor || "#FFFFFF"
+                                          }
+                                          onChange={(next) => {
+                                            const normalized = normalizeHexInput(next);
+                                            updateEditDraft("submenuBackgroundColor", normalized);
+                                            setSubmenuColorPickerHsb(hexToHsb(normalized));
+                                          }}
+                                          autoComplete="off"
+                                        />
+                                      </BlockStack>
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
                                   <Text as="p" variant="bodySm" tone="subdued">
-                                    {editingItem.submenuBackgroundColor
-                                      ? editingItem.submenuBackgroundColor.toUpperCase()
-                                      : "Transparent"}
+                                    Background image
                                   </Text>
-                                </BlockStack>
-                              </InlineStack>
-                              {submenuColorPickerOpen && (
-                                <div
-                                  className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
-                                  onMouseDown={(event) => event.stopPropagation()}
-                                >
-                                  <BlockStack gap="200">
-                                    <ColorPicker
-                                      color={submenuColorPickerHsb ?? hexToHsb("#FFFFFF")}
-                                      onChange={(color) => {
-                                        setSubmenuColorPickerHsb({ ...color });
-                                        updateEditDraft("submenuBackgroundColor", hsbToHex(color));
-                                      }}
-                                    />
-                                    <TextField
-                                      label="Hex"
-                                      labelHidden
-                                      value={
-                                        submenuColorPickerHsb
-                                          ? hsbToHex(submenuColorPickerHsb)
-                                          : editingItem.submenuBackgroundColor || "#FFFFFF"
-                                      }
-                                      onChange={(next) => {
-                                        const normalized = normalizeHexInput(next);
-                                        updateEditDraft("submenuBackgroundColor", normalized);
-                                        setSubmenuColorPickerHsb(hexToHsb(normalized));
-                                      }}
-                                      autoComplete="off"
-                                    />
-                                  </BlockStack>
+                                  <div className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50">
+                                    <Button variant="secondary" onClick={() => setSubmenuImagePickerOpen(true)}>
+                                      Select photo
+                                    </Button>
+                                  </div>
+                                  {editingItem.submenuBackgroundImage ? (
+                                    <div className="mt-2">
+                                      <img
+                                        src={editingItem.submenuBackgroundImage}
+                                        alt=""
+                                        className="h-20 w-full rounded-md object-cover"
+                                      />
+                                    </div>
+                                  ) : null}
                                 </div>
-                              )}
-                            </div>
-                            <div>
-                              <Text as="p" variant="bodySm" tone="subdued">
-                                Background image
-                              </Text>
-                              <div className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50">
-                                <Button variant="secondary" onClick={() => setSubmenuImagePickerOpen(true)}>
-                                  Select photo
-                                </Button>
-                              </div>
-                              {editingItem.submenuBackgroundImage ? (
-                                <div className="mt-2">
-                                  <img
-                                    src={editingItem.submenuBackgroundImage}
-                                    alt=""
-                                    className="h-20 w-full rounded-md object-cover"
-                                  />
-                                </div>
-                              ) : null}
-                            </div>
+                              </>
+                            )}
                           </>
                         )}
                       </BlockStack>

@@ -703,7 +703,7 @@ export default function MenuBuilder() {
     buildMenuFingerprint(
       menu.status === "active" ? "active" : "draft",
       defaultExpandedMenuItems,
-      { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings }
+      { ...DEFAULT_BUILDER_SETTINGS, ...normalizedMenuSettings }
     )
   );
   const lastSaveIntentRef = useRef<"save" | "publish" | "enable">("save");
@@ -5326,6 +5326,45 @@ export default function MenuBuilder() {
                         )}
                       </div>
                     </div>
+                    <Select
+                      label="Icon width"
+                      options={[
+                        { label: "Automatic", value: "auto" },
+                        { label: "Custom", value: "custom" },
+                      ]}
+                      value={editingItem.iconWidthMode ?? "auto"}
+                      onChange={(value) => updateEditDraft("iconWidthMode", value as MenuItem["iconWidthMode"])}
+                    />
+                    {(editingItem.iconWidthMode ?? "auto") === "custom" ? (
+                      <InlineStack gap="200" blockAlign="center">
+                        <div style={{ flex: 1 }}>
+                          <TextField
+                            label="Width"
+                            type="number"
+                            value={String(editingItem.iconWidthValue ?? 50)}
+                            onChange={(value) => {
+                              const next = Number(value);
+                              if (!Number.isFinite(next)) return;
+                              updateEditDraft("iconWidthValue", Math.max(1, next));
+                            }}
+                            autoComplete="off"
+                          />
+                        </div>
+                        <div style={{ width: 110 }}>
+                          <Select
+                            label="Unit"
+                            options={[
+                              { label: "%", value: "%" },
+                              { label: "px", value: "px" },
+                            ]}
+                            value={editingItem.iconWidthUnit ?? "%"}
+                            onChange={(value) =>
+                              updateEditDraft("iconWidthUnit", value as MenuItem["iconWidthUnit"])
+                            }
+                          />
+                        </div>
+                      </InlineStack>
+                    ) : null}
                   </BlockStack>
                 ) : null}
                 {isLinkListBlock ? (
@@ -7506,6 +7545,54 @@ export default function MenuBuilder() {
         </div>
       </InlineStack>
     );
+    const renderAccountIconWidthControls = (
+      modeKey: keyof BuilderSettings,
+      valueKey: keyof BuilderSettings,
+      unitKey: keyof BuilderSettings
+    ) => {
+      const mode = (builderSettings[modeKey] as string) || "auto";
+      return (
+        <BlockStack gap="200">
+          <Select
+            label="Icon width"
+            options={[
+              { label: "Automatic", value: "auto" },
+              { label: "Custom", value: "custom" },
+            ]}
+            value={mode}
+            onChange={(value) => updateBuilderSetting(modeKey, value as never)}
+          />
+          {mode === "custom" ? (
+            <InlineStack gap="200" blockAlign="center">
+              <div style={{ flex: 1 }}>
+                <TextField
+                  label="Width"
+                  type="number"
+                  value={String(builderSettings[valueKey] ?? 50)}
+                  onChange={(value) => {
+                    const next = Number(value);
+                    if (!Number.isFinite(next)) return;
+                    updateBuilderSetting(valueKey, Math.max(1, next) as never);
+                  }}
+                  autoComplete="off"
+                />
+              </div>
+              <div style={{ width: 110 }}>
+                <Select
+                  label="Unit"
+                  options={[
+                    { label: "%", value: "%" },
+                    { label: "px", value: "px" },
+                  ]}
+                  value={(builderSettings[unitKey] as string) || "%"}
+                  onChange={(value) => updateBuilderSetting(unitKey, value as never)}
+                />
+              </div>
+            </InlineStack>
+          ) : null}
+        </BlockStack>
+      );
+    };
 
     return (
       <Card padding="400">
@@ -7880,6 +7967,11 @@ export default function MenuBuilder() {
                     </div>
                   </div>
                 </div>
+                {renderAccountIconWidthControls(
+                  "accountLoginIconWidthMode",
+                  "accountLoginIconWidthValue",
+                  "accountLoginIconWidthUnit"
+                )}
                 <TextField
                   label="Login icon and title"
                   value={builderSettings.accountLoginLabel}
@@ -7979,6 +8071,11 @@ export default function MenuBuilder() {
                     </div>
                   </div>
                 </div>
+                {renderAccountIconWidthControls(
+                  "accountRegisterIconWidthMode",
+                  "accountRegisterIconWidthValue",
+                  "accountRegisterIconWidthUnit"
+                )}
                 <TextField
                   label="Register icon and title"
                   value={builderSettings.accountRegisterLabel}
@@ -8078,6 +8175,11 @@ export default function MenuBuilder() {
                     </div>
                   </div>
                 </div>
+                {renderAccountIconWidthControls(
+                  "accountAccountIconWidthMode",
+                  "accountAccountIconWidthValue",
+                  "accountAccountIconWidthUnit"
+                )}
                 <TextField
                   label="Account icon and title"
                   value={builderSettings.accountAccountLabel}
@@ -8177,6 +8279,11 @@ export default function MenuBuilder() {
                     </div>
                   </div>
                 </div>
+                {renderAccountIconWidthControls(
+                  "accountLogoutIconWidthMode",
+                  "accountLogoutIconWidthValue",
+                  "accountLogoutIconWidthUnit"
+                )}
                 <TextField
                   label="Logout icon and title"
                   value={builderSettings.accountLogoutLabel}
@@ -12556,7 +12663,7 @@ export default function MenuBuilder() {
     setMenuStatus(menu.status === "active" ? "active" : "draft");
     setMenuItems(defaultExpandedMenuItems);
     setSelectedItemId(normalizedMenuItems[0]?.id ?? null);
-    setBuilderSettings({ ...DEFAULT_BUILDER_SETTINGS, ...menuSettings });
+    setBuilderSettings({ ...DEFAULT_BUILDER_SETTINGS, ...normalizedMenuSettings });
     setRequiresExplicitSave(false);
     setActiveSaveAction(null);
     setSubmenuTemplateTargetId(null);
@@ -12564,16 +12671,16 @@ export default function MenuBuilder() {
     savedSnapshotRef.current = {
       status: menu.status === "active" ? "active" : "draft",
       items: defaultExpandedMenuItems,
-      settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
+      settings: { ...DEFAULT_BUILDER_SETTINGS, ...normalizedMenuSettings },
     };
     setSavedFingerprint(
       buildMenuFingerprint(
         menu.status === "active" ? "active" : "draft",
         defaultExpandedMenuItems,
-        { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings }
+        { ...DEFAULT_BUILDER_SETTINGS, ...normalizedMenuSettings }
       )
     );
-  }, [menu.id, menuSettings, normalizedMenuItems, defaultExpandedMenuItems]);
+  }, [menu.id, normalizedMenuSettings, normalizedMenuItems, defaultExpandedMenuItems]);
 
   useEffect(() => {
     if (submenuTemplateTargetId) return;
@@ -12635,6 +12742,11 @@ export default function MenuBuilder() {
         ? item.customTextHoverColor ?? item.customTextColor ?? defaultTextColor
         : item.customTextColor ?? defaultTextColor;
     const badgeText = item.badgeEnabled ? (item.badgeText ?? "").trim() : "";
+    const iconWidthMode = item.iconWidthMode ?? "auto";
+    const iconWidthUnit = item.iconWidthUnit ?? "%";
+    const iconWidthValue = item.iconWidthValue ?? 50;
+    const iconWidth =
+      iconWidthMode === "custom" ? `${iconWidthValue}${iconWidthUnit}` : undefined;
 
     return (
       <div
@@ -12744,7 +12856,15 @@ export default function MenuBuilder() {
         >
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: 1 }}>
             {item.icon ? (
-              <span style={{ display: "inline-flex", alignItems: "center" }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: iconWidth,
+                  minWidth: iconWidth,
+                }}
+              >
                 {renderMenuIcon(item.icon, {
                   size: 14,
                   color: itemTextColor,

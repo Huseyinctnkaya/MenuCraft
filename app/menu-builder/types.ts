@@ -176,7 +176,7 @@ export type CustomAddItem = {
 export type IconPickerState = {
   itemId: string;
   mode: "library" | "upload";
-  target: "custom" | "edit";
+  target: "custom" | "edit" | "settings";
 };
 
 export type RailPanel = "menu" | "settings" | "typography" | "colors" | "code";
@@ -222,6 +222,14 @@ export type BuilderSettings = {
   accountShowRegister: boolean;
   accountShowAccount: boolean;
   accountShowLogout: boolean;
+  accountLoginIcon: string;
+  accountLoginLabel: string;
+  accountRegisterIcon: string;
+  accountRegisterLabel: string;
+  accountAccountIcon: string;
+  accountAccountLabel: string;
+  accountLogoutIcon: string;
+  accountLogoutLabel: string;
   submenuShowBorder: boolean;
   submenuEnableDesktopScroll: boolean;
   submenuEnableMobileScroll: boolean;

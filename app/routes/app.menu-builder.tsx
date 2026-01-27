@@ -28,6 +28,7 @@ import {
 } from "@shopify/polaris";
 import {
   ArrowLeftIcon,
+  ArrowsOutHorizontalIcon,
   BlogIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -3497,6 +3498,19 @@ export default function MenuBuilder() {
     setIconPickerState(null);
   };
 
+  const accountIconKeyMap: Record<string, keyof BuilderSettings> = {
+    "account-login": "accountLoginIcon",
+    "account-register": "accountRegisterIcon",
+    "account-account": "accountAccountIcon",
+    "account-logout": "accountLogoutIcon",
+  };
+
+  const resolveSettingsIcon = (id: string) => {
+    const key = accountIconKeyMap[id];
+    if (!key) return undefined;
+    return builderSettings[key] as string;
+  };
+
   const resolveCustomIconPreview = (icon?: string) => {
     if (!icon) return null;
     if (icon.startsWith("data:")) {
@@ -3559,6 +3573,11 @@ export default function MenuBuilder() {
       if (!result) return;
       if (target === "custom") {
         updateCustomItem(itemId, { icon: result });
+      } else if (target === "settings") {
+        const key = accountIconKeyMap[itemId];
+        if (key) {
+          updateBuilderSetting(key, result as never);
+        }
       } else {
         updateEditDraftItemById(itemId, (item) => ({ ...item, icon: result }));
       }
@@ -3574,7 +3593,9 @@ export default function MenuBuilder() {
     const selectedItemIcon =
       iconPickerState.target === "custom"
         ? customItems.find((entry) => entry.id === iconPickerState.itemId)?.icon
-        : editableItem?.icon ?? findItemPath(menuItems, iconPickerState.itemId)?.slice(-1)[0]?.icon;
+        : iconPickerState.target === "settings"
+          ? resolveSettingsIcon(iconPickerState.itemId)
+          : editableItem?.icon ?? findItemPath(menuItems, iconPickerState.itemId)?.slice(-1)[0]?.icon;
     const selectedIconId = selectedItemIcon?.startsWith(ICON_PREFIX)
       ? selectedItemIcon.slice(ICON_PREFIX.length)
       : null;
@@ -3585,6 +3606,11 @@ export default function MenuBuilder() {
     const applyIconSelection = (iconValue: string) => {
       if (iconPickerState.target === "custom") {
         updateCustomItem(iconPickerState.itemId, { icon: iconValue });
+      } else if (iconPickerState.target === "settings") {
+        const key = accountIconKeyMap[iconPickerState.itemId];
+        if (key) {
+          updateBuilderSetting(key, iconValue as never);
+        }
       } else {
         updateEditDraftItemById(iconPickerState.itemId, (item) => ({ ...item, icon: iconValue }));
       }
@@ -7430,6 +7456,7 @@ export default function MenuBuilder() {
               label="Menu max width"
               value={builderSettings.layoutMaxWidth}
               onChange={(value) => updateBuilderSetting("layoutMaxWidth", value)}
+              prefix={<Icon source={ArrowsOutHorizontalIcon} tone="subdued" />}
               suffix="px"
               autoComplete="off"
             />
@@ -7642,24 +7669,232 @@ export default function MenuBuilder() {
               helpText="When logged out"
               onChange={(value) => updateBuilderSetting("accountShowLogin", value)}
             />
+            {builderSettings.accountShowLogin ? (
+              <BlockStack gap="300" className="pl-6">
+                <Text as="h4" variant="headingSm">
+                  Icon
+                </Text>
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
+                  <div className="flex flex-col items-center gap-3">
+                    {builderSettings.accountLoginIcon ? (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                        {resolveCustomIconPreview(builderSettings.accountLoginIcon)}
+                      </div>
+                    ) : null}
+                    <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        onClick={() => openIconPicker("settings", "account-login", "library")}
+                      >
+                        Select icon
+                      </button>
+                      <Text as="span" variant="bodySm" tone="subdued">
+                        or
+                      </Text>
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        onClick={() => openIconPicker("settings", "account-login", "upload")}
+                      >
+                        Upload icon
+                      </button>
+                    </InlineStack>
+                    {builderSettings.accountLoginIcon ? (
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-red-600 hover:text-red-700"
+                          onClick={() => updateBuilderSetting("accountLoginIcon", "")}
+                        >
+                          Remove icon
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <TextField
+                  label="Login icon and title"
+                  value={builderSettings.accountLoginLabel}
+                  onChange={(value) => updateBuilderSetting("accountLoginLabel", value)}
+                  autoComplete="off"
+                />
+              </BlockStack>
+            ) : null}
             <Checkbox
               label="Show register link"
               checked={builderSettings.accountShowRegister}
               helpText="When logged out"
               onChange={(value) => updateBuilderSetting("accountShowRegister", value)}
             />
+            {builderSettings.accountShowRegister ? (
+              <BlockStack gap="300" className="pl-6">
+                <Text as="h4" variant="headingSm">
+                  Icon
+                </Text>
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
+                  <div className="flex flex-col items-center gap-3">
+                    {builderSettings.accountRegisterIcon ? (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                        {resolveCustomIconPreview(builderSettings.accountRegisterIcon)}
+                      </div>
+                    ) : null}
+                    <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        onClick={() => openIconPicker("settings", "account-register", "library")}
+                      >
+                        Select icon
+                      </button>
+                      <Text as="span" variant="bodySm" tone="subdued">
+                        or
+                      </Text>
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        onClick={() => openIconPicker("settings", "account-register", "upload")}
+                      >
+                        Upload icon
+                      </button>
+                    </InlineStack>
+                    {builderSettings.accountRegisterIcon ? (
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-red-600 hover:text-red-700"
+                          onClick={() => updateBuilderSetting("accountRegisterIcon", "")}
+                        >
+                          Remove icon
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <TextField
+                  label="Register icon and title"
+                  value={builderSettings.accountRegisterLabel}
+                  onChange={(value) => updateBuilderSetting("accountRegisterLabel", value)}
+                  autoComplete="off"
+                />
+              </BlockStack>
+            ) : null}
             <Checkbox
               label="Show account link"
               checked={builderSettings.accountShowAccount}
               helpText="When logged in"
               onChange={(value) => updateBuilderSetting("accountShowAccount", value)}
             />
+            {builderSettings.accountShowAccount ? (
+              <BlockStack gap="300" className="pl-6">
+                <Text as="h4" variant="headingSm">
+                  Icon
+                </Text>
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
+                  <div className="flex flex-col items-center gap-3">
+                    {builderSettings.accountAccountIcon ? (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                        {resolveCustomIconPreview(builderSettings.accountAccountIcon)}
+                      </div>
+                    ) : null}
+                    <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        onClick={() => openIconPicker("settings", "account-account", "library")}
+                      >
+                        Select icon
+                      </button>
+                      <Text as="span" variant="bodySm" tone="subdued">
+                        or
+                      </Text>
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        onClick={() => openIconPicker("settings", "account-account", "upload")}
+                      >
+                        Upload icon
+                      </button>
+                    </InlineStack>
+                    {builderSettings.accountAccountIcon ? (
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-red-600 hover:text-red-700"
+                          onClick={() => updateBuilderSetting("accountAccountIcon", "")}
+                        >
+                          Remove icon
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <TextField
+                  label="Account icon and title"
+                  value={builderSettings.accountAccountLabel}
+                  onChange={(value) => updateBuilderSetting("accountAccountLabel", value)}
+                  autoComplete="off"
+                />
+              </BlockStack>
+            ) : null}
             <Checkbox
               label="Show logout link"
               checked={builderSettings.accountShowLogout}
               helpText="When logged in"
               onChange={(value) => updateBuilderSetting("accountShowLogout", value)}
             />
+            {builderSettings.accountShowLogout ? (
+              <BlockStack gap="300" className="pl-6">
+                <Text as="h4" variant="headingSm">
+                  Icon
+                </Text>
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
+                  <div className="flex flex-col items-center gap-3">
+                    {builderSettings.accountLogoutIcon ? (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                        {resolveCustomIconPreview(builderSettings.accountLogoutIcon)}
+                      </div>
+                    ) : null}
+                    <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        onClick={() => openIconPicker("settings", "account-logout", "library")}
+                      >
+                        Select icon
+                      </button>
+                      <Text as="span" variant="bodySm" tone="subdued">
+                        or
+                      </Text>
+                      <button
+                        type="button"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        onClick={() => openIconPicker("settings", "account-logout", "upload")}
+                      >
+                        Upload icon
+                      </button>
+                    </InlineStack>
+                    {builderSettings.accountLogoutIcon ? (
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-red-600 hover:text-red-700"
+                          onClick={() => updateBuilderSetting("accountLogoutIcon", "")}
+                        >
+                          Remove icon
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <TextField
+                  label="Logout icon and title"
+                  value={builderSettings.accountLogoutLabel}
+                  onChange={(value) => updateBuilderSetting("accountLogoutLabel", value)}
+                  autoComplete="off"
+                />
+              </BlockStack>
+            ) : null}
           </BlockStack>
 
           <Divider />

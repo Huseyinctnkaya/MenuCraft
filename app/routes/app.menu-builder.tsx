@@ -12739,7 +12739,7 @@ export default function MenuBuilder() {
           {[
             { id: "menu", icon: MenuIcon, label: "Menu" },
             { id: "settings", icon: SettingsIcon, label: "Settings" },
-            { id: "typography", icon: TextIcon, label: "Typography" },
+            { id: "typography", icon: TextFontListIcon, label: "Typography" },
             { id: "colors", icon: PaintBrushRoundIcon, label: "Colors" },
             { id: "code", icon: CodeIcon, label: "Code" },
           ].map((panel) => (

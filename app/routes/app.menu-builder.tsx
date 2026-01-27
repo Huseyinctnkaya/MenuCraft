@@ -254,6 +254,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let blogs: BlogSummary[] = [];
   let latestArticles: LatestArticleSummary[] = [];
   let pages: PageSummary[] = [];
+  let menus: Array<{ id: string; title: string; handle?: string | null }> = [];
 
   try {
     const response = await admin.graphql(
@@ -355,6 +356,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     pages = [];
   }
 
+  try {
+    const response = await admin.graphql(
+      `query MenuList($menusFirst: Int!) {
+        menus(first: $menusFirst) {
+          nodes {
+            id
+            title
+            handle
+          }
+        }
+      }`,
+      { variables: { menusFirst: 50 } }
+    );
+    const data = await response.json();
+    if ((data as any)?.errors?.length) {
+      console.error("Menus query errors", (data as any).errors);
+    }
+    menus = data?.data?.menus?.nodes ?? [];
+  } catch (error) {
+    console.error("Failed to fetch menus", error);
+    menus = [];
+  }
+
   return json({
     menu: {
       id: menu.id,
@@ -369,6 +393,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     blogs,
     latestArticles,
     pages,
+    menus,
   });
 };
 
@@ -500,6 +525,7 @@ export default function MenuBuilder() {
     blogs,
     latestArticles,
     pages,
+    menus,
   } = useLoaderData<typeof loader>();
   const normalizedMenuSettings = useMemo(() => {
     const next = { ...menuSettings } as BuilderSettings;
@@ -7629,6 +7655,44 @@ export default function MenuBuilder() {
                 updateBuilderSetting("layoutLocation", value[0] as BuilderSettings["layoutLocation"])
               }
             />
+            {builderSettings.layoutLocation === "replaceNavigation" ? (
+              <BlockStack gap="300">
+                <Select
+                  label="Select your main menu"
+                  options={
+                    menus.length
+                      ? menus.map((menuOption) => ({
+                        label: menuOption.title,
+                        value: menuOption.id,
+                      }))
+                      : [{ label: "Menü bulunamadı", value: "" }]
+                  }
+                  value={builderSettings.layoutReplaceDesktopMenuId}
+                  onChange={(value) => updateBuilderSetting("layoutReplaceDesktopMenuId", value)}
+                />
+                <Select
+                  label="Select your mobile menu"
+                  options={
+                    menus.length
+                      ? menus.map((menuOption) => ({
+                        label: menuOption.title,
+                        value: menuOption.id,
+                      }))
+                      : [{ label: "Menü bulunamadı", value: "" }]
+                  }
+                  value={builderSettings.layoutReplaceMobileMenuId}
+                  onChange={(value) => updateBuilderSetting("layoutReplaceMobileMenuId", value)}
+                />
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    To refresh the menu list, please remove the storefront password.
+                  </Text>
+                  <div className="mt-3">
+                    <Button variant="secondary">Remove storefront password</Button>
+                  </div>
+                </div>
+              </BlockStack>
+            ) : null}
           </BlockStack>
 
           <Divider />

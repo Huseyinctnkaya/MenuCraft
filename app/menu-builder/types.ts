@@ -221,6 +221,8 @@ export type BuilderSettings = {
   layoutOrientation: "horizontal" | "vertical";
   layoutAlignment: "left" | "right" | "center";
   layoutMaxWidth: string;
+  layoutReplaceDesktopMenuId: string;
+  layoutReplaceMobileMenuId: string;
   accountShowLogin: boolean;
   accountShowRegister: boolean;
   accountShowAccount: boolean;

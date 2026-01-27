@@ -142,6 +142,8 @@ export const DEFAULT_BUILDER_SETTINGS: BuilderSettings = {
   layoutOrientation: "horizontal",
   layoutAlignment: "left",
   layoutMaxWidth: "1200px",
+  layoutReplaceDesktopMenuId: "",
+  layoutReplaceMobileMenuId: "",
   accountShowLogin: true,
   accountShowRegister: true,
   accountShowAccount: true,

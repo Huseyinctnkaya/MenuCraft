@@ -362,6 +362,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       status: menu.status,
     },
     menuItems: menu.items as MenuItem[],
+    menuSettingsRaw: menu.settings as BuilderSettings | null,
     menuSettings: (menu.settings as BuilderSettings | null) ?? DEFAULT_BUILDER_SETTINGS,
     collections,
     products,
@@ -492,6 +493,7 @@ export default function MenuBuilder() {
   const {
     menu,
     menuItems: initialMenuItems,
+    menuSettingsRaw,
     menuSettings,
     collections,
     products,
@@ -501,22 +503,27 @@ export default function MenuBuilder() {
   } = useLoaderData<typeof loader>();
   const normalizedMenuSettings = useMemo(() => {
     const next = { ...menuSettings } as BuilderSettings;
+    const hasIconWidthSettings =
+      menuSettingsRaw &&
+      Object.prototype.hasOwnProperty.call(menuSettingsRaw, "accountLoginIconWidthMode");
     const legacyAccountLabels: Partial<Record<keyof BuilderSettings, string>> = {
       accountLoginLabel: "Login",
       accountRegisterLabel: "Register",
       accountAccountLabel: "Account",
       accountLogoutLabel: "Logout",
     };
-    (Object.entries(legacyAccountLabels) as [keyof BuilderSettings, string][]).forEach(
-      ([key, legacy]) => {
-        const current = next[key];
-        if (typeof current === "string" && current.trim() === legacy) {
-          next[key] = "" as never;
+    if (!hasIconWidthSettings) {
+      (Object.entries(legacyAccountLabels) as [keyof BuilderSettings, string][]).forEach(
+        ([key, legacy]) => {
+          const current = next[key];
+          if (typeof current === "string" && current.trim() === legacy) {
+            next[key] = "" as never;
+          }
         }
-      }
-    );
+      );
+    }
     return next;
-  }, [menuSettings]);
+  }, [menuSettings, menuSettingsRaw]);
   const normalizedMenuItems = useMemo(
     () => normalizeMultiBlocks(initialMenuItems),
     [initialMenuItems]

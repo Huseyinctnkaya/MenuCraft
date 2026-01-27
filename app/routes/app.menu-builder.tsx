@@ -3952,6 +3952,35 @@ export default function MenuBuilder() {
     updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"]);
   };
 
+  const renderSegmentedControl = (
+    options: Array<{ label: string; value: string }>,
+    value: string,
+    onChange: (next: string) => void
+  ) => (
+    <ul className="Menu-SegmentedControl__SegmentedControlContainer flex w-full items-center gap-1 rounded-lg bg-gray-100 p-1">
+      {options.map((option) => {
+        const isSelected = option.value === value;
+        return (
+          <li
+            key={option.value}
+            className="Menu-SegmentedControl-Option__OptionWrapper list-none flex-1"
+          >
+            <button
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={`Menu-SegmentedControl-Option__SegmentedControlItem w-full rounded-md px-3 py-1 text-sm font-medium ${isSelected
+                ? "Menu-SegmentedControl-Option--selected bg-white shadow-sm"
+                : "bg-transparent"
+                }`}
+            >
+              {option.label}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
   const resolveSubmenuWidthAlignment = (item: MenuItem) => {
     if (item.submenuWidth === "full") return "full";
     if (item.submenuContentAlign === "left") return "left";
@@ -7362,35 +7391,41 @@ export default function MenuBuilder() {
             <Text as="h3" variant="headingSm">
               Layout
             </Text>
-            <ChoiceList
-              title="Orientation"
-              choices={[
-                { label: "Horizontal", value: "horizontal" },
-                { label: "Vertical", value: "vertical" },
-              ]}
-              selected={[builderSettings.layoutOrientation]}
-              onChange={(value) =>
-                updateBuilderSetting(
-                  "layoutOrientation",
-                  value[0] as BuilderSettings["layoutOrientation"]
-                )
-              }
-            />
-            <ChoiceList
-              title="Alignment"
-              choices={[
-                { label: "Left", value: "left" },
-                { label: "Right", value: "right" },
-                { label: "Center", value: "center" },
-              ]}
-              selected={[builderSettings.layoutAlignment]}
-              onChange={(value) =>
-                updateBuilderSetting(
-                  "layoutAlignment",
-                  value[0] as BuilderSettings["layoutAlignment"]
-                )
-              }
-            />
+            <BlockStack gap="200">
+              <Text as="p" variant="bodySm" tone="subdued">
+                Orientation
+              </Text>
+              {renderSegmentedControl(
+                [
+                  { label: "Horizontal", value: "horizontal" },
+                  { label: "Vertical", value: "vertical" },
+                ],
+                builderSettings.layoutOrientation,
+                (next) =>
+                  updateBuilderSetting(
+                    "layoutOrientation",
+                    next as BuilderSettings["layoutOrientation"]
+                  )
+              )}
+            </BlockStack>
+            <BlockStack gap="200">
+              <Text as="p" variant="bodySm" tone="subdued">
+                Alignment
+              </Text>
+              {renderSegmentedControl(
+                [
+                  { label: "Left", value: "left" },
+                  { label: "Right", value: "right" },
+                  { label: "Center", value: "center" },
+                ],
+                builderSettings.layoutAlignment,
+                (next) =>
+                  updateBuilderSetting(
+                    "layoutAlignment",
+                    next as BuilderSettings["layoutAlignment"]
+                  )
+              )}
+            </BlockStack>
             <TextField
               label="Menu max width"
               value={builderSettings.layoutMaxWidth}
@@ -10107,6 +10142,9 @@ export default function MenuBuilder() {
   const dropdownPanelWidth = previewMenu?.submenuWidth === "content" ? 200 : "100%";
   const previewContainerWidth =
     previewContainerRef.current?.getBoundingClientRect().width ?? menuMaxWidth ?? 1260;
+  const useFixedVerticalMenuWidth =
+    !isMobilePreview && builderSettings.layoutOrientation === "vertical";
+  const verticalMenuWidth = Math.min(360, previewContainerWidth);
   const dropdownPanelPixelWidth =
     dropdownPanelWidth === "100%"
       ? previewContainerWidth
@@ -12824,6 +12862,8 @@ export default function MenuBuilder() {
                     borderRadius: 0,
                     overflow: "visible",
                     position: "relative",
+                    width: useFixedVerticalMenuWidth ? verticalMenuWidth : "100%",
+                    marginRight: useFixedVerticalMenuWidth ? "auto" : undefined,
                   }}
                 >
                   <div
@@ -12831,68 +12871,81 @@ export default function MenuBuilder() {
                       display: "flex",
                       flexDirection: isVerticalMenu ? "column" : "row",
                       alignItems: "stretch",
-                      justifyContent: isVerticalMenu ? "flex-start" : menuAlignmentMap[builderSettings.layoutAlignment],
+                      justifyContent: "flex-start",
                       gap: 0,
                       height: isVerticalMenu ? "auto" : menuRowHeight,
                       color: previewColors.mainText,
                     }}
                   >
-                    {menuItemsForMainRow.map((item) => (
-                      <div
-                        key={`menu-row-${item.id}`}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          width: isVerticalMenu ? "100%" : "auto",
-                          height: isVerticalMenu ? "auto" : "100%",
-                        }}
-                      >
-                        {renderMenuItemButton(item)}
-                        {shouldInlineMobilePanel && openMenuId === item.id
-                          ? renderMegaPanel(true)
-                          : null}
-                        {shouldInlineMobileDropdownPanel && openMenuId === item.id
-                          ? renderMobileDropdownPanel()
-                          : null}
-                        {shouldInlineMobileHorizontalDropdownPanel && openMenuId === item.id
-                          ? renderMobileHorizontalDropdownPanel()
-                          : null}
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenAddRoot()}
+                    <div
                       style={{
-                        color: previewColors.mainText,
-                        height: isVerticalMenu ? menuRowHeight : "100%",
-                        minWidth: isVerticalMenu ? "100%" : 50,
-                        padding: isVerticalMenu ? "0 12px" : "0 18px",
-                        borderRight:
-                          showDividers && !isVerticalMenu
-                            ? `1px solid ${previewColors.mainDivider}`
-                            : "none",
-                        borderBottom:
-                          showDividers && isVerticalMenu
-                            ? `1px solid ${previewColors.mainDivider}`
-                            : "none",
-                        borderRadius: 0,
-                        background: previewColors.mainBackground,
-                        transition: "background 150ms ease",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: isVerticalMenu ? "center" : "flex-start",
-                      }}
-                      onMouseEnter={(event) => {
-                        event.currentTarget.style.background = previewColors.mainBackgroundHover;
-                        event.currentTarget.style.color = previewColors.mainTextHover;
-                      }}
-                      onMouseLeave={(event) => {
-                        event.currentTarget.style.background = previewColors.mainBackground;
-                        event.currentTarget.style.color = previewColors.mainText;
+                        display: "flex",
+                        flex: isVerticalMenu ? "0 0 auto" : 1,
+                        flexDirection: isVerticalMenu ? "column" : "row",
+                        alignItems: "stretch",
+                        justifyContent: isVerticalMenu
+                          ? "flex-start"
+                          : menuAlignmentMap[builderSettings.layoutAlignment],
+                        gap: 0,
                       }}
                     >
-                      +
-                    </button>
+                      {menuItemsForMainRow.map((item) => (
+                        <div
+                          key={`menu-row-${item.id}`}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: isVerticalMenu ? "100%" : "auto",
+                            height: isVerticalMenu ? "auto" : "100%",
+                          }}
+                        >
+                          {renderMenuItemButton(item)}
+                          {shouldInlineMobilePanel && openMenuId === item.id
+                            ? renderMegaPanel(true)
+                            : null}
+                          {shouldInlineMobileDropdownPanel && openMenuId === item.id
+                            ? renderMobileDropdownPanel()
+                            : null}
+                          {shouldInlineMobileHorizontalDropdownPanel && openMenuId === item.id
+                            ? renderMobileHorizontalDropdownPanel()
+                            : null}
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAddRoot()}
+                        style={{
+                          color: previewColors.mainText,
+                          height: isVerticalMenu ? menuRowHeight : "100%",
+                          minWidth: isVerticalMenu ? "100%" : 50,
+                          padding: isVerticalMenu ? "0 12px" : "0 18px",
+                          borderRight:
+                            showDividers && !isVerticalMenu
+                              ? `1px solid ${previewColors.mainDivider}`
+                              : "none",
+                          borderBottom:
+                            showDividers && isVerticalMenu
+                              ? `1px solid ${previewColors.mainDivider}`
+                              : "none",
+                          borderRadius: 0,
+                          background: previewColors.mainBackground,
+                          transition: "background 150ms ease",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: isVerticalMenu ? "center" : "flex-start",
+                        }}
+                        onMouseEnter={(event) => {
+                          event.currentTarget.style.background = previewColors.mainBackgroundHover;
+                          event.currentTarget.style.color = previewColors.mainTextHover;
+                        }}
+                        onMouseLeave={(event) => {
+                          event.currentTarget.style.background = previewColors.mainBackground;
+                          event.currentTarget.style.color = previewColors.mainText;
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
                     {rightAlignedMenuItems.length > 0 ? (
                       <div
                         style={{

@@ -5159,7 +5159,7 @@ export default function MenuBuilder() {
       const hasCustomItemColors = itemColorOptions.some(
         (option) => Boolean(editingItem[option.key])
       );
-      if (iconPickerState?.target === "edit") {
+      if (iconPickerState?.target === "edit" || iconPickerState?.target === "settings") {
         return (
           <Card padding="0">
             {iconPickerState.mode === "library" ? renderIconLibraryPanel() : renderIconUploadPanel()}
@@ -7347,6 +7347,13 @@ export default function MenuBuilder() {
   };
 
   const renderSettingsPanel = () => {
+    if (iconPickerState?.target === "settings") {
+      return (
+        <Card padding="0">
+          {iconPickerState.mode === "library" ? renderIconLibraryPanel() : renderIconUploadPanel()}
+        </Card>
+      );
+    }
     const toNumber = (value: string) => {
       const next = Number(value);
       return Number.isFinite(next) ? next : 0;
@@ -7670,47 +7677,49 @@ export default function MenuBuilder() {
               onChange={(value) => updateBuilderSetting("accountShowLogin", value)}
             />
             {builderSettings.accountShowLogin ? (
-              <BlockStack gap="300" className="pl-6">
-                <Text as="h4" variant="headingSm">
-                  Icon
-                </Text>
-                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
-                  <div className="flex flex-col items-center gap-3">
-                    {builderSettings.accountLoginIcon ? (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                        {resolveCustomIconPreview(builderSettings.accountLoginIcon)}
-                      </div>
-                    ) : null}
-                    <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => openIconPicker("settings", "account-login", "library")}
-                      >
-                        Select icon
-                      </button>
-                      <Text as="span" variant="bodySm" tone="subdued">
-                        or
-                      </Text>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => openIconPicker("settings", "account-login", "upload")}
-                      >
-                        Upload icon
-                      </button>
-                    </InlineStack>
-                    {builderSettings.accountLoginIcon ? (
-                      <div className="flex justify-center">
+              <BlockStack gap="200">
+                <div className="flex flex-col gap-0">
+                  <Text as="h4" variant="headingSm">
+                    Icon
+                  </Text>
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
+                    <div className="flex flex-col items-center gap-0">
+                      {builderSettings.accountLoginIcon ? (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                          {resolveCustomIconPreview(builderSettings.accountLoginIcon)}
+                        </div>
+                      ) : null}
+                      <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
                         <button
                           type="button"
-                          className="text-sm font-medium text-red-600 hover:text-red-700"
-                          onClick={() => updateBuilderSetting("accountLoginIcon", "")}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("settings", "account-login", "library")}
                         >
-                          Remove icon
+                          Select icon
                         </button>
-                      </div>
-                    ) : null}
+                        <Text as="span" variant="bodySm" tone="subdued">
+                          or
+                        </Text>
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("settings", "account-login", "upload")}
+                        >
+                          Upload icon
+                        </button>
+                      </InlineStack>
+                      {builderSettings.accountLoginIcon ? (
+                        <div className="flex justify-center">
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-red-600 hover:text-red-700"
+                            onClick={() => updateBuilderSetting("accountLoginIcon", "")}
+                          >
+                            Remove icon
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                 <TextField
@@ -7728,47 +7737,49 @@ export default function MenuBuilder() {
               onChange={(value) => updateBuilderSetting("accountShowRegister", value)}
             />
             {builderSettings.accountShowRegister ? (
-              <BlockStack gap="300" className="pl-6">
-                <Text as="h4" variant="headingSm">
-                  Icon
-                </Text>
-                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
-                  <div className="flex flex-col items-center gap-3">
-                    {builderSettings.accountRegisterIcon ? (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                        {resolveCustomIconPreview(builderSettings.accountRegisterIcon)}
-                      </div>
-                    ) : null}
-                    <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => openIconPicker("settings", "account-register", "library")}
-                      >
-                        Select icon
-                      </button>
-                      <Text as="span" variant="bodySm" tone="subdued">
-                        or
-                      </Text>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => openIconPicker("settings", "account-register", "upload")}
-                      >
-                        Upload icon
-                      </button>
-                    </InlineStack>
-                    {builderSettings.accountRegisterIcon ? (
-                      <div className="flex justify-center">
+              <BlockStack gap="200">
+                <div className="flex flex-col gap-0">
+                  <Text as="h4" variant="headingSm">
+                    Icon
+                  </Text>
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
+                    <div className="flex flex-col items-center gap-0">
+                      {builderSettings.accountRegisterIcon ? (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                          {resolveCustomIconPreview(builderSettings.accountRegisterIcon)}
+                        </div>
+                      ) : null}
+                      <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
                         <button
                           type="button"
-                          className="text-sm font-medium text-red-600 hover:text-red-700"
-                          onClick={() => updateBuilderSetting("accountRegisterIcon", "")}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("settings", "account-register", "library")}
                         >
-                          Remove icon
+                          Select icon
                         </button>
-                      </div>
-                    ) : null}
+                        <Text as="span" variant="bodySm" tone="subdued">
+                          or
+                        </Text>
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("settings", "account-register", "upload")}
+                        >
+                          Upload icon
+                        </button>
+                      </InlineStack>
+                      {builderSettings.accountRegisterIcon ? (
+                        <div className="flex justify-center">
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-red-600 hover:text-red-700"
+                            onClick={() => updateBuilderSetting("accountRegisterIcon", "")}
+                          >
+                            Remove icon
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                 <TextField
@@ -7786,47 +7797,49 @@ export default function MenuBuilder() {
               onChange={(value) => updateBuilderSetting("accountShowAccount", value)}
             />
             {builderSettings.accountShowAccount ? (
-              <BlockStack gap="300" className="pl-6">
-                <Text as="h4" variant="headingSm">
-                  Icon
-                </Text>
-                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
-                  <div className="flex flex-col items-center gap-3">
-                    {builderSettings.accountAccountIcon ? (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                        {resolveCustomIconPreview(builderSettings.accountAccountIcon)}
-                      </div>
-                    ) : null}
-                    <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => openIconPicker("settings", "account-account", "library")}
-                      >
-                        Select icon
-                      </button>
-                      <Text as="span" variant="bodySm" tone="subdued">
-                        or
-                      </Text>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => openIconPicker("settings", "account-account", "upload")}
-                      >
-                        Upload icon
-                      </button>
-                    </InlineStack>
-                    {builderSettings.accountAccountIcon ? (
-                      <div className="flex justify-center">
+              <BlockStack gap="200">
+                <div className="flex flex-col gap-0">
+                  <Text as="h4" variant="headingSm">
+                    Icon
+                  </Text>
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
+                    <div className="flex flex-col items-center gap-0">
+                      {builderSettings.accountAccountIcon ? (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                          {resolveCustomIconPreview(builderSettings.accountAccountIcon)}
+                        </div>
+                      ) : null}
+                      <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
                         <button
                           type="button"
-                          className="text-sm font-medium text-red-600 hover:text-red-700"
-                          onClick={() => updateBuilderSetting("accountAccountIcon", "")}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("settings", "account-account", "library")}
                         >
-                          Remove icon
+                          Select icon
                         </button>
-                      </div>
-                    ) : null}
+                        <Text as="span" variant="bodySm" tone="subdued">
+                          or
+                        </Text>
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("settings", "account-account", "upload")}
+                        >
+                          Upload icon
+                        </button>
+                      </InlineStack>
+                      {builderSettings.accountAccountIcon ? (
+                        <div className="flex justify-center">
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-red-600 hover:text-red-700"
+                            onClick={() => updateBuilderSetting("accountAccountIcon", "")}
+                          >
+                            Remove icon
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                 <TextField
@@ -7844,47 +7857,49 @@ export default function MenuBuilder() {
               onChange={(value) => updateBuilderSetting("accountShowLogout", value)}
             />
             {builderSettings.accountShowLogout ? (
-              <BlockStack gap="300" className="pl-6">
-                <Text as="h4" variant="headingSm">
-                  Icon
-                </Text>
-                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
-                  <div className="flex flex-col items-center gap-3">
-                    {builderSettings.accountLogoutIcon ? (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                        {resolveCustomIconPreview(builderSettings.accountLogoutIcon)}
-                      </div>
-                    ) : null}
-                    <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => openIconPicker("settings", "account-logout", "library")}
-                      >
-                        Select icon
-                      </button>
-                      <Text as="span" variant="bodySm" tone="subdued">
-                        or
-                      </Text>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                        onClick={() => openIconPicker("settings", "account-logout", "upload")}
-                      >
-                        Upload icon
-                      </button>
-                    </InlineStack>
-                    {builderSettings.accountLogoutIcon ? (
-                      <div className="flex justify-center">
+              <BlockStack gap="200">
+                <div className="flex flex-col gap-0">
+                  <Text as="h4" variant="headingSm">
+                    Icon
+                  </Text>
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
+                    <div className="flex flex-col items-center gap-0">
+                      {builderSettings.accountLogoutIcon ? (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                          {resolveCustomIconPreview(builderSettings.accountLogoutIcon)}
+                        </div>
+                      ) : null}
+                      <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
                         <button
                           type="button"
-                          className="text-sm font-medium text-red-600 hover:text-red-700"
-                          onClick={() => updateBuilderSetting("accountLogoutIcon", "")}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("settings", "account-logout", "library")}
                         >
-                          Remove icon
+                          Select icon
                         </button>
-                      </div>
-                    ) : null}
+                        <Text as="span" variant="bodySm" tone="subdued">
+                          or
+                        </Text>
+                        <button
+                          type="button"
+                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                          onClick={() => openIconPicker("settings", "account-logout", "upload")}
+                        >
+                          Upload icon
+                        </button>
+                      </InlineStack>
+                      {builderSettings.accountLogoutIcon ? (
+                        <div className="flex justify-center">
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-red-600 hover:text-red-700"
+                            onClick={() => updateBuilderSetting("accountLogoutIcon", "")}
+                          >
+                            Remove icon
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                 <TextField

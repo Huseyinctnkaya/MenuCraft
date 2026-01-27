@@ -12,6 +12,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  ActionList,
   Card,
   ColorPicker,
   Checkbox,
@@ -20,6 +21,7 @@ import {
   DropZone,
   InlineStack,
   Modal,
+  Popover,
   RangeSlider,
   Select,
   Text,
@@ -41,10 +43,12 @@ import {
   DuplicateIcon,
   EditIcon,
   DeleteIcon,
+  ImageIcon,
   MenuIcon,
   MobileIcon,
   PaintBrushRoundIcon,
   PlusIcon,
+  UploadIcon,
   SearchIcon,
   SettingsIcon,
   TextAlignCenterIcon,
@@ -540,6 +544,9 @@ export default function MenuBuilder() {
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [draggedParentId, setDraggedParentId] = useState<string | null>(null);
   const sidebarRowRefs = useRef(new Map<string, HTMLDivElement>());
+  const settingsScrollRef = useRef<HTMLDivElement | null>(null);
+  const settingsScrollTopRef = useRef(0);
+  const lastIconPickerTargetRef = useRef<IconPickerState["target"] | null>(null);
   const previewRowRefs = useRef(new Map<string, HTMLDivElement>());
   const prevSidebarPositionsRef = useRef(new Map<string, DOMRect>());
   const prevPreviewPositionsRef = useRef(new Map<string, DOMRect>());
@@ -600,6 +607,8 @@ export default function MenuBuilder() {
   const [fontPickerWeight, setFontPickerWeight] = useState("400");
   const [iconPickerState, setIconPickerState] = useState<IconPickerState | null>(null);
   const [iconPickerSearch, setIconPickerSearch] = useState("");
+  const iconPickerScrollRef = useRef<HTMLDivElement | null>(null);
+  const [accountIconMenuOpenId, setAccountIconMenuOpenId] = useState<string | null>(null);
   const [submenuImagePickerOpen, setSubmenuImagePickerOpen] = useState(false);
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [imagePickerSelection, setImagePickerSelection] = useState<string | null>(null);
@@ -3489,6 +3498,10 @@ export default function MenuBuilder() {
     itemId: string,
     mode: IconPickerState["mode"]
   ) => {
+    if (target === "settings") {
+      settingsScrollTopRef.current = settingsScrollRef.current?.scrollTop ?? 0;
+    }
+    lastIconPickerTargetRef.current = target;
     setIconPickerState({ itemId, mode, target });
     setIconPickerSearch("");
     setLinkPickerOpenId(null);
@@ -3496,6 +3509,14 @@ export default function MenuBuilder() {
 
   const closeIconPicker = () => {
     setIconPickerState(null);
+    if (lastIconPickerTargetRef.current === "settings") {
+      requestAnimationFrame(() => {
+        if (settingsScrollRef.current) {
+          settingsScrollRef.current.scrollTop = settingsScrollTopRef.current;
+        }
+      });
+    }
+    lastIconPickerTargetRef.current = null;
   };
 
   const accountIconKeyMap: Record<string, keyof BuilderSettings> = {
@@ -3642,7 +3663,7 @@ export default function MenuBuilder() {
             prefix={<Icon source={SearchIcon} tone="subdued" />}
           />
         </div>
-        <div className="flex-1 overflow-auto px-4 pb-4">
+        <div className="flex-1 overflow-auto px-4 pb-4" ref={iconPickerScrollRef}>
           <div className="grid grid-cols-6 gap-2">
             {filteredIcons.map((option) => {
               const isSelected = option.id === selectedIconId;
@@ -7683,42 +7704,81 @@ export default function MenuBuilder() {
                     Icon
                   </Text>
                   <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
-                    <div className="flex flex-col items-center gap-0">
+                    <div className="flex flex-col items-center gap-2">
                       {builderSettings.accountLoginIcon ? (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                          {resolveCustomIconPreview(builderSettings.accountLoginIcon)}
-                        </div>
-                      ) : null}
-                      <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("settings", "account-login", "library")}
-                        >
-                          Select icon
-                        </button>
-                        <Text as="span" variant="bodySm" tone="subdued">
-                          or
-                        </Text>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("settings", "account-login", "upload")}
-                        >
-                          Upload icon
-                        </button>
-                      </InlineStack>
-                      {builderSettings.accountLoginIcon ? (
-                        <div className="flex justify-center">
+                        <>
+                          <div className="flex h-14 w-14 items-center justify-center rounded-md bg-white shadow-sm">
+                            {resolveCustomIconPreview(builderSettings.accountLoginIcon)}
+                          </div>
+                          <Popover
+                            active={accountIconMenuOpenId === "account-login"}
+                            onClose={() => setAccountIconMenuOpenId(null)}
+                            activator={
+                              <Button
+                                variant="secondary"
+                                disclosure
+                                onClick={() =>
+                                  setAccountIconMenuOpenId((prev) =>
+                                    prev === "account-login" ? null : "account-login"
+                                  )
+                                }
+                              >
+                                Change
+                              </Button>
+                            }
+                          >
+                            <ActionList
+                              items={[
+                                {
+                                  content: "Select icon",
+                                  icon: ImageIcon,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    openIconPicker("settings", "account-login", "library");
+                                  },
+                                },
+                                {
+                                  content: "Upload icon",
+                                  icon: UploadIcon,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    openIconPicker("settings", "account-login", "upload");
+                                  },
+                                },
+                                {
+                                  content: "Remove",
+                                  icon: DeleteIcon,
+                                  destructive: true,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    updateBuilderSetting("accountLoginIcon", "");
+                                  },
+                                },
+                              ]}
+                            />
+                          </Popover>
+                        </>
+                      ) : (
+                        <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
                           <button
                             type="button"
-                            className="text-sm font-medium text-red-600 hover:text-red-700"
-                            onClick={() => updateBuilderSetting("accountLoginIcon", "")}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("settings", "account-login", "library")}
                           >
-                            Remove icon
+                            Select icon
                           </button>
-                        </div>
-                      ) : null}
+                          <Text as="span" variant="bodySm" tone="subdued">
+                            or
+                          </Text>
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("settings", "account-login", "upload")}
+                          >
+                            Upload icon
+                          </button>
+                        </InlineStack>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -7743,42 +7803,81 @@ export default function MenuBuilder() {
                     Icon
                   </Text>
                   <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
-                    <div className="flex flex-col items-center gap-0">
+                    <div className="flex flex-col items-center gap-2">
                       {builderSettings.accountRegisterIcon ? (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                          {resolveCustomIconPreview(builderSettings.accountRegisterIcon)}
-                        </div>
-                      ) : null}
-                      <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("settings", "account-register", "library")}
-                        >
-                          Select icon
-                        </button>
-                        <Text as="span" variant="bodySm" tone="subdued">
-                          or
-                        </Text>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("settings", "account-register", "upload")}
-                        >
-                          Upload icon
-                        </button>
-                      </InlineStack>
-                      {builderSettings.accountRegisterIcon ? (
-                        <div className="flex justify-center">
+                        <>
+                          <div className="flex h-14 w-14 items-center justify-center rounded-md bg-white shadow-sm">
+                            {resolveCustomIconPreview(builderSettings.accountRegisterIcon)}
+                          </div>
+                          <Popover
+                            active={accountIconMenuOpenId === "account-register"}
+                            onClose={() => setAccountIconMenuOpenId(null)}
+                            activator={
+                              <Button
+                                variant="secondary"
+                                disclosure
+                                onClick={() =>
+                                  setAccountIconMenuOpenId((prev) =>
+                                    prev === "account-register" ? null : "account-register"
+                                  )
+                                }
+                              >
+                                Change
+                              </Button>
+                            }
+                          >
+                            <ActionList
+                              items={[
+                                {
+                                  content: "Select icon",
+                                  icon: ImageIcon,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    openIconPicker("settings", "account-register", "library");
+                                  },
+                                },
+                                {
+                                  content: "Upload icon",
+                                  icon: UploadIcon,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    openIconPicker("settings", "account-register", "upload");
+                                  },
+                                },
+                                {
+                                  content: "Remove",
+                                  icon: DeleteIcon,
+                                  destructive: true,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    updateBuilderSetting("accountRegisterIcon", "");
+                                  },
+                                },
+                              ]}
+                            />
+                          </Popover>
+                        </>
+                      ) : (
+                        <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
                           <button
                             type="button"
-                            className="text-sm font-medium text-red-600 hover:text-red-700"
-                            onClick={() => updateBuilderSetting("accountRegisterIcon", "")}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("settings", "account-register", "library")}
                           >
-                            Remove icon
+                            Select icon
                           </button>
-                        </div>
-                      ) : null}
+                          <Text as="span" variant="bodySm" tone="subdued">
+                            or
+                          </Text>
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("settings", "account-register", "upload")}
+                          >
+                            Upload icon
+                          </button>
+                        </InlineStack>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -7803,42 +7902,81 @@ export default function MenuBuilder() {
                     Icon
                   </Text>
                   <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
-                    <div className="flex flex-col items-center gap-0">
+                    <div className="flex flex-col items-center gap-2">
                       {builderSettings.accountAccountIcon ? (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                          {resolveCustomIconPreview(builderSettings.accountAccountIcon)}
-                        </div>
-                      ) : null}
-                      <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("settings", "account-account", "library")}
-                        >
-                          Select icon
-                        </button>
-                        <Text as="span" variant="bodySm" tone="subdued">
-                          or
-                        </Text>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("settings", "account-account", "upload")}
-                        >
-                          Upload icon
-                        </button>
-                      </InlineStack>
-                      {builderSettings.accountAccountIcon ? (
-                        <div className="flex justify-center">
+                        <>
+                          <div className="flex h-14 w-14 items-center justify-center rounded-md bg-white shadow-sm">
+                            {resolveCustomIconPreview(builderSettings.accountAccountIcon)}
+                          </div>
+                          <Popover
+                            active={accountIconMenuOpenId === "account-account"}
+                            onClose={() => setAccountIconMenuOpenId(null)}
+                            activator={
+                              <Button
+                                variant="secondary"
+                                disclosure
+                                onClick={() =>
+                                  setAccountIconMenuOpenId((prev) =>
+                                    prev === "account-account" ? null : "account-account"
+                                  )
+                                }
+                              >
+                                Change
+                              </Button>
+                            }
+                          >
+                            <ActionList
+                              items={[
+                                {
+                                  content: "Select icon",
+                                  icon: ImageIcon,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    openIconPicker("settings", "account-account", "library");
+                                  },
+                                },
+                                {
+                                  content: "Upload icon",
+                                  icon: UploadIcon,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    openIconPicker("settings", "account-account", "upload");
+                                  },
+                                },
+                                {
+                                  content: "Remove",
+                                  icon: DeleteIcon,
+                                  destructive: true,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    updateBuilderSetting("accountAccountIcon", "");
+                                  },
+                                },
+                              ]}
+                            />
+                          </Popover>
+                        </>
+                      ) : (
+                        <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
                           <button
                             type="button"
-                            className="text-sm font-medium text-red-600 hover:text-red-700"
-                            onClick={() => updateBuilderSetting("accountAccountIcon", "")}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("settings", "account-account", "library")}
                           >
-                            Remove icon
+                            Select icon
                           </button>
-                        </div>
-                      ) : null}
+                          <Text as="span" variant="bodySm" tone="subdued">
+                            or
+                          </Text>
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("settings", "account-account", "upload")}
+                          >
+                            Upload icon
+                          </button>
+                        </InlineStack>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -7863,42 +8001,81 @@ export default function MenuBuilder() {
                     Icon
                   </Text>
                   <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center w-full">
-                    <div className="flex flex-col items-center gap-0">
+                    <div className="flex flex-col items-center gap-2">
                       {builderSettings.accountLogoutIcon ? (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                          {resolveCustomIconPreview(builderSettings.accountLogoutIcon)}
-                        </div>
-                      ) : null}
-                      <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("settings", "account-logout", "library")}
-                        >
-                          Select icon
-                        </button>
-                        <Text as="span" variant="bodySm" tone="subdued">
-                          or
-                        </Text>
-                        <button
-                          type="button"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                          onClick={() => openIconPicker("settings", "account-logout", "upload")}
-                        >
-                          Upload icon
-                        </button>
-                      </InlineStack>
-                      {builderSettings.accountLogoutIcon ? (
-                        <div className="flex justify-center">
+                        <>
+                          <div className="flex h-14 w-14 items-center justify-center rounded-md bg-white shadow-sm">
+                            {resolveCustomIconPreview(builderSettings.accountLogoutIcon)}
+                          </div>
+                          <Popover
+                            active={accountIconMenuOpenId === "account-logout"}
+                            onClose={() => setAccountIconMenuOpenId(null)}
+                            activator={
+                              <Button
+                                variant="secondary"
+                                disclosure
+                                onClick={() =>
+                                  setAccountIconMenuOpenId((prev) =>
+                                    prev === "account-logout" ? null : "account-logout"
+                                  )
+                                }
+                              >
+                                Change
+                              </Button>
+                            }
+                          >
+                            <ActionList
+                              items={[
+                                {
+                                  content: "Select icon",
+                                  icon: ImageIcon,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    openIconPicker("settings", "account-logout", "library");
+                                  },
+                                },
+                                {
+                                  content: "Upload icon",
+                                  icon: UploadIcon,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    openIconPicker("settings", "account-logout", "upload");
+                                  },
+                                },
+                                {
+                                  content: "Remove",
+                                  icon: DeleteIcon,
+                                  destructive: true,
+                                  onAction: () => {
+                                    setAccountIconMenuOpenId(null);
+                                    updateBuilderSetting("accountLogoutIcon", "");
+                                  },
+                                },
+                              ]}
+                            />
+                          </Popover>
+                        </>
+                      ) : (
+                        <InlineStack align="center" blockAlign="center" gap="200" wrap={false}>
                           <button
                             type="button"
-                            className="text-sm font-medium text-red-600 hover:text-red-700"
-                            onClick={() => updateBuilderSetting("accountLogoutIcon", "")}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("settings", "account-logout", "library")}
                           >
-                            Remove icon
+                            Select icon
                           </button>
-                        </div>
-                      ) : null}
+                          <Text as="span" variant="bodySm" tone="subdued">
+                            or
+                          </Text>
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            onClick={() => openIconPicker("settings", "account-logout", "upload")}
+                          >
+                            Upload icon
+                          </button>
+                        </InlineStack>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -12319,6 +12496,19 @@ export default function MenuBuilder() {
     setBlockTemplatePanelHover(false);
   }, [blockTemplateTargetId]);
 
+  useEffect(() => {
+    if (!iconPickerState || iconPickerState.mode !== "library") return;
+    const resetScroll = () => {
+      if (iconPickerScrollRef.current) {
+        iconPickerScrollRef.current.scrollTop = 0;
+      }
+    };
+    resetScroll();
+    requestAnimationFrame(resetScroll);
+    const timer = setTimeout(resetScroll, 120);
+    return () => clearTimeout(timer);
+  }, [iconPickerState]);
+
   const isTemplatePickerOpen = Boolean(submenuTemplateTargetId || blockTemplateTargetId);
   const renderMenuItemButton = (item: MenuItem) => {
     const isActive = openMenuId === item.id;
@@ -13059,7 +13249,7 @@ export default function MenuBuilder() {
         <aside
           className={`w-80 bg-white border-r border-gray-200 flex flex-col transition-opacity ${isTemplatePickerOpen ? "pointer-events-none opacity-50" : ""}`}
         >
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto" ref={settingsScrollRef}>
             <BlockStack gap="400" className="flex min-h-0 h-full flex-col">
               {activePanel === "menu" && renderMenuPanel()}
               {activePanel === "settings" && renderSettingsPanel()}

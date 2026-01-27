@@ -10659,6 +10659,101 @@ export default function MenuBuilder() {
       ),
     [menuItems]
   );
+  const accountLinks = useMemo(() => {
+    if (isVerticalMenu || isMobilePreview) return [];
+    const links: Array<{
+      id: string;
+      label: string;
+      icon: string;
+      iconWidthMode: "auto" | "custom";
+      iconWidthValue: number;
+      iconWidthUnit: "%" | "px";
+    }> = [];
+    if (builderSettings.accountShowLogin) {
+      const label = builderSettings.accountLoginLabel ?? "";
+      const icon = builderSettings.accountLoginIcon ?? "";
+      if (label.trim() || icon) {
+        links.push({
+          id: "account-login",
+          label,
+          icon,
+          iconWidthMode: builderSettings.accountLoginIconWidthMode ?? "auto",
+          iconWidthValue: builderSettings.accountLoginIconWidthValue ?? 50,
+          iconWidthUnit: builderSettings.accountLoginIconWidthUnit ?? "%",
+        });
+      }
+    }
+    if (builderSettings.accountShowRegister) {
+      const label = builderSettings.accountRegisterLabel ?? "";
+      const icon = builderSettings.accountRegisterIcon ?? "";
+      if (label.trim() || icon) {
+        links.push({
+          id: "account-register",
+          label,
+          icon,
+          iconWidthMode: builderSettings.accountRegisterIconWidthMode ?? "auto",
+          iconWidthValue: builderSettings.accountRegisterIconWidthValue ?? 50,
+          iconWidthUnit: builderSettings.accountRegisterIconWidthUnit ?? "%",
+        });
+      }
+    }
+    if (builderSettings.accountShowAccount) {
+      const label = builderSettings.accountAccountLabel ?? "";
+      const icon = builderSettings.accountAccountIcon ?? "";
+      if (label.trim() || icon) {
+        links.push({
+          id: "account-account",
+          label,
+          icon,
+          iconWidthMode: builderSettings.accountAccountIconWidthMode ?? "auto",
+          iconWidthValue: builderSettings.accountAccountIconWidthValue ?? 50,
+          iconWidthUnit: builderSettings.accountAccountIconWidthUnit ?? "%",
+        });
+      }
+    }
+    if (builderSettings.accountShowLogout) {
+      const label = builderSettings.accountLogoutLabel ?? "";
+      const icon = builderSettings.accountLogoutIcon ?? "";
+      if (label.trim() || icon) {
+        links.push({
+          id: "account-logout",
+          label,
+          icon,
+          iconWidthMode: builderSettings.accountLogoutIconWidthMode ?? "auto",
+          iconWidthValue: builderSettings.accountLogoutIconWidthValue ?? 50,
+          iconWidthUnit: builderSettings.accountLogoutIconWidthUnit ?? "%",
+        });
+      }
+    }
+    return links;
+  }, [
+    builderSettings.accountShowLogin,
+    builderSettings.accountLoginLabel,
+    builderSettings.accountLoginIcon,
+    builderSettings.accountLoginIconWidthMode,
+    builderSettings.accountLoginIconWidthValue,
+    builderSettings.accountLoginIconWidthUnit,
+    builderSettings.accountShowRegister,
+    builderSettings.accountRegisterLabel,
+    builderSettings.accountRegisterIcon,
+    builderSettings.accountRegisterIconWidthMode,
+    builderSettings.accountRegisterIconWidthValue,
+    builderSettings.accountRegisterIconWidthUnit,
+    builderSettings.accountShowAccount,
+    builderSettings.accountAccountLabel,
+    builderSettings.accountAccountIcon,
+    builderSettings.accountAccountIconWidthMode,
+    builderSettings.accountAccountIconWidthValue,
+    builderSettings.accountAccountIconWidthUnit,
+    builderSettings.accountShowLogout,
+    builderSettings.accountLogoutLabel,
+    builderSettings.accountLogoutIcon,
+    builderSettings.accountLogoutIconWidthMode,
+    builderSettings.accountLogoutIconWidthValue,
+    builderSettings.accountLogoutIconWidthUnit,
+    isVerticalMenu,
+    isMobilePreview,
+  ]);
   const standardMenuItems = useMemo(
     () =>
       menuItems.filter(
@@ -10671,6 +10766,7 @@ export default function MenuBuilder() {
   );
   const menuItemsForMainRow = isVerticalMenu ? menuItems : standardMenuItems;
   const rightAlignedMenuItems = isVerticalMenu ? [] : rightTabsMenuItems;
+  const hasRightSideItems = rightAlignedMenuItems.length > 0 || accountLinks.length > 0;
   const menuRowHeight = isMobilePreview
     ? Math.max(builderSettings.spacingMainRowHeight, 52)
     : builderSettings.spacingMainRowHeight;
@@ -12953,6 +13049,81 @@ export default function MenuBuilder() {
       </div>
     );
   };
+  const renderAccountLinkButton = (link: {
+    id: string;
+    label: string;
+    icon: string;
+    iconWidthMode: "auto" | "custom";
+    iconWidthValue: number;
+    iconWidthUnit: "%" | "px";
+  }) => {
+    const label = link.label.trim();
+    const hasLabel = label.length > 0;
+    const iconWidth =
+      link.iconWidthMode === "custom"
+        ? `${link.iconWidthValue}${link.iconWidthUnit}`
+        : undefined;
+    return (
+      <button
+        key={link.id}
+        type="button"
+        style={{
+          background: previewColors.mainBackground,
+          color: previewColors.mainText,
+          height: isVerticalMenu ? menuRowHeight : "100%",
+          minWidth: hasLabel ? 80 : 48,
+          padding: isVerticalMenu ? "0 12px" : hasLabel ? "0 16px" : "0 12px",
+          borderLeft:
+            showDividers && !isVerticalMenu ? `1px solid ${previewColors.mainDivider}` : "none",
+          borderBottom:
+            showDividers && isVerticalMenu ? `1px solid ${previewColors.mainDivider}` : "none",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: hasLabel ? "flex-start" : "center",
+          gap: hasLabel ? 8 : 0,
+          whiteSpace: "nowrap",
+        }}
+        onMouseEnter={(event) => {
+          event.currentTarget.style.background = previewColors.mainBackgroundHover;
+          event.currentTarget.style.color = previewColors.mainTextHover;
+        }}
+        onMouseLeave={(event) => {
+          event.currentTarget.style.background = previewColors.mainBackground;
+          event.currentTarget.style.color = previewColors.mainText;
+        }}
+      >
+        {link.icon ? (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: iconWidth,
+              minWidth: iconWidth,
+            }}
+          >
+            {renderMenuIcon(link.icon, {
+              size: 14,
+              color: previewColors.mainText,
+              className: "text-current",
+            })}
+          </span>
+        ) : null}
+        {hasLabel ? (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              ...(isVerticalMenu ? mainTypography : mainTypography),
+              lineHeight: 1.2,
+            }}
+          >
+            {label}
+          </span>
+        ) : null}
+      </button>
+    );
+  };
   const renderSearchControl = (marginLeft?: string | number) => {
     if (!builderSettings.elementsShowSearch || isMobilePreview) return null;
     return (
@@ -13605,7 +13776,7 @@ export default function MenuBuilder() {
                         +
                       </button>
                     </div>
-                    {rightAlignedMenuItems.length > 0 ? (
+                    {hasRightSideItems ? (
                       <div
                         style={{
                           marginLeft: isVerticalMenu ? 0 : "auto",
@@ -13615,11 +13786,13 @@ export default function MenuBuilder() {
                         }}
                       >
                         {rightAlignedMenuItems.map((item) => renderMenuItemButton(item))}
+                        {accountLinks.map((link) => renderAccountLinkButton(link))}
                         {renderSearchControl(0)}
                       </div>
                     ) : (
                       <>
                         {rightAlignedMenuItems.map((item) => renderMenuItemButton(item))}
+                        {accountLinks.map((link) => renderAccountLinkButton(link))}
                         {renderSearchControl("auto")}
                       </>
                     )}

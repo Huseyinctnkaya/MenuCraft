@@ -12760,8 +12760,8 @@ export default function MenuBuilder() {
               >
                 <Icon source={panel.icon} tone={activePanel === panel.id ? "primary" : "subdued"} />
               </button>
-              <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-                <span className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-l border-t border-gray-200 bg-white" />
+              <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 translate-x-0 whitespace-nowrap rounded-md border border-gray-200 bg-white px-3 py-1 text-left text-xs font-medium text-gray-700 opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+                <span className="absolute -top-1 left-3 h-2 w-2 -translate-x-1/2 rotate-45 border-l border-t border-gray-200 bg-white" />
                 {panel.label}
               </span>
             </div>

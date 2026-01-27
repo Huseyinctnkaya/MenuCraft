@@ -255,6 +255,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let latestArticles: LatestArticleSummary[] = [];
   let pages: PageSummary[] = [];
   let menus: Array<{ id: string; title: string; handle?: string | null }> = [];
+  let storefrontPasswordEnabled: boolean | null = null;
 
   try {
     const response = await admin.graphql(
@@ -366,6 +367,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             handle
           }
         }
+        shop {
+          passwordEnabled
+        }
       }`,
       { variables: { menusFirst: 50 } }
     );
@@ -374,9 +378,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       console.error("Menus query errors", (data as any).errors);
     }
     menus = data?.data?.menus?.nodes ?? [];
+    const passwordEnabled = data?.data?.shop?.passwordEnabled;
+    storefrontPasswordEnabled =
+      typeof passwordEnabled === "boolean" ? passwordEnabled : null;
   } catch (error) {
     console.error("Failed to fetch menus", error);
     menus = [];
+    storefrontPasswordEnabled = null;
   }
 
   return json({
@@ -394,6 +402,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     latestArticles,
     pages,
     menus,
+    storefrontPasswordEnabled,
+    shopDomain: shop,
   });
 };
 
@@ -526,6 +536,8 @@ export default function MenuBuilder() {
     latestArticles,
     pages,
     menus,
+    storefrontPasswordEnabled,
+    shopDomain,
   } = useLoaderData<typeof loader>();
   const normalizedMenuSettings = useMemo(() => {
     const next = { ...menuSettings } as BuilderSettings;
@@ -7643,12 +7655,6 @@ export default function MenuBuilder() {
               choices={[
                 { label: "Automatic", value: "auto" },
                 { label: "Replace navigation", value: "replaceNavigation" },
-                {
-                  label: "Show menu in this CSS selector",
-                  value: "cssSelector",
-                  helpText:
-                    "Use this option only if you're a developer or the options above don't work.",
-                },
               ]}
               selected={[builderSettings.layoutLocation]}
               onChange={(value) =>
@@ -7665,7 +7671,7 @@ export default function MenuBuilder() {
                         label: menuOption.title,
                         value: menuOption.id,
                       }))
-                      : [{ label: "Menü bulunamadı", value: "" }]
+                      : [{ label: "No menus found", value: "" }]
                   }
                   value={builderSettings.layoutReplaceDesktopMenuId}
                   onChange={(value) => updateBuilderSetting("layoutReplaceDesktopMenuId", value)}
@@ -7678,21 +7684,46 @@ export default function MenuBuilder() {
                         label: menuOption.title,
                         value: menuOption.id,
                       }))
-                      : [{ label: "Menü bulunamadı", value: "" }]
+                      : [{ label: "No menus found", value: "" }]
                   }
                   value={builderSettings.layoutReplaceMobileMenuId}
                   onChange={(value) => updateBuilderSetting("layoutReplaceMobileMenuId", value)}
                 />
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                  <Text as="p" variant="bodySm" tone="subdued">
-                    To refresh the menu list, please remove the storefront password.
-                  </Text>
-                  <div className="mt-3">
-                    <Button variant="secondary">Remove storefront password</Button>
+                {storefrontPasswordEnabled !== false ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      To refresh the menu list, please remove the storefront password.
+                    </Text>
+                    <div className="mt-3">
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          if (typeof window === "undefined") return;
+                          const url = `https://${shopDomain}/admin/online_store/preferences`;
+                          window.open(url, "_blank", "noopener,noreferrer");
+                        }}
+                      >
+                        Remove storefront password
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ) : null}
               </BlockStack>
             ) : null}
+            <ChoiceList
+              choices={[
+                {
+                  label: "Show menu in this CSS selector",
+                  value: "cssSelector",
+                  helpText:
+                    "Use this option only if you're a developer or the options above don't work.",
+                },
+              ]}
+              selected={[builderSettings.layoutLocation]}
+              onChange={(value) =>
+                updateBuilderSetting("layoutLocation", value[0] as BuilderSettings["layoutLocation"])
+              }
+            />
           </BlockStack>
 
           <Divider />

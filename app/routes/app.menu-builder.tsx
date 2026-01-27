@@ -499,6 +499,24 @@ export default function MenuBuilder() {
     latestArticles,
     pages,
   } = useLoaderData<typeof loader>();
+  const normalizedMenuSettings = useMemo(() => {
+    const next = { ...menuSettings } as BuilderSettings;
+    const legacyAccountLabels: Partial<Record<keyof BuilderSettings, string>> = {
+      accountLoginLabel: "Login",
+      accountRegisterLabel: "Register",
+      accountAccountLabel: "Account",
+      accountLogoutLabel: "Logout",
+    };
+    (Object.entries(legacyAccountLabels) as [keyof BuilderSettings, string][]).forEach(
+      ([key, legacy]) => {
+        const current = next[key];
+        if (typeof current === "string" && current.trim() === legacy) {
+          next[key] = "" as never;
+        }
+      }
+    );
+    return next;
+  }, [menuSettings]);
   const normalizedMenuItems = useMemo(
     () => normalizeMultiBlocks(initialMenuItems),
     [initialMenuItems]
@@ -514,7 +532,7 @@ export default function MenuBuilder() {
   }>({
     status: menu.status === "active" ? "active" : "draft",
     items: defaultExpandedMenuItems,
-    settings: { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings },
+    settings: { ...DEFAULT_BUILDER_SETTINGS, ...normalizedMenuSettings },
   });
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const apiKey = appData?.apiKey ?? "";
@@ -595,7 +613,7 @@ export default function MenuBuilder() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultExpandedMenuItems);
   const [builderSettings, setBuilderSettings] = useState<BuilderSettings>({
     ...DEFAULT_BUILDER_SETTINGS,
-    ...menuSettings,
+    ...normalizedMenuSettings,
   });
   const [requiresExplicitSave, setRequiresExplicitSave] = useState(false);
   const [activeSaveAction, setActiveSaveAction] = useState<"save" | "publish" | "enable" | null>(
@@ -609,6 +627,7 @@ export default function MenuBuilder() {
   const [iconPickerSearch, setIconPickerSearch] = useState("");
   const iconPickerScrollRef = useRef<HTMLDivElement | null>(null);
   const [accountIconMenuOpenId, setAccountIconMenuOpenId] = useState<string | null>(null);
+  const [editIconMenuOpenId, setEditIconMenuOpenId] = useState<string | null>(null);
   const [submenuImagePickerOpen, setSubmenuImagePickerOpen] = useState(false);
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [imagePickerSelection, setImagePickerSelection] = useState<string | null>(null);
@@ -5232,40 +5251,79 @@ export default function MenuBuilder() {
                     <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center">
                       <div className="flex flex-col items-center gap-3">
                         {editingItem.icon ? (
-                          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                            {resolveCustomIconPreview(editingItem.icon)}
-                          </div>
-                        ) : null}
-                        <InlineStack align="center" blockAlign="center" gap="200">
-                          <button
-                            type="button"
-                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                            onClick={() => openIconPicker("edit", editingItem.id, "library")}
-                          >
-                            Select icon
-                          </button>
-                          <Text as="span" variant="bodySm" tone="subdued">
-                            or
-                          </Text>
-                          <button
-                            type="button"
-                            className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                            onClick={() => openIconPicker("edit", editingItem.id, "upload")}
-                          >
-                            Upload icon
-                          </button>
-                        </InlineStack>
-                        {editingItem.icon ? (
-                          <div className="flex justify-center">
+                          <>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                              {resolveCustomIconPreview(editingItem.icon)}
+                            </div>
+                            <Popover
+                              active={editIconMenuOpenId === editingItem.id}
+                              onClose={() => setEditIconMenuOpenId(null)}
+                              activator={
+                                <Button
+                                  variant="secondary"
+                                  disclosure
+                                  onClick={() =>
+                                    setEditIconMenuOpenId((prev) =>
+                                      prev === editingItem.id ? null : editingItem.id
+                                    )
+                                  }
+                                >
+                                  Change
+                                </Button>
+                              }
+                            >
+                              <ActionList
+                                items={[
+                                  {
+                                    content: "Select icon",
+                                    icon: ImageIcon,
+                                    onAction: () => {
+                                      setEditIconMenuOpenId(null);
+                                      openIconPicker("edit", editingItem.id, "library");
+                                    },
+                                  },
+                                  {
+                                    content: "Upload icon",
+                                    icon: UploadIcon,
+                                    onAction: () => {
+                                      setEditIconMenuOpenId(null);
+                                      openIconPicker("edit", editingItem.id, "upload");
+                                    },
+                                  },
+                                  {
+                                    content: "Remove",
+                                    icon: DeleteIcon,
+                                    destructive: true,
+                                    onAction: () => {
+                                      setEditIconMenuOpenId(null);
+                                      updateEditDraft("icon", "");
+                                    },
+                                  },
+                                ]}
+                              />
+                            </Popover>
+                          </>
+                        ) : (
+                          <InlineStack align="center" blockAlign="center" gap="200">
                             <button
                               type="button"
-                              className="text-sm font-medium text-red-600 hover:text-red-700"
-                              onClick={() => updateEditDraft("icon", "")}
+                              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                              onClick={() => openIconPicker("edit", editingItem.id, "library")}
                             >
-                              Remove icon
+                              Select icon
                             </button>
-                          </div>
-                        ) : null}
+                            <Text as="span" variant="bodySm" tone="subdued">
+                              or
+                            </Text>
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                              onClick={() => openIconPicker("edit", editingItem.id, "upload")}
+                            >
+                              Upload icon
+                            </button>
+                          </InlineStack>
+                        )}
                       </div>
                     </div>
                   </BlockStack>
@@ -5714,42 +5772,82 @@ export default function MenuBuilder() {
                             <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-4 text-center">
                               <div className="flex flex-col items-center gap-3">
                                 {child.icon ? (
-                                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
-                                    {resolveCustomIconPreview(child.icon)}
-                                  </div>
-                                ) : null}
-                                <InlineStack align="center" blockAlign="center" gap="200">
-                                  <button
-                                    type="button"
-                                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                                    onClick={() => openIconPicker("edit", child.id, "library")}
-                                  >
-                                    Select icon
-                                  </button>
-                                  <Text as="span" variant="bodySm" tone="subdued">
-                                    or
-                                  </Text>
-                                  <button
-                                    type="button"
-                                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
-                                    onClick={() => openIconPicker("edit", child.id, "upload")}
-                                  >
-                                    Upload icon
-                                  </button>
-                                </InlineStack>
-                                {child.icon ? (
-                                  <div className="flex justify-center">
-                                    <button
-                                      type="button"
-                                      className="text-sm font-medium text-red-600 hover:text-red-700"
-                                      onClick={() =>
-                                        updateEditDraftItemById(child.id, (item) => ({ ...item, icon: "" }))
+                                  <>
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-white shadow-sm">
+                                      {resolveCustomIconPreview(child.icon)}
+                                    </div>
+                                    <Popover
+                                      active={editIconMenuOpenId === child.id}
+                                      onClose={() => setEditIconMenuOpenId(null)}
+                                      activator={
+                                        <Button
+                                          variant="secondary"
+                                          disclosure
+                                          onClick={() =>
+                                            setEditIconMenuOpenId((prev) =>
+                                              prev === child.id ? null : child.id
+                                            )
+                                          }
+                                        >
+                                          Change
+                                        </Button>
                                       }
                                     >
-                                      Remove icon
+                                      <ActionList
+                                        items={[
+                                          {
+                                            content: "Select icon",
+                                            icon: ImageIcon,
+                                            onAction: () => {
+                                              setEditIconMenuOpenId(null);
+                                              openIconPicker("edit", child.id, "library");
+                                            },
+                                          },
+                                          {
+                                            content: "Upload icon",
+                                            icon: UploadIcon,
+                                            onAction: () => {
+                                              setEditIconMenuOpenId(null);
+                                              openIconPicker("edit", child.id, "upload");
+                                            },
+                                          },
+                                          {
+                                            content: "Remove",
+                                            icon: DeleteIcon,
+                                            destructive: true,
+                                            onAction: () => {
+                                              setEditIconMenuOpenId(null);
+                                              updateEditDraftItemById(child.id, (item) => ({
+                                                ...item,
+                                                icon: "",
+                                              }));
+                                            },
+                                          },
+                                        ]}
+                                      />
+                                    </Popover>
+                                  </>
+                                ) : (
+                                  <InlineStack align="center" blockAlign="center" gap="200">
+                                    <button
+                                      type="button"
+                                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                      onClick={() => openIconPicker("edit", child.id, "library")}
+                                    >
+                                      Select icon
                                     </button>
-                                  </div>
-                                ) : null}
+                                    <Text as="span" variant="bodySm" tone="subdued">
+                                      or
+                                    </Text>
+                                    <button
+                                      type="button"
+                                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                      onClick={() => openIconPicker("edit", child.id, "upload")}
+                                    >
+                                      Upload icon
+                                    </button>
+                                  </InlineStack>
+                                )}
                               </div>
                             </div>
                             <TextField
@@ -12341,7 +12439,8 @@ export default function MenuBuilder() {
       const snapshot = savedSnapshotRef.current;
       const nextStatus = snapshot.status ?? menu.status ?? "draft";
       const nextItems = snapshot.items ?? normalizedMenuItems;
-      const nextSettings = snapshot.settings ?? { ...DEFAULT_BUILDER_SETTINGS, ...menuSettings };
+      const nextSettings =
+        snapshot.settings ?? { ...DEFAULT_BUILDER_SETTINGS, ...normalizedMenuSettings };
       setMenuStatus(nextStatus === "active" ? "active" : "draft");
       setMenuItems(nextItems);
       setSelectedItemId(nextItems[0]?.id ?? null);

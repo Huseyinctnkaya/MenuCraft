@@ -18,6 +18,8 @@
 
   const DEFAULT_SETTINGS = {
     layoutLocation: "replaceNavigation",
+    layoutCssSelectorDesktop: "#SiteNav",
+    layoutCssSelectorMobile: "#AccessibleNav",
     layoutOrientation: "horizontal",
     layoutAlignment: "left",
     layoutMaxWidth: "",
@@ -137,44 +139,72 @@
       document.querySelector(".header") ||
       document.querySelector(".site-header") ||
       document.body;
-    return header;
-  };
+    const getMountTarget = (settings) => {
+      const rootId = root.id;
 
-  const renderMenu = (menu) => {
-    const settings = normalizeSettings(menu.settings);
-    const container = createElement("nav", "menucraft-menu");
-    container.style.background = settings.colorMainBackground;
-    container.style.color = settings.colorMainText;
-    container.style.minHeight = `${settings.spacingMainRowHeight}px`;
+      if (settings.layoutLocation === "cssSelector") {
+        const mobileBreakpoint = settings.advancedMobileBreakpoint || 768;
+        const isMobile = window.innerWidth <= mobileBreakpoint;
+        const selector = isMobile
+          ? settings.layoutCssSelectorMobile
+          : settings.layoutCssSelectorDesktop;
 
-    const inner = createElement("div", "menucraft-menu-inner");
-    if (settings.layoutMaxWidth) {
-      inner.style.maxWidth =
-        settings.layoutMaxWidth.trim().length > 0 && /\d/.test(settings.layoutMaxWidth)
-          ? `${settings.layoutMaxWidth.replace(/px$/, "")}px`
-          : settings.layoutMaxWidth;
-    }
+        if (selector) {
+          const target = document.querySelector(selector);
+          if (target) return target;
+        }
+      }
 
-    const list = buildMenuItems(Array.isArray(menu.items) ? menu.items : [], settings);
-    if (settings.layoutAlignment === "center") {
-      list.style.justifyContent = "center";
-    } else if (settings.layoutAlignment === "right") {
-      list.style.justifyContent = "flex-end";
-    }
+      const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
+      if (shouldReplace) {
+        hideExistingNavigation(rootId);
+      }
+      if (rootId === "menucraft-block-root" && root.parentElement) {
+        return root.parentElement;
+      }
+      const header =
+        document.querySelector("header") ||
+        document.querySelector(".header") ||
+        document.querySelector(".site-header") ||
+        document.body;
+      return header;
+    };
 
-    inner.appendChild(list);
+    const renderMenu = (menu) => {
+      const settings = normalizeSettings(menu.settings);
+      const container = createElement("nav", "menucraft-menu");
+      container.style.background = settings.colorMainBackground;
+      container.style.color = settings.colorMainText;
+      container.style.minHeight = `${settings.spacingMainRowHeight}px`;
 
-    if (settings.elementsShowSearch) {
-      const searchLink = createElement("a", "menucraft-search", "Search");
-      searchLink.href = "/search";
-      inner.appendChild(searchLink);
-    }
+      const inner = createElement("div", "menucraft-menu-inner");
+      if (settings.layoutMaxWidth) {
+        inner.style.maxWidth =
+          settings.layoutMaxWidth.trim().length > 0 && /\d/.test(settings.layoutMaxWidth)
+            ? `${settings.layoutMaxWidth.replace(/px$/, "")}px`
+            : settings.layoutMaxWidth;
+      }
 
-    container.appendChild(inner);
+      const list = buildMenuItems(Array.isArray(menu.items) ? menu.items : [], settings);
+      if (settings.layoutAlignment === "center") {
+        list.style.justifyContent = "center";
+      } else if (settings.layoutAlignment === "right") {
+        list.style.justifyContent = "flex-end";
+      }
 
-    const styleTag = document.createElement("style");
-    const rootId = root.id;
-    styleTag.textContent = `
+      inner.appendChild(list);
+
+      if (settings.elementsShowSearch) {
+        const searchLink = createElement("a", "menucraft-search", "Search");
+        searchLink.href = "/search";
+        inner.appendChild(searchLink);
+      }
+
+      container.appendChild(inner);
+
+      const styleTag = document.createElement("style");
+      const rootId = root.id;
+      styleTag.textContent = `
       #${rootId} { width: 100%; }
       .menucraft-menu { width: 100%; position: relative; z-index: 50; }
       .menucraft-menu-inner { width: 100%; margin: 0 auto; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; }
@@ -241,35 +271,35 @@
       }
     `;
 
-    const mountTarget = getMountTarget(settings);
-    if (!mountTarget) return;
+      const mountTarget = getMountTarget(settings);
+      if (!mountTarget) return;
 
-    root.innerHTML = "";
-    root.appendChild(container);
+      root.innerHTML = "";
+      root.appendChild(container);
 
-    const existingStyle = document.head.querySelector("style[data-menucraft]");
-    if (existingStyle) {
-      existingStyle.remove();
-    }
-    styleTag.setAttribute("data-menucraft", "true");
-    document.head.appendChild(styleTag);
+      const existingStyle = document.head.querySelector("style[data-menucraft]");
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+      styleTag.setAttribute("data-menucraft", "true");
+      document.head.appendChild(styleTag);
 
-    if (root.parentElement !== mountTarget) {
-      mountTarget.prepend(root);
-    }
-  };
+      if (root.parentElement !== mountTarget) {
+        mountTarget.prepend(root);
+      }
+    };
 
-  const loadMenu = async () => {
-    try {
-      const response = await fetch(PROXY_URL, { credentials: "include" });
-      if (!response.ok) return;
-      const data = await response.json();
-      if (!data || !data.menu || data.menu.status !== "active") return;
-      renderMenu(data.menu);
-    } catch (error) {
-      console.error("MenuCraft embed failed", error);
-    }
-  };
+    const loadMenu = async () => {
+      try {
+        const response = await fetch(PROXY_URL, { credentials: "include" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!data || !data.menu || data.menu.status !== "active") return;
+        renderMenu(data.menu);
+      } catch (error) {
+        console.error("MenuCraft embed failed", error);
+      }
+    };
 
-  loadMenu();
-})();
+    loadMenu();
+  })();

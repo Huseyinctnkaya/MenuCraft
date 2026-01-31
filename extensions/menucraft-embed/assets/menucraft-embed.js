@@ -49,7 +49,21 @@
     colorSubmenuBorder: "#D1D1D1",
     colorSubmenuHeading: "#AE2828",
     colorSubmenuText: "#313131",
+    colorSubmenuText: "#313131",
     colorSubmenuTextHover: "#000000",
+    colorTabHeading: "#202020",
+    colorTabHeadingActive: "#000000",
+    colorTabBackgroundActive: "#D9D9D9",
+    colorBadgeSaleText: "#FFFFFF",
+    colorBadgeSaleBackground: "#D32F2F",
+    colorBadgeSoldOutText: "#FFFFFF",
+    colorBadgeSoldOutBackground: "#757575",
+    colorButtonText: "#FFFFFF",
+    colorButtonBackground: "#000000",
+    colorButtonBackgroundHover: "#333333",
+    colorButtonTextHover: "#FFFFFF",
+    colorSubmenuDescription: "#666666",
+    colorSubmenuDescriptionHover: "#333333",
     submenuShowBorder: true,
     submenuEnableDesktopScroll: true,
     submenuEnableMobileScroll: true,
@@ -293,6 +307,9 @@
         min-height: ${settings.spacingLinkListRowHeight}px;
         display: flex;
         align-items: center;
+      }
+      .menucraft-submenu .menucraft-menu-link:hover {
+        color: ${settings.colorSubmenuTextHover};
       }
       .menucraft-submenu .menucraft-menu-item { padding: 0; border-right: none; min-height: auto; }
       .menucraft-menu-item.has-children:hover .menucraft-submenu { display: block; }

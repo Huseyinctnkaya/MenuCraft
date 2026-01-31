@@ -64,6 +64,7 @@
     colorButtonTextHover: "#FFFFFF",
     colorSubmenuDescription: "#666666",
     colorSubmenuDescriptionHover: "#333333",
+    customCss: "",
     submenuShowBorder: true,
     submenuEnableDesktopScroll: true,
     submenuEnableMobileScroll: true,
@@ -319,6 +320,7 @@
         text-decoration: none;
         font-size: 13px;
       }
+      ${settings.customCss || ""}
     `;
 
     const mountTarget = getMountTarget(settings);

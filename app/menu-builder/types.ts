@@ -55,19 +55,19 @@ export type MenuItem = {
   linkTextAlign?: "left" | "center" | "right";
   isHeading?: boolean;
   multiLayout?:
-    | "multi-links"
-    | "multi-3-photo"
-    | "multi-2-photos"
-    | "multi-1-3-photos"
-    | "multi-4-images"
-    | "multi-4-products"
-    | "multi-map-contact-address"
-    | "multi-4-product-list"
-    | "multi-1-column-3-product-list"
-    | "multi-product-carousel"
-    | "multi-link-list-product-carousel"
-    | "multi-image-product-carousel"
-    | "multi-element-group-masonry";
+  | "multi-links"
+  | "multi-3-photo"
+  | "multi-2-photos"
+  | "multi-1-3-photos"
+  | "multi-4-images"
+  | "multi-4-products"
+  | "multi-map-contact-address"
+  | "multi-4-product-list"
+  | "multi-1-column-3-product-list"
+  | "multi-product-carousel"
+  | "multi-link-list-product-carousel"
+  | "multi-image-product-carousel"
+  | "multi-element-group-masonry";
 };
 
 export type SubmenuTemplateId =
@@ -223,6 +223,8 @@ export type BuilderSettings = {
   layoutMaxWidth: string;
   layoutReplaceDesktopMenuId: string;
   layoutReplaceMobileMenuId: string;
+  layoutCssSelectorDesktop: string;
+  layoutCssSelectorMobile: string;
   accountShowLogin: boolean;
   accountShowRegister: boolean;
   accountShowAccount: boolean;

@@ -144,6 +144,8 @@ export const DEFAULT_BUILDER_SETTINGS: BuilderSettings = {
   layoutMaxWidth: "1200px",
   layoutReplaceDesktopMenuId: "",
   layoutReplaceMobileMenuId: "",
+  layoutCssSelectorDesktop: "#SiteNav",
+  layoutCssSelectorMobile: "#AccessibleNav",
   accountShowLogin: true,
   accountShowRegister: true,
   accountShowAccount: true,

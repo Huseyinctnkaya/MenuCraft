@@ -27,6 +27,7 @@ import {
   Text,
   TextField,
   Icon,
+  Link,
 } from "@shopify/polaris";
 import {
   ArrowLeftIcon,
@@ -6516,10 +6517,10 @@ export default function MenuBuilder() {
                           Submenu
                         </Text>
                         {editingItem.submenuType === "dropdown" ||
-                        editingItem.submenuType === "horizontal-dropdown" ||
-                        editingItem.submenuTemplate === "dropdown" ||
-                        editingItem.submenuTemplate === "horizontal-dropdown" ||
-                        editingItem.submenuTemplate === "custom-normal-dropdown" ? (
+                          editingItem.submenuType === "horizontal-dropdown" ||
+                          editingItem.submenuTemplate === "dropdown" ||
+                          editingItem.submenuTemplate === "horizontal-dropdown" ||
+                          editingItem.submenuTemplate === "custom-normal-dropdown" ? (
                           <>
                             <Select
                               label="Type"
@@ -7715,8 +7716,11 @@ export default function MenuBuilder() {
                 {
                   label: "Show menu in this CSS selector",
                   value: "cssSelector",
-                  helpText:
-                    "Use this option only if you're a developer or the options above don't work.",
+                  helpText: (
+                    <Text as="span" variant="bodyMd" tone="subdued">
+                      Use this option only if you're a developer or the options above don't work.
+                    </Text>
+                  ),
                 },
               ]}
               selected={[builderSettings.layoutLocation]}
@@ -7724,6 +7728,29 @@ export default function MenuBuilder() {
                 updateBuilderSetting("layoutLocation", value[0] as BuilderSettings["layoutLocation"])
               }
             />
+            {builderSettings.layoutLocation === "cssSelector" ? (
+              <BlockStack gap="300">
+                <TextField
+                  label="CSS Selector for your main menu"
+                  value={builderSettings.layoutCssSelectorDesktop}
+                  onChange={(value) => updateBuilderSetting("layoutCssSelectorDesktop", value)}
+                  autoComplete="off"
+                  placeholder="#SiteNav"
+                />
+                <TextField
+                  label="CSS Selector for your mobile menus"
+                  value={builderSettings.layoutCssSelectorMobile}
+                  onChange={(value) => updateBuilderSetting("layoutCssSelectorMobile", value)}
+                  autoComplete="off"
+                  placeholder="#AccessibleNav"
+                />
+                <div>
+                  <Link url="#" target="_blank">
+                    How to find your menu's CSS selector?
+                  </Link>
+                </div>
+              </BlockStack>
+            ) : null}
           </BlockStack>
 
           <Divider />
@@ -11141,44 +11168,44 @@ export default function MenuBuilder() {
                         setActiveDropdownItemId(null);
                       }
                     }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: dropdownAlignJustify,
-                    gap: 12,
-                    minHeight: dropdownItemHeight,
-                    padding: "18px 20px",
-                    paddingRight: hasChildren ? 44 : 20,
-                    borderRadius: 0,
-                    border: "none",
-                    background: "transparent",
-                    color: previewColors.submenuText,
-                    width: "100%",
-                    textAlign: dropdownContentAlign,
-                    ...subtextTypography,
-                    lineHeight: 1.2,
-                    position: "relative",
-                  }}
-                >
-                  <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
-                    {child.label}
-                  </span>
-                  {hasChildren ? (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transform: isActiveChild ? "rotate(180deg)" : "rotate(0deg)",
-                        transition: "transform 150ms ease",
-                        position: "absolute",
-                        right: 20,
-                      }}
-                    >
-                      <ChevronDownIcon width="14" height="14" fill={previewColors.submenuText} />
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: dropdownAlignJustify,
+                      gap: 12,
+                      minHeight: dropdownItemHeight,
+                      padding: "18px 20px",
+                      paddingRight: hasChildren ? 44 : 20,
+                      borderRadius: 0,
+                      border: "none",
+                      background: "transparent",
+                      color: previewColors.submenuText,
+                      width: "100%",
+                      textAlign: dropdownContentAlign,
+                      ...subtextTypography,
+                      lineHeight: 1.2,
+                      position: "relative",
+                    }}
+                  >
+                    <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
+                      {child.label}
                     </span>
-                  ) : null}
+                    {hasChildren ? (
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transform: isActiveChild ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 150ms ease",
+                          position: "absolute",
+                          right: 20,
+                        }}
+                      >
+                        <ChevronDownIcon width="14" height="14" fill={previewColors.submenuText} />
+                      </span>
+                    ) : null}
                   </button>
                   <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
                     <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
@@ -11284,9 +11311,8 @@ export default function MenuBuilder() {
                                       display: "inline-flex",
                                       alignItems: "center",
                                       justifyContent: "center",
-                                      transform: `${
-                                        isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
-                                      } translateY(-50%)`,
+                                      transform: `${isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
+                                        } translateY(-50%)`,
                                       transition: "transform 150ms ease",
                                       position: "absolute",
                                       right: 0,
@@ -11445,9 +11471,8 @@ export default function MenuBuilder() {
                                       display: "inline-flex",
                                       alignItems: "center",
                                       justifyContent: "center",
-                                      transform: `${
-                                        isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
-                                      } translateY(-50%)`,
+                                      transform: `${isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
+                                        } translateY(-50%)`,
                                       transition: "transform 150ms ease",
                                       position: "absolute",
                                       right: 0,
@@ -11601,9 +11626,8 @@ export default function MenuBuilder() {
                                           display: "inline-flex",
                                           alignItems: "center",
                                           justifyContent: "center",
-                                          transform: `${
-                                            isDeepActive ? "rotate(180deg)" : "rotate(0deg)"
-                                          } translateY(-50%)`,
+                                          transform: `${isDeepActive ? "rotate(180deg)" : "rotate(0deg)"
+                                            } translateY(-50%)`,
                                           transition: "transform 150ms ease",
                                           position: "absolute",
                                           right: 0,
@@ -12107,9 +12131,8 @@ export default function MenuBuilder() {
                                       display: "inline-flex",
                                       alignItems: "center",
                                       justifyContent: "center",
-                                      transform: `${
-                                        isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
-                                      } translateY(-50%)`,
+                                      transform: `${isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
+                                        } translateY(-50%)`,
                                       transition: "transform 150ms ease",
                                       position: "absolute",
                                       right: 0,
@@ -12268,9 +12291,8 @@ export default function MenuBuilder() {
                                       display: "inline-flex",
                                       alignItems: "center",
                                       justifyContent: "center",
-                                      transform: `${
-                                        isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
-                                      } translateY(-50%)`,
+                                      transform: `${isSubItemActive ? "rotate(180deg)" : "rotate(0deg)"
+                                        } translateY(-50%)`,
                                       transition: "transform 150ms ease",
                                       position: "absolute",
                                       right: 0,
@@ -12424,9 +12446,8 @@ export default function MenuBuilder() {
                                           display: "inline-flex",
                                           alignItems: "center",
                                           justifyContent: "center",
-                                          transform: `${
-                                            isDeepActive ? "rotate(180deg)" : "rotate(0deg)"
-                                          } translateY(-50%)`,
+                                          transform: `${isDeepActive ? "rotate(180deg)" : "rotate(0deg)"
+                                            } translateY(-50%)`,
                                           transition: "transform 150ms ease",
                                           position: "absolute",
                                           right: 0,
@@ -15431,8 +15452,8 @@ export default function MenuBuilder() {
 
                 {/* Horizontal Dropdown */}
                 {isHorizontalDropdownMenu &&
-                horizontalDropdownItems.length > 0 &&
-                !shouldInlineMobileHorizontalDropdownPanel ? (
+                  horizontalDropdownItems.length > 0 &&
+                  !shouldInlineMobileHorizontalDropdownPanel ? (
                   <div
                     style={{
                       position: "absolute",
@@ -16253,303 +16274,303 @@ export default function MenuBuilder() {
                 dropdownGroups.length > 0 &&
                 !isDropdownMenu &&
                 !isHorizontalDropdownMenu && (
-                <div
-                  style={{
-                    background: previewColors.submenuBackground,
-                    border: builderSettings.submenuShowBorder
-                      ? `1px solid ${previewColors.submenuBorder}`
-                      : "none",
-                    borderRadius: 0,
-                    marginTop: 0,
-                    padding: "10px",
-                    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
-                    maxWidth: submenuMaxWidth ?? "none",
-                    ...(isMobilePreview
-                      ? {
-                        position: "absolute",
-                        top: dropdownTop,
-                        left: 0,
-                        right: 0,
-                        width: "100%",
-                        zIndex: 20,
-                      }
-                      : {}),
-                    overflowY: enableDropdownScroll ? "auto" : "visible",
-                    maxHeight: enableDropdownScroll ? 420 : "none",
-                    opacity: 1,
-                    transform:
-                      builderSettings.animationEffect === "slide"
-                        ? "translateY(0)"
-                        : builderSettings.animationEffect === "scale"
-                          ? "scale(1)"
-                          : "none",
-                    transition: `opacity ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms, transform ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms`,
-                  }}
-                >
-                  {(() => {
-                    const orderedDropdownGroups = useImageSpaceLayout
-                      ? dropdownGroups.some((group) => group.multiLayout)
-                        ? dropdownGroups
-                        : [...dropdownGroups].sort((a, b) => {
-                          const aPriority =
-                            a.blockTemplate === "image" ||
-                              a.blockTemplate === "image2" ||
-                              a.blockTemplate === "contact" ||
-                              a.blockTemplate === "product" ||
-                              a.blockTemplate === "product-horizontal" ||
-                              a.blockTemplate === "product-grid" ||
-                              a.blockTemplate === "product-carousel" ||
-                              a.blockTemplate === "product-grid-horizontal"
-                              ? 0
-                              : 1;
-                          const bPriority =
-                            b.blockTemplate === "image" ||
-                              b.blockTemplate === "image2" ||
-                              b.blockTemplate === "contact" ||
-                              b.blockTemplate === "product" ||
-                              b.blockTemplate === "product-horizontal" ||
-                              b.blockTemplate === "product-grid" ||
-                              b.blockTemplate === "product-carousel" ||
-                              b.blockTemplate === "product-grid-horizontal"
-                              ? 0
-                              : 1;
-                          return aPriority - bPriority;
-                        })
-                      : dropdownGroups;
-                    const masonryGroups = orderedDropdownGroups.filter(
-                      (group) => group.multiLayout === "multi-element-group-masonry"
-                    );
-                    const renderQueue: Array<
-                      | { type: "masonry"; key: string }
-                      | { type: "group"; key: string; group: MenuItem }
-                    > = [];
-                    let masonryInserted = false;
-                    orderedDropdownGroups.forEach((group) => {
-                      if (group.multiLayout === "multi-element-group-masonry") {
-                        if (!masonryInserted) {
-                          renderQueue.push({
-                            type: "masonry",
-                            key: "multi-element-group-masonry",
-                          });
-                          masonryInserted = true;
+                  <div
+                    style={{
+                      background: previewColors.submenuBackground,
+                      border: builderSettings.submenuShowBorder
+                        ? `1px solid ${previewColors.submenuBorder}`
+                        : "none",
+                      borderRadius: 0,
+                      marginTop: 0,
+                      padding: "10px",
+                      boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
+                      maxWidth: submenuMaxWidth ?? "none",
+                      ...(isMobilePreview
+                        ? {
+                          position: "absolute",
+                          top: dropdownTop,
+                          left: 0,
+                          right: 0,
+                          width: "100%",
+                          zIndex: 20,
                         }
-                        return;
-                      }
-                      renderQueue.push({ type: "group", key: group.id, group });
-                    });
-
-                    return (
-                      <div
-                        style={{
-                          display: useBlockFlexLayout ? "flex" : "grid",
-                          gridTemplateColumns: useBlockFlexLayout
-                            ? undefined
-                            : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
-                          gap: useImageSpaceLayout ? 0 : 24,
-                          alignItems: useBlockFlexLayout ? "flex-start" : undefined,
-                          flexWrap: useBlockFlexLayout ? "wrap" : undefined,
-                          color: previewColors.submenuText,
-                        }}
-                      >
-                        {renderQueue.map((entry) => {
-                          if (entry.type === "masonry") {
-                            return renderElementGroupMasonry(masonryGroups);
-                          }
-                          const group = entry.group;
-                          const isGroupSelected = selectedItemId === group.id;
-                          if (group.blockTemplate === "space") {
-                            const spaceGridColumn = useImageSpaceLayout ? undefined : "1 / -1";
-                            const spaceFlex = useImageSpaceLayout
-                              ? linkBlockCount >= 2
-                                ? "0 0 100%"
-                                : "1 1 auto"
-                              : undefined;
-                            const spaceOrder = useImageSpaceLayout ? (linkBlockCount >= 2 ? 2 : 1) : undefined;
-                            return renderSpaceBlock(group, {
-                              isSelected: isGroupSelected,
-                              wrapperStyle: {
-                                gridColumn: spaceGridColumn,
-                                flex: spaceFlex,
-                                order: spaceOrder,
-                              },
+                        : {}),
+                      overflowY: enableDropdownScroll ? "auto" : "visible",
+                      maxHeight: enableDropdownScroll ? 420 : "none",
+                      opacity: 1,
+                      transform:
+                        builderSettings.animationEffect === "slide"
+                          ? "translateY(0)"
+                          : builderSettings.animationEffect === "scale"
+                            ? "scale(1)"
+                            : "none",
+                      transition: `opacity ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms, transform ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms`,
+                    }}
+                  >
+                    {(() => {
+                      const orderedDropdownGroups = useImageSpaceLayout
+                        ? dropdownGroups.some((group) => group.multiLayout)
+                          ? dropdownGroups
+                          : [...dropdownGroups].sort((a, b) => {
+                            const aPriority =
+                              a.blockTemplate === "image" ||
+                                a.blockTemplate === "image2" ||
+                                a.blockTemplate === "contact" ||
+                                a.blockTemplate === "product" ||
+                                a.blockTemplate === "product-horizontal" ||
+                                a.blockTemplate === "product-grid" ||
+                                a.blockTemplate === "product-carousel" ||
+                                a.blockTemplate === "product-grid-horizontal"
+                                ? 0
+                                : 1;
+                            const bPriority =
+                              b.blockTemplate === "image" ||
+                                b.blockTemplate === "image2" ||
+                                b.blockTemplate === "contact" ||
+                                b.blockTemplate === "product" ||
+                                b.blockTemplate === "product-horizontal" ||
+                                b.blockTemplate === "product-grid" ||
+                                b.blockTemplate === "product-carousel" ||
+                                b.blockTemplate === "product-grid-horizontal"
+                                ? 0
+                                : 1;
+                            return aPriority - bPriority;
+                          })
+                        : dropdownGroups;
+                      const masonryGroups = orderedDropdownGroups.filter(
+                        (group) => group.multiLayout === "multi-element-group-masonry"
+                      );
+                      const renderQueue: Array<
+                        | { type: "masonry"; key: string }
+                        | { type: "group"; key: string; group: MenuItem }
+                      > = [];
+                      let masonryInserted = false;
+                      orderedDropdownGroups.forEach((group) => {
+                        if (group.multiLayout === "multi-element-group-masonry") {
+                          if (!masonryInserted) {
+                            renderQueue.push({
+                              type: "masonry",
+                              key: "multi-element-group-masonry",
                             });
+                            masonryInserted = true;
                           }
-                          if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
-                            return renderImageBlock(group);
-                          }
-                          if (group.blockTemplate === "multi") {
-                            const multiColumns = (group.children ?? []).filter(
-                              (child) => child.role === "group" && child.blockTemplate === "links"
-                            );
+                          return;
+                        }
+                        renderQueue.push({ type: "group", key: group.id, group });
+                      });
+
+                      return (
+                        <div
+                          style={{
+                            display: useBlockFlexLayout ? "flex" : "grid",
+                            gridTemplateColumns: useBlockFlexLayout
+                              ? undefined
+                              : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
+                            gap: useImageSpaceLayout ? 0 : 24,
+                            alignItems: useBlockFlexLayout ? "flex-start" : undefined,
+                            flexWrap: useBlockFlexLayout ? "wrap" : undefined,
+                            color: previewColors.submenuText,
+                          }}
+                        >
+                          {renderQueue.map((entry) => {
+                            if (entry.type === "masonry") {
+                              return renderElementGroupMasonry(masonryGroups);
+                            }
+                            const group = entry.group;
+                            const isGroupSelected = selectedItemId === group.id;
+                            if (group.blockTemplate === "space") {
+                              const spaceGridColumn = useImageSpaceLayout ? undefined : "1 / -1";
+                              const spaceFlex = useImageSpaceLayout
+                                ? linkBlockCount >= 2
+                                  ? "0 0 100%"
+                                  : "1 1 auto"
+                                : undefined;
+                              const spaceOrder = useImageSpaceLayout ? (linkBlockCount >= 2 ? 2 : 1) : undefined;
+                              return renderSpaceBlock(group, {
+                                isSelected: isGroupSelected,
+                                wrapperStyle: {
+                                  gridColumn: spaceGridColumn,
+                                  flex: spaceFlex,
+                                  order: spaceOrder,
+                                },
+                              });
+                            }
+                            if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
+                              return renderImageBlock(group);
+                            }
+                            if (group.blockTemplate === "multi") {
+                              const multiColumns = (group.children ?? []).filter(
+                                (child) => child.role === "group" && child.blockTemplate === "links"
+                              );
+                              return (
+                                <div
+                                  key={group.id}
+                                  className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
+                                  draggable
+                                  onDragStart={(event) => {
+                                    event.dataTransfer.effectAllowed = "move";
+                                    event.dataTransfer.setData("text/plain", group.id);
+                                    setDraggedItemId(group.id);
+                                    const parentId = findParentId(menuItems, group.id);
+                                    setDraggedParentId(parentId ?? null);
+                                    lastDragOverIdRef.current = null;
+                                  }}
+                                  onDragOver={(event) => {
+                                    if (!draggedItemId) return;
+                                    const targetParentId = findParentId(menuItems, group.id);
+                                    if (draggedParentId !== targetParentId) return;
+                                    if (draggedItemId === group.id) return;
+                                    event.preventDefault();
+                                    if (lastDragOverIdRef.current === group.id) return;
+                                    lastDragOverIdRef.current = group.id;
+                                    setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                                  }}
+                                  onDrop={(event) => {
+                                    event.preventDefault();
+                                    if (!draggedItemId) return;
+                                    const targetParentId = findParentId(menuItems, group.id);
+                                    if (draggedParentId !== targetParentId) return;
+                                    setMenuItems((items) => moveItem(items, draggedItemId, group.id));
+                                    setDraggedItemId(null);
+                                    setDraggedParentId(null);
+                                    lastDragOverIdRef.current = null;
+                                  }}
+                                  onDragEnd={() => {
+                                    setDraggedItemId(null);
+                                    setDraggedParentId(null);
+                                    lastDragOverIdRef.current = null;
+                                  }}
+                                  ref={registerPreviewRow(group.id)}
+                                  style={{
+                                    willChange: "transform",
+                                    gridColumn: useBlockFlexLayout ? undefined : "1 / -1",
+                                    flex: useBlockFlexLayout ? "0 0 100%" : undefined,
+                                    border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
+                                    padding: "0",
+                                    borderRadius: 0,
+                                  }}
+                                >
+                                  <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                                    {multiColumns.map((child) =>
+                                      renderLinkListBlock(child, { flex: "1 1 0", wrapperStyle: { minWidth: 0 } })
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            if (group.blockTemplate === "links") {
+                              return renderLinkListBlock(group);
+                            }
+                            if (group.blockTemplate === "html") {
+                              return renderHtmlBlock(group);
+                            }
+                            if (group.blockTemplate === "contact") {
+                              return renderContactBlock(group);
+                            }
+                            if (
+                              group.blockTemplate === "product" ||
+                              group.blockTemplate === "product-horizontal" ||
+                              group.blockTemplate === "product-grid" ||
+                              group.blockTemplate === "product-carousel" ||
+                              group.blockTemplate === "product-grid-horizontal"
+                            ) {
+                              return renderProductBlock(group);
+                            }
+                            if (group.blockTemplate === "collection") {
+                              return renderCollectionBlock(group);
+                            }
+                            if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
+                              return renderBlogBlock(group);
+                            }
                             return (
                               <div
                                 key={group.id}
-                                className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
-                                draggable
-                                onDragStart={(event) => {
-                                  event.dataTransfer.effectAllowed = "move";
-                                  event.dataTransfer.setData("text/plain", group.id);
-                                  setDraggedItemId(group.id);
-                                  const parentId = findParentId(menuItems, group.id);
-                                  setDraggedParentId(parentId ?? null);
-                                  lastDragOverIdRef.current = null;
-                                }}
-                                onDragOver={(event) => {
-                                  if (!draggedItemId) return;
-                                  const targetParentId = findParentId(menuItems, group.id);
-                                  if (draggedParentId !== targetParentId) return;
-                                  if (draggedItemId === group.id) return;
-                                  event.preventDefault();
-                                  if (lastDragOverIdRef.current === group.id) return;
-                                  lastDragOverIdRef.current = group.id;
-                                  setMenuItems((items) => moveItem(items, draggedItemId, group.id));
-                                }}
-                                onDrop={(event) => {
-                                  event.preventDefault();
-                                  if (!draggedItemId) return;
-                                  const targetParentId = findParentId(menuItems, group.id);
-                                  if (draggedParentId !== targetParentId) return;
-                                  setMenuItems((items) => moveItem(items, draggedItemId, group.id));
-                                  setDraggedItemId(null);
-                                  setDraggedParentId(null);
-                                  lastDragOverIdRef.current = null;
-                                }}
-                                onDragEnd={() => {
-                                  setDraggedItemId(null);
-                                  setDraggedParentId(null);
-                                  lastDragOverIdRef.current = null;
-                                }}
-                                ref={registerPreviewRow(group.id)}
                                 style={{
-                                  willChange: "transform",
-                                  gridColumn: useBlockFlexLayout ? undefined : "1 / -1",
-                                  flex: useBlockFlexLayout ? "0 0 100%" : undefined,
-                                  border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
-                                  padding: "0",
-                                  borderRadius: 0,
+                                  border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
+                                  borderRadius: 10,
+                                  padding: "10px 12px",
                                 }}
                               >
-                                <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-                                  {multiColumns.map((child) =>
-                                    renderLinkListBlock(child, { flex: "1 1 0", wrapperStyle: { minWidth: 0 } })
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          }
-                          if (group.blockTemplate === "links") {
-                            return renderLinkListBlock(group);
-                          }
-                          if (group.blockTemplate === "html") {
-                            return renderHtmlBlock(group);
-                          }
-                          if (group.blockTemplate === "contact") {
-                            return renderContactBlock(group);
-                          }
-                          if (
-                            group.blockTemplate === "product" ||
-                            group.blockTemplate === "product-horizontal" ||
-                            group.blockTemplate === "product-grid" ||
-                            group.blockTemplate === "product-carousel" ||
-                            group.blockTemplate === "product-grid-horizontal"
-                          ) {
-                            return renderProductBlock(group);
-                          }
-                          if (group.blockTemplate === "collection") {
-                            return renderCollectionBlock(group);
-                          }
-                          if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
-                            return renderBlogBlock(group);
-                          }
-                          return (
-                            <div
-                              key={group.id}
-                              style={{
-                                border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
-                                borderRadius: 10,
-                                padding: "10px 12px",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  minHeight: builderSettings.spacingTabRowHeight,
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <Text as="h3" variant="headingSm" fontWeight="semibold">
-                                  <span
-                                    style={{
-                                      color: previewColors.submenuHeading,
-                                      ...subheadingTypography,
-                                      lineHeight: 1.2,
-                                    }}
-                                  >
-                                    {group.label}
-                                  </span>
-                                </Text>
-                              </div>
-                              <Divider />
-                              <BlockStack gap="200">
-                                {group.children?.map((child) => {
-                                  const isChildSelected = selectedItemId === child.id;
-                                  return (
-                                    <button
-                                      key={child.id}
-                                      type="button"
-                                      onClick={() => handleSelectItem(child.id)}
-                                      onMouseEnter={(event) => {
-                                        event.currentTarget.style.color = previewColors.submenuTextHover;
-                                      }}
-                                      onMouseLeave={(event) => {
-                                        event.currentTarget.style.color = previewColors.submenuText;
-                                      }}
+                                <div
+                                  style={{
+                                    minHeight: builderSettings.spacingTabRowHeight,
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <Text as="h3" variant="headingSm" fontWeight="semibold">
+                                    <span
                                       style={{
-                                        textAlign: "left",
-                                        border: isChildSelected
-                                          ? `2px dashed ${themeSettings.menuActive}`
-                                          : "2px solid transparent",
-                                        borderRadius: 8,
-                                        padding: "6px 8px",
-                                        minHeight: builderSettings.spacingLinkListRowHeight,
-                                        background: "transparent",
-                                        color: previewColors.submenuText,
-                                        ...subtextTypography,
+                                        color: previewColors.submenuHeading,
+                                        ...subheadingTypography,
                                         lineHeight: 1.2,
                                       }}
                                     >
-                                      {child.label}
-                                    </button>
-                                  );
-                                })}
-                                <Button
-                                  variant="plain"
-                                  icon={PlusIcon}
-                                  size="slim"
-                                  onClick={() => handleAddChild(group.id, "item")}
-                                  style={{
-                                    minHeight: builderSettings.spacingLinkListRowHeight,
-                                    color: previewColors.submenuDescription,
-                                    ...descriptionTypography,
-                                  }}
-                                  onMouseEnter={(event) => {
-                                    event.currentTarget.style.color = previewColors.submenuDescriptionHover;
-                                  }}
-                                  onMouseLeave={(event) => {
-                                    event.currentTarget.style.color = previewColors.submenuDescription;
-                                  }}
-                                >
-                                  Add item
-                                </Button>
-                              </BlockStack>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
+                                      {group.label}
+                                    </span>
+                                  </Text>
+                                </div>
+                                <Divider />
+                                <BlockStack gap="200">
+                                  {group.children?.map((child) => {
+                                    const isChildSelected = selectedItemId === child.id;
+                                    return (
+                                      <button
+                                        key={child.id}
+                                        type="button"
+                                        onClick={() => handleSelectItem(child.id)}
+                                        onMouseEnter={(event) => {
+                                          event.currentTarget.style.color = previewColors.submenuTextHover;
+                                        }}
+                                        onMouseLeave={(event) => {
+                                          event.currentTarget.style.color = previewColors.submenuText;
+                                        }}
+                                        style={{
+                                          textAlign: "left",
+                                          border: isChildSelected
+                                            ? `2px dashed ${themeSettings.menuActive}`
+                                            : "2px solid transparent",
+                                          borderRadius: 8,
+                                          padding: "6px 8px",
+                                          minHeight: builderSettings.spacingLinkListRowHeight,
+                                          background: "transparent",
+                                          color: previewColors.submenuText,
+                                          ...subtextTypography,
+                                          lineHeight: 1.2,
+                                        }}
+                                      >
+                                        {child.label}
+                                      </button>
+                                    );
+                                  })}
+                                  <Button
+                                    variant="plain"
+                                    icon={PlusIcon}
+                                    size="slim"
+                                    onClick={() => handleAddChild(group.id, "item")}
+                                    style={{
+                                      minHeight: builderSettings.spacingLinkListRowHeight,
+                                      color: previewColors.submenuDescription,
+                                      ...descriptionTypography,
+                                    }}
+                                    onMouseEnter={(event) => {
+                                      event.currentTarget.style.color = previewColors.submenuDescriptionHover;
+                                    }}
+                                    onMouseLeave={(event) => {
+                                      event.currentTarget.style.color = previewColors.submenuDescription;
+                                    }}
+                                  >
+                                    Add item
+                                  </Button>
+                                </BlockStack>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
             </div>
           </Box>
 

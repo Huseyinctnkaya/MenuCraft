@@ -13064,7 +13064,11 @@ export default function MenuBuilder() {
             borderRadius: 0,
             height: isVerticalMenu ? menuRowHeight : "100%",
             minWidth: isVerticalMenu ? "100%" : 80,
-            padding: isVerticalMenu ? (isMobilePreview ? "0 16px" : "0 12px") : "0 18px",
+            padding: isVerticalMenu
+              ? isMobilePreview
+                ? "0 16px"
+                : "0 12px"
+              : `0 ${builderSettings.spacingMainPadding}px`,
             display: "inline-flex",
             alignItems: "center",
             justifyContent: isVerticalMenu ? "space-between" : "flex-start",
@@ -13848,6 +13852,8 @@ export default function MenuBuilder() {
                           style={{
                             display: "flex",
                             flexDirection: "column",
+                            justifyContent: "center",
+                            minHeight: builderSettings.spacingMainRowHeight,
                             width: isVerticalMenu ? "100%" : "auto",
                             height: isVerticalMenu ? "auto" : "100%",
                           }}

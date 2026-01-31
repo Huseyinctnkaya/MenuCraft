@@ -23,7 +23,11 @@
     layoutOrientation: "horizontal",
     layoutAlignment: "left",
     layoutMaxWidth: "",
+    spacingMainPadding: 20,
     spacingMainRowHeight: 50,
+    spacingDropdownRowHeight: 50,
+    spacingTabRowHeight: 50,
+    spacingLinkListRowHeight: 30,
     typographyMainFont: "Work Sans, system-ui, sans-serif",
     typographyMainWeight: 500,
     typographyMainSize: 14,
@@ -127,6 +131,20 @@
 
   const getMountTarget = (settings) => {
     const rootId = root.id;
+
+    if (settings.layoutLocation === "cssSelector") {
+      const mobileBreakpoint = settings.advancedMobileBreakpoint || 768;
+      const isMobile = window.innerWidth <= mobileBreakpoint;
+      const selector = isMobile
+        ? settings.layoutCssSelectorMobile
+        : settings.layoutCssSelectorDesktop;
+
+      if (selector) {
+        const target = document.querySelector(selector);
+        if (target) return target;
+      }
+    }
+
     const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
     if (shouldReplace) {
       hideExistingNavigation(rootId);
@@ -139,75 +157,48 @@
       document.querySelector(".header") ||
       document.querySelector(".site-header") ||
       document.body;
-    const getMountTarget = (settings) => {
-      const rootId = root.id;
+    return header;
+  };
 
-      if (settings.layoutLocation === "cssSelector") {
-        const mobileBreakpoint = settings.advancedMobileBreakpoint || 768;
-        const isMobile = window.innerWidth <= mobileBreakpoint;
-        const selector = isMobile
-          ? settings.layoutCssSelectorMobile
-          : settings.layoutCssSelectorDesktop;
 
-        if (selector) {
-          const target = document.querySelector(selector);
-          if (target) return target;
-        }
-      }
+  const renderMenu = (menu) => {
+    const settings = normalizeSettings(menu.settings);
+    const container = createElement("nav", "menucraft-menu");
+    container.style.background = settings.colorMainBackground;
+    container.style.color = settings.colorMainText;
+    container.style.minHeight = `${settings.spacingMainRowHeight}px`;
 
-      const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
-      if (shouldReplace) {
-        hideExistingNavigation(rootId);
-      }
-      if (rootId === "menucraft-block-root" && root.parentElement) {
-        return root.parentElement;
-      }
-      const header =
-        document.querySelector("header") ||
-        document.querySelector(".header") ||
-        document.querySelector(".site-header") ||
-        document.body;
-      return header;
-    };
+    const inner = createElement("div", "menucraft-menu-inner");
+    if (settings.layoutMaxWidth) {
+      inner.style.maxWidth =
+        settings.layoutMaxWidth.trim().length > 0 && /\d/.test(settings.layoutMaxWidth)
+          ? `${settings.layoutMaxWidth.replace(/px$/, "")}px`
+          : settings.layoutMaxWidth;
+    }
 
-    const renderMenu = (menu) => {
-      const settings = normalizeSettings(menu.settings);
-      const container = createElement("nav", "menucraft-menu");
-      container.style.background = settings.colorMainBackground;
-      container.style.color = settings.colorMainText;
-      container.style.minHeight = `${settings.spacingMainRowHeight}px`;
+    const list = buildMenuItems(Array.isArray(menu.items) ? menu.items : [], settings);
+    if (settings.layoutAlignment === "center") {
+      list.style.justifyContent = "center";
+    } else if (settings.layoutAlignment === "right") {
+      list.style.justifyContent = "flex-end";
+    }
 
-      const inner = createElement("div", "menucraft-menu-inner");
-      if (settings.layoutMaxWidth) {
-        inner.style.maxWidth =
-          settings.layoutMaxWidth.trim().length > 0 && /\d/.test(settings.layoutMaxWidth)
-            ? `${settings.layoutMaxWidth.replace(/px$/, "")}px`
-            : settings.layoutMaxWidth;
-      }
+    inner.appendChild(list);
 
-      const list = buildMenuItems(Array.isArray(menu.items) ? menu.items : [], settings);
-      if (settings.layoutAlignment === "center") {
-        list.style.justifyContent = "center";
-      } else if (settings.layoutAlignment === "right") {
-        list.style.justifyContent = "flex-end";
-      }
+    if (settings.elementsShowSearch) {
+      const searchLink = createElement("a", "menucraft-search", "Search");
+      searchLink.href = "/search";
+      inner.appendChild(searchLink);
+    }
 
-      inner.appendChild(list);
+    container.appendChild(inner);
 
-      if (settings.elementsShowSearch) {
-        const searchLink = createElement("a", "menucraft-search", "Search");
-        searchLink.href = "/search";
-        inner.appendChild(searchLink);
-      }
-
-      container.appendChild(inner);
-
-      const styleTag = document.createElement("style");
-      const rootId = root.id;
-      styleTag.textContent = `
+    const styleTag = document.createElement("style");
+    const rootId = root.id;
+    styleTag.textContent = `
       #${rootId} { width: 100%; }
       .menucraft-menu { width: 100%; position: relative; z-index: 50; }
-      .menucraft-menu-inner { width: 100%; margin: 0 auto; padding: 0 16px; box-sizing: border-box; display: flex; align-items: center; }
+      .menucraft-menu-inner { width: 100%; margin: 0 auto; padding: 0 0; box-sizing: border-box; display: flex; align-items: center; }
       .menucraft-menu-list {
         display: flex;
         align-items: center;
@@ -222,7 +213,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 0 18px;
+        padding: 0 ${settings.spacingMainPadding}px;
         min-height: ${settings.spacingMainRowHeight}px;
         color: ${settings.colorMainText};
         border-right: 1px solid ${settings.colorMainDivider};
@@ -260,6 +251,9 @@
       .menucraft-submenu .menucraft-menu-link {
         color: ${settings.colorSubmenuText};
         font-size: ${settings.typographySubtextSize || 13}px;
+        min-height: ${settings.spacingLinkListRowHeight}px;
+        display: flex;
+        align-items: center;
       }
       .menucraft-submenu .menucraft-menu-item { padding: 0; border-right: none; min-height: auto; }
       .menucraft-menu-item.has-children:hover .menucraft-submenu { display: block; }
@@ -271,35 +265,35 @@
       }
     `;
 
-      const mountTarget = getMountTarget(settings);
-      if (!mountTarget) return;
+    const mountTarget = getMountTarget(settings);
+    if (!mountTarget) return;
 
-      root.innerHTML = "";
-      root.appendChild(container);
+    root.innerHTML = "";
+    root.appendChild(container);
 
-      const existingStyle = document.head.querySelector("style[data-menucraft]");
-      if (existingStyle) {
-        existingStyle.remove();
-      }
-      styleTag.setAttribute("data-menucraft", "true");
-      document.head.appendChild(styleTag);
+    const existingStyle = document.head.querySelector("style[data-menucraft]");
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    styleTag.setAttribute("data-menucraft", "true");
+    document.head.appendChild(styleTag);
 
-      if (root.parentElement !== mountTarget) {
-        mountTarget.prepend(root);
-      }
-    };
+    if (root.parentElement !== mountTarget) {
+      mountTarget.prepend(root);
+    }
+  };
 
-    const loadMenu = async () => {
-      try {
-        const response = await fetch(PROXY_URL, { credentials: "include" });
-        if (!response.ok) return;
-        const data = await response.json();
-        if (!data || !data.menu || data.menu.status !== "active") return;
-        renderMenu(data.menu);
-      } catch (error) {
-        console.error("MenuCraft embed failed", error);
-      }
-    };
+  const loadMenu = async () => {
+    try {
+      const response = await fetch(PROXY_URL, { credentials: "include" });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!data || !data.menu || data.menu.status !== "active") return;
+      renderMenu(data.menu);
+    } catch (error) {
+      console.error("MenuCraft embed failed", error);
+    }
+  };
 
-    loadMenu();
-  })();
+  loadMenu();
+})();

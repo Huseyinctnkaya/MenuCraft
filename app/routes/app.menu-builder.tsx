@@ -741,6 +741,80 @@ export default function MenuBuilder() {
   const floatingLinkListToolbarHoverRef = useRef(false);
   const hideFloatingLinkListToolbarTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Carousel Autoplay Logic
+  useEffect(() => {
+    if (!builderSettings.carouselAutoPlay) return;
+
+    const interval = setInterval(() => {
+      setProductCarouselPageById((prev) => {
+        const nextState = { ...prev };
+        const carouselGroups: MenuItem[] = [];
+
+        // Helper to find carousel groups recursively
+        const findCarousels = (items: MenuItem[]) => {
+          items.forEach((item) => {
+            const isCarousel =
+              item.blockTemplate === "product-carousel" ||
+              item.multiLayout === "multi-product-carousel" ||
+              item.multiLayout === "multi-link-list-product-carousel" ||
+              item.multiLayout === "multi-image-product-carousel" ||
+              item.multiLayout === "multi-element-group-masonry";
+
+            if (isCarousel) {
+              carouselGroups.push(item);
+            }
+            if (item.children) {
+              findCarousels(item.children);
+            }
+          });
+        };
+
+        findCarousels(menuItems);
+
+        carouselGroups.forEach((group) => {
+          const currentPage = prev[group.id] ?? 0;
+
+          // Calculate page count logic duplicated from renderProductBlock
+          // Ideally this should be a shared helper, but simplified here for now
+          // We need to know how many products/pages there are.
+          // This requires access to 'products' which is available here.
+
+          let carouselProducts: any[] = [];
+          if (group.blockTemplate === "product-carousel") {
+            const carouselItems = group.children?.filter((child) => !child.isHeading) ?? [];
+            // Filter Logic from renderProductBlock
+            const carouselSourceItems = carouselItems.length === 0
+              ? Array.from({ length: 8 }, () => null)
+              : carouselItems;
+
+            // We just need the count, not fully resolved products for pagination math
+            carouselProducts = carouselSourceItems;
+          } else {
+            // For multi-layout carousels, logic is similar
+            const carouselItems = group.children?.filter((child) => !child.isHeading) ?? [];
+            const carouselSourceItems = carouselItems.length === 0
+              ? Array.from({ length: 8 }, () => null)
+              : carouselItems;
+            carouselProducts = carouselSourceItems;
+          }
+
+          const carouselPageSize = 4;
+          const carouselPageCount = Math.max(1, Math.ceil(carouselProducts.length / carouselPageSize));
+
+          if (currentPage < carouselPageCount - 1) {
+            nextState[group.id] = currentPage + 1;
+          } else if (builderSettings.carouselLoop) {
+            nextState[group.id] = 0;
+          }
+        });
+
+        return nextState;
+      });
+    }, 4000); // 4 seconds interval
+
+    return () => clearInterval(interval);
+  }, [builderSettings.carouselAutoPlay, builderSettings.carouselLoop, menuItems, products]);
   const previewMenuItemRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
   const dropdownMainPanelRef = useRef<HTMLDivElement | null>(null);
   const dropdownFlyoutRef = useRef<HTMLDivElement | null>(null);

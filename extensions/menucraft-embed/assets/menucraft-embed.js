@@ -31,6 +31,14 @@
     typographyMainFont: "Work Sans, system-ui, sans-serif",
     typographyMainWeight: 500,
     typographyMainSize: 14,
+    typographyMainFont: "Work Sans, system-ui, sans-serif",
+    typographyMainWeight: 500,
+    typographyMainSize: 14,
+    typographySubheadingFont: "Work Sans, system-ui, sans-serif",
+    typographySubheadingWeight: 600,
+    typographySubheadingSize: 14,
+    typographySubtextFont: "Work Sans, system-ui, sans-serif",
+    typographySubtextWeight: 400,
     typographySubtextSize: 13,
     colorMainBackground: "#000000",
     colorMainBackgroundHover: "#1D1D1D",
@@ -43,6 +51,10 @@
     colorSubmenuText: "#313131",
     colorSubmenuTextHover: "#000000",
     submenuShowBorder: true,
+    submenuEnableDesktopScroll: true,
+    submenuEnableMobileScroll: true,
+    submenuMaxWidth: "",
+    submenuMobileStyle: "collapse",
     elementsShowIndicators: true,
     elementsShowSearch: false,
   };
@@ -62,6 +74,18 @@
   };
 
   const buildLink = (item, settings) => {
+    if (item.isHeading) {
+      const span = document.createElement("span");
+      span.textContent = item.label || "";
+      span.className = "menucraft-menu-heading";
+      span.style.fontFamily = settings.typographySubheadingFont;
+      span.style.fontWeight = String(settings.typographySubheadingWeight);
+      span.style.fontSize = `${settings.typographySubheadingSize}px`;
+      span.style.color = settings.colorSubmenuHeading;
+      span.style.display = "block";
+      span.style.padding = "8px 0";
+      return span;
+    }
     const link = document.createElement("a");
     link.href = item.url || "#";
     link.textContent = item.label || "";
@@ -238,8 +262,21 @@
         border: ${settings.submenuShowBorder ? `1px solid ${settings.colorSubmenuBorder}` : "none"};
         padding: 12px;
         min-width: 220px;
+        max-width: ${settings.submenuMaxWidth ? settings.submenuMaxWidth.replace(/px$/, "") + "px" : "none"};
+        max-height: ${settings.submenuEnableDesktopScroll ? "400px" : "none"};
+        overflow-y: ${settings.submenuEnableDesktopScroll ? "auto" : "visible"};
         display: none;
         z-index: 60;
+      }
+      @media (max-width: ${settings.advancedMobileBreakpoint || 768}px) {
+        .menucraft-submenu {
+          max-height: ${settings.submenuEnableMobileScroll ? "300px" : "none"};
+          overflow-y: ${settings.submenuEnableMobileScroll ? "auto" : "visible"};
+          position: static;
+          width: 100%;
+          box-shadow: none;
+          max-width: none;
+        }
       }
       .menucraft-submenu-list {
         list-style: none;
@@ -250,6 +287,8 @@
       }
       .menucraft-submenu .menucraft-menu-link {
         color: ${settings.colorSubmenuText};
+        font-family: ${settings.typographySubtextFont};
+        font-weight: ${settings.typographySubtextWeight};
         font-size: ${settings.typographySubtextSize || 13}px;
         min-height: ${settings.spacingLinkListRowHeight}px;
         display: flex;

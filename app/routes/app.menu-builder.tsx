@@ -1195,6 +1195,7 @@ export default function MenuBuilder() {
   };
 
   const renderSubmenuImagePickerPanel = () => {
+    const editingItem = editDraft ?? selectedItem;
     if (!submenuImagePickerOpen) return null;
     return (
       <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
@@ -1222,6 +1223,40 @@ export default function MenuBuilder() {
           >
             <DropZone.FileUpload actionTitle="Add image" actionHint="Drag and drop your image" />
           </DropZone>
+          {builderSettings.imageLibrary && builderSettings.imageLibrary.length > 0 && (
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {builderSettings.imageLibrary.map((image) => {
+                const isSelected = editingItem?.submenuBackgroundImage === image;
+                return (
+                  <button
+                    key={image}
+                    type="button"
+                    onClick={() => {
+                      handleUpdateSelected("submenuBackgroundImage", image);
+                      setSubmenuImagePickerOpen(false);
+                    }}
+                    className={`relative overflow-hidden rounded-lg border p-1 text-left transition ${isSelected ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-200 hover:border-gray-300"
+                      } bg-white shadow-sm group`}
+                  >
+                    {isSelected && (
+                      <div className="absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded bg-gray-900 text-white shadow-sm">
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-100">
+                      <img
+                        src={image}
+                        alt=""
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     );

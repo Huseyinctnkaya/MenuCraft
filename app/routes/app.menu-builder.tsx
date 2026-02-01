@@ -3702,7 +3702,7 @@ export default function MenuBuilder() {
       ];
 
       return (
-        <div style={{ width: "320px" }}>
+        <div style={{ width: "240px" }}>
           <ActionList
             items={categories.map((item) => ({
               content: item.label,
@@ -3759,7 +3759,7 @@ export default function MenuBuilder() {
     );
 
     return (
-      <div style={{ width: "320px" }}>
+      <div style={{ width: "240px" }}>
         <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
           <Button
             variant="plain"

@@ -19,7 +19,7 @@ export type MenuItem = {
   extraClassName?: string;
   badgeEnabled?: boolean;
   badgeText?: string;
-  badgeType?: "sale" | "sold_out";
+  badgeType?: "sale" | "sold_out" | "none";
   customTextColor?: string;
   customBackgroundColor?: string;
   customTextHoverColor?: string;
@@ -290,6 +290,8 @@ export type BuilderSettings = {
   colorBadgeSaleBackground: string;
   colorBadgeSoldOutText: string;
   colorBadgeSoldOutBackground: string;
+  colorBadgeDefaultText: string;
+  colorBadgeDefaultBackground: string;
   colorButtonText: string;
   colorButtonBackground: string;
   colorButtonBackgroundHover: string;

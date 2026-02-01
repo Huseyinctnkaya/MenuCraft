@@ -4153,6 +4153,8 @@ export default function MenuBuilder() {
         ...base,
         submenuType: "mega",
         submenuTemplate: "mega",
+        submenuWidth: "full",
+        submenuContentAlign: "center",
         expanded: true,
         children: hasChildren ? base.children : [spaceBlock],
       };
@@ -4225,6 +4227,12 @@ export default function MenuBuilder() {
 
   const resolveSubmenuWidthAlignment = (item: MenuItem) => {
     if (item.submenuWidth === "full") return "full";
+    if (item.submenuWidth === "content") {
+      return item.submenuContentAlign || "center";
+    }
+    // For mega menus, the default should be full width if not specified
+    if (item.submenuType === "mega") return "full";
+    // For others (dropdowns), default to alignment logic
     if (item.submenuContentAlign === "left") return "left";
     if (item.submenuContentAlign === "right") return "right";
     return "center";
@@ -4647,13 +4655,13 @@ export default function MenuBuilder() {
           submenuWidth:
             isDropdownTemplate || isHorizontalDropdownTemplate
               ? item.submenuWidth ?? "content"
-              : item.submenuWidth,
+              : "full",
           submenuContentAlign:
             isDropdownTemplate
               ? item.submenuContentAlign ?? "left"
               : isHorizontalDropdownTemplate
                 ? item.submenuContentAlign ?? "center"
-                : item.submenuContentAlign,
+                : "center",
           children: dropdownItems,
         }))
       );
@@ -4683,6 +4691,8 @@ export default function MenuBuilder() {
           expanded: true,
           submenuTemplate: "mega",
           submenuType: "mega",
+          submenuWidth: "full",
+          submenuContentAlign: "center",
           children: hasChildren ? item.children : newBlocks,
         };
       })
@@ -4768,13 +4778,13 @@ export default function MenuBuilder() {
           expanded: true,
           submenuTemplate: templateId,
           submenuType: isDropdownTemplate ? "dropdown" : isHorizontalDropdownTemplate ? "horizontal-dropdown" : "mega",
-          submenuWidth: isDropdownTemplate || isHorizontalDropdownTemplate ? item.submenuWidth ?? "content" : item.submenuWidth,
+          submenuWidth: isDropdownTemplate || isHorizontalDropdownTemplate ? item.submenuWidth ?? "content" : "full",
           submenuContentAlign:
             isDropdownTemplate
               ? item.submenuContentAlign ?? "left"
               : isHorizontalDropdownTemplate
                 ? item.submenuContentAlign ?? "center"
-                : item.submenuContentAlign,
+                : "center",
           children:
             hasChildren
               ? item.children
@@ -6194,16 +6204,24 @@ export default function MenuBuilder() {
                                   <Select
                                     label="Badge type"
                                     options={[
+                                      { label: "None", value: "none" },
                                       { label: "Sale", value: "sale" },
                                       { label: "Sold Out", value: "sold_out" },
                                     ]}
-                                    value={child.badgeType ?? "sale"}
-                                    onChange={(value) =>
+                                    value={child.badgeType ?? "none"}
+                                    onChange={(value) => {
+                                      const type = value as any;
+                                      let newText = child.badgeText;
+                                      if (type === "sale") newText = "Sale";
+                                      else if (type === "sold_out") newText = "Sold Out";
+                                      else if (type === "none") newText = "";
+
                                       updateEditDraftItemById(child.id, (item) => ({
                                         ...item,
-                                        badgeType: value as any,
-                                      }))
-                                    }
+                                        badgeType: type,
+                                        badgeText: newText,
+                                      }));
+                                    }}
                                   />
                                 </BlockStack>
                               ) : null
@@ -6685,11 +6703,31 @@ export default function MenuBuilder() {
                           <Select
                             label="Badge type"
                             options={[
+                              { label: "None", value: "none" },
                               { label: "Sale", value: "sale" },
                               { label: "Sold Out", value: "sold_out" },
                             ]}
-                            value={editingItem.badgeType ?? "sale"}
-                            onChange={(value) => updateEditDraft("badgeType", value as any)}
+                            value={editingItem.badgeType ?? "none"}
+                            onChange={(value) => {
+                              const type = value as any;
+                              let newText = editingItem.badgeText;
+                              if (type === "sale") newText = "Sale";
+                              else if (type === "sold_out") newText = "Sold Out";
+                              else if (type === "none") newText = "";
+
+                              setMenuItems((items) =>
+                                updateItemById(items, editingItem.id, (item) => ({
+                                  ...item,
+                                  badgeType: type,
+                                  badgeText: newText,
+                                }))
+                              );
+                              setEditDraft({
+                                ...editingItem,
+                                badgeType: type,
+                                badgeText: newText,
+                              });
+                            }}
                           />
                         </BlockStack>
                       ) : null
@@ -7708,6 +7746,8 @@ export default function MenuBuilder() {
           { label: "Sale badge background", key: "colorBadgeSaleBackground" },
           { label: "Sold out badge text", key: "colorBadgeSoldOutText" },
           { label: "Sold out badge background", key: "colorBadgeSoldOutBackground" },
+          { label: "Default badge text", key: "colorBadgeDefaultText" },
+          { label: "Default badge background", key: "colorBadgeDefaultBackground" },
         ],
       },
       {
@@ -9096,10 +9136,14 @@ export default function MenuBuilder() {
                                     style={{
                                       background: child.badgeType === "sold_out"
                                         ? builderSettings.colorBadgeSoldOutBackground
-                                        : builderSettings.colorBadgeSaleBackground,
+                                        : child.badgeType === "none"
+                                          ? builderSettings.colorBadgeDefaultBackground
+                                          : builderSettings.colorBadgeSaleBackground,
                                       color: child.badgeType === "sold_out"
                                         ? builderSettings.colorBadgeSoldOutText
-                                        : builderSettings.colorBadgeSaleText,
+                                        : child.badgeType === "none"
+                                          ? builderSettings.colorBadgeDefaultText
+                                          : builderSettings.colorBadgeSaleText,
                                       borderRadius: 9999,
                                       padding: "2px 8px",
                                       fontSize: 10,
@@ -13308,10 +13352,14 @@ export default function MenuBuilder() {
                   style={{
                     background: item.badgeType === "sold_out"
                       ? builderSettings.colorBadgeSoldOutBackground
-                      : builderSettings.colorBadgeSaleBackground,
+                      : item.badgeType === "none"
+                        ? builderSettings.colorBadgeDefaultBackground
+                        : builderSettings.colorBadgeSaleBackground,
                     color: item.badgeType === "sold_out"
                       ? builderSettings.colorBadgeSoldOutText
-                      : builderSettings.colorBadgeSaleText,
+                      : item.badgeType === "none"
+                        ? builderSettings.colorBadgeDefaultText
+                        : builderSettings.colorBadgeSaleText,
                     borderRadius: 9999,
                     padding: "2px 8px",
                     fontSize: 10,

@@ -210,6 +210,8 @@ export const DEFAULT_BUILDER_SETTINGS: BuilderSettings = {
   colorBadgeSaleBackground: "#EC523E",
   colorBadgeSoldOutText: "#757575",
   colorBadgeSoldOutBackground: "#D5D5D5",
+  colorBadgeDefaultText: "#FFFFFF",
+  colorBadgeDefaultBackground: "#4D5BCD",
   colorButtonText: "#FFFFFF",
   colorButtonBackground: "#1F1F1F",
   colorButtonBackgroundHover: "#000000",

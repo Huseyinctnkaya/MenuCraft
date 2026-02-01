@@ -11286,12 +11286,6 @@ export default function MenuBuilder() {
     } else {
       dropdownLeft = dropdownAnchor.left;
     }
-
-    // Boundary check to keep it within the container
-    dropdownLeft = Math.min(
-      Math.max(0, dropdownLeft),
-      Math.max(0, previewContainerWidth - dropdownPanelPixelWidth)
-    );
   } else if (isMobilePreview && !isDropdownMenu && !isHorizontalDropdownMenu) {
     dropdownLeft = 0;
   }

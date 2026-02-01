@@ -617,10 +617,6 @@ export default function MenuBuilder() {
   const prevPreviewPositionsRef = useRef(new Map<string, DOMRect>());
   const lastDragOverIdRef = useRef<string | null>(null);
   const prevMenuIdRef = useRef(menu.id);
-  const linkPickerContainerRef = useRef<HTMLDivElement | null>(null);
-  const customItemsScrollRef = useRef<HTMLDivElement | null>(null);
-  const linkPickerAnchorRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
-  const linkPickerDropdownRef = useRef<HTMLDivElement | null>(null);
   const appBridgeRef = useRef<ReturnType<typeof createApp> | null>(null);
   const fullscreenExitRequestedRef = useRef(false);
   const fullscreenExitArmedRef = useRef(false);
@@ -724,7 +720,6 @@ export default function MenuBuilder() {
   });
   const [customItems, setCustomItems] = useState<CustomAddItem[]>(() => [buildCustomItem()]);
   const [linkPickerOpenId, setLinkPickerOpenId] = useState<string | null>(null);
-  const [linkPickerRect, setLinkPickerRect] = useState<{ left: number; top: number; width: number } | null>(null);
   const [activeDropdownItemId, setActiveDropdownItemId] = useState<string | null>(null);
   const [activeDropdownChildId, setActiveDropdownChildId] = useState<string | null>(null);
   const [activeDropdownGrandchildId, setActiveDropdownGrandchildId] = useState<string | null>(null);
@@ -1024,19 +1019,6 @@ export default function MenuBuilder() {
 
   const closeFontPicker = () => {
     setFontPickerState(null);
-  };
-
-  const openLinkPicker = (itemId: string) => {
-    if (linkPickerOpenId === itemId) return;
-    const scrollTop = customItemsScrollRef.current?.scrollTop ?? null;
-    setLinkPickerOpenId(itemId);
-    if (scrollTop !== null) {
-      requestAnimationFrame(() => {
-        if (customItemsScrollRef.current) {
-          customItemsScrollRef.current.scrollTop = scrollTop;
-        }
-      });
-    }
   };
 
   const handlePreviewHoverStart = (id: string) => {
@@ -3862,87 +3844,13 @@ export default function MenuBuilder() {
     );
   };
 
-  const applyLinkSelection = (itemId: string, url: string) => {
-    if (customItems.some((item) => item.id === itemId)) {
-      updateCustomItem(itemId, { url });
-      return;
-    }
-    updateEditDraftItemById(itemId, (item) => ({ ...item, url }));
+
+
+
+
+  const handleLinkPickerClickOutside = () => {
+    setLinkPickerOpenId(null);
   };
-
-  const renderLinkPickerDropdown = () => {
-    if (!linkPickerOpenId || !linkPickerRect || typeof document === "undefined") {
-      return null;
-    }
-    return createPortal(
-      <div
-        ref={linkPickerDropdownRef}
-        className="fixed z-[9999] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-        style={{
-          left: linkPickerRect.left,
-          top: linkPickerRect.top + 8,
-          width: linkPickerRect.width,
-          maxHeight: "240px",
-          overflowY: "auto",
-        }}
-      >
-        {LINK_SUGGESTIONS.map((option) => (
-          <button
-            key={option.label}
-            type="button"
-            className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-            onClick={() => {
-              applyLinkSelection(linkPickerOpenId, option.url);
-              setLinkPickerOpenId(null);
-            }}
-          >
-            <span className="flex h-5 w-5 items-center justify-center text-gray-500">
-              <Icon source={option.icon} />
-            </span>
-            <span className="text-left">{option.label}</span>
-          </button>
-        ))}
-      </div>,
-      document.body
-    );
-  };
-
-  useEffect(() => {
-    if (!linkPickerOpenId) return;
-    const handleMouseDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      const anchor = linkPickerAnchorRefs.current.get(linkPickerOpenId);
-      const dropdown = linkPickerDropdownRef.current;
-      if (anchor && anchor.contains(target)) return;
-      if (dropdown && dropdown.contains(target)) return;
-      setLinkPickerOpenId(null);
-    };
-    document.addEventListener("mousedown", handleMouseDown);
-    return () => document.removeEventListener("mousedown", handleMouseDown);
-  }, [linkPickerOpenId]);
-
-  useLayoutEffect(() => {
-    if (!linkPickerOpenId) {
-      setLinkPickerRect(null);
-      return;
-    }
-    const anchor = linkPickerAnchorRefs.current.get(linkPickerOpenId);
-    if (!anchor) return;
-    const updateRect = () => {
-      const rect = anchor.getBoundingClientRect();
-      setLinkPickerRect({ left: rect.left, top: rect.bottom, width: rect.width });
-    };
-    updateRect();
-    const scrollContainer = customItemsScrollRef.current;
-    scrollContainer?.addEventListener("scroll", updateRect);
-    window.addEventListener("resize", updateRect);
-    document.addEventListener("scroll", updateRect, true);
-    return () => {
-      scrollContainer?.removeEventListener("scroll", updateRect);
-      window.removeEventListener("resize", updateRect);
-      document.removeEventListener("scroll", updateRect, true);
-    };
-  }, [linkPickerOpenId]);
 
   useEffect(() => {
     setSubmenuColorPickerOpen(false);
@@ -5853,31 +5761,56 @@ export default function MenuBuilder() {
                       label="Title"
                       value={editingItem.label}
                       onChange={(value) => updateEditDraft("label", value)}
+                      onFocus={() => setLinkPickerOpenId(null)}
                       autoComplete="off"
                     />
-                    <TextField
-                      label="Link"
-                      value={editingItem.url}
-                      onChange={(value) => updateEditDraft("url", value)}
-                      autoComplete="off"
-                      placeholder="Search or paste a link"
-                      connectedRight={
-                        <Button
-                          icon={XCircleIcon}
-                          onClick={() => updateEditDraft("url", "")}
-                          accessibilityLabel="Clear link"
+                    <Popover
+                      active={linkPickerOpenId === "editingItem"}
+                      activator={
+                        <TextField
+                          label="Link"
+                          value={editingItem.url}
+                          onChange={(value) => updateEditDraft("url", value)}
+                          onFocus={() => setLinkPickerOpenId("editingItem")}
+                          autoComplete="off"
+                          placeholder="Search or paste a link"
+                          connectedRight={
+                            <Button
+                              icon={XCircleIcon}
+                              onClick={() => updateEditDraft("url", "")}
+                              accessibilityLabel="Clear link"
+                            />
+                          }
                         />
                       }
-                    />
-                    <Checkbox
-                      label="Open in new tab"
-                      checked={Boolean(editingItem.openInNewTab)}
-                      onChange={(value) => updateEditDraft("openInNewTab", value)}
-                    />
+                      onClose={() => setLinkPickerOpenId(null)}
+                      autofocusTarget="none"
+                    >
+                      <div style={{ width: "250px" }}>
+                        <ActionList
+                          items={LINK_SUGGESTIONS.map((option) => ({
+                            content: option.label,
+                            icon: option.icon,
+                            onAction: () => {
+                              updateEditDraft("url", option.url);
+                              setLinkPickerOpenId(null);
+                            },
+                          }))}
+                        />
+                      </div>
+                    </Popover>
+                    {editingItem.url ? (
+                      <Checkbox
+                        label="Open in new tab"
+                        checked={Boolean(editingItem.openInNewTab)}
+                        onChange={(value) => updateEditDraft("openInNewTab", value)}
+                      />
+                    ) : null}
                     <TextField
                       label="Description"
                       value={editingItem.description ?? ""}
                       onChange={(value) => updateEditDraft("description", value)}
+                      onFocus={() => setLinkPickerOpenId(null)}
                       autoComplete="off"
                     />
                   </>
@@ -6011,48 +5944,64 @@ export default function MenuBuilder() {
                               onChange={(value) =>
                                 updateEditDraftItemById(child.id, (item) => ({ ...item, label: value }))
                               }
+                              onFocus={() => setLinkPickerOpenId(null)}
                               autoComplete="off"
                             />
-                            <div dir="ltr" className="flex items-end gap-2">
-                              <div
-                                className="flex-1"
-                                ref={(node) => {
-                                  if (node) {
-                                    linkPickerAnchorRefs.current.set(child.id, node);
-                                  } else {
-                                    linkPickerAnchorRefs.current.delete(child.id);
-                                  }
-                                }}
-                              >
+                            <Popover
+                              active={linkPickerOpenId === child.id}
+                              activator={
                                 <TextField
                                   label="Link"
                                   value={child.url}
                                   onChange={(value) =>
                                     updateEditDraftItemById(child.id, (item) => ({ ...item, url: value }))
                                   }
+                                  onFocus={() => openLinkPicker(child.id)}
                                   autoComplete="off"
                                   placeholder="Search or paste a link"
-                                  onFocus={() => openLinkPicker(child.id)}
-                                  onClick={() => openLinkPicker(child.id)}
+                                  connectedRight={
+                                    <Button
+                                      icon={XCircleIcon}
+                                      onClick={() =>
+                                        updateEditDraftItemById(child.id, (item) => ({ ...item, url: "" }))
+                                      }
+                                      accessibilityLabel="Clear link"
+                                    />
+                                  }
+                                />
+                              }
+                              onClose={() => setLinkPickerOpenId(null)}
+                              autofocusTarget="none"
+                            >
+                              <div style={{ width: "320px" }}>
+                                <ActionList
+                                  items={LINK_SUGGESTIONS.map((option) => ({
+                                    content: option.label,
+                                    icon: option.icon,
+                                    onAction: () => {
+                                      updateEditDraftItemById(child.id, (item) => ({ ...item, url: option.url }));
+                                      setLinkPickerOpenId(null);
+                                    },
+                                  }))}
                                 />
                               </div>
-                              <button
-                                type="button"
-                                aria-label="Clear link"
-                                onClick={() =>
-                                  updateEditDraftItemById(child.id, (item) => ({ ...item, url: "" }))
+                            </Popover>
+                            {child.url ? (
+                              <Checkbox
+                                label="Open in new tab"
+                                checked={Boolean(child.openInNewTab)}
+                                onChange={(value) =>
+                                  updateEditDraftItemById(child.id, (item) => ({ ...item, openInNewTab: value }))
                                 }
-                                className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
-                              >
-                                <span className="text-base leading-none">×</span>
-                              </button>
-                            </div>
+                              />
+                            ) : null}
                             <TextField
                               label="Description"
                               value={child.description ?? ""}
                               onChange={(value) =>
                                 updateEditDraftItemById(child.id, (item) => ({ ...item, description: value }))
                               }
+                              onFocus={() => setLinkPickerOpenId(null)}
                               autoComplete="off"
                             />
                             <InlineStack align="space-between" blockAlign="center">
@@ -7119,44 +7068,49 @@ export default function MenuBuilder() {
                             label="Title"
                             value={item.title}
                             onChange={(value) => updateCustomItem(item.id, { title: value })}
+                            onFocus={() => setLinkPickerOpenId(null)}
                             autoComplete="off"
                           />
-                          <div className={linkPickerOpenId === item.id ? "relative z-[120]" : "relative"}>
-                            <div dir="ltr" className="flex items-end gap-2">
-                              <div
-                                className="relative flex-1"
-                                ref={(node) => {
-                                  if (node) {
-                                    linkPickerAnchorRefs.current.set(item.id, node);
-                                  } else {
-                                    linkPickerAnchorRefs.current.delete(item.id);
-                                  }
-                                }}
-                              >
-                                <TextField
-                                  label="Link"
-                                  value={item.url}
-                                  onChange={(value) => updateCustomItem(item.id, { url: value })}
-                                  autoComplete="off"
-                                  placeholder="Search or paste a link"
-                                  onFocus={() => openLinkPicker(item.id)}
-                                  onClick={() => openLinkPicker(item.id)}
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                aria-label="Clear link"
-                                onClick={() => updateCustomItem(item.id, { url: "" })}
-                                className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
-                              >
-                                <span className="text-base leading-none">×</span>
-                              </button>
+                          <Popover
+                            active={linkPickerOpenId === item.id}
+                            activator={
+                              <TextField
+                                label="Link"
+                                value={item.url}
+                                onChange={(value) => updateCustomItem(item.id, { url: value })}
+                                onFocus={() => openLinkPicker(item.id)}
+                                autoComplete="off"
+                                placeholder="Search or paste a link"
+                                connectedRight={
+                                  <Button
+                                    icon={XCircleIcon}
+                                    onClick={() => updateCustomItem(item.id, { url: "" })}
+                                    accessibilityLabel="Clear link"
+                                  />
+                                }
+                              />
+                            }
+                            onClose={() => setLinkPickerOpenId(null)}
+                            autofocusTarget="none"
+                          >
+                            <div style={{ width: "320px" }}>
+                              <ActionList
+                                items={LINK_SUGGESTIONS.map((option) => ({
+                                  content: option.label,
+                                  icon: option.icon,
+                                  onAction: () => {
+                                    updateCustomItem(item.id, { url: option.url });
+                                    setLinkPickerOpenId(null);
+                                  },
+                                }))}
+                              />
                             </div>
-                          </div>
+                          </Popover>
                           <TextField
                             label="Description"
                             value={item.description}
                             onChange={(value) => updateCustomItem(item.id, { description: value })}
+                            onFocus={() => setLinkPickerOpenId(null)}
                             autoComplete="off"
                           />
                           {index < customItems.length - 1 ? <Divider /> : null}
@@ -7187,7 +7141,7 @@ export default function MenuBuilder() {
               </div>
             ) : null}
           </div>
-          {addItemsTab === "custom" ? renderLinkPickerDropdown() : null}
+
         </Card>
       );
     }

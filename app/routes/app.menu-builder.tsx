@@ -7210,6 +7210,21 @@ export default function MenuBuilder() {
         />
       );
 
+      if (iconPickerState) {
+        return (
+          <Card padding="0" className="flex min-h-0 flex-1 flex-col">
+            {iconPickerState.mode === "library" ? renderIconLibraryPanel() : renderIconUploadPanel()}
+          </Card>
+        );
+      }
+      if (imagePickerOpen) {
+        return (
+          <Card padding="0" className="flex min-h-0 flex-1 flex-col">
+            {renderImagePickerPanel()}
+          </Card>
+        );
+      }
+
       return (
         <Card padding="0" className="flex min-h-0 flex-1 flex-col">
           <div className="flex min-h-0 flex-1 flex-col">

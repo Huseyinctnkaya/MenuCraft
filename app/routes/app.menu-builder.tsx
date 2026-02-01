@@ -6812,7 +6812,7 @@ export default function MenuBuilder() {
                             {editingItem.submenuType && (
                               <BlockStack gap="200">
                                 <Select
-                                  label="Width + alignment"
+                                  label="Alignment"
                                   options={[
                                     { label: "Center", value: "center" },
                                     { label: "Left", value: "left" },
@@ -6821,16 +6821,6 @@ export default function MenuBuilder() {
                                   value={editingItem.submenuContentAlign ?? "center"}
                                   onChange={handleFlyoutAlignmentChange}
                                 />
-                                {editingItem.submenuWidth === "content" && (
-                                  <TextField
-                                    label="Width"
-                                    type="number"
-                                    suffix="px"
-                                    value={String(editingItem.submenuCustomWidth ?? 600)}
-                                    onChange={(val) => updateEditDraft("submenuCustomWidth", parseInt(val) || 0)}
-                                    autoComplete="off"
-                                  />
-                                )}
                               </BlockStack>
                             )}
                           </>
@@ -11347,9 +11337,14 @@ export default function MenuBuilder() {
     return "center";
   };
   const dropdownAlignJustify = getSubmenuJustify(dropdownContentAlign);
-  const dropdownPanelWidth = (isMobilePreview || previewMenu?.submenuWidth !== "content")
-    ? "100%"
-    : (previewMenu?.submenuCustomWidth ?? 600);
+  const dropdownPanelWidth =
+    isMobilePreview
+      ? "100%"
+      : (previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown")
+        ? 240
+        : (previewMenu?.submenuWidth !== "content")
+          ? "100%"
+          : (previewMenu?.submenuCustomWidth ?? 600);
   const previewContainerWidth =
     previewContainerRef.current?.getBoundingClientRect().width ?? menuMaxWidth ?? 1260;
   const useFixedVerticalMenuWidth =
@@ -11363,10 +11358,15 @@ export default function MenuBuilder() {
         : parseInt(dropdownPanelWidth as string);
 
   let dropdownLeft = 0;
-  if (dropdownAnchor && previewMenu?.submenuWidth === "content" && !isMobilePreview) {
-    if (dropdownContentAlign === "center") {
+  if (dropdownAnchor && (previewMenu?.submenuWidth === "content" || previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown") && !isMobilePreview) {
+    // For standard dropdowns, always position left aligned to anchor, but allow content alignment to vary.
+    const effectiveAlign = (previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown")
+      ? "left"
+      : dropdownContentAlign;
+
+    if (effectiveAlign === "center") {
       dropdownLeft = dropdownAnchor.left + dropdownAnchor.width / 2 - dropdownPanelPixelWidth / 2;
-    } else if (dropdownContentAlign === "right") {
+    } else if (effectiveAlign === "right") {
       dropdownLeft = dropdownAnchor.left + dropdownAnchor.width - dropdownPanelPixelWidth;
     } else {
       dropdownLeft = dropdownAnchor.left;

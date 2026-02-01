@@ -6768,16 +6768,28 @@ export default function MenuBuilder() {
                               onChange={handleFlyoutTypeChange}
                             />
                             {editingItem.submenuType && (
-                              <Select
-                                label="Width + alignment"
-                                options={[
-                                  { label: "Center", value: "center" },
-                                  { label: "Left", value: "left" },
-                                  { label: "Right", value: "right" },
-                                ]}
-                                value={editingItem.submenuContentAlign ?? "center"}
-                                onChange={handleFlyoutAlignmentChange}
-                              />
+                              <BlockStack gap="200">
+                                <Select
+                                  label="Width + alignment"
+                                  options={[
+                                    { label: "Center", value: "center" },
+                                    { label: "Left", value: "left" },
+                                    { label: "Right", value: "right" },
+                                  ]}
+                                  value={editingItem.submenuContentAlign ?? "center"}
+                                  onChange={handleFlyoutAlignmentChange}
+                                />
+                                {editingItem.submenuWidth === "content" && (
+                                  <TextField
+                                    label="Width"
+                                    type="number"
+                                    suffix="px"
+                                    value={String(editingItem.submenuCustomWidth ?? 600)}
+                                    onChange={(val) => updateEditDraft("submenuCustomWidth", parseInt(val) || 0)}
+                                    autoComplete="off"
+                                  />
+                                )}
+                              </BlockStack>
                             )}
                           </>
                         ) : (
@@ -6793,17 +6805,29 @@ export default function MenuBuilder() {
                             />
                             {editingItem.submenuType !== undefined && (
                               <>
-                                <Select
-                                  label="Width + alignment"
-                                  options={[
-                                    { label: "Full width", value: "full" },
-                                    { label: "Center", value: "center" },
-                                    { label: "Left", value: "left" },
-                                    { label: "Right", value: "right" },
-                                  ]}
-                                  value={resolveSubmenuWidthAlignment(editingItem)}
-                                  onChange={handleSubmenuWidthAlignmentChange}
-                                />
+                                <BlockStack gap="200">
+                                  <Select
+                                    label="Width + alignment"
+                                    options={[
+                                      { label: "Full width", value: "full" },
+                                      { label: "Center", value: "center" },
+                                      { label: "Left", value: "left" },
+                                      { label: "Right", value: "right" },
+                                    ]}
+                                    value={resolveSubmenuWidthAlignment(editingItem)}
+                                    onChange={handleSubmenuWidthAlignmentChange}
+                                  />
+                                  {editingItem.submenuWidth === "content" && (
+                                    <TextField
+                                      label="Width"
+                                      type="number"
+                                      suffix="px"
+                                      value={String(editingItem.submenuCustomWidth ?? 600)}
+                                      onChange={(val) => updateEditDraft("submenuCustomWidth", parseInt(val) || 0)}
+                                      autoComplete="off"
+                                    />
+                                  )}
+                                </BlockStack>
                                 <Select
                                   label="Content alignment"
                                   options={[
@@ -11238,7 +11262,9 @@ export default function MenuBuilder() {
     return "center";
   };
   const dropdownAlignJustify = getSubmenuJustify(dropdownContentAlign);
-  const dropdownPanelWidth = previewMenu?.submenuWidth === "content" ? 200 : "100%";
+  const dropdownPanelWidth = (isMobilePreview || previewMenu?.submenuWidth !== "content")
+    ? "100%"
+    : (previewMenu?.submenuCustomWidth ?? 600);
   const previewContainerWidth =
     previewContainerRef.current?.getBoundingClientRect().width ?? menuMaxWidth ?? 1260;
   const useFixedVerticalMenuWidth =
@@ -11249,13 +11275,26 @@ export default function MenuBuilder() {
       ? previewContainerWidth
       : typeof dropdownPanelWidth === "number"
         ? dropdownPanelWidth
-        : parseInt(dropdownPanelWidth);
-  const dropdownLeft = dropdownAnchor
-    ? Math.min(
-      Math.max(0, dropdownAnchor.left),
+        : parseInt(dropdownPanelWidth as string);
+
+  let dropdownLeft = 0;
+  if (dropdownAnchor && previewMenu?.submenuWidth === "content" && !isMobilePreview) {
+    if (dropdownContentAlign === "center") {
+      dropdownLeft = dropdownAnchor.left + dropdownAnchor.width / 2 - dropdownPanelPixelWidth / 2;
+    } else if (dropdownContentAlign === "right") {
+      dropdownLeft = dropdownAnchor.left + dropdownAnchor.width - dropdownPanelPixelWidth;
+    } else {
+      dropdownLeft = dropdownAnchor.left;
+    }
+
+    // Boundary check to keep it within the container
+    dropdownLeft = Math.min(
+      Math.max(0, dropdownLeft),
       Math.max(0, previewContainerWidth - dropdownPanelPixelWidth)
-    )
-    : 0;
+    );
+  } else if (isMobilePreview && !isDropdownMenu && !isHorizontalDropdownMenu) {
+    dropdownLeft = 0;
+  }
   const shouldInlineMobileDropdownPanel = isMobilePreview && isDropdownMenu;
   const shouldInlineMobileHorizontalDropdownPanel =
     isMobilePreview && previewMenu?.submenuType === "horizontal-dropdown";
@@ -16541,16 +16580,11 @@ export default function MenuBuilder() {
                       padding: "10px",
                       boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
                       maxWidth: submenuMaxWidth ?? "none",
-                      ...(isMobilePreview
-                        ? {
-                          position: "absolute",
-                          top: dropdownTop,
-                          left: 0,
-                          right: 0,
-                          width: "100%",
-                          zIndex: 20,
-                        }
-                        : {}),
+                      position: "absolute",
+                      top: dropdownTop,
+                      left: dropdownLeft,
+                      width: dropdownPanelWidth,
+                      zIndex: 20,
                       overflowY: enableDropdownScroll ? "auto" : "visible",
                       maxHeight: enableDropdownScroll ? 420 : "none",
                       opacity: 1,

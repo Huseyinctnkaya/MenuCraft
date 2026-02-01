@@ -7212,21 +7212,21 @@ export default function MenuBuilder() {
 
       if (iconPickerState) {
         return (
-          <Card padding="0" className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
             {iconPickerState.mode === "library" ? renderIconLibraryPanel() : renderIconUploadPanel()}
-          </Card>
+          </div>
         );
       }
       if (imagePickerOpen) {
         return (
-          <Card padding="0" className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
             {renderImagePickerPanel()}
-          </Card>
+          </div>
         );
       }
 
       return (
-        <Card padding="0" className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="sticky top-0 z-30 border-b border-gray-200 bg-white">
               <Box padding="400">
@@ -7451,7 +7451,7 @@ export default function MenuBuilder() {
             ) : null}
           </div>
 
-        </Card>
+        </div>
       );
     }
 
@@ -11121,15 +11121,23 @@ export default function MenuBuilder() {
   const isVerticalMenu = isMobilePreview || builderSettings.layoutOrientation === "vertical";
   const shouldInlineMobilePanel =
     isMobilePreview && dropdownGroups.length > 0 && !isDropdownMenu && !isHorizontalDropdownMenu;
+
+  const visibleMenuItems = useMemo(() => {
+    return menuItems.filter((item) => {
+      if (item.hideOnDesktop && !isMobilePreview) return false;
+      if (item.hideOnMobile && isMobilePreview) return false;
+      return true;
+    });
+  }, [menuItems, isMobilePreview]);
   const rightTabsMenuItems = useMemo(
     () =>
-      menuItems.filter(
+      visibleMenuItems.filter(
         (item) =>
           item.submenuTemplate === "simple-right-tabs" ||
           item.submenuTemplate === "two-nested-tabs-right" ||
           item.submenuTemplate === "three-nested-tabs-right"
       ),
-    [menuItems]
+    [visibleMenuItems]
   );
   const accountLinks = useMemo(() => {
     if (isVerticalMenu || isMobilePreview) return [];
@@ -11228,15 +11236,15 @@ export default function MenuBuilder() {
   ]);
   const standardMenuItems = useMemo(
     () =>
-      menuItems.filter(
+      visibleMenuItems.filter(
         (item) =>
           item.submenuTemplate !== "simple-right-tabs" &&
           item.submenuTemplate !== "two-nested-tabs-right" &&
           item.submenuTemplate !== "three-nested-tabs-right"
       ),
-    [menuItems]
+    [visibleMenuItems]
   );
-  const menuItemsForMainRow = isVerticalMenu ? menuItems : standardMenuItems;
+  const menuItemsForMainRow = isVerticalMenu ? visibleMenuItems : standardMenuItems;
   const rightAlignedMenuItems = isVerticalMenu ? [] : rightTabsMenuItems;
   const hasRightSideItems = rightAlignedMenuItems.length > 0 || accountLinks.length > 0;
   const menuRowHeight = isMobilePreview

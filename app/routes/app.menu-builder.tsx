@@ -6179,17 +6179,33 @@ export default function MenuBuilder() {
                             </InlineStack>
                             {isProPlan ? (
                               child.badgeEnabled ? (
-                                <TextField
-                                  label="Badge text"
-                                  value={child.badgeText ?? ""}
-                                  onChange={(value) =>
-                                    updateEditDraftItemById(child.id, (item) => ({
-                                      ...item,
-                                      badgeText: value,
-                                    }))
-                                  }
-                                  autoComplete="off"
-                                />
+                                <BlockStack gap="200">
+                                  <TextField
+                                    label="Badge text"
+                                    value={child.badgeText ?? ""}
+                                    onChange={(value) =>
+                                      updateEditDraftItemById(child.id, (item) => ({
+                                        ...item,
+                                        badgeText: value,
+                                      }))
+                                    }
+                                    autoComplete="off"
+                                  />
+                                  <Select
+                                    label="Badge type"
+                                    options={[
+                                      { label: "Sale", value: "sale" },
+                                      { label: "Sold Out", value: "sold_out" },
+                                    ]}
+                                    value={child.badgeType ?? "sale"}
+                                    onChange={(value) =>
+                                      updateEditDraftItemById(child.id, (item) => ({
+                                        ...item,
+                                        badgeType: value as any,
+                                      }))
+                                    }
+                                  />
+                                </BlockStack>
                               ) : null
                             ) : (
                               <Text as="p" variant="bodySm" tone="subdued">
@@ -6659,12 +6675,23 @@ export default function MenuBuilder() {
                     </InlineStack>
                     {isProPlan ? (
                       editingItem.badgeEnabled ? (
-                        <TextField
-                          label="Badge text"
-                          value={editingItem.badgeText ?? ""}
-                          onChange={(value) => updateEditDraft("badgeText", value)}
-                          autoComplete="off"
-                        />
+                        <BlockStack gap="200">
+                          <TextField
+                            label="Badge text"
+                            value={editingItem.badgeText ?? ""}
+                            onChange={(value) => updateEditDraft("badgeText", value)}
+                            autoComplete="off"
+                          />
+                          <Select
+                            label="Badge type"
+                            options={[
+                              { label: "Sale", value: "sale" },
+                              { label: "Sold Out", value: "sold_out" },
+                            ]}
+                            value={editingItem.badgeType ?? "sale"}
+                            onChange={(value) => updateEditDraft("badgeType", value as any)}
+                          />
+                        </BlockStack>
                       ) : null
                     ) : (
                       <Text as="p" variant="bodySm" tone="subdued">
@@ -9067,8 +9094,12 @@ export default function MenuBuilder() {
                                 {childBadgeText ? (
                                   <span
                                     style={{
-                                      background: themeSettings.menuActive,
-                                      color: "#ffffff",
+                                      background: child.badgeType === "sold_out"
+                                        ? builderSettings.colorBadgeSoldOutBackground
+                                        : builderSettings.colorBadgeSaleBackground,
+                                      color: child.badgeType === "sold_out"
+                                        ? builderSettings.colorBadgeSoldOutText
+                                        : builderSettings.colorBadgeSaleText,
                                       borderRadius: 9999,
                                       padding: "2px 8px",
                                       fontSize: 10,
@@ -13275,8 +13306,12 @@ export default function MenuBuilder() {
               {badgeText ? (
                 <span
                   style={{
-                    background: themeSettings.menuActive,
-                    color: "#ffffff",
+                    background: item.badgeType === "sold_out"
+                      ? builderSettings.colorBadgeSoldOutBackground
+                      : builderSettings.colorBadgeSaleBackground,
+                    color: item.badgeType === "sold_out"
+                      ? builderSettings.colorBadgeSoldOutText
+                      : builderSettings.colorBadgeSaleText,
                     borderRadius: 9999,
                     padding: "2px 8px",
                     fontSize: 10,

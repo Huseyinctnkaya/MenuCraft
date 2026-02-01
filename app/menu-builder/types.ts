@@ -19,6 +19,7 @@ export type MenuItem = {
   extraClassName?: string;
   badgeEnabled?: boolean;
   badgeText?: string;
+  badgeType?: "sale" | "sold_out";
   customTextColor?: string;
   customBackgroundColor?: string;
   customTextHoverColor?: string;

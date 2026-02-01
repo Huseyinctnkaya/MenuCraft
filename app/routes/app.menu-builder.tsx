@@ -1088,6 +1088,7 @@ export default function MenuBuilder() {
     setProductPickerSearch("");
     setProductPickerTargetId(targetId ?? null);
     setProductPickerOpen(true);
+    setLinkPickerOpenId(null);
   };
 
   const toggleProductSelection = (id: string) => {
@@ -1144,6 +1145,7 @@ export default function MenuBuilder() {
     setCollectionPickerSearch("");
     setCollectionPickerTargetId(targetId ?? null);
     setCollectionPickerOpen(true);
+    setLinkPickerOpenId(null);
   };
 
   const toggleCollectionSelection = (id: string) => {
@@ -3934,6 +3936,7 @@ export default function MenuBuilder() {
     if (options?.keepPanel && activePanel !== "menu") return;
     setActivePanel("menu");
     setMenuView(openEdit ? "edit" : "list");
+    setLinkPickerOpenId(null);
   };
 
   const handleToggleExpand = (id: string) => {
@@ -5266,7 +5269,7 @@ export default function MenuBuilder() {
             </InlineStack>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4" onScroll={() => setLinkPickerOpenId(null)}>
             <BlockStack gap="400">
               <BlockStack gap="300">
                 <Text as="h3" variant="headingSm">
@@ -6405,6 +6408,7 @@ export default function MenuBuilder() {
                                         }
                                         return next;
                                       });
+                                      setLinkPickerOpenId(null);
                                     }}
                                     className={`h-10 w-10 rounded-full border-2 shadow-sm ${isOpen ? "border-blue-500 ring-2 ring-blue-500/30" : "border-gray-300"}`}
                                     style={{
@@ -6957,7 +6961,7 @@ export default function MenuBuilder() {
                 </div>
               </Box>
             </div>
-            <div ref={customItemsScrollRef} className="relative z-0 flex-1 min-h-0 overflow-y-auto">
+            <div ref={customItemsScrollRef} className="relative z-0 flex-1 min-h-0 overflow-y-auto" onScroll={() => setLinkPickerOpenId(null)}>
               {isSelectTab ? (
                 <>
                   <Box padding="400">

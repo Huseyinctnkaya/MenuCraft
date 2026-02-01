@@ -14373,6 +14373,10 @@ export default function MenuBuilder() {
                           !hasBlockPanel;
                         const dropdownPanelStyle: CSSProperties = {
                           background: previewMenu?.submenuBackgroundColor || previewColors.submenuBackground,
+                          backgroundImage: previewMenu?.submenuBackgroundImage ? `url(${previewMenu.submenuBackgroundImage})` : "none",
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          backgroundRepeat: "no-repeat",
                           border: builderSettings.submenuShowBorder
                             ? `1px solid ${previewColors.submenuBorder}`
                             : "none",
@@ -15845,6 +15849,10 @@ export default function MenuBuilder() {
                           className="relative"
                           style={{
                             background: previewMenu?.submenuBackgroundColor || previewColors.submenuBackground,
+                            backgroundImage: previewMenu?.submenuBackgroundImage ? `url(${previewMenu.submenuBackgroundImage})` : "none",
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat",
                             border: builderSettings.submenuShowBorder
                               ? `1px solid ${previewColors.submenuBorder}`
                               : "none",
@@ -16643,6 +16651,10 @@ export default function MenuBuilder() {
                   <div
                     style={{
                       background: previewMenu?.submenuBackgroundColor || previewColors.submenuBackground,
+                      backgroundImage: previewMenu?.submenuBackgroundImage ? `url(${previewMenu.submenuBackgroundImage})` : "none",
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
                       border: builderSettings.submenuShowBorder
                         ? `1px solid ${previewColors.submenuBorder}`
                         : "none",

@@ -57,6 +57,7 @@ import {
   TextAlignRightIcon,
   TextFontListIcon,
   TextIcon,
+  XCircleIcon,
 } from "@shopify/polaris-icons";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
@@ -5854,25 +5855,20 @@ export default function MenuBuilder() {
                       onChange={(value) => updateEditDraft("label", value)}
                       autoComplete="off"
                     />
-                    <div dir="ltr" className="flex items-end gap-2">
-                      <div className="flex-1">
-                        <TextField
-                          label="Link"
-                          value={editingItem.url}
-                          onChange={(value) => updateEditDraft("url", value)}
-                          autoComplete="off"
-                          placeholder="Search or paste a link"
+                    <TextField
+                      label="Link"
+                      value={editingItem.url}
+                      onChange={(value) => updateEditDraft("url", value)}
+                      autoComplete="off"
+                      placeholder="Search or paste a link"
+                      connectedRight={
+                        <Button
+                          icon={XCircleIcon}
+                          onClick={() => updateEditDraft("url", "")}
+                          accessibilityLabel="Clear link"
                         />
-                      </div>
-                      <button
-                        type="button"
-                        aria-label="Clear link"
-                        onClick={() => updateEditDraft("url", "")}
-                        className="mb-[2px] flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-gray-300 bg-gray-100 text-gray-500 hover:bg-gray-200"
-                      >
-                        <span className="text-base leading-none">×</span>
-                      </button>
-                    </div>
+                      }
+                    />
                     <Checkbox
                       label="Open in new tab"
                       checked={Boolean(editingItem.openInNewTab)}

@@ -5377,6 +5377,7 @@ export default function MenuBuilder() {
   const renderMenuPanel = () => {
     if (menuView === "edit" && selectedItem) {
       const editingItem = editDraft ?? selectedItem;
+      const isRootItem = menuItems.some((item) => item.id === editingItem.id);
       const isImageBlock =
         editingItem.blockTemplate === "image" || editingItem.blockTemplate === "image2";
       const isContactBlock = editingItem.blockTemplate === "contact";
@@ -6576,8 +6577,7 @@ export default function MenuBuilder() {
                   </BlockStack>
                 </>
               ) : null}
-
-              {!isVisualBlock && !isLinkListBlock && !isProductListBlock && !isCollectionListBlock ? (
+              {!isVisualBlock && !isLinkListBlock && !isProductListBlock && !isCollectionListBlock && isRootItem ? (
                 <>
                   <Divider />
                   <BlockStack gap="300">
@@ -10738,7 +10738,17 @@ export default function MenuBuilder() {
         key={group.id}
         className="group relative border-1 border-transparent transition-colors hover:border-dotted hover:border-blue-500"
         ref={registerPreviewRow(group.id)}
-        style={{ willChange: "transform" }}
+        style={{
+          willChange: "transform",
+          flex:
+            options.flex ??
+            (useImageSpaceLayout || useBlockFlexLayout ? `0 0 ${blogFlexBasis}` : undefined),
+          order: useImageSpaceLayout ? 0 : undefined,
+          border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
+          padding: "6px",
+          borderRadius: 0,
+          ...options.wrapperStyle,
+        }}
         draggable
         onDragStart={(event) => {
           event.dataTransfer.effectAllowed = "move";
@@ -10772,16 +10782,6 @@ export default function MenuBuilder() {
           setDraggedItemId(null);
           setDraggedParentId(null);
           lastDragOverIdRef.current = null;
-        }}
-        style={{
-          flex:
-            options.flex ??
-            ((useImageSpaceLayout || useBlockFlexLayout) ? `0 0 ${blogFlexBasis}` : undefined),
-          order: useImageSpaceLayout ? 0 : undefined,
-          border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
-          padding: "6px",
-          borderRadius: 0,
-          ...options.wrapperStyle,
         }}
       >
         <div className="pointer-events-none absolute right-4 top-3 z-10 flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
@@ -10913,7 +10913,7 @@ export default function MenuBuilder() {
             </div>
           )}
         </div>
-      </div>
+      </div >
     );
   };
 

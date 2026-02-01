@@ -674,6 +674,7 @@ export default function MenuBuilder() {
   const [iconPickerState, setIconPickerState] = useState<IconPickerState | null>(null);
   const [iconPickerSearch, setIconPickerSearch] = useState("");
   const iconPickerScrollRef = useRef<HTMLDivElement | null>(null);
+  const customItemsScrollRef = useRef<HTMLDivElement | null>(null);
   const [accountIconMenuOpenId, setAccountIconMenuOpenId] = useState<string | null>(null);
   const [editIconMenuOpenId, setEditIconMenuOpenId] = useState<string | null>(null);
   const [submenuImagePickerOpen, setSubmenuImagePickerOpen] = useState(false);
@@ -6917,21 +6918,41 @@ export default function MenuBuilder() {
                                   )}
                                 </div>
                                 <div>
-                                  <Text as="p" variant="bodySm" tone="subdued">
+                                  <Text as="p" variant="bodyMd" fontWeight="semibold">
                                     Background image
                                   </Text>
-                                  <div className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50">
-                                    <Button variant="secondary" onClick={() => setSubmenuImagePickerOpen(true)}>
-                                      Select photo
-                                    </Button>
-                                  </div>
+                                  {!editingItem.submenuBackgroundImage ? (
+                                    <div className="mt-2 flex h-28 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50">
+                                      <Button variant="secondary" onClick={() => setSubmenuImagePickerOpen(true)}>
+                                        Select photo
+                                      </Button>
+                                    </div>
+                                  ) : null}
                                   {editingItem.submenuBackgroundImage ? (
-                                    <div className="mt-2">
-                                      <img
-                                        src={editingItem.submenuBackgroundImage}
-                                        alt=""
-                                        className="h-20 w-full rounded-md object-cover"
-                                      />
+                                    <div className="mt-2 overflow-hidden rounded-lg border border-gray-300 bg-white">
+                                      <div className="relative flex h-40 w-full items-center justify-center bg-gray-50 p-4">
+                                        <img
+                                          src={editingItem.submenuBackgroundImage}
+                                          alt="Background preview"
+                                          className="h-full w-auto object-contain shadow-sm rounded-sm"
+                                        />
+                                      </div>
+                                      <div className="flex border-t border-gray-200 divide-x divide-gray-200">
+                                        <button
+                                          type="button"
+                                          onClick={() => setSubmenuImagePickerOpen(true)}
+                                          className="flex-1 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                          Change
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => updateEditDraft("submenuBackgroundImage", "")}
+                                          className="flex-1 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
                                     </div>
                                   ) : null}
                                 </div>
@@ -14295,7 +14316,7 @@ export default function MenuBuilder() {
                           !isThreeLevelTabsVariant &&
                           !hasBlockPanel;
                         const dropdownPanelStyle: CSSProperties = {
-                          background: previewColors.submenuBackground,
+                          background: previewMenu?.submenuBackgroundColor || previewColors.submenuBackground,
                           border: builderSettings.submenuShowBorder
                             ? `1px solid ${previewColors.submenuBorder}`
                             : "none",
@@ -15767,7 +15788,7 @@ export default function MenuBuilder() {
                         <div
                           className="relative"
                           style={{
-                            background: previewColors.submenuBackground,
+                            background: previewMenu?.submenuBackgroundColor || previewColors.submenuBackground,
                             border: builderSettings.submenuShowBorder
                               ? `1px solid ${previewColors.submenuBorder}`
                               : "none",
@@ -16565,7 +16586,7 @@ export default function MenuBuilder() {
                 !isHorizontalDropdownMenu && (
                   <div
                     style={{
-                      background: previewColors.submenuBackground,
+                      background: previewMenu?.submenuBackgroundColor || previewColors.submenuBackground,
                       border: builderSettings.submenuShowBorder
                         ? `1px solid ${previewColors.submenuBorder}`
                         : "none",

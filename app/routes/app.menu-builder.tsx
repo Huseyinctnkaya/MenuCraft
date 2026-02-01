@@ -1232,7 +1232,11 @@ export default function MenuBuilder() {
                     key={image}
                     type="button"
                     onClick={() => {
-                      handleUpdateSelected("submenuBackgroundImage", image);
+                      if (menuView === "edit") {
+                        updateEditDraft("submenuBackgroundImage", image);
+                      } else {
+                        handleUpdateSelected("submenuBackgroundImage", image);
+                      }
                       setSubmenuImagePickerOpen(false);
                     }}
                     className={`relative overflow-hidden rounded-lg border p-1 text-left transition ${isSelected ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-200 hover:border-gray-300"
@@ -1489,7 +1493,7 @@ export default function MenuBuilder() {
               No images uploaded yet.
             </Text>
           ) : (
-            <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="mt-4 grid grid-cols-3 gap-2">
               {imageLibrary.map((image) => {
                 const isSelected = imagePickerSelection === image;
                 return (
@@ -1497,21 +1501,23 @@ export default function MenuBuilder() {
                     key={image}
                     type="button"
                     onClick={() => setImagePickerSelection(image)}
-                    className={`relative overflow-hidden rounded-lg border p-2 text-left transition ${isSelected ? "border-gray-300 bg-gray-50" : "border-gray-200"
-                      }`}
+                    className={`relative overflow-hidden rounded-lg border p-1 text-left transition ${isSelected ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-200 hover:border-gray-300"
+                      } bg-white shadow-sm group`}
                   >
-                    <span
-                      className={`absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded border text-xs font-semibold ${isSelected ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-white text-transparent"
-                        }`}
-                      aria-hidden="true"
-                    >
-                      ✓
-                    </span>
-                    <img
-                      src={image}
-                      alt=""
-                      className="aspect-square w-full rounded-md border border-gray-100 object-cover"
-                    />
+                    {isSelected && (
+                      <div className="absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded bg-gray-900 text-white shadow-sm">
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-100">
+                      <img
+                        src={image}
+                        alt=""
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
                   </button>
                 );
               })}

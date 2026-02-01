@@ -38,6 +38,7 @@ import {
   ChevronRightIcon,
   CodeIcon,
   CollectionIcon,
+  CollectionListIcon,
   DesktopIcon,
   FormsIcon,
   DragHandleIcon,
@@ -45,11 +46,15 @@ import {
   EditIcon,
   DeleteIcon,
   ImageIcon,
+  HomeIcon,
   MenuIcon,
   MobileIcon,
   PaintBrushRoundIcon,
   PlusIcon,
   UploadIcon,
+  PageIcon,
+  ProductIcon,
+  ProductListIcon,
   SearchIcon,
   SettingsIcon,
   TextAlignCenterIcon,
@@ -720,6 +725,8 @@ export default function MenuBuilder() {
   });
   const [customItems, setCustomItems] = useState<CustomAddItem[]>(() => [buildCustomItem()]);
   const [linkPickerOpenId, setLinkPickerOpenId] = useState<string | null>(null);
+  const [linkSearchQuery, setLinkSearchQuery] = useState("");
+  const [linkPickerCategory, setLinkPickerCategory] = useState<string | null>(null);
   const [activeDropdownItemId, setActiveDropdownItemId] = useState<string | null>(null);
   const [activeDropdownChildId, setActiveDropdownChildId] = useState<string | null>(null);
   const [activeDropdownGrandchildId, setActiveDropdownGrandchildId] = useState<string | null>(null);
@@ -3671,6 +3678,143 @@ export default function MenuBuilder() {
     return null;
   };
 
+  const renderLinkPickerContent = (onSelect: (url: string, label: string) => void) => {
+    const query = linkSearchQuery.toLowerCase().trim();
+
+    const handleSelect = (url: string, label: string) => {
+      onSelect(url, label);
+      setLinkPickerOpenId(null);
+      setLinkSearchQuery("");
+      setLinkPickerCategory(null);
+    };
+
+    if (!linkPickerCategory) {
+      // Level 0: Categories and Common Links
+      const categories = [
+        { label: "Home", url: "/", icon: HomeIcon },
+        { label: "Search", url: "/search", icon: SearchIcon },
+        { label: "All collections", url: "/collections", icon: CollectionListIcon },
+        { label: "All products", url: "/collections/all", icon: ProductListIcon },
+        { label: "Collections", type: "category", id: "collections", icon: CollectionIcon },
+        { label: "Products", type: "category", id: "products", icon: ProductIcon },
+        { label: "Pages", type: "category", id: "pages", icon: PageIcon },
+        { label: "Blogs", type: "category", id: "blogs", icon: BlogIcon },
+      ];
+
+      return (
+        <div style={{ width: "320px" }}>
+          <ActionList
+            items={categories.map((item) => ({
+              content: item.label,
+              icon: item.icon,
+              suffix: item.type === "category" ? <Icon source={ChevronRightIcon} tone="subdued" /> : null,
+              onAction: () => {
+                if (item.type === "category") {
+                  setLinkPickerCategory(item.id!);
+                } else {
+                  handleSelect(item.url!, item.label);
+                }
+              },
+            }))}
+          />
+        </div>
+      );
+    }
+
+    // Level 1: Category Details with Search
+    let items: Array<{ title: string; handle: string; image?: any }> = [];
+    let title = "";
+    let urlPrefix = "";
+    let itemIcon = ProductIcon;
+
+    switch (linkPickerCategory) {
+      case "products":
+        items = products;
+        title = "Products";
+        urlPrefix = "/products/";
+        itemIcon = ProductIcon;
+        break;
+      case "collections":
+        items = collections;
+        title = "Collections";
+        urlPrefix = "/collections/";
+        itemIcon = CollectionIcon;
+        break;
+      case "pages":
+        items = pages;
+        title = "Pages";
+        urlPrefix = "/pages/";
+        itemIcon = PageIcon;
+        break;
+      case "blogs":
+        items = blogs;
+        title = "Blogs";
+        urlPrefix = "/blogs/";
+        itemIcon = BlogIcon;
+        break;
+    }
+
+    const filteredItems = items.filter((item) =>
+      item.title.toLowerCase().includes(query)
+    );
+
+    return (
+      <div style={{ width: "320px" }}>
+        <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
+          <Button
+            variant="plain"
+            icon={ChevronLeftIcon}
+            onClick={() => {
+              setLinkPickerCategory(null);
+              setLinkSearchQuery("");
+            }}
+          />
+          <Text as="span" variant="headingSm">
+            {title}
+          </Text>
+        </div>
+        <Box padding="200">
+          <TextField
+            label={`Search ${title.toLowerCase()}`}
+            labelHidden
+            value={linkSearchQuery}
+            onChange={setLinkSearchQuery}
+            prefix={<Icon source={SearchIcon} tone="subdued" />}
+            placeholder={`Search ${title.toLowerCase()}`}
+            autoComplete="off"
+            focused={true}
+          />
+        </Box>
+        <Divider />
+        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+          {filteredItems.length === 0 ? (
+            <Box padding="400">
+              <Text as="p" textAlign="center" tone="subdued">
+                No results found
+              </Text>
+            </Box>
+          ) : (
+            <ActionList
+              items={filteredItems.map((item) => ({
+                content: item.title,
+                media: item.image?.url ? (
+                  <img
+                    src={item.image.url}
+                    alt=""
+                    style={{ width: "24px", height: "24px", borderRadius: "4px", objectFit: "cover" }}
+                  />
+                ) : (
+                  <Icon source={itemIcon} tone="subdued" />
+                ),
+                onAction: () => handleSelect(`${urlPrefix}${item.handle}`, item.title),
+              }))}
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderMenuIcon = (
     icon?: string,
     options?: { size?: number; className?: string; color?: string }
@@ -5786,21 +5930,19 @@ export default function MenuBuilder() {
                           }
                         />
                       }
-                      onClose={() => setLinkPickerOpenId(null)}
+                      onClose={() => {
+                        setLinkPickerOpenId(null);
+                        setLinkSearchQuery("");
+                        setLinkPickerCategory(null);
+                      }}
                       autofocusTarget="none"
                     >
-                      <div style={{ width: "250px" }}>
-                        <ActionList
-                          items={LINK_SUGGESTIONS.map((option) => ({
-                            content: option.label,
-                            icon: option.icon,
-                            onAction: () => {
-                              updateEditDraft("url", option.url);
-                              setLinkPickerOpenId(null);
-                            },
-                          }))}
-                        />
-                      </div>
+                      {renderLinkPickerContent((url, label) => {
+                        updateEditDraft("url", url);
+                        if (!editingItem.label) {
+                          updateEditDraft("label", label);
+                        }
+                      })}
                     </Popover>
                     {editingItem.url ? (
                       <Checkbox
@@ -5959,7 +6101,7 @@ export default function MenuBuilder() {
                                   onChange={(value) =>
                                     updateEditDraftItemById(child.id, (item) => ({ ...item, url: value }))
                                   }
-                                  onFocus={() => openLinkPicker(child.id)}
+                                  onFocus={() => setLinkPickerOpenId(child.id)}
                                   autoComplete="off"
                                   placeholder="Search or paste a link"
                                   connectedRight={
@@ -5973,21 +6115,20 @@ export default function MenuBuilder() {
                                   }
                                 />
                               }
-                              onClose={() => setLinkPickerOpenId(null)}
+                              onClose={() => {
+                                setLinkPickerOpenId(null);
+                                setLinkSearchQuery("");
+                                setLinkPickerCategory(null);
+                              }}
                               autofocusTarget="none"
                             >
-                              <div style={{ width: "320px" }}>
-                                <ActionList
-                                  items={LINK_SUGGESTIONS.map((option) => ({
-                                    content: option.label,
-                                    icon: option.icon,
-                                    onAction: () => {
-                                      updateEditDraftItemById(child.id, (item) => ({ ...item, url: option.url }));
-                                      setLinkPickerOpenId(null);
-                                    },
-                                  }))}
-                                />
-                              </div>
+                              {renderLinkPickerContent((url, label) => {
+                                updateEditDraftItemById(child.id, (item) => ({
+                                  ...item,
+                                  url,
+                                  label: item.label || label,
+                                }));
+                              })}
                             </Popover>
                             {child.url ? (
                               <Checkbox
@@ -7082,7 +7223,7 @@ export default function MenuBuilder() {
                                 label="Link"
                                 value={item.url}
                                 onChange={(value) => updateCustomItem(item.id, { url: value })}
-                                onFocus={() => openLinkPicker(item.id)}
+                                onFocus={() => setLinkPickerOpenId(item.id)}
                                 autoComplete="off"
                                 placeholder="Search or paste a link"
                                 connectedRight={
@@ -7094,21 +7235,19 @@ export default function MenuBuilder() {
                                 }
                               />
                             }
-                            onClose={() => setLinkPickerOpenId(null)}
+                            onClose={() => {
+                              setLinkPickerOpenId(null);
+                              setLinkSearchQuery("");
+                              setLinkPickerCategory(null);
+                            }}
                             autofocusTarget="none"
                           >
-                            <div style={{ width: "320px" }}>
-                              <ActionList
-                                items={LINK_SUGGESTIONS.map((option) => ({
-                                  content: option.label,
-                                  icon: option.icon,
-                                  onAction: () => {
-                                    updateCustomItem(item.id, { url: option.url });
-                                    setLinkPickerOpenId(null);
-                                  },
-                                }))}
-                              />
-                            </div>
+                            {renderLinkPickerContent((url, label) => {
+                              updateCustomItem(item.id, {
+                                url,
+                                title: item.title || label,
+                              });
+                            })}
                           </Popover>
                           <TextField
                             label="Description"

@@ -11588,9 +11588,36 @@ export default function MenuBuilder() {
                       position: "relative",
                     }}
                   >
-                    <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
-                      {child.label}
-                    </span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        justifyContent: dropdownAlignJustify,
+                        width: "100%",
+                      }}
+                    >
+                      {child.icon ? (
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: child.iconWidthMode === "custom"
+                              ? `${child.iconWidthValue ?? 50}${child.iconWidthUnit ?? "%"}`
+                              : undefined,
+                          }}
+                        >
+                          {renderMenuIcon(child.icon, {
+                            size: 16,
+                            className: "text-gray-500",
+                            color: previewColors.submenuText,
+                          })}
+                        </span>
+                      ) : null}
+                      <span>{child.label}</span>
+                    </div>
                     {hasChildren ? (
                       <span
                         aria-hidden="true"
@@ -14645,9 +14672,36 @@ export default function MenuBuilder() {
                                           {showLeftChevron ? (
                                             <ChevronLeftIcon width="14" height="14" fill={previewColors.submenuText} />
                                           ) : null}
-                                          <span style={{ flex: 1, textAlign: dropdownContentAlign }}>
-                                            {child.label}
-                                          </span>
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: 8,
+                                              justifyContent: dropdownAlignJustify,
+                                              width: "100%",
+                                            }}
+                                          >
+                                            {child.icon ? (
+                                              <span
+                                                aria-hidden="true"
+                                                style={{
+                                                  display: "inline-flex",
+                                                  alignItems: "center",
+                                                  justifyContent: "center",
+                                                  width: child.iconWidthMode === "custom"
+                                                    ? `${child.iconWidthValue ?? 50}${child.iconWidthUnit ?? "%"}`
+                                                    : undefined,
+                                                }}
+                                              >
+                                                {renderMenuIcon(child.icon, {
+                                                  size: 16,
+                                                  className: "text-gray-500",
+                                                  color: previewColors.submenuText,
+                                                })}
+                                              </span>
+                                            ) : null}
+                                            <span>{child.label}</span>
+                                          </div>
                                           {!showLeftChevron && hasChildren ? (
                                             <ChevronRightIcon width="14" height="14" fill={previewColors.submenuText} />
                                           ) : null}

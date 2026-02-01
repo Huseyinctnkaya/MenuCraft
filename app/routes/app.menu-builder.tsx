@@ -531,6 +531,31 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return json({ ok: true });
 };
 
+const filterVisibleItemsRecursive = (items: MenuItem[], isMobile: boolean): MenuItem[] => {
+  return items
+    .filter((item) => {
+      if (item.hideOnDesktop && !isMobile) return false;
+      if (item.hideOnMobile && isMobile) return false;
+      return true;
+    })
+    .map((item) => ({
+      ...item,
+      children: item.children ? filterVisibleItemsRecursive(item.children, isMobile) : undefined,
+    }));
+};
+
+const findItemInTree = (items: MenuItem[], id: string | null): MenuItem | null => {
+  if (!id) return null;
+  for (const item of items) {
+    if (item.id === id) return item;
+    if (item.children) {
+      const found = findItemInTree(item.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
 export default function MenuBuilder() {
   const {
     menu,
@@ -663,6 +688,172 @@ export default function MenuBuilder() {
     ...DEFAULT_BUILDER_SETTINGS,
     ...normalizedMenuSettings,
   });
+
+  const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
+    left: "flex-start",
+    right: "flex-end",
+    center: "center",
+  };
+  const isMobilePreview = previewMode === "mobile";
+  const visibleMenuItems = useMemo(() => {
+    return filterVisibleItemsRecursive(menuItems, isMobilePreview);
+  }, [menuItems, isMobilePreview]);
+
+  const isVerticalMenu = isMobilePreview || builderSettings.layoutOrientation === "vertical";
+
+  const dropdownGroups = useMemo(() => {
+    const previewMenu = openMenuId ? findItemInTree(visibleMenuItems, openMenuId) : null;
+    return previewMenu?.children ?? [];
+  }, [visibleMenuItems, openMenuId]);
+
+  const isDropdownMenu = useMemo(() => {
+    const previewMenu = openMenuId ? findItemInTree(visibleMenuItems, openMenuId) : null;
+    if (!previewMenu) return false;
+    return (
+      previewMenu.submenuType === "dropdown" ||
+      previewMenu.submenuTemplate === "dropdown" ||
+      previewMenu.submenuTemplate === "simple-left-tabs" ||
+      previewMenu.submenuTemplate === "simple-right-tabs" ||
+      previewMenu.submenuTemplate === "two-nested-tabs-right" ||
+      previewMenu.submenuTemplate === "three-nested-tabs-right" ||
+      previewMenu.submenuTemplate === "two-level-tabs" ||
+      previewMenu.submenuTemplate === "three-level-tabs" ||
+      previewMenu.submenuTemplate === "custom-normal-dropdown"
+    );
+  }, [visibleMenuItems, openMenuId]);
+
+  const isHorizontalDropdownMenu = useMemo(() => {
+    const previewMenu = openMenuId ? findItemInTree(visibleMenuItems, openMenuId) : null;
+    if (!previewMenu) return false;
+    return (
+      previewMenu.submenuType === "horizontal-dropdown" ||
+      previewMenu.submenuTemplate === "horizontal-dropdown" ||
+      previewMenu.submenuTemplate === "simple-top-tabs" ||
+      previewMenu.submenuTemplate === "two-top-tabs" ||
+      previewMenu.submenuTemplate === "three-top-tabs"
+    );
+  }, [visibleMenuItems, openMenuId]);
+
+  const shouldInlineMobilePanel =
+    isMobilePreview && dropdownGroups.length > 0 && !isDropdownMenu && !isHorizontalDropdownMenu;
+  const rightTabsMenuItems = useMemo(
+    () =>
+      visibleMenuItems.filter(
+        (item) =>
+          item.submenuTemplate === "simple-right-tabs" ||
+          item.submenuTemplate === "two-nested-tabs-right" ||
+          item.submenuTemplate === "three-nested-tabs-right"
+      ),
+    [visibleMenuItems]
+  );
+  const accountLinks = useMemo(() => {
+    if (isVerticalMenu || isMobilePreview) return [];
+    const links: Array<{
+      id: string;
+      label: string;
+      icon: string;
+      iconWidthMode: "auto" | "custom";
+      iconWidthValue: number;
+      iconWidthUnit: "%" | "px";
+    }> = [];
+    if (builderSettings.accountShowLogin) {
+      const label = builderSettings.accountLoginLabel ?? "";
+      const icon = builderSettings.accountLoginIcon ?? "";
+      if (label.trim() || icon) {
+        links.push({
+          id: "account-login",
+          label,
+          icon,
+          iconWidthMode: builderSettings.accountLoginIconWidthMode ?? "auto",
+          iconWidthValue: builderSettings.accountLoginIconWidthValue ?? 50,
+          iconWidthUnit: builderSettings.accountLoginIconWidthUnit ?? "%",
+        });
+      }
+    }
+    if (builderSettings.accountShowRegister) {
+      const label = builderSettings.accountRegisterLabel ?? "";
+      const icon = builderSettings.accountRegisterIcon ?? "";
+      if (label.trim() || icon) {
+        links.push({
+          id: "account-register",
+          label,
+          icon,
+          iconWidthMode: builderSettings.accountRegisterIconWidthMode ?? "auto",
+          iconWidthValue: builderSettings.accountRegisterIconWidthValue ?? 50,
+          iconWidthUnit: builderSettings.accountRegisterIconWidthUnit ?? "%",
+        });
+      }
+    }
+    if (builderSettings.accountShowAccount) {
+      const label = builderSettings.accountAccountLabel ?? "";
+      const icon = builderSettings.accountAccountIcon ?? "";
+      if (label.trim() || icon) {
+        links.push({
+          id: "account-account",
+          label,
+          icon,
+          iconWidthMode: builderSettings.accountAccountIconWidthMode ?? "auto",
+          iconWidthValue: builderSettings.accountAccountIconWidthValue ?? 50,
+          iconWidthUnit: builderSettings.accountAccountIconWidthUnit ?? "%",
+        });
+      }
+    }
+    if (builderSettings.accountShowLogout) {
+      const label = builderSettings.accountLogoutLabel ?? "";
+      const icon = builderSettings.accountLogoutIcon ?? "";
+      if (label.trim() || icon) {
+        links.push({
+          id: "account-logout",
+          label,
+          icon,
+          iconWidthMode: builderSettings.accountLogoutIconWidthMode ?? "auto",
+          iconWidthValue: builderSettings.accountLogoutIconWidthValue ?? 50,
+          iconWidthUnit: builderSettings.accountLogoutIconWidthUnit ?? "%",
+        });
+      }
+    }
+    return links;
+  }, [
+    builderSettings.accountShowLogin,
+    builderSettings.accountLoginLabel,
+    builderSettings.accountLoginIcon,
+    builderSettings.accountLoginIconWidthMode,
+    builderSettings.accountLoginIconWidthValue,
+    builderSettings.accountLoginIconWidthUnit,
+    builderSettings.accountShowRegister,
+    builderSettings.accountRegisterLabel,
+    builderSettings.accountRegisterIcon,
+    builderSettings.accountRegisterIconWidthMode,
+    builderSettings.accountRegisterIconWidthValue,
+    builderSettings.accountRegisterIconWidthUnit,
+    builderSettings.accountShowAccount,
+    builderSettings.accountAccountLabel,
+    builderSettings.accountAccountIcon,
+    builderSettings.accountAccountIconWidthMode,
+    builderSettings.accountAccountIconWidthValue,
+    builderSettings.accountAccountIconWidthUnit,
+    builderSettings.accountShowLogout,
+    builderSettings.accountLogoutLabel,
+    builderSettings.accountLogoutIcon,
+    builderSettings.accountLogoutIconWidthMode,
+    builderSettings.accountLogoutIconWidthValue,
+    builderSettings.accountLogoutIconWidthUnit,
+    isVerticalMenu,
+    isMobilePreview,
+  ]);
+  const standardMenuItems = useMemo(
+    () =>
+      visibleMenuItems.filter(
+        (item) =>
+          item.submenuTemplate !== "simple-right-tabs" &&
+          item.submenuTemplate !== "two-nested-tabs-right" &&
+          item.submenuTemplate !== "three-nested-tabs-right"
+      ),
+    [visibleMenuItems]
+  );
+  const menuItemsForMainRow = isVerticalMenu ? visibleMenuItems : standardMenuItems;
+  const rightAlignedMenuItems = isVerticalMenu ? [] : rightTabsMenuItems;
+  const hasRightSideItems = rightAlignedMenuItems.length > 0 || accountLinks.length > 0;
   const [requiresExplicitSave, setRequiresExplicitSave] = useState(false);
   const [activeSaveAction, setActiveSaveAction] = useState<"save" | "publish" | "enable" | null>(
     null
@@ -837,8 +1028,8 @@ export default function MenuBuilder() {
   const activeMenu = selectedPath?.[0] ?? null;
   const currentImageUrl = editDraft?.imageUrl ?? selectedItem?.imageUrl ?? null;
   const previewMenu = useMemo(
-    () => (openMenuId ? menuItems.find((item) => item.id === openMenuId) ?? null : null),
-    [menuItems, openMenuId]
+    () => (openMenuId ? findItemInTree(visibleMenuItems, openMenuId) : null),
+    [visibleMenuItems, openMenuId]
   );
 
   useEffect(() => {
@@ -10997,23 +11188,7 @@ export default function MenuBuilder() {
     );
   };
 
-  const dropdownGroups = previewMenu?.children ?? [];
-  const isDropdownMenu =
-    previewMenu?.submenuType === "dropdown" ||
-    previewMenu?.submenuTemplate === "dropdown" ||
-    previewMenu?.submenuTemplate === "simple-left-tabs" ||
-    previewMenu?.submenuTemplate === "simple-right-tabs" ||
-    previewMenu?.submenuTemplate === "two-nested-tabs-right" ||
-    previewMenu?.submenuTemplate === "three-nested-tabs-right" ||
-    previewMenu?.submenuTemplate === "two-level-tabs" ||
-    previewMenu?.submenuTemplate === "three-level-tabs" ||
-    previewMenu?.submenuTemplate === "custom-normal-dropdown";
-  const isHorizontalDropdownMenu =
-    previewMenu?.submenuType === "horizontal-dropdown" ||
-    previewMenu?.submenuTemplate === "horizontal-dropdown" ||
-    previewMenu?.submenuTemplate === "simple-top-tabs" ||
-    previewMenu?.submenuTemplate === "two-top-tabs" ||
-    previewMenu?.submenuTemplate === "three-top-tabs";
+
   const isTopTabsTemplate =
     previewMenu?.submenuTemplate === "simple-top-tabs" ||
     previewMenu?.submenuTemplate === "two-top-tabs" ||
@@ -11102,141 +11277,7 @@ export default function MenuBuilder() {
         group.blockTemplate === "blogs" ||
         group.blockTemplate === "blogs-latest"
     );
-  const menuAlignmentMap: Record<BuilderSettings["layoutAlignment"], string> = {
-    left: "flex-start",
-    right: "flex-end",
-    center: "center",
-  };
-  const isMobilePreview = previewMode === "mobile";
-  const isVerticalMenu = isMobilePreview || builderSettings.layoutOrientation === "vertical";
-  const shouldInlineMobilePanel =
-    isMobilePreview && dropdownGroups.length > 0 && !isDropdownMenu && !isHorizontalDropdownMenu;
 
-  const visibleMenuItems = useMemo(() => {
-    return menuItems.filter((item) => {
-      if (item.hideOnDesktop && !isMobilePreview) return false;
-      if (item.hideOnMobile && isMobilePreview) return false;
-      return true;
-    });
-  }, [menuItems, isMobilePreview]);
-  const rightTabsMenuItems = useMemo(
-    () =>
-      visibleMenuItems.filter(
-        (item) =>
-          item.submenuTemplate === "simple-right-tabs" ||
-          item.submenuTemplate === "two-nested-tabs-right" ||
-          item.submenuTemplate === "three-nested-tabs-right"
-      ),
-    [visibleMenuItems]
-  );
-  const accountLinks = useMemo(() => {
-    if (isVerticalMenu || isMobilePreview) return [];
-    const links: Array<{
-      id: string;
-      label: string;
-      icon: string;
-      iconWidthMode: "auto" | "custom";
-      iconWidthValue: number;
-      iconWidthUnit: "%" | "px";
-    }> = [];
-    if (builderSettings.accountShowLogin) {
-      const label = builderSettings.accountLoginLabel ?? "";
-      const icon = builderSettings.accountLoginIcon ?? "";
-      if (label.trim() || icon) {
-        links.push({
-          id: "account-login",
-          label,
-          icon,
-          iconWidthMode: builderSettings.accountLoginIconWidthMode ?? "auto",
-          iconWidthValue: builderSettings.accountLoginIconWidthValue ?? 50,
-          iconWidthUnit: builderSettings.accountLoginIconWidthUnit ?? "%",
-        });
-      }
-    }
-    if (builderSettings.accountShowRegister) {
-      const label = builderSettings.accountRegisterLabel ?? "";
-      const icon = builderSettings.accountRegisterIcon ?? "";
-      if (label.trim() || icon) {
-        links.push({
-          id: "account-register",
-          label,
-          icon,
-          iconWidthMode: builderSettings.accountRegisterIconWidthMode ?? "auto",
-          iconWidthValue: builderSettings.accountRegisterIconWidthValue ?? 50,
-          iconWidthUnit: builderSettings.accountRegisterIconWidthUnit ?? "%",
-        });
-      }
-    }
-    if (builderSettings.accountShowAccount) {
-      const label = builderSettings.accountAccountLabel ?? "";
-      const icon = builderSettings.accountAccountIcon ?? "";
-      if (label.trim() || icon) {
-        links.push({
-          id: "account-account",
-          label,
-          icon,
-          iconWidthMode: builderSettings.accountAccountIconWidthMode ?? "auto",
-          iconWidthValue: builderSettings.accountAccountIconWidthValue ?? 50,
-          iconWidthUnit: builderSettings.accountAccountIconWidthUnit ?? "%",
-        });
-      }
-    }
-    if (builderSettings.accountShowLogout) {
-      const label = builderSettings.accountLogoutLabel ?? "";
-      const icon = builderSettings.accountLogoutIcon ?? "";
-      if (label.trim() || icon) {
-        links.push({
-          id: "account-logout",
-          label,
-          icon,
-          iconWidthMode: builderSettings.accountLogoutIconWidthMode ?? "auto",
-          iconWidthValue: builderSettings.accountLogoutIconWidthValue ?? 50,
-          iconWidthUnit: builderSettings.accountLogoutIconWidthUnit ?? "%",
-        });
-      }
-    }
-    return links;
-  }, [
-    builderSettings.accountShowLogin,
-    builderSettings.accountLoginLabel,
-    builderSettings.accountLoginIcon,
-    builderSettings.accountLoginIconWidthMode,
-    builderSettings.accountLoginIconWidthValue,
-    builderSettings.accountLoginIconWidthUnit,
-    builderSettings.accountShowRegister,
-    builderSettings.accountRegisterLabel,
-    builderSettings.accountRegisterIcon,
-    builderSettings.accountRegisterIconWidthMode,
-    builderSettings.accountRegisterIconWidthValue,
-    builderSettings.accountRegisterIconWidthUnit,
-    builderSettings.accountShowAccount,
-    builderSettings.accountAccountLabel,
-    builderSettings.accountAccountIcon,
-    builderSettings.accountAccountIconWidthMode,
-    builderSettings.accountAccountIconWidthValue,
-    builderSettings.accountAccountIconWidthUnit,
-    builderSettings.accountShowLogout,
-    builderSettings.accountLogoutLabel,
-    builderSettings.accountLogoutIcon,
-    builderSettings.accountLogoutIconWidthMode,
-    builderSettings.accountLogoutIconWidthValue,
-    builderSettings.accountLogoutIconWidthUnit,
-    isVerticalMenu,
-    isMobilePreview,
-  ]);
-  const standardMenuItems = useMemo(
-    () =>
-      visibleMenuItems.filter(
-        (item) =>
-          item.submenuTemplate !== "simple-right-tabs" &&
-          item.submenuTemplate !== "two-nested-tabs-right" &&
-          item.submenuTemplate !== "three-nested-tabs-right"
-      ),
-    [visibleMenuItems]
-  );
-  const menuItemsForMainRow = isVerticalMenu ? visibleMenuItems : standardMenuItems;
-  const rightAlignedMenuItems = isVerticalMenu ? [] : rightTabsMenuItems;
-  const hasRightSideItems = rightAlignedMenuItems.length > 0 || accountLinks.length > 0;
   const menuRowHeight = isMobilePreview
     ? Math.max(builderSettings.spacingMainRowHeight, 52)
     : builderSettings.spacingMainRowHeight;

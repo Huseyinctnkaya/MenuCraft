@@ -9769,7 +9769,6 @@ export default function MenuBuilder() {
           lastDragOverIdRef.current = null;
         }}
         style={{
-          gridColumn: useImageSpaceLayout ? undefined : undefined,
           minHeight: useImageSpaceLayout ? 240 : undefined,
           flex: options.flex ??
             (useImageSpaceLayout
@@ -11308,7 +11307,6 @@ export default function MenuBuilder() {
           alignItems: "flex-start",
           width: "100%",
           flex: useBlockFlexLayout ? "0 0 100%" : undefined,
-          gridColumn: useBlockFlexLayout ? undefined : "1 / -1",
         }}
       >
         <div
@@ -14069,11 +14067,11 @@ export default function MenuBuilder() {
           return (
             <div
               style={{
-                display: isMobileInline ? "flex" : "grid",
+                display: isMobileInline ? "flex" : useBlockFlexLayout ? "flex" : "grid",
                 gridTemplateColumns: isMobileInline
                   ? undefined
                   : useBlockFlexLayout
-                    ? "repeat(12, 1fr)"
+                    ? undefined
                     : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
                 flexDirection: isMobileInline ? "column" : undefined,
                 gap: isMobileInline ? 12 : useImageSpaceLayout ? 0 : 24,
@@ -14099,7 +14097,6 @@ export default function MenuBuilder() {
                   return renderSpaceBlock(group, {
                     isSelected: isGroupSelected,
                     wrapperStyle: {
-                      gridColumn: spaceGridColumn,
                       flex: isMobileInline ? "1 1 100%" : spaceFlex,
                       order: spaceOrder,
                       width: isMobileInline ? "100%" : undefined,
@@ -14113,7 +14110,6 @@ export default function MenuBuilder() {
                     wrapperStyle: {
                       minWidth: 0,
                       width: isMobileInline ? "100%" : undefined,
-                      gridColumn: isMobileInline || !useBlockFlexLayout ? undefined : `span ${span}`
                     },
                     toolbarPlacement: "floating",
                   });
@@ -14133,7 +14129,8 @@ export default function MenuBuilder() {
                   group.blockTemplate === "html"
                 ) {
                   const span = getBlockSpan(group);
-                  const commonGridStyle = isMobileInline || !useBlockFlexLayout ? {} : { gridColumn: `span ${span}` };
+                  const commonFlexBasis = `${Math.round((span / 12) * 100)}%`;
+                  const commonFlexStyle = isMobileInline || !useBlockFlexLayout ? {} : { flex: `0 0 ${commonFlexBasis}` };
 
                   if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
                     return renderImageBlock(group, {
@@ -14141,7 +14138,7 @@ export default function MenuBuilder() {
                       wrapperStyle: {
                         minWidth: 0,
                         width: isMobileInline ? "100%" : undefined,
-                        ...commonGridStyle
+                        ...commonFlexStyle
                       },
                     });
                   }
@@ -14150,7 +14147,7 @@ export default function MenuBuilder() {
                       flex: isMobileInline ? "1 1 100%" : "auto",
                       wrapperStyle: {
                         width: isMobileInline ? "100%" : undefined,
-                        ...commonGridStyle
+                        ...commonFlexStyle
                       },
                     });
                   }
@@ -14165,7 +14162,7 @@ export default function MenuBuilder() {
                       flex: isMobileInline ? "1 1 100%" : "auto",
                       wrapperStyle: {
                         width: isMobileInline ? "100%" : undefined,
-                        ...commonGridStyle
+                        ...commonFlexStyle
                       },
                     });
                   }
@@ -14174,7 +14171,7 @@ export default function MenuBuilder() {
                       flex: isMobileInline ? "1 1 100%" : "auto",
                       wrapperStyle: {
                         width: isMobileInline ? "100%" : undefined,
-                        ...commonGridStyle
+                        ...commonFlexStyle
                       },
                     });
                   }
@@ -14183,7 +14180,7 @@ export default function MenuBuilder() {
                       flex: isMobileInline ? "1 1 100%" : "auto",
                       wrapperStyle: {
                         width: isMobileInline ? "100%" : undefined,
-                        ...commonGridStyle
+                        ...commonFlexStyle
                       },
                     });
                   }
@@ -14192,7 +14189,7 @@ export default function MenuBuilder() {
                       flex: isMobileInline ? "1 1 100%" : "auto",
                       wrapperStyle: {
                         width: isMobileInline ? "100%" : undefined,
-                        ...commonGridStyle
+                        ...commonFlexStyle
                       },
                     });
                   }
@@ -17169,10 +17166,11 @@ export default function MenuBuilder() {
                       return (
                         <div
                           style={{
-                            display: "grid",
+                            display: useBlockFlexLayout ? "flex" : "grid",
                             gridTemplateColumns: useBlockFlexLayout
-                              ? "repeat(12, 1fr)"
+                              ? undefined
                               : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
+                            flexDirection: undefined,
                             gap: useImageSpaceLayout ? 0 : 24,
                             alignItems: useBlockFlexLayout ? "flex-start" : undefined,
                             flexWrap: useBlockFlexLayout ? "wrap" : undefined,
@@ -17196,7 +17194,6 @@ export default function MenuBuilder() {
                               return renderSpaceBlock(group, {
                                 isSelected: isGroupSelected,
                                 wrapperStyle: {
-                                  gridColumn: spaceGridColumn,
                                   flex: spaceFlex,
                                   order: spaceOrder,
                                 },
@@ -17205,7 +17202,10 @@ export default function MenuBuilder() {
                             if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
                               const span = getBlockSpan(group);
                               return renderImageBlock(group, {
-                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                                wrapperStyle: {
+                                  minWidth: 0,
+                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                }
                               });
                             }
                             if (group.blockTemplate === "multi") {
@@ -17280,13 +17280,19 @@ export default function MenuBuilder() {
                             if (group.blockTemplate === "html") {
                               const span = getBlockSpan(group);
                               return renderHtmlBlock(group, {
-                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                                wrapperStyle: {
+                                  minWidth: 0,
+                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                }
                               });
                             }
                             if (group.blockTemplate === "contact") {
                               const span = getBlockSpan(group);
                               return renderContactBlock(group, {
-                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                                wrapperStyle: {
+                                  minWidth: 0,
+                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                }
                               });
                             }
                             if (
@@ -17298,19 +17304,28 @@ export default function MenuBuilder() {
                             ) {
                               const span = getBlockSpan(group);
                               return renderProductBlock(group, {
-                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                                wrapperStyle: {
+                                  minWidth: 0,
+                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                }
                               });
                             }
                             if (group.blockTemplate === "collection") {
                               const span = getBlockSpan(group);
                               return renderCollectionBlock(group, {
-                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                                wrapperStyle: {
+                                  minWidth: 0,
+                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                }
                               });
                             }
                             if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
                               const span = getBlockSpan(group);
                               return renderBlogBlock(group, {
-                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                                wrapperStyle: {
+                                  minWidth: 0,
+                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                }
                               });
                             }
                             return (

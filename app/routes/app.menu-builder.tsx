@@ -13849,8 +13849,10 @@ export default function MenuBuilder() {
       padding: "10px",
       boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
       maxWidth: submenuMaxWidth ?? "none",
-      overflowY: enableDropdownScroll ? "auto" : "visible",
-      maxHeight: enableDropdownScroll ? 420 : "none",
+      overflowY: "visible",
+      maxHeight: "none",
+      scrollbarWidth: "none",
+      msOverflowStyle: "none",
       opacity: 1,
       transform:
         builderSettings.animationEffect === "slide"
@@ -13872,7 +13874,7 @@ export default function MenuBuilder() {
     }
 
     return (
-      <div style={panelStyle}>
+      <div className="menu-builder-hide-scrollbar" style={panelStyle}>
         {(() => {
           const orderedDropdownGroups = useImageSpaceLayout
             ? dropdownGroups.some((group) => group.multiLayout)
@@ -14077,7 +14079,10 @@ export default function MenuBuilder() {
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">
-      <style>{".menu-builder-hide-scrollbar::-webkit-scrollbar{display:none;}"}</style>
+      <style>{`
+        .menu-builder-hide-scrollbar::-webkit-scrollbar { display: none; }
+        .menu-builder-hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
       {fullscreenPhase !== "ready" ? (
         <div className="fixed inset-0 z-50 bg-gray-100" />
       ) : null}
@@ -16936,6 +16941,7 @@ export default function MenuBuilder() {
                 !isDropdownMenu &&
                 !isHorizontalDropdownMenu && (
                   <div
+                    className="menu-builder-hide-scrollbar"
                     style={{
                       background: previewMenu?.submenuBackgroundColor || previewColors.submenuBackground,
                       backgroundImage: previewMenu?.submenuBackgroundImage ? `url(${previewMenu.submenuBackgroundImage})` : "none",
@@ -16955,8 +16961,10 @@ export default function MenuBuilder() {
                       left: dropdownLeft,
                       width: dropdownPanelWidth,
                       zIndex: 20,
-                      overflowY: enableDropdownScroll ? "auto" : "visible",
-                      maxHeight: enableDropdownScroll ? 420 : "none",
+                      overflowY: "visible",
+                      maxHeight: "none",
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
                       opacity: 1,
                       transform:
                         builderSettings.animationEffect === "slide"

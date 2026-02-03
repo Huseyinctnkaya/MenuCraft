@@ -9388,7 +9388,7 @@ export default function MenuBuilder() {
                           }}
                           style={{
                             textAlign: linkTextAlign,
-                            border: isChildSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
+                            border: isChildSelected ? `1px dashed ${themeSettings.menuActive}` : "1px solid transparent",
                             borderRadius: 8,
                             padding: "6px 8px",
                             background: childBaseBackground,
@@ -13814,7 +13814,7 @@ export default function MenuBuilder() {
         ref={registerPreviewRow(group.id)}
         style={{
           willChange: "transform",
-          border: isSelected ? `2px dashed ${themeSettings.menuActive}` : "1px dashed #cbd5e1",
+          border: isSelected ? `1px dashed ${themeSettings.menuActive}` : "1px dashed #cbd5e1",
           borderRadius: 10,
           padding: "16px",
           display: "flex",
@@ -14730,7 +14730,7 @@ export default function MenuBuilder() {
                                             minHeight: dropdownItemHeight,
                                             padding: "8px 10px",
                                             borderRadius: 0,
-                                            border: "2px solid transparent",
+                                            border: "1px solid transparent",
                                             background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
                                             color: previewColors.submenuText,
                                             width: "100%",
@@ -15009,7 +15009,7 @@ export default function MenuBuilder() {
                                                     minHeight: dropdownItemHeight,
                                                     padding: "8px 10px",
                                                     borderRadius: 0,
-                                                    border: "2px solid transparent",
+                                                    border: "1px solid transparent",
                                                     background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
                                                     color: previewColors.submenuText,
                                                     width: "100%",
@@ -15341,7 +15341,7 @@ export default function MenuBuilder() {
                                                     minHeight: dropdownItemHeight,
                                                     padding: "8px 10px",
                                                     borderRadius: 0,
-                                                    border: "2px solid transparent",
+                                                    border: "1px solid transparent",
                                                     background: isActiveChild ? "rgba(59, 130, 246, 0.08)" : "transparent",
                                                     color: previewColors.submenuText,
                                                     width: "100%",
@@ -15556,7 +15556,7 @@ export default function MenuBuilder() {
                                                       minHeight: dropdownItemHeight,
                                                       padding: "8px 10px",
                                                       borderRadius: 0,
-                                                      border: "2px solid transparent",
+                                                      border: "1px solid transparent",
                                                       background: isActiveChild
                                                         ? "rgba(59, 130, 246, 0.08)"
                                                         : "transparent",
@@ -15939,7 +15939,7 @@ export default function MenuBuilder() {
                                               minHeight: dropdownItemHeight,
                                               padding: "8px 10px",
                                               borderRadius: 0,
-                                              border: "2px solid transparent",
+                                              border: "1px solid transparent",
                                               background: "transparent",
                                               color: previewColors.submenuText,
                                               width: "100%",
@@ -16182,7 +16182,7 @@ export default function MenuBuilder() {
                                         minHeight: builderSettings.spacingLinkListRowHeight,
                                         padding: "16px",
                                         borderRadius: 0,
-                                        border: "2px solid transparent",
+                                        border: "1px solid transparent",
                                         background: "transparent",
                                         color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
                                         textAlign: "center",
@@ -16405,7 +16405,7 @@ export default function MenuBuilder() {
                                           minHeight: builderSettings.spacingLinkListRowHeight,
                                           padding: "16px",
                                           borderRadius: 0,
-                                          border: "2px solid transparent",
+                                          border: "1px solid transparent",
                                           background: "transparent",
                                           color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
                                           textAlign: "center",
@@ -16647,7 +16647,7 @@ export default function MenuBuilder() {
                                           minHeight: builderSettings.spacingLinkListRowHeight,
                                           padding: "16px",
                                           borderRadius: 0,
-                                          border: "2px solid transparent",
+                                          border: "1px solid transparent",
                                           background: "transparent",
                                           color: isActive ? previewColors.submenuTextHover : previewColors.submenuText,
                                           textAlign: "center",
@@ -17178,7 +17178,7 @@ export default function MenuBuilder() {
                               <div
                                 key={group.id}
                                 style={{
-                                  border: isGroupSelected ? `2px dashed ${themeSettings.menuActive}` : "2px solid transparent",
+                                  border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : "1px solid transparent",
                                   borderRadius: 10,
                                   padding: "10px 12px",
                                 }}
@@ -17220,8 +17220,8 @@ export default function MenuBuilder() {
                                         style={{
                                           textAlign: "left",
                                           border: isChildSelected
-                                            ? `2px dashed ${themeSettings.menuActive}`
-                                            : "2px solid transparent",
+                                            ? `1px dashed ${themeSettings.menuActive}`
+                                            : "1px solid transparent",
                                           borderRadius: 8,
                                           padding: "6px 8px",
                                           minHeight: builderSettings.spacingLinkListRowHeight,

@@ -11275,7 +11275,14 @@ export default function MenuBuilder() {
         group.blockTemplate === "multi" ||
         group.blockTemplate === "collection" ||
         group.blockTemplate === "blogs" ||
-        group.blockTemplate === "blogs-latest"
+        group.blockTemplate === "blogs-latest" ||
+        group.blockTemplate === "product" ||
+        group.blockTemplate === "product-grid" ||
+        group.blockTemplate === "product-carousel" ||
+        group.blockTemplate === "product-grid-horizontal" ||
+        group.blockTemplate === "product-horizontal" ||
+        group.blockTemplate === "html" ||
+        group.blockTemplate === "contact"
     );
 
   const menuRowHeight = isMobilePreview

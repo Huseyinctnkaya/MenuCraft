@@ -6263,15 +6263,10 @@ export default function MenuBuilder() {
                               label="Use as heading"
                               checked={isHeadingItem}
                               onChange={(value) => {
-                                setEditDraft((prev) => {
-                                  const base = prev ?? selectedItem;
-                                  if (!base || !base.children?.length) return prev ?? base;
-                                  const nextChildren = base.children.map((item) => ({
-                                    ...item,
-                                    isHeading: value ? item.id === child.id : false,
-                                  }));
-                                  return { ...base, children: nextChildren };
-                                });
+                                updateEditDraftItemById(child.id, (item) => ({
+                                  ...item,
+                                  isHeading: value,
+                                }));
                               }}
                             />
                             <Text as="p" variant="bodySm" tone="subdued">
@@ -9128,7 +9123,7 @@ export default function MenuBuilder() {
   ) => {
     const useFloatingToolbar = options.toolbarPlacement === "floating";
     const headingItem = group.children?.find((child) => child.isHeading);
-    const linkItems = (group.children ?? []).filter((child) => !child.isHeading);
+    const linkItems = (group.children ?? []).filter((child) => child.id !== headingItem?.id);
     const isMobileLinkList = isMobilePreview && Boolean(headingItem);
     const isMobileExpanded = !isMobileLinkList
       ? true
@@ -9413,116 +9408,169 @@ export default function MenuBuilder() {
                     const childDescriptionColor =
                       child.customTextColor ?? previewColors.submenuDescription;
                     const childBadgeText = child.badgeEnabled ? (child.badgeText ?? "").trim() : "";
+                    const isHeadingChild = Boolean(child.isHeading);
                     return (
                       <div key={child.id} className="group/item relative">
-                        <button
-                          type="button"
-                          onClick={() => handleSelectItem(child.id)}
-                          onMouseEnter={(event) => {
-                            event.currentTarget.style.color = childHoverTextColor;
-                            event.currentTarget.style.background = childHoverBackground;
-                          }}
-                          onMouseLeave={(event) => {
-                            event.currentTarget.style.color = childBaseTextColor;
-                            event.currentTarget.style.background = childBaseBackground;
-                          }}
-                          style={{
-                            textAlign: linkTextAlign,
-                            border: isChildSelected ? `1px dashed ${themeSettings.menuActive}` : "1px solid transparent",
-                            borderRadius: 8,
-                            padding: "6px 8px",
-                            background: childBaseBackground,
-                            color: childBaseTextColor,
-                            width: "100%",
-                            ...subtextTypography,
-                            lineHeight: 1.2,
-                          }}
-                        >
+                        {isHeadingChild ? (
                           <div
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                              justifyContent: linkJustify,
+                              padding: "4px 8px",
+                              marginTop: 8,
+                              textAlign: linkTextAlign,
+                              cursor: "pointer",
+                              border: isChildSelected
+                                ? `1px dashed ${themeSettings.menuActive}`
+                                : "1px solid transparent",
+                              borderRadius: 8,
+                            }}
+                            onClick={() => handleSelectItem(child.id)}
+                          >
+                            <div
+                              style={Object.assign({}, subheadingTypography, {
+                                color: previewColors.submenuHeading,
+                                fontWeight: 600,
+                                fontSize: 13,
+                                lineHeight: 1.2,
+                                marginBottom: 4,
+                              })}
+                            >
+                              {child.label}
+                            </div>
+                            <div
+                              style={{
+                                borderTop: `1px solid ${previewColors.submenuHeading}`,
+                                opacity: 0.3,
+                                marginBottom: 4,
+                              }}
+                            />
+                            {child.description ? (
+                              <div
+                                style={Object.assign({}, descriptionTypography, {
+                                  fontSize: 11,
+                                  fontWeight: 400,
+                                  opacity: 0.8,
+                                  color: previewColors.submenuDescription,
+                                  textAlign: linkTextAlign,
+                                })}
+                              >
+                                {child.description}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSelectItem(child.id)}
+                            onMouseEnter={(event) => {
+                              event.currentTarget.style.color = childHoverTextColor;
+                              event.currentTarget.style.background = childHoverBackground;
+                            }}
+                            onMouseLeave={(event) => {
+                              event.currentTarget.style.color = childBaseTextColor;
+                              event.currentTarget.style.background = childBaseBackground;
+                            }}
+                            style={{
+                              textAlign: linkTextAlign,
+                              border: isChildSelected
+                                ? `1px dashed ${themeSettings.menuActive}`
+                                : "1px solid transparent",
+                              borderRadius: 8,
+                              padding: "6px 8px",
+                              background: childBaseBackground,
+                              color: childBaseTextColor,
                               width: "100%",
+                              ...subtextTypography,
+                              lineHeight: 1.2,
                             }}
                           >
-                            {child.icon ? (
-                              <span
-                                aria-hidden="true"
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                {renderMenuIcon(child.icon, {
-                                  size: 16,
-                                  className: "text-gray-500",
-                                  color: childBaseTextColor,
-                                })}
-                              </span>
-                            ) : null}
                             <div
                               style={{
                                 display: "flex",
-                                flexDirection: "column",
-                                alignItems: linkAlignItems,
-                                textAlign: linkTextAlign,
+                                alignItems: "center",
+                                gap: 8,
+                                justifyContent: linkJustify,
+                                width: "100%",
                               }}
                             >
+                              {child.icon ? (
+                                <span
+                                  aria-hidden="true"
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  {renderMenuIcon(child.icon, {
+                                    size: 16,
+                                    className: "text-gray-500",
+                                    color: childBaseTextColor,
+                                  })}
+                                </span>
+                              ) : null}
                               <div
                                 style={{
                                   display: "flex",
-                                  alignItems: "center",
-                                  gap: 8,
-                                  flexWrap: "wrap",
-                                  justifyContent: linkJustify,
-                                  fontWeight: 600,
-                                  ...subheadingTypography,
-                                  lineHeight: 1.2,
+                                  flexDirection: "column",
+                                  alignItems: linkAlignItems,
+                                  textAlign: linkTextAlign,
                                 }}
                               >
-                                <span>{child.label}</span>
-                                {childBadgeText ? (
-                                  <span
-                                    style={{
-                                      background: child.badgeType === "sold_out"
-                                        ? builderSettings.colorBadgeSoldOutBackground
-                                        : child.badgeType === "none"
-                                          ? builderSettings.colorBadgeDefaultBackground
-                                          : builderSettings.colorBadgeSaleBackground,
-                                      color: child.badgeType === "sold_out"
-                                        ? builderSettings.colorBadgeSoldOutText
-                                        : child.badgeType === "none"
-                                          ? builderSettings.colorBadgeDefaultText
-                                          : builderSettings.colorBadgeSaleText,
-                                      borderRadius: 9999,
-                                      padding: "2px 8px",
-                                      fontSize: 10,
-                                      fontWeight: 600,
-                                      letterSpacing: 0.2,
-                                    }}
-                                  >
-                                    {childBadgeText}
-                                  </span>
-                                ) : null}
-                              </div>
-                              {child.description ? (
                                 <div
                                   style={{
-                                    fontSize: 12,
-                                    ...descriptionTypography,
-                                    lineHeight: 1.3,
-                                    color: childDescriptionColor,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    flexWrap: "wrap",
+                                    justifyContent: linkJustify,
+                                    fontWeight: 600,
+                                    ...subheadingTypography,
+                                    lineHeight: 1.2,
                                   }}
                                 >
-                                  {child.description}
+                                  <span>{child.label}</span>
+                                  {childBadgeText ? (
+                                    <span
+                                      style={{
+                                        background:
+                                          child.badgeType === "sold_out"
+                                            ? builderSettings.colorBadgeSoldOutBackground
+                                            : child.badgeType === "none"
+                                              ? builderSettings.colorBadgeDefaultBackground
+                                              : builderSettings.colorBadgeSaleBackground,
+                                        color:
+                                          child.badgeType === "sold_out"
+                                            ? builderSettings.colorBadgeSoldOutText
+                                            : child.badgeType === "none"
+                                              ? builderSettings.colorBadgeDefaultText
+                                              : builderSettings.colorBadgeSaleText,
+                                        borderRadius: 9999,
+                                        padding: "2px 8px",
+                                        fontSize: 10,
+                                        fontWeight: 600,
+                                        letterSpacing: 0.2,
+                                      }}
+                                    >
+                                      {childBadgeText}
+                                    </span>
+                                  ) : null}
                                 </div>
-                              ) : null}
+                                {child.description ? (
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      ...descriptionTypography,
+                                      lineHeight: 1.3,
+                                      color: childDescriptionColor,
+                                    }}
+                                  >
+                                    {child.description}
+                                  </div>
+                                ) : null}
+                              </div>
                             </div>
-                          </div>
-                        </button>
+                          </button>
+                        )}
                         <div className="pointer-events-none absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/item:pointer-events-auto group-hover/item:opacity-100">
                           <div className="flex items-center gap-1 rounded-full bg-gray-900 px-2 py-1 shadow-md">
                             <button

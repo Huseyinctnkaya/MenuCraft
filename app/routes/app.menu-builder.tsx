@@ -7214,53 +7214,6 @@ export default function MenuBuilder() {
                 </>
               ) : null}
 
-              <Divider />
-
-              <BlockStack gap="300">
-                <Text as="h3" variant="headingSm">
-                  Visibility
-                </Text>
-                <Checkbox
-                  label="Hide on desktop"
-                  checked={Boolean(editingItem.hideOnDesktop)}
-                  onChange={(value) => updateEditDraft("hideOnDesktop", value)}
-                />
-                <Checkbox
-                  label="Hide on mobile"
-                  checked={Boolean(editingItem.hideOnMobile)}
-                  onChange={(value) => updateEditDraft("hideOnMobile", value)}
-                />
-                <Checkbox
-                  label="Hide when logged in"
-                  checked={Boolean(editingItem.hideWhenLoggedIn)}
-                  onChange={(value) => updateEditDraft("hideWhenLoggedIn", value)}
-                />
-                <Checkbox
-                  label="Show only when logged out"
-                  checked={Boolean(editingItem.showWhenLoggedOut)}
-                  onChange={(value) => updateEditDraft("showWhenLoggedOut", value)}
-                />
-                <Checkbox
-                  label="Publish scheduling"
-                  checked={Boolean(editingItem.schedulePublish)}
-                  onChange={(value) => updateEditDraft("schedulePublish", value)}
-                />
-              </BlockStack>
-
-              <Divider />
-
-              <BlockStack gap="300">
-                <Text as="h3" variant="headingSm">
-                  Advanced
-                </Text>
-                <TextField
-                  label="Extra class name"
-                  value={editingItem.extraClassName ?? ""}
-                  onChange={(value) => updateEditDraft("extraClassName", value)}
-                  autoComplete="off"
-                />
-              </BlockStack>
-
               {isImageBlock ? (
                 <>
                   <Divider />
@@ -7342,6 +7295,53 @@ export default function MenuBuilder() {
                   </BlockStack>
                 </>
               ) : null}
+
+              <Divider />
+
+              <BlockStack gap="300">
+                <Text as="h3" variant="headingSm">
+                  Visibility
+                </Text>
+                <Checkbox
+                  label="Hide on desktop"
+                  checked={Boolean(editingItem.hideOnDesktop)}
+                  onChange={(value) => updateEditDraft("hideOnDesktop", value)}
+                />
+                <Checkbox
+                  label="Hide on mobile"
+                  checked={Boolean(editingItem.hideOnMobile)}
+                  onChange={(value) => updateEditDraft("hideOnMobile", value)}
+                />
+                <Checkbox
+                  label="Hide when logged in"
+                  checked={Boolean(editingItem.hideWhenLoggedIn)}
+                  onChange={(value) => updateEditDraft("hideWhenLoggedIn", value)}
+                />
+                <Checkbox
+                  label="Show only when logged out"
+                  checked={Boolean(editingItem.showWhenLoggedOut)}
+                  onChange={(value) => updateEditDraft("showWhenLoggedOut", value)}
+                />
+                <Checkbox
+                  label="Publish scheduling"
+                  checked={Boolean(editingItem.schedulePublish)}
+                  onChange={(value) => updateEditDraft("schedulePublish", value)}
+                />
+              </BlockStack>
+
+              <Divider />
+
+              <BlockStack gap="300">
+                <Text as="h3" variant="headingSm">
+                  Advanced
+                </Text>
+                <TextField
+                  label="Extra class name"
+                  value={editingItem.extraClassName ?? ""}
+                  onChange={(value) => updateEditDraft("extraClassName", value)}
+                  autoComplete="off"
+                />
+              </BlockStack>
             </BlockStack>
           </div>
 
@@ -10216,7 +10216,7 @@ export default function MenuBuilder() {
     const htmlWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
     const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
     const htmlContent = group.htmlContent ?? "";
-    const htmlHasIframe = /<iframe/i.test(htmlContent);
+    const htmlHasIframe = /<iframe /i.test(htmlContent);
     const allowHtmlDrag = !htmlHasIframe;
     const htmlTitle = (group.label ?? "").trim();
     const showHtmlTitle = Boolean(htmlTitle) && htmlTitle.toLowerCase() !== "custom html";

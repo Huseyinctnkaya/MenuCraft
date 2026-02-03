@@ -4480,6 +4480,37 @@ export default function MenuBuilder() {
     updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"]);
   };
 
+  const getBlockSpan = (item: MenuItem): number => {
+    if (item.blockTemplate === "links") {
+      return Math.max(1, Math.min(12, item.linkWidth ?? 6));
+    }
+    if (item.blockTemplate === "image" || item.blockTemplate === "image2") {
+      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
+    }
+    if (item.blockTemplate === "html") {
+      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
+    }
+    if (
+      item.blockTemplate === "product" ||
+      item.blockTemplate === "product-horizontal" ||
+      item.blockTemplate === "product-grid" ||
+      item.blockTemplate === "product-carousel" ||
+      item.blockTemplate === "product-grid-horizontal"
+    ) {
+      return Math.max(1, Math.min(12, item.productWidth ?? 3));
+    }
+    if (item.blockTemplate === "collection" || item.blockTemplate === "collection-horizontal") {
+      return Math.max(1, Math.min(12, item.imageWidth ?? 6));
+    }
+    if (item.blockTemplate === "blogs" || item.blockTemplate === "blogs-latest") {
+      return Math.max(1, Math.min(12, item.imageWidth ?? 6));
+    }
+    if (item.blockTemplate === "contact") {
+      return Math.max(1, Math.min(12, item.imageWidth ?? 6));
+    }
+    return 3; // Default
+  };
+
   const removeEditDraftItemById = (id: string) => {
     setEditDraft((prev) => {
       const base = prev ?? selectedItem;
@@ -13897,10 +13928,11 @@ export default function MenuBuilder() {
           return (
             <div
               style={{
-                display: isMobileInline ? "flex" : useBlockFlexLayout ? "flex" : "grid",
-                gridTemplateColumns:
-                  useBlockFlexLayout || isMobileInline
-                    ? undefined
+                display: isMobileInline ? "flex" : "grid",
+                gridTemplateColumns: isMobileInline
+                  ? undefined
+                  : useBlockFlexLayout
+                    ? "repeat(12, 1fr)"
                     : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
                 flexDirection: isMobileInline ? "column" : undefined,
                 gap: isMobileInline ? 12 : useImageSpaceLayout ? 0 : 24,
@@ -13934,10 +13966,14 @@ export default function MenuBuilder() {
                   });
                 }
                 if (group.blockTemplate === "links") {
-                  const linkFlexBasis = useBlockFlexLayout ? "0 0 50%" : "auto";
+                  const span = getBlockSpan(group);
                   return renderLinkListBlock(group, {
-                    flex: isMobileInline ? "1 1 100%" : linkFlexBasis,
-                    wrapperStyle: { minWidth: 0, width: isMobileInline ? "100%" : undefined },
+                    flex: isMobileInline ? "1 1 100%" : "auto",
+                    wrapperStyle: {
+                      minWidth: 0,
+                      width: isMobileInline ? "100%" : undefined,
+                      gridColumn: isMobileInline || !useBlockFlexLayout ? undefined : `span ${span}`
+                    },
                     toolbarPlacement: "floating",
                   });
                 }
@@ -13955,16 +13991,26 @@ export default function MenuBuilder() {
                   group.blockTemplate === "blogs-latest" ||
                   group.blockTemplate === "html"
                 ) {
+                  const span = getBlockSpan(group);
+                  const commonGridStyle = isMobileInline || !useBlockFlexLayout ? {} : { gridColumn: `span ${span}` };
+
                   if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
                     return renderImageBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : useBlockFlexLayout ? "0 0 20%" : undefined,
-                      wrapperStyle: { minWidth: 0, width: isMobileInline ? "100%" : undefined },
+                      flex: isMobileInline ? "1 1 100%" : "auto",
+                      wrapperStyle: {
+                        minWidth: 0,
+                        width: isMobileInline ? "100%" : undefined,
+                        ...commonGridStyle
+                      },
                     });
                   }
                   if (group.blockTemplate === "contact") {
                     return renderContactBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : useBlockFlexLayout ? "0 0 40%" : undefined,
-                      wrapperStyle: { width: isMobileInline ? "100%" : undefined },
+                      flex: isMobileInline ? "1 1 100%" : "auto",
+                      wrapperStyle: {
+                        width: isMobileInline ? "100%" : undefined,
+                        ...commonGridStyle
+                      },
                     });
                   }
                   if (
@@ -13975,26 +14021,38 @@ export default function MenuBuilder() {
                     group.blockTemplate === "product-grid-horizontal"
                   ) {
                     return renderProductBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : useBlockFlexLayout ? "0 0 50%" : undefined,
-                      wrapperStyle: { width: isMobileInline ? "100%" : undefined },
+                      flex: isMobileInline ? "1 1 100%" : "auto",
+                      wrapperStyle: {
+                        width: isMobileInline ? "100%" : undefined,
+                        ...commonGridStyle
+                      },
                     });
                   }
                   if (group.blockTemplate === "collection") {
                     return renderCollectionBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : useBlockFlexLayout ? "0 0 50%" : undefined,
-                      wrapperStyle: { width: isMobileInline ? "100%" : undefined },
+                      flex: isMobileInline ? "1 1 100%" : "auto",
+                      wrapperStyle: {
+                        width: isMobileInline ? "100%" : undefined,
+                        ...commonGridStyle
+                      },
                     });
                   }
                   if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
                     return renderBlogBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : useBlockFlexLayout ? "0 0 50%" : undefined,
-                      wrapperStyle: { width: isMobileInline ? "100%" : undefined },
+                      flex: isMobileInline ? "1 1 100%" : "auto",
+                      wrapperStyle: {
+                        width: isMobileInline ? "100%" : undefined,
+                        ...commonGridStyle
+                      },
                     });
                   }
                   if (group.blockTemplate === "html") {
                     return renderHtmlBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : useBlockFlexLayout ? "0 0 50%" : undefined,
-                      wrapperStyle: { width: isMobileInline ? "100%" : undefined },
+                      flex: isMobileInline ? "1 1 100%" : "auto",
+                      wrapperStyle: {
+                        width: isMobileInline ? "100%" : undefined,
+                        ...commonGridStyle
+                      },
                     });
                   }
                 }
@@ -16964,9 +17022,9 @@ export default function MenuBuilder() {
                       return (
                         <div
                           style={{
-                            display: useBlockFlexLayout ? "flex" : "grid",
+                            display: "grid",
                             gridTemplateColumns: useBlockFlexLayout
-                              ? undefined
+                              ? "repeat(12, 1fr)"
                               : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
                             gap: useImageSpaceLayout ? 0 : 24,
                             alignItems: useBlockFlexLayout ? "flex-start" : undefined,
@@ -16998,7 +17056,10 @@ export default function MenuBuilder() {
                               });
                             }
                             if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
-                              return renderImageBlock(group);
+                              const span = getBlockSpan(group);
+                              return renderImageBlock(group, {
+                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                              });
                             }
                             if (group.blockTemplate === "multi") {
                               const multiColumns = (group.children ?? []).filter(
@@ -17061,13 +17122,25 @@ export default function MenuBuilder() {
                               );
                             }
                             if (group.blockTemplate === "links") {
-                              return renderLinkListBlock(group);
+                              const span = getBlockSpan(group);
+                              return renderLinkListBlock(group, {
+                                wrapperStyle: {
+                                  minWidth: 0,
+                                  gridColumn: useBlockFlexLayout ? `span ${span}` : undefined
+                                }
+                              });
                             }
                             if (group.blockTemplate === "html") {
-                              return renderHtmlBlock(group);
+                              const span = getBlockSpan(group);
+                              return renderHtmlBlock(group, {
+                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                              });
                             }
                             if (group.blockTemplate === "contact") {
-                              return renderContactBlock(group);
+                              const span = getBlockSpan(group);
+                              return renderContactBlock(group, {
+                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                              });
                             }
                             if (
                               group.blockTemplate === "product" ||
@@ -17076,13 +17149,22 @@ export default function MenuBuilder() {
                               group.blockTemplate === "product-carousel" ||
                               group.blockTemplate === "product-grid-horizontal"
                             ) {
-                              return renderProductBlock(group);
+                              const span = getBlockSpan(group);
+                              return renderProductBlock(group, {
+                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                              });
                             }
                             if (group.blockTemplate === "collection") {
-                              return renderCollectionBlock(group);
+                              const span = getBlockSpan(group);
+                              return renderCollectionBlock(group, {
+                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                              });
                             }
                             if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
-                              return renderBlogBlock(group);
+                              const span = getBlockSpan(group);
+                              return renderBlogBlock(group, {
+                                wrapperStyle: { gridColumn: useBlockFlexLayout ? `span ${span}` : undefined }
+                              });
                             }
                             return (
                               <div

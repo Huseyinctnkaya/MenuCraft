@@ -768,7 +768,7 @@ const buildMultiBlockOneColumnThreeProductList = () => {
     blockTemplate: "links",
     multiLayout: "multi-1-column-3-product-list",
     linkColumns: 1,
-    linkWidth: 2,
+    linkWidth: 3,
     linkTextAlign: "left",
     children: buildSingleColumnLinkItems(),
   };

@@ -9249,7 +9249,7 @@ export default function MenuBuilder() {
                       }
                       handleSelectItem(headingItem.id);
                     }}
-                    style={{
+                    style={Object.assign({}, subheadingTypography, {
                       width: "100%",
                       textAlign: linkTextAlign,
                       border: "none",
@@ -9258,9 +9258,8 @@ export default function MenuBuilder() {
                       background: "transparent",
                       color: previewColors.submenuHeading,
                       fontWeight: 600,
-                      ...subheadingTypography,
                       lineHeight: 1.2,
-                    }}
+                    })}
                   >
                     <span
                       style={{
@@ -9296,7 +9295,48 @@ export default function MenuBuilder() {
                             })}
                           </span>
                         ) : null}
-                        <span style={{ textAlign: linkTextAlign }}>{headingLabel}</span>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: linkAlignItems }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ textAlign: linkTextAlign }}>{headingLabel}</span>
+                            {headingItem?.badgeEnabled && headingItem.badgeText ? (
+                              <span
+                                style={{
+                                  background: headingItem.badgeType === "sold_out"
+                                    ? builderSettings.colorBadgeSoldOutBackground
+                                    : headingItem.badgeType === "none"
+                                      ? builderSettings.colorBadgeDefaultBackground
+                                      : builderSettings.colorBadgeSaleBackground,
+                                  color: headingItem.badgeType === "sold_out"
+                                    ? builderSettings.colorBadgeSoldOutText
+                                    : headingItem.badgeType === "none"
+                                      ? builderSettings.colorBadgeDefaultText
+                                      : builderSettings.colorBadgeSaleText,
+                                  borderRadius: 9999,
+                                  padding: "2px 8px",
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  letterSpacing: 0.2,
+                                }}
+                              >
+                                {headingItem.badgeText}
+                              </span>
+                            ) : null}
+                          </div>
+                          {headingItem?.description ? (
+                            <div
+                              style={Object.assign({}, descriptionTypography, {
+                                fontSize: 12,
+                                fontWeight: 400,
+                                opacity: 0.8,
+                                marginTop: 2,
+                                color: previewColors.submenuDescription,
+                                textAlign: linkTextAlign,
+                              })}
+                            >
+                              {headingItem.description}
+                            </div>
+                          ) : null}
+                        </div>
                       </span>
                       {isMobileLinkList ? (
                         <span
@@ -10461,7 +10501,58 @@ export default function MenuBuilder() {
                   lineHeight: 1.2,
                 }}
               >
-                {productHeading}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <span>{productHeading}</span>
+                    {headingItem?.badgeEnabled && headingItem.badgeText ? (
+                      <span
+                        style={{
+                          background: headingItem.badgeType === "sold_out"
+                            ? builderSettings.colorBadgeSoldOutBackground
+                            : headingItem.badgeType === "none"
+                              ? builderSettings.colorBadgeDefaultBackground
+                              : builderSettings.colorBadgeSaleBackground,
+                          color: headingItem.badgeType === "sold_out"
+                            ? builderSettings.colorBadgeSoldOutText
+                            : headingItem.badgeType === "none"
+                              ? builderSettings.colorBadgeDefaultText
+                              : builderSettings.colorBadgeSaleText,
+                          borderRadius: 9999,
+                          padding: "2px 8px",
+                          fontSize: 10,
+                          fontWeight: 600,
+                          letterSpacing: 0.2,
+                        }}
+                      >
+                        {headingItem.badgeText}
+                      </span>
+                    ) : null}
+                  </div>
+                  {headingItem?.description ? (
+                    <div
+                      style={Object.assign({}, descriptionTypography, {
+                        fontSize: 12,
+                        fontWeight: 400,
+                        opacity: 0.8,
+                        marginTop: 2,
+                        color: previewColors.submenuDescription,
+                      })}
+                    >
+                      {headingItem.description}
+                    </div>
+                  ) : null}
+                </div>
               </div>
               <div
                 style={{

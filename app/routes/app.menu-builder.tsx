@@ -9735,7 +9735,6 @@ export default function MenuBuilder() {
   ) => {
     const isOverlayImage = group.blockTemplate === "image2";
     const imageWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
-    const imageScale = options.imageScale ?? `${Math.max(40, Math.round((imageWidth / 12) * 100))}%`;
     const imageFill = !group.imageNoFill;
     const imagePreviewHeight =
       options.imagePreviewHeight ?? (isMobilePreview ? 500 : useImageSpaceLayout ? 220 : 150);
@@ -9914,7 +9913,7 @@ export default function MenuBuilder() {
               <img
                 src={group.imageUrl}
                 alt={group.label}
-                style={{ width: imageScale, maxWidth: "100%", maxHeight: "100%" }}
+                style={{ width: "100%", maxWidth: "100%", maxHeight: "100%" }}
               />
             ) : (
               <svg

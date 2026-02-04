@@ -14129,7 +14129,10 @@ export default function MenuBuilder() {
                   group.blockTemplate === "html"
                 ) {
                   const span = getBlockSpan(group);
-                  const commonFlexBasis = `${Math.round((span / 12) * 100)}%`;
+                  const desktopGap = useImageSpaceLayout ? 0 : 24;
+                  const commonFlexBasis = isMobileInline
+                    ? "100%"
+                    : `calc(${(span / 12) * 100}% - ${desktopGap * (1 - span / 12)}px)`;
                   const commonFlexStyle = isMobileInline || !useBlockFlexLayout ? {} : { flex: `0 0 ${commonFlexBasis}` };
 
                   if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
@@ -17204,7 +17207,7 @@ export default function MenuBuilder() {
                               return renderImageBlock(group, {
                                 wrapperStyle: {
                                   minWidth: 0,
-                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                  flex: useBlockFlexLayout ? `0 0 calc(${(span / 12) * 100}% - ${(useImageSpaceLayout ? 0 : 24) * (1 - span / 12)}px)` : undefined
                                 }
                               });
                             }
@@ -17253,7 +17256,6 @@ export default function MenuBuilder() {
                                   ref={registerPreviewRow(group.id)}
                                   style={{
                                     willChange: "transform",
-                                    gridColumn: useBlockFlexLayout ? undefined : "1 / -1",
                                     flex: useBlockFlexLayout ? "0 0 100%" : undefined,
                                     border: isGroupSelected ? `1px dashed ${themeSettings.menuActive}` : undefined,
                                     padding: "0",
@@ -17273,7 +17275,7 @@ export default function MenuBuilder() {
                               return renderLinkListBlock(group, {
                                 wrapperStyle: {
                                   minWidth: 0,
-                                  gridColumn: useBlockFlexLayout ? `span ${span}` : undefined
+                                  flex: useBlockFlexLayout ? `0 0 calc(${(span / 12) * 100}% - ${(useImageSpaceLayout ? 0 : 24) * (1 - span / 12)}px)` : undefined
                                 }
                               });
                             }
@@ -17282,7 +17284,7 @@ export default function MenuBuilder() {
                               return renderHtmlBlock(group, {
                                 wrapperStyle: {
                                   minWidth: 0,
-                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                  flex: useBlockFlexLayout ? `0 0 calc(${(span / 12) * 100}% - ${(useImageSpaceLayout ? 0 : 24) * (1 - span / 12)}px)` : undefined
                                 }
                               });
                             }
@@ -17291,7 +17293,7 @@ export default function MenuBuilder() {
                               return renderContactBlock(group, {
                                 wrapperStyle: {
                                   minWidth: 0,
-                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                  flex: useBlockFlexLayout ? `0 0 calc(${(span / 12) * 100}% - ${(useImageSpaceLayout ? 0 : 24) * (1 - span / 12)}px)` : undefined
                                 }
                               });
                             }
@@ -17306,7 +17308,7 @@ export default function MenuBuilder() {
                               return renderProductBlock(group, {
                                 wrapperStyle: {
                                   minWidth: 0,
-                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                  flex: useBlockFlexLayout ? `0 0 calc(${(span / 12) * 100}% - ${(useImageSpaceLayout ? 0 : 24) * (1 - span / 12)}px)` : undefined
                                 }
                               });
                             }
@@ -17315,7 +17317,7 @@ export default function MenuBuilder() {
                               return renderCollectionBlock(group, {
                                 wrapperStyle: {
                                   minWidth: 0,
-                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                  flex: useBlockFlexLayout ? `0 0 calc(${(span / 12) * 100}% - ${(useImageSpaceLayout ? 0 : 24) * (1 - span / 12)}px)` : undefined
                                 }
                               });
                             }
@@ -17324,7 +17326,7 @@ export default function MenuBuilder() {
                               return renderBlogBlock(group, {
                                 wrapperStyle: {
                                   minWidth: 0,
-                                  flex: useBlockFlexLayout ? `0 0 ${Math.round((getBlockSpan(group) / 12) * 100)}%` : undefined
+                                  flex: useBlockFlexLayout ? `0 0 calc(${(span / 12) * 100}% - ${(useImageSpaceLayout ? 0 : 24) * (1 - span / 12)}px)` : undefined
                                 }
                               });
                             }

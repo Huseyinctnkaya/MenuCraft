@@ -10455,8 +10455,7 @@ export default function MenuBuilder() {
         ).map((product) => ({ product }));
     const cardGridStyle = isCarouselLayout
       ? {
-        display: "grid",
-        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+        display: "flex",
         gap: 16,
         animation: "menucraftCarouselFade 180ms ease",
       }
@@ -10726,6 +10725,8 @@ export default function MenuBuilder() {
                       flexDirection: isImageLeft ? "row" : "column",
                       gap: 12,
                       alignItems: isImageLeft ? "center" : undefined,
+                      flex: 1,
+                      minWidth: 0,
                     }}
                   >
                     <div

@@ -9903,7 +9903,6 @@ export default function MenuBuilder() {
               borderRadius: 0,
               background: imageFill ? "#ffffff" : "transparent",
               border: imageFill && group.imageUrl ? "1px solid #e5e7eb" : "1px solid transparent",
-              height: imagePreviewHeight,
               position: "relative",
               overflow: "hidden",
               display: "flex",

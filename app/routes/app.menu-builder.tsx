@@ -10734,8 +10734,6 @@ export default function MenuBuilder() {
                         background: "#f3f4f4",
                         width: isImageLeft ? productImageSize : "100%",
                         height: isImageLeft ? productImageSize : "auto",
-                        maxHeight: isImageLeft ? undefined : productPreviewHeight,
-                        aspectRatio: isImageLeft ? undefined : "1 / 1",
                         flex: isImageLeft ? `0 0 ${productImageSize}px` : undefined,
                         display: "flex",
                         alignItems: "center",

@@ -6671,13 +6671,15 @@ export default function MenuBuilder() {
                               <Text as="h4" variant="headingSm">
                                 Collection item {index + 1}
                               </Text>
-                              <button
-                                type="button"
-                                onClick={() => removeEditDraftItemById(child.id)}
-                                className="text-sm font-medium text-red-600 hover:text-red-700"
-                              >
-                                Remove
-                              </button>
+                              {collectionListItems.length <= 1 ? null : (
+                                <button
+                                  type="button"
+                                  onClick={() => removeEditDraftItemById(child.id)}
+                                  className="text-sm font-medium text-red-600 hover:text-red-700"
+                                >
+                                  Remove
+                                </button>
+                              )}
                             </InlineStack>
                             {child.collectionIds?.length ? (
                               <div className="rounded-xl border border-gray-200 bg-gray-100 p-3">
@@ -6731,6 +6733,29 @@ export default function MenuBuilder() {
                         No items yet.
                       </Text>
                     )}
+                    <div className="pt-3">
+                      <Button
+                        fullWidth
+                        icon={PlusIcon}
+                        onClick={() => {
+                          const newItem: MenuItem = {
+                            id: buildId(),
+                            label: "Collection item",
+                            url: "",
+                            role: "item",
+                            blockTemplate: "collection",
+                            collectionIds: [],
+                            icon: `${ICON_PREFIX}collection`,
+                          };
+                          updateEditDraftItemById(editingItem.id, (item) => ({
+                            ...item,
+                            children: [...(item.children ?? []), newItem],
+                          }));
+                        }}
+                      >
+                        Add collection
+                      </Button>
+                    </div>
                   </BlockStack>
                 </>
               ) : null}

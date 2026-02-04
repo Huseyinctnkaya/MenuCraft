@@ -10453,7 +10453,7 @@ export default function MenuBuilder() {
         product: child ? products.find((product) => product.id === child.productIds?.[0]) ?? null : null,
       }))
       : [];
-    const carouselPageSize = 4;
+    const carouselPageSize = productWidth < 10 ? 3 : 4;
     const carouselPageCount = Math.max(1, Math.ceil(carouselProducts.length / carouselPageSize));
     const carouselPage = Math.min(
       productCarouselPageById[group.id] ?? 0,

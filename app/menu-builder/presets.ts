@@ -831,7 +831,7 @@ const buildMultiBlockLinkListProductCarousel = () => {
     url: "",
     role: "group",
     expanded: false,
-    blockTemplate: "product",
+    blockTemplate: "product-carousel",
     multiLayout: "multi-link-list-product-carousel",
     productLayout: "image-top",
     productWidth: 9,

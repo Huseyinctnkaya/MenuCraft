@@ -10776,7 +10776,10 @@ export default function MenuBuilder() {
                       flexDirection: isImageLeft ? "row" : "column",
                       gap: 12,
                       alignItems: isImageLeft ? "center" : undefined,
-                      flex: 1,
+                      flex: isCarouselLayout
+                        ? `0 0 calc(${100 / carouselPageSize}% - ${(16 * (carouselPageSize - 1)) / carouselPageSize
+                        }px)`
+                        : 1,
                       minWidth: 0,
                     }}
                   >
@@ -11091,7 +11094,7 @@ export default function MenuBuilder() {
                     display: "flex",
                     flexDirection: isHorizontalLayout ? "row" : "column",
                     gap: isHorizontalLayout ? 12 : 8,
-                    flex: "1 1 0",
+                    flex: "0 1 32%",
                     minWidth: 0,
                     alignItems: isHorizontalLayout ? "center" : "stretch",
                   }}
@@ -17245,7 +17248,13 @@ export default function MenuBuilder() {
                             display: useBlockFlexLayout ? "flex" : "grid",
                             gridTemplateColumns: useBlockFlexLayout
                               ? undefined
-                              : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
+                              : dropdownGroups.some(
+                                (g) =>
+                                  g.multiLayout === "multi-4-images" ||
+                                  g.multiLayout === "multi-4-products"
+                              )
+                                ? "repeat(4, minmax(0, 1fr))"
+                                : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
                             flexDirection: undefined,
                             gap: useImageSpaceLayout ? 0 : 24,
                             alignItems: useBlockFlexLayout ? "flex-start" : undefined,

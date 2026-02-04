@@ -14383,7 +14383,7 @@ export default function MenuBuilder() {
           }
         `}
       </style>
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 relative z-[35]">
         <InlineStack align="space-between" blockAlign="center" gap="400">
           <InlineStack gap="300" blockAlign="center">
             <Button
@@ -14444,11 +14444,6 @@ export default function MenuBuilder() {
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
-        <div
-          className={`absolute inset-0 z-10 bg-gray-900/40 ${isTemplatePickerOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-            }`}
-          aria-hidden="true"
-        />
         <aside
           className={`w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 gap-2 transition-opacity ${isTemplatePickerOpen ? "pointer-events-none opacity-50" : ""}`}
         >
@@ -17528,6 +17523,15 @@ export default function MenuBuilder() {
         {renderBlockTemplatePicker()}
         {renderSubmenuTemplatePreviewPanel()}
         {renderSubmenuTemplatePicker()}
+        <div
+          className={`fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-200 ${isTemplatePickerOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+            }`}
+          aria-hidden="true"
+          onClick={() => {
+            setBlockTemplateTargetId(null);
+            setSubmenuTemplateTargetId(null);
+          }}
+        />
         {renderFloatingLinkListToolbar()}
       </div>
     </div>

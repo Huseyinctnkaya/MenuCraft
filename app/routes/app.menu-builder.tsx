@@ -6549,13 +6549,15 @@ export default function MenuBuilder() {
                                 <Text as="h4" variant="headingSm">
                                   {label}
                                 </Text>
-                                <button
-                                  type="button"
-                                  onClick={() => removeEditDraftItemById(child.id)}
-                                  className="text-sm font-medium text-red-600 hover:text-red-700"
-                                >
-                                  Remove
-                                </button>
+                                {(!isHeadingItem && productListItems.filter((i) => !i.isHeading).length <= 1) ? null : (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeEditDraftItemById(child.id)}
+                                    className="text-sm font-medium text-red-600 hover:text-red-700"
+                                  >
+                                    Remove
+                                  </button>
+                                )}
                               </InlineStack>
                               {isHeadingItem ? (
                                 <TextField
@@ -6623,6 +6625,30 @@ export default function MenuBuilder() {
                         No items yet.
                       </Text>
                     )}
+                    <div className="pt-3">
+                      <Button
+                        fullWidth
+                        icon={PlusIcon}
+                        onClick={() => {
+                          const newItem: MenuItem = {
+                            id: buildId(),
+                            label: "Example Product Title",
+                            url: "",
+                            role: "item",
+                            blockTemplate: "product",
+                            productLayout: "image-top",
+                            productIds: [],
+                            icon: `${ICON_PREFIX}tag`,
+                          };
+                          updateEditDraftItemById(editingItem.id, (item) => ({
+                            ...item,
+                            children: [...(item.children ?? []), newItem],
+                          }));
+                        }}
+                      >
+                        Add product
+                      </Button>
+                    </div>
                   </BlockStack>
                 </>
               ) : null}

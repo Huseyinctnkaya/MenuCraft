@@ -178,7 +178,7 @@ const PREVIEW_IMAGE_SOURCES = [
 ];
 
 const HOVER_PREVIEW_DELAY_MS = 0;
-const HOVER_PREVIEW_CLEAR_DELAY_MS = 180;
+const HOVER_PREVIEW_CLEAR_DELAY_MS = 150;
 
 const applySidebarDefaultExpansion = (items: MenuItem[]): MenuItem[] => {
   if (items.length === 0) return items;
@@ -894,10 +894,12 @@ export default function MenuBuilder() {
   const [submenuTemplateHoverId, setSubmenuTemplateHoverId] = useState<SubmenuTemplateId | null>(null);
   const [submenuTemplatePanelHover, setSubmenuTemplatePanelHover] = useState(false);
   const submenuTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSubmenuTemplateIdRef = useRef<SubmenuTemplateId | null>(null);
   const [blockTemplateTargetId, setBlockTemplateTargetId] = useState<string | null>(null);
   const [blockTemplateHoverId, setBlockTemplateHoverId] = useState<BlockTemplateId | null>(null);
   const [blockTemplatePanelHover, setBlockTemplatePanelHover] = useState(false);
   const blockTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingBlockTemplateIdRef = useRef<BlockTemplateId | null>(null);
   const previewImageCacheRef = useRef<Set<string>>(new Set());
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [pendingDeleteItemLabel, setPendingDeleteItemLabel] = useState<string>("");
@@ -1753,15 +1755,25 @@ export default function MenuBuilder() {
   };
 
   const clearSubmenuTemplateHoverTimeout = () => {
-    if (!submenuTemplateHoverTimeoutRef.current) return;
-    clearTimeout(submenuTemplateHoverTimeoutRef.current);
-    submenuTemplateHoverTimeoutRef.current = null;
+    if (submenuTemplateHoverTimeoutRef.current) {
+      clearTimeout(submenuTemplateHoverTimeoutRef.current);
+      submenuTemplateHoverTimeoutRef.current = null;
+    }
+    pendingSubmenuTemplateIdRef.current = null;
   };
 
   const scheduleSubmenuTemplateHover = (templateId: SubmenuTemplateId) => {
+    if (pendingSubmenuTemplateIdRef.current === templateId) return;
+    const isAlreadyOpen = submenuTemplateHoverId === templateId;
+    if (isAlreadyOpen) {
+      clearSubmenuTemplateHoverTimeout();
+      return;
+    }
     clearSubmenuTemplateHoverTimeout();
+    pendingSubmenuTemplateIdRef.current = templateId;
     submenuTemplateHoverTimeoutRef.current = setTimeout(() => {
       setSubmenuTemplateHoverId(templateId);
+      pendingSubmenuTemplateIdRef.current = null;
     }, HOVER_PREVIEW_DELAY_MS);
   };
 
@@ -1775,15 +1787,25 @@ export default function MenuBuilder() {
   };
 
   const clearBlockTemplateHoverTimeout = () => {
-    if (!blockTemplateHoverTimeoutRef.current) return;
-    clearTimeout(blockTemplateHoverTimeoutRef.current);
-    blockTemplateHoverTimeoutRef.current = null;
+    if (blockTemplateHoverTimeoutRef.current) {
+      clearTimeout(blockTemplateHoverTimeoutRef.current);
+      blockTemplateHoverTimeoutRef.current = null;
+    }
+    pendingBlockTemplateIdRef.current = null;
   };
 
   const scheduleBlockTemplateHover = (templateId: BlockTemplateId) => {
+    if (pendingBlockTemplateIdRef.current === templateId) return;
+    const isAlreadyOpen = blockTemplateHoverId === templateId;
+    if (isAlreadyOpen) {
+      clearBlockTemplateHoverTimeout();
+      return;
+    }
     clearBlockTemplateHoverTimeout();
+    pendingBlockTemplateIdRef.current = templateId;
     blockTemplateHoverTimeoutRef.current = setTimeout(() => {
       setBlockTemplateHoverId(templateId);
+      pendingBlockTemplateIdRef.current = null;
     }, HOVER_PREVIEW_DELAY_MS);
   };
 
@@ -1815,7 +1837,7 @@ export default function MenuBuilder() {
     previewHeightClassName?: string;
     previewContainerClassName?: string;
   }) => (
-    <div className="group relative transition-transform duration-150 ease-out">
+    <div className="group relative transition-none">
       <Card padding="300">
         <BlockStack gap="300">
           <div
@@ -1841,7 +1863,7 @@ export default function MenuBuilder() {
           {showTitle ? (
             <div
               className={
-                titleHiddenOnHover ? "transition-opacity duration-150 group-hover:opacity-0" : undefined
+                titleHiddenOnHover ? "transition-none" : undefined
               }
             >
               <Text as="p" variant="bodySm" alignment="center" fontWeight="semibold">
@@ -1879,7 +1901,7 @@ export default function MenuBuilder() {
     previewHeightClassName?: string;
     previewContainerClassName?: string;
   }) => (
-    <div className="group relative transition-transform duration-150 ease-out">
+    <div className="group relative transition-none">
       <Card padding="300" style={{ borderRadius: 0 }} className="rounded-none">
         <BlockStack gap="300">
           <div
@@ -1911,7 +1933,7 @@ export default function MenuBuilder() {
           </div>
           {showTitle ? (
             <div
-              className={`w-full overflow-hidden text-ellipsis whitespace-nowrap ${titleHiddenOnHover ? "transition-opacity duration-150 group-hover:opacity-0" : ""
+              className={`w-full overflow-hidden text-ellipsis whitespace-nowrap ${titleHiddenOnHover ? "transition-none" : ""
                 }`}
             >
               <Text
@@ -2531,7 +2553,7 @@ export default function MenuBuilder() {
 
     return (
       <div
-        className={`absolute right-80 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        className={`absolute right-80 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-none ${showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
           }`}
         aria-hidden={!showPanel}
         onMouseEnter={() => {
@@ -3713,7 +3735,7 @@ export default function MenuBuilder() {
 
     return (
       <div
-        className={`absolute right-80 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        className={`absolute right-80 top-0 z-40 flex h-full w-80 flex-col border-l border-gray-200 bg-white shadow-xl transition-none ${showPanel ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
           }`}
         aria-hidden={!showPanel}
         onMouseEnter={() => {
@@ -3750,7 +3772,7 @@ export default function MenuBuilder() {
     const isOpen = Boolean(blockTemplateTargetId);
     return (
       <div
-        className={`absolute right-0 top-0 z-40 flex h-full w-80 min-h-0 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        className={`absolute right-0 top-0 z-40 flex h-full w-80 min-h-0 flex-col border-l border-gray-200 bg-white shadow-xl transition-none ${isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
           }`}
         aria-hidden={!isOpen}
       >
@@ -3787,7 +3809,7 @@ export default function MenuBuilder() {
                     scheduleBlockTemplateHover(template.id);
                   }}
                   onMouseLeave={() => scheduleBlockTemplateHoverClear()}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors ${isHovered ? "bg-gray-100" : "hover:bg-gray-100"
+                  className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 transition-colors ${isHovered ? "bg-gray-100" : "hover:bg-gray-100"
                     }`}
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-gray-600">
@@ -3807,7 +3829,7 @@ export default function MenuBuilder() {
     const isOpen = Boolean(submenuTemplateTargetId);
     return (
       <div
-        className={`absolute right-0 top-0 z-30 flex h-full w-80 min-h-0 flex-col border-l border-gray-200 bg-white shadow-xl transition-all duration-200 ease-out ${isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
+        className={`absolute right-0 top-0 z-30 flex h-full w-80 min-h-0 flex-col border-l border-gray-200 bg-white shadow-xl transition-none ${isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
           }`}
         aria-hidden={!isOpen}
       >
@@ -3826,10 +3848,13 @@ export default function MenuBuilder() {
         </div>
         <div
           className="flex-1 min-h-0 overflow-y-auto px-3 py-3"
-          onMouseEnter={() => clearSubmenuTemplateHoverTimeout()}
+          onMouseEnter={() => {
+            clearSubmenuTemplateHoverTimeout();
+            setSubmenuTemplatePanelHover(false); // Reset panel hover when entering picker
+          }}
           onMouseLeave={() => scheduleSubmenuTemplateHoverClear()}
         >
-          <BlockStack gap="200">
+          <BlockStack gap="0">
             {SUBMENU_TEMPLATES.map((template) => {
               const isHovered = submenuTemplateHoverId === template.id;
               return (
@@ -3841,7 +3866,7 @@ export default function MenuBuilder() {
                     scheduleSubmenuTemplateHover(template.id);
                   }}
                   onMouseLeave={() => scheduleSubmenuTemplateHoverClear()}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition-colors ${isHovered ? "bg-gray-100" : "hover:bg-gray-100"
+                  className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 transition-colors ${isHovered ? "bg-gray-100" : "hover:bg-gray-100"
                     }`}
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-gray-600">
@@ -14369,7 +14394,7 @@ export default function MenuBuilder() {
 
       <div className="flex flex-1 overflow-hidden relative">
         <div
-          className={`absolute inset-0 z-10 bg-gray-900/40 transition-opacity duration-200 ${isTemplatePickerOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+          className={`absolute inset-0 z-10 bg-gray-900/40 ${isTemplatePickerOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             }`}
           aria-hidden="true"
         />

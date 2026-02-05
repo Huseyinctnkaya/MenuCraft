@@ -6,10 +6,40 @@ import Sidebar from "../components/Sidebar";
 
 import { authenticate } from "../shopify.server";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+import {
+  ALL_BILLING_PLAN_NAMES,
+  getPlanSelection,
+} from "../config/billing";
+import prisma from "../db.server";
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { billing, session } = await authenticate.admin(request);
+  const shop = session.shop;
+
+  // Check current plan
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES],
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+
+  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free" as const,
+    period: null,
+  };
+
+  // Check menu count
+  const menuCount = await prisma.menu.count({ where: { shop } });
+
+  return {
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    planTier: planSelection.id,
+    menuCount,
+  };
 };
 
 export default function App() {

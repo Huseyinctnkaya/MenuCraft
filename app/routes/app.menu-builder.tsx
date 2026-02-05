@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs, LinksFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { useFetcher, useLocation, useNavigate, useLoaderData, useRouteLoaderData } from "@remix-run/react";
 import { createPortal } from "react-dom";
 import createApp from "@shopify/app-bridge";
@@ -69,6 +69,7 @@ import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { sendContactEmail } from "../email.server";
 import type { loader as appLoader } from "./app";
+import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 import type {
   AddableItem,
   BlogSummary,
@@ -236,6 +237,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     : null;
 
   if (!menu) {
+    // Check plan limit for new menu creation
+    const { billing: billingCheck } = await authenticate.admin(request);
+    const billingTestMode =
+      process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+    const { appSubscriptions } = await billingCheck.check({
+      plans: [...ALL_BILLING_PLAN_NAMES] as any,
+      isTest: billingTestMode,
+    });
+    const activeSubscription = appSubscriptions.find((subscription) =>
+      ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+    );
+    const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+      id: "free" as const,
+    };
+
+    if (planSelection.id === "free") {
+      const menuCount = await prisma.menu.count({ where: { shop } });
+      if (menuCount >= 1) {
+        return json({ ok: false, error: "Plan limit reached. Upgrade to Pro for unlimited menus." }, { status: 403 });
+      }
+    }
+
     const created = await prisma.menu.create({
       data: {
         shop,

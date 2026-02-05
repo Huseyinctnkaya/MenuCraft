@@ -6,17 +6,45 @@ import { Copy, Edit, Eye, EyeOff, MoreVertical, Plus, Trash2 } from "lucide-reac
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
+import CustomButton from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
+import type { loader as appLoader } from "./app";
+import { useRouteLoaderData } from "@remix-run/react";
+import { Banner, BlockStack, Text as PolarisText } from "@shopify/polaris";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+
+export const links = () => [
+  { rel: "stylesheet", href: polarisStyles },
+];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
   const shop = session.shop;
+
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES] as any,
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+
+  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free" as const,
+    period: null,
+  };
+
   const menus = await prisma.menu.findMany({
     where: { shop },
     orderBy: { id: "asc" },
   });
+
   return json({
+    planTier: planSelection.id,
+    menuCount: menus.length,
     menus: menus.map((menu) => ({
       id: menu.id,
       name: menu.name,
@@ -51,6 +79,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (!menu) {
       return json({ ok: false, error: "Menu not found" }, { status: 404 });
     }
+
+    // Check plan limit for duplication
+    const { billing: billingAction } = await authenticate.admin(request);
+    const billingTestMode =
+      process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+    const { appSubscriptions } = await billingAction.check({
+      plans: [...ALL_BILLING_PLAN_NAMES],
+      isTest: billingTestMode,
+    });
+    const activeSubscription = appSubscriptions.find((subscription) =>
+      ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+    );
+    const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+      id: "free" as const,
+    };
+
+    if (planSelection.id === "free") {
+      const menuCount = await prisma.menu.count({ where: { shop } });
+      if (menuCount >= 1) {
+        return json({ ok: false, error: "Plan limit reached. Upgrade to Pro for unlimited menus." }, { status: 403 });
+      }
+    }
+
     const duplicated = await prisma.menu.create({
       data: {
         shop,
@@ -83,7 +134,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function MegaMenusList() {
-  const { menus: rawMenus } = useLoaderData<typeof loader>();
+  const { menus: rawMenus, planTier, menuCount } = useLoaderData<typeof loader>();
+  const appData = useRouteLoaderData<typeof appLoader>("routes/app");
+  const currentPlan = planTier ?? appData?.planTier ?? "free";
+  const currentMenuCount = menuCount ?? appData?.menuCount ?? 0;
+
+  const isFreePlan = currentPlan === "free";
+  const limitReached = isFreePlan && currentMenuCount >= 1;
   const navigate = useNavigate();
   const location = useLocation();
   const deleteFetcher = useFetcher<typeof action>();
@@ -109,7 +166,7 @@ export default function MegaMenusList() {
     }, 0);
   };
 
-  const menus = menusState.map((menu) => ({
+  const menus = menusState.map((menu: any) => ({
     ...menu,
     items: countItems(menu.items),
   }));
@@ -176,15 +233,31 @@ export default function MegaMenusList() {
             <h1 className="text-3xl text-gray-900">Mega Menus</h1>
             <p className="text-gray-600 mt-1">Manage all your navigation menus</p>
           </div>
-          <Button
+          <CustomButton
+            disabled={limitReached}
             onClick={() =>
               navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname }))
             }
           >
             <Plus className="w-4 h-4" />
             Create New Menu
-          </Button>
+          </CustomButton>
         </div>
+
+        {limitReached && (
+          <Banner
+            title="Menu limit reached"
+            action={{ content: "Upgrade to Pro", onAction: () => navigate("/app/pricing") }}
+            tone="info"
+          >
+            <BlockStack gap="200">
+              <PolarisText as="p" variant="bodyMd">
+                You are currently on the <strong>Free plan</strong>, which is limited to <strong>1 mega menu</strong>.
+                Upgrade to the <strong>Pro plan</strong> to create unlimited menus and unlock advanced features.
+              </PolarisText>
+            </BlockStack>
+          </Banner>
+        )}
 
         <Card>
           <div className="overflow-x-auto">
@@ -235,7 +308,7 @@ export default function MegaMenusList() {
                     </td>
                     <td className="px-6 py-4 relative">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
+                        <CustomButton
                           variant="ghost"
                           size="sm"
                           onClick={() =>
@@ -247,12 +320,14 @@ export default function MegaMenusList() {
                             )
                           }
                         >
-                        Customize
-                      </Button>
-                        <Button
+                          Customize
+                        </CustomButton>
+                        <CustomButton
                           variant="ghost"
                           size="sm"
+                          disabled={limitReached}
                           onClick={() => {
+                            if (limitReached) return;
                             const actionPath = withSearch("/app/mega-menus");
                             duplicateFetcher.submit(
                               { intent: "duplicate", menuId: String(menu.id) },
@@ -261,18 +336,18 @@ export default function MegaMenusList() {
                           }}
                         >
                           <Copy className="w-4 h-4" />
-                        </Button>
+                        </CustomButton>
                         <div className="relative">
-                          <Button
+                          <CustomButton
                             variant="ghost"
                             size="sm"
-                            ref={(el) => {
+                            ref={(el: HTMLButtonElement | null) => {
                               buttonRefs.current[menu.id] = el;
                             }}
                             onClick={() => handleOpenDropdown(menu.id)}
                           >
                             <MoreVertical className="w-4 h-4" />
-                          </Button>
+                          </CustomButton>
 
                           {openMenuId === menu.id && (
                             <>
@@ -335,14 +410,14 @@ export default function MegaMenusList() {
           {menus.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-600 mb-4">No menus yet. Create your first one!</p>
-              <Button
+              <CustomButton
                 onClick={() =>
                   navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname }))
                 }
               >
                 <Plus className="w-4 h-4" />
                 Create Menu
-              </Button>
+              </CustomButton>
             </div>
           )}
         </Card>

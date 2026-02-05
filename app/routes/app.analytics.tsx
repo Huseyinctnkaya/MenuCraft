@@ -25,6 +25,8 @@ import prisma from "../db.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
+import type { loader as appLoader } from "./app";
 
 const rangeOptions = [
   { label: "Last 7 days", value: "7d", days: 7 },
@@ -46,10 +48,30 @@ const percentChange = (current: number, previous: number) => {
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
   const shop = session.shop;
   const url = new URL(request.url);
-  const rangeParam = url.searchParams.get("range") ?? "7d";
+
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES] as any,
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free" as const,
+  };
+
+  let rangeParam = url.searchParams.get("range") ?? "7d";
+
+  // Enforce plan limit for historical data
+  if (planSelection.id === "free" && (rangeParam === "30d" || rangeParam === "90d")) {
+    rangeParam = "7d";
+  }
+
   const range = rangeOptions.find((option) => option.value === rangeParam) ?? rangeOptions[0];
 
   const now = new Date();
@@ -247,9 +269,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     .filter((id) => Number.isInteger(id));
   const menus = menuIds.length
     ? await prisma.menu.findMany({
-        where: { shop, id: { in: menuIds } },
-        select: { id: true, name: true },
-      })
+      where: { shop, id: { in: menuIds } },
+      select: { id: true, name: true },
+    })
     : [];
   const menuNameMap = new Map(menus.map((menu) => [menu.id, menu.name]));
 
@@ -294,6 +316,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     .slice(0, 5);
 
   return json({
+    planTier: planSelection.id,
     range: range.value,
     stats,
     impressionsClicksData,
@@ -305,8 +328,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function Analytics() {
-  const { range, stats, impressionsClicksData, engagementData, avgImpact, topMenus, topLinks } =
-    useLoaderData<typeof loader>();
+  const { planTier, range, stats, impressionsClicksData, engagementData, avgImpact, topMenus, topLinks } =
+    useLoaderData<any>();
+  const isFreePlan = planTier === "free";
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const pricingHref = searchParams.toString()
@@ -347,6 +371,20 @@ export default function Analytics() {
   return (
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto space-y-6">
+        {isFreePlan && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-blue-600" />
+              <p className="text-sm text-blue-800">
+                You are on the <strong>Free plan</strong>. Analytics history is limited to the last <strong>7 days</strong>.
+                Upgrade to Pro to see 30 and 90-day history.
+              </p>
+            </div>
+            <Button variant="primary" size="sm" onClick={() => navigate("/app/pricing")}>
+              Upgrade to Pro
+            </Button>
+          </div>
+        )}
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl text-gray-900">Analytics</h1>
@@ -361,8 +399,12 @@ export default function Analytics() {
               onChange={(e) => handleRangeChange(e.target.value)}
             >
               {rangeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+                <option
+                  key={option.value}
+                  value={option.value}
+                  disabled={isFreePlan && option.value !== "7d"}
+                >
+                  {option.label} {isFreePlan && option.value !== "7d" ? "(Pro)" : ""}
                 </option>
               ))}
             </select>

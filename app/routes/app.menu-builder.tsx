@@ -11631,7 +11631,10 @@ export default function MenuBuilder() {
   const dropdownPanelWidth =
     isMobilePreview
       ? "100%"
-      : (previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown")
+      : (previewMenu?.submenuTemplate === "dropdown" ||
+        previewMenu?.submenuTemplate === "custom-normal-dropdown" ||
+        previewMenu?.submenuTemplate === "simple-left-tabs" ||
+        previewMenu?.submenuTemplate === "simple-right-tabs")
         ? 240
         : (previewMenu?.submenuWidth !== "content")
           ? "100%"

@@ -2531,7 +2531,7 @@ export default function MenuBuilder() {
                     variant="primary"
                     style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                   >
-                    Select
+                    {isPlusPlan ? "Select" : "Upgrade to Plus"}
                   </Button>
                 </div>
               </div>

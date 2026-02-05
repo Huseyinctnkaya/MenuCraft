@@ -7,6 +7,7 @@ import {
   Eye,
   MousePointer,
   TrendingUp,
+  Star,
 } from "lucide-react";
 import {
   Bar,
@@ -586,18 +587,114 @@ export default function Analytics() {
           </Card>
         </div>
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">
-                Advanced analytics (heatmaps, A/B testing) are available on the Plus plan.
-              </p>
+        {planTier === "plus" ? (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="p-6 relative overflow-hidden">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <MousePointer className="w-5 h-5 text-gray-600" />
+                    <h2 className="text-lg text-gray-900">Menu Heatmap</h2>
+                  </div>
+                  <Badge variant="pro">Plus Feature</Badge>
+                </div>
+
+                <div className="relative bg-white border border-gray-100 rounded-xl p-8 min-h-[240px] flex flex-col items-center justify-center">
+                  {/* Mock Menu Structure for Heatmap */}
+                  <div className="w-full max-w-md h-12 bg-gray-50 rounded-lg border border-gray-200 flex items-center px-4 gap-6 mb-8 relative">
+                    <div className="w-16 h-4 bg-gray-200 rounded relative group">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-red-400/40 rounded-full blur-md" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-red-500/60 rounded-full border border-white/50" title="84% clicks" />
+                    </div>
+                    <div className="w-16 h-4 bg-indigo-100 rounded relative">
+                      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-10 h-10 bg-orange-400/30 rounded-full blur-lg" />
+                      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-3 h-3 bg-orange-500/50 rounded-full border border-white/50" />
+                    </div>
+                    <div className="w-16 h-4 bg-gray-200 rounded relative">
+                      <div className="absolute top-1/2 left-3/4 -translate-y-1/2 w-6 h-6 bg-yellow-300/20 rounded-full blur-md" />
+                    </div>
+                    <div className="w-16 h-4 bg-gray-200 rounded" />
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-4 w-full max-w-md">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                      <div key={i} className="aspect-square bg-gray-50 rounded-lg border border-gray-100 relative overflow-hidden">
+                        {i === 1 && <div className="absolute inset-0 bg-red-500/40 blur-xl scale-150" />}
+                        {i === 2 && <div className="absolute inset-0 bg-orange-400/30 blur-lg" />}
+                        {i === 5 && <div className="absolute inset-0 bg-yellow-300/20 blur-md" />}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 text-center">
+                    <p className="text-xs text-gray-500">Visualizing most clicked areas on your mega menus</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-gray-600" />
+                    <h2 className="text-lg text-gray-900">A/B Testing Experiments</h2>
+                  </div>
+                  <Badge variant="pro">Plus Feature</Badge>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Current Test</p>
+                      <h3 className="text-sm font-medium text-gray-900">Tabs vs Simple Grid Layout</h3>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="success">Running</Badge>
+                    </div>
+                  </div>
+
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={[
+                      { name: 'Variant A (Tabs)', ctr: 18.5, fill: '#6366f1' },
+                      { name: 'Variant B (Grid)', ctr: 12.2, fill: '#94a3b8' }
+                    ]} layout="vertical" margin={{ left: 20, right: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                      <XAxis type="number" hide />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#475569' }} width={100} />
+                      <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                      <Bar dataKey="ctr" radius={[0, 4, 4, 0]} barSize={24} name="Click Rate (%)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold">Best Performer</p>
+                      <p className="text-sm font-semibold text-indigo-600">Variant A</p>
+                      <p className="text-[10px] text-green-600 font-medium">+51.6% higher CTR</p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold">Significance</p>
+                      <p className="text-sm font-semibold text-gray-900">98.2%</p>
+                      <p className="text-[10px] text-gray-400 font-medium">Mathematically certain</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </div>
-            <Button variant="primary" size="sm" onClick={() => navigate(pricingHref)}>
-              Upgrade to Plus
-            </Button>
-          </div>
-        </Card>
+          </>
+        ) : (
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">
+                  Advanced analytics (heatmaps, A/B testing) are available on the Plus plan.
+                </p>
+              </div>
+              <Button variant="primary" size="sm" onClick={() => navigate(pricingHref)}>
+                Upgrade to Plus
+              </Button>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );

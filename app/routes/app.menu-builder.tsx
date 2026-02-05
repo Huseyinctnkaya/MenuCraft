@@ -11636,7 +11636,9 @@ export default function MenuBuilder() {
         previewMenu?.submenuTemplate === "simple-left-tabs" ||
         previewMenu?.submenuTemplate === "simple-right-tabs" ||
         previewMenu?.submenuTemplate === "two-level-tabs" ||
-        previewMenu?.submenuTemplate === "three-level-tabs")
+        previewMenu?.submenuTemplate === "three-level-tabs" ||
+        previewMenu?.submenuTemplate === "two-nested-tabs-right" ||
+        previewMenu?.submenuTemplate === "three-nested-tabs-right")
         ? 240
         : (previewMenu?.submenuWidth !== "content")
           ? "100%"
@@ -11654,18 +11656,18 @@ export default function MenuBuilder() {
         : parseInt(dropdownPanelWidth as string);
 
   let dropdownLeft = 0;
-  if (dropdownAnchor && (previewMenu?.submenuWidth === "content" || previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown" || previewMenu?.submenuTemplate === "simple-left-tabs" || previewMenu?.submenuTemplate === "simple-right-tabs") && !isMobilePreview) {
+  if (dropdownAnchor && (previewMenu?.submenuWidth === "content" || previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown" || previewMenu?.submenuTemplate === "simple-left-tabs" || previewMenu?.submenuTemplate === "simple-right-tabs" || previewMenu?.submenuTemplate === "two-nested-tabs-right" || previewMenu?.submenuTemplate === "three-nested-tabs-right") && !isMobilePreview) {
     // For standard dropdowns, always position left aligned to anchor, but allow content alignment to vary.
     const effectiveAlign = (previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown" || previewMenu?.submenuTemplate === "simple-left-tabs")
       ? "left"
-      : (previewMenu?.submenuTemplate === "simple-right-tabs")
+      : (previewMenu?.submenuTemplate === "simple-right-tabs" || previewMenu?.submenuTemplate === "two-nested-tabs-right" || previewMenu?.submenuTemplate === "three-nested-tabs-right")
         ? "right"
         : dropdownContentAlign;
 
     if (effectiveAlign === "center") {
       dropdownLeft = dropdownAnchor.left + dropdownAnchor.width / 2 - dropdownPanelPixelWidth / 2;
     } else if (effectiveAlign === "right") {
-      if (previewMenu?.submenuTemplate === "simple-right-tabs") {
+      if (previewMenu?.submenuTemplate === "simple-right-tabs" || previewMenu?.submenuTemplate === "two-nested-tabs-right" || previewMenu?.submenuTemplate === "three-nested-tabs-right") {
         dropdownLeft = previewContainerWidth - dropdownPanelPixelWidth;
       } else {
         dropdownLeft = dropdownAnchor.left + dropdownAnchor.width - dropdownPanelPixelWidth;

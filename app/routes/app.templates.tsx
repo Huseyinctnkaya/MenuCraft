@@ -5,13 +5,34 @@ import { authenticate } from "../shopify.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { billing } = await authenticate.admin(request);
+
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES] as any,
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free" as const,
+  };
+
+  return json({
+    planTier: planSelection.id,
+  });
 };
 
 export default function Templates() {
+  const { planTier } = useLoaderData<typeof loader>();
+  const isPro = planTier === "pro" || planTier === "plus";
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -55,7 +76,7 @@ export default function Templates() {
               onClick={() => navigate(withSearch(`/app/templates/${template.id}`))}
             >
               <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg mb-4 relative">
-                {template.pro && (
+                {template.pro && !isPro && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                     <div className="text-center text-white">
                       <Lock className="w-8 h-8 mx-auto mb-2" />
@@ -73,12 +94,12 @@ export default function Templates() {
                 </div>
                 <p className="text-xs text-gray-600">{template.category}</p>
                 <Button
-                  variant={template.pro ? "outline" : "primary"}
+                  variant={(template.pro && !isPro ? "outline" : "primary") as any}
                   size="sm"
                   className="w-full"
                   onClick={(event) => {
                     event.stopPropagation();
-                    if (template.pro) {
+                    if (template.pro && !isPro) {
                       navigate(withSearch("/app/pricing"));
                     } else {
                       navigate(
@@ -90,7 +111,7 @@ export default function Templates() {
                     }
                   }}
                 >
-                  {template.pro ? "Upgrade to Use" : "Use Template"}
+                  {template.pro && !isPro ? "Upgrade to Use" : "Use Template"}
                 </Button>
               </div>
             </Card>

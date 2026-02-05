@@ -5,13 +5,34 @@ import { authenticate } from "../shopify.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return null;
+  const { billing } = await authenticate.admin(request);
+
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES] as any,
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free" as const,
+  };
+
+  return json({
+    planTier: planSelection.id,
+  });
 };
 
 export default function TemplateDetail() {
+  const { planTier } = useLoaderData<typeof loader>();
+  const isPro = planTier === "pro" || planTier === "plus";
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,7 +70,7 @@ export default function TemplateDetail() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-5xl mx-auto space-y-6">
-        <Button variant="ghost" onClick={() => navigate(withSearch("/app/templates"))}>
+        <Button variant={"ghost" as any} onClick={() => navigate(withSearch("/app/templates"))}>
           <ArrowLeft className="w-4 h-4" />
           Back to Templates
         </Button>
@@ -89,19 +110,23 @@ export default function TemplateDetail() {
 
                 <Button
                   className="w-full"
-                  onClick={() =>
-                    navigate(
-                      withSearch("/app/menu-builder", {
-                        template: id ?? "",
-                        returnTo: location.pathname,
-                      })
-                    )
-                  }
+                  onClick={() => {
+                    if (template.pro && !isPro) {
+                      navigate(withSearch("/app/pricing"));
+                    } else {
+                      navigate(
+                        withSearch("/app/menu-builder", {
+                          template: id ?? "",
+                          returnTo: location.pathname,
+                        })
+                      );
+                    }
+                  }}
                 >
-                  Use This Template
+                  {(template.pro && !isPro ? "Upgrade to Use" : "Use This Template") as any}
                 </Button>
 
-                {template.pro && (
+                {template.pro && !isPro && (
                   <p className="text-xs text-gray-600 text-center">Requires Pro or Plus plan</p>
                 )}
               </div>

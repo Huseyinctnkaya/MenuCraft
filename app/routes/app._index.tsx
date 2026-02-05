@@ -116,9 +116,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const appBlockPattern = /shopify:\/\/apps\/[^/]+\/blocks\/menu-block[^"\\]*/i;
   const restHeaders = session.accessToken
     ? {
-        "X-Shopify-Access-Token": session.accessToken,
-        "Content-Type": "application/json",
-      }
+      "X-Shopify-Access-Token": session.accessToken,
+      "Content-Type": "application/json",
+    }
     : null;
   const shopPreferenceClient = (prisma as {
     shopPreference?: {
@@ -288,11 +288,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       : `https://${shop}/admin/themes/current/editor?context=apps`;
     return { ...theme, editorUrl };
   });
-    const connectedTheme = connectedThemeId
-      ? themes.find((theme) => theme.id === connectedThemeId) ?? null
-      : null;
-    const themeEditorUrl =
-      connectedTheme?.editorUrl ?? `https://${shop}/admin/themes/current/editor?context=apps`;
+  const connectedTheme = connectedThemeId
+    ? themes.find((theme) => theme.id === connectedThemeId) ?? null
+    : null;
+  const themeEditorUrl =
+    connectedTheme?.editorUrl ?? `https://${shop}/admin/themes/current/editor?context=apps`;
 
   const integrationStatus: "active" | "deactive" = appEmbedEnabled ? "active" : "deactive";
 
@@ -393,15 +393,13 @@ export default function Dashboard() {
       icon: Smartphone,
       title: "Mobile Menu",
       description: "Responsive mobile-first menus optimized for all devices",
-      badge: "Pro",
-      action: () => navigate(withSearch("/app/pricing")),
+      action: () => navigate(withSearch("/app/mega-menus")),
     },
     {
       icon: Download,
       title: "Import Menu",
       description: "Import existing menus from your Shopify store instantly",
-      badge: "Pro",
-      action: () => navigate(withSearch("/app/pricing")),
+      action: () => navigate(withSearch("/app/mega-menus")),
     },
   ];
 

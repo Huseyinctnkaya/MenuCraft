@@ -1178,7 +1178,7 @@ export default function MenuBuilder() {
       const rect = node.getBoundingClientRect();
       setFloatingLinkListToolbarPosition({
         left: rect.left + rect.width / 2,
-        top: rect.bottom + 32,
+        top: rect.bottom + 12,
       });
     };
     updatePosition();
@@ -11423,6 +11423,7 @@ export default function MenuBuilder() {
             return renderLinkListBlock(child, {
               flex: isMobileMasonry ? "1 1 100%" : `0 1 ${linkBasis}`,
               wrapperStyle: { minWidth: 0, width: isMobileMasonry ? "100%" : undefined },
+              toolbarPlacement: "floating",
             });
           })}
         </div>
@@ -17339,7 +17340,11 @@ export default function MenuBuilder() {
                                 >
                                   <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
                                     {multiColumns.map((child) =>
-                                      renderLinkListBlock(child, { flex: "1 1 0", wrapperStyle: { minWidth: 0 } })
+                                      renderLinkListBlock(child, {
+                                        flex: "1 1 0",
+                                        wrapperStyle: { minWidth: 0 },
+                                        toolbarPlacement: "floating",
+                                      })
                                     )}
                                   </div>
                                 </div>
@@ -17351,7 +17356,8 @@ export default function MenuBuilder() {
                                 wrapperStyle: {
                                   minWidth: 0,
                                   flex: useBlockFlexLayout ? `0 0 calc(${(span / 12) * 100}% - ${(useImageSpaceLayout ? 0 : 24) * (1 - span / 12)}px)` : undefined
-                                }
+                                },
+                                toolbarPlacement: "floating",
                               });
                             }
                             if (group.blockTemplate === "html") {

@@ -1,8 +1,9 @@
+import crypto from "crypto";
 import { useEffect, useRef, useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator } from "@remix-run/react";
-import { Copy, Edit, Eye, EyeOff, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Copy, Download, Edit, Eye, EyeOff, MoreVertical, Plus, Smartphone, Trash2, Upload } from "lucide-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import Badge from "../components/ui/Badge";
@@ -11,7 +12,7 @@ import Card from "../components/ui/Card";
 import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 import type { loader as appLoader } from "./app";
 import { useRouteLoaderData } from "@remix-run/react";
-import { Banner, BlockStack, Text as PolarisText } from "@shopify/polaris";
+import { Banner, BlockStack, Modal, Select, Text as PolarisText } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 export const links = () => [
@@ -19,16 +20,16 @@ export const links = () => [
 ];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { billing, session } = await authenticate.admin(request);
+  const { admin: adminLoader, billing, session } = await authenticate.admin(request);
   const shop = session.shop;
 
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
   const { appSubscriptions } = await billing.check({
-    plans: [...ALL_BILLING_PLAN_NAMES] as any,
+    plans: [...ALL_BILLING_PLAN_NAMES],
     isTest: billingTestMode,
   });
-  const activeSubscription = appSubscriptions.find((subscription) =>
+  const activeSubscription = appSubscriptions.find((subscription: any) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );
 
@@ -42,6 +43,36 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     orderBy: { id: "asc" },
   });
 
+  const shopifyMenusResponse = await adminLoader.graphql(
+    `#graphql
+    query getShopifyMenus {
+      menus(first: 50) {
+        nodes {
+          id
+          title
+          handle
+          items {
+            id
+            title
+            url
+            items {
+              id
+              title
+              url
+              items {
+                id
+                title
+                url
+              }
+            }
+          }
+        }
+      }
+    }`
+  );
+  const shopifyMenusData = await shopifyMenusResponse.json();
+  const shopifyMenus = shopifyMenusData?.data?.menus?.nodes || [];
+
   return json({
     planTier: planSelection.id,
     menuCount: menus.length,
@@ -49,14 +80,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       id: menu.id,
       name: menu.name,
       status: menu.status,
-      items: menu.items,
+      settings: menu.settings,
       views: 0,
     })),
+    shopifyMenus,
   });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, billing, session } = await authenticate.admin(request);
   const shop = session.shop;
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -81,10 +113,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     // Check plan limit for duplication
-    const { billing: billingAction } = await authenticate.admin(request);
     const billingTestMode =
       process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-    const { appSubscriptions } = await billingAction.check({
+    const { appSubscriptions } = await billing.check({
       plans: [...ALL_BILLING_PLAN_NAMES],
       isTest: billingTestMode,
     });
@@ -107,8 +138,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         shop,
         name: menu.name,
         status: menu.status,
-        items: menu.items,
-        settings: menu.settings,
+        items: menu.items as any,
+        settings: menu.settings as any,
       },
     });
     const copyName = menu.name.toLowerCase().startsWith("mega menu #")
@@ -130,6 +161,89 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
   }
 
+  if (intent === "import") {
+    const configStr = formData.get("config") as string;
+    if (!configStr) {
+      return json({ ok: false, error: "Missing configuration data" }, { status: 400 });
+    }
+
+    try {
+      const config = JSON.parse(configStr);
+      const imported = await prisma.menu.create({
+        data: {
+          shop,
+          name: `${config.name} (Imported)`,
+          status: "draft",
+          items: (config.items || []) as any,
+          settings: (config.settings || {}) as any,
+        },
+      });
+
+      return json({
+        ok: true,
+        menu: {
+          id: imported.id,
+          name: imported.name,
+          status: imported.status,
+          items: imported.items,
+          settings: imported.settings,
+          views: 0,
+        },
+      });
+    } catch (e) {
+      return json({ ok: false, error: "Invalid configuration format" }, { status: 400 });
+    }
+  }
+
+  if (intent === "import-shopify") {
+    const shopifyMenuId = formData.get("shopifyMenuId") as string;
+    const { shopifyMenus } = await (async () => {
+      const response = await admin.graphql(`query { menus(first: 50) { nodes { id title items { title url items { title url items { title url } } } } } }`);
+      const data = await response.json();
+      return { shopifyMenus: data?.data?.menus?.nodes || [] };
+    })();
+
+    const sourceMenu = shopifyMenus.find((m: any) => m.id === shopifyMenuId);
+    if (!sourceMenu) {
+      return json({ ok: false, error: "Shopify menu not found" }, { status: 404 });
+    }
+
+    const mapItems = (items: any[]): any[] => {
+      return items.map((item) => ({
+        id: crypto.randomUUID(),
+        label: item.title,
+        type: "link",
+        url: item.url || "#",
+        children: item.items ? mapItems(item.items) : [],
+      }));
+    };
+
+    const imported = await prisma.menu.create({
+      data: {
+        shop,
+        name: `${sourceMenu.title} (Shopify Import)`,
+        status: "draft",
+        items: mapItems(sourceMenu.items || []) as any,
+        settings: {
+          layout: "horizontal",
+          trigger: "hover",
+          maxWidth: "1200px",
+          typography: {
+            fontFamily: "Inter",
+            fontSize: "14px",
+          },
+          colors: {
+            background: "#ffffff",
+            text: "#111827",
+            accent: "#4f46e5",
+          }
+        } as any,
+      },
+    });
+
+    return json({ ok: true, menuId: imported.id });
+  }
+
   return json({ ok: false, error: "Unknown intent" }, { status: 400 });
 };
 
@@ -145,8 +259,13 @@ export default function MegaMenusList() {
   const location = useLocation();
   const deleteFetcher = useFetcher<typeof action>();
   const duplicateFetcher = useFetcher<typeof action>();
+  const importFetcher = useFetcher<typeof action>();
   const revalidator = useRevalidator();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [shopifyImportOpen, setShopifyImportOpen] = useState(false);
+  const [selectedShopifyMenuId, setSelectedShopifyMenuId] = useState("");
+  const shopifyImportFetcher = useFetcher<typeof action>();
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const buttonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
   const [menusState, setMenusState] = useState(rawMenus);
@@ -156,6 +275,13 @@ export default function MegaMenusList() {
   useEffect(() => {
     setMenusState(rawMenus);
   }, [rawMenus]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get("import") === "shopify") {
+      setShopifyImportOpen(true);
+    }
+  }, [location.search]);
 
   const countItems = (items: unknown): number => {
     if (!Array.isArray(items)) return 0;
@@ -186,7 +312,7 @@ export default function MegaMenusList() {
     return output ? `?${output}` : "";
   };
 
-  const withSearch = (path: string, extra?: Record<string, string>) => ({
+  const withSearch = (path: string, extra?: Record<string, string>): any => ({
     pathname: path,
     search: buildSearch(extra),
   });
@@ -225,6 +351,51 @@ export default function MegaMenusList() {
     }
   }, [duplicateFetcher.state, duplicateFetcher.data, revalidator]);
 
+  useEffect(() => {
+    if (shopifyImportFetcher.state === "idle" && shopifyImportFetcher.data?.ok) {
+      setShopifyImportOpen(false);
+      revalidator.revalidate();
+    }
+  }, [shopifyImportFetcher.state, shopifyImportFetcher.data, revalidator]);
+
+  const handleExport = (menu: any) => {
+    const exportData = {
+      name: menu.name,
+      items: menu.items,
+      settings: menu.settings,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${menu.name.replace(/\s+/g, "_")}_config.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const actionPath = withSearch("/app/mega-menus");
+      importFetcher.submit(
+        { intent: "import", config: content },
+        { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
+      );
+    };
+    reader.readAsText(file);
+    event.target.value = ""; // Reset
+  };
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -233,15 +404,32 @@ export default function MegaMenusList() {
             <PolarisText as="h1" variant="headingXl">Mega Menus</PolarisText>
             <PolarisText as="p" variant="bodyMd" tone="subdued">Manage all your navigation menus</PolarisText>
           </div>
-          <CustomButton
-            disabled={limitReached}
-            onClick={() =>
-              navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname }))
-            }
-          >
-            <Plus className="w-4 h-4" />
-            Create New Menu
-          </CustomButton>
+          <div className="flex items-center gap-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              accept=".json"
+              onChange={handleFileChange}
+            />
+            <CustomButton variant={"ghost" as any} onClick={handleImportClick} loading={importFetcher.state === "submitting"}>
+              <Upload className="w-4 h-4" />
+              Dosyadan Yükle
+            </CustomButton>
+            <CustomButton variant={"ghost" as any} onClick={() => setShopifyImportOpen(true)}>
+              <Smartphone className="w-4 h-4" />
+              Shopify'dan Al
+            </CustomButton>
+            <CustomButton
+              disabled={limitReached}
+              onClick={() =>
+                navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname }))
+              }
+            >
+              <Plus className="w-4 h-4" />
+              Create New Menu
+            </CustomButton>
+          </div>
         </div>
 
         {limitReached && (
@@ -309,7 +497,7 @@ export default function MegaMenusList() {
                     <td className="px-6 py-4 relative">
                       <div className="flex items-center justify-end gap-2">
                         <CustomButton
-                          variant="ghost"
+                          variant={"ghost" as any}
                           size="sm"
                           onClick={() =>
                             navigate(
@@ -323,7 +511,7 @@ export default function MegaMenusList() {
                           Customize
                         </CustomButton>
                         <CustomButton
-                          variant="ghost"
+                          variant={"ghost" as any}
                           size="sm"
                           disabled={limitReached}
                           onClick={() => {
@@ -339,7 +527,7 @@ export default function MegaMenusList() {
                         </CustomButton>
                         <div className="relative">
                           <CustomButton
-                            variant="ghost"
+                            variant={"ghost" as any}
                             size="sm"
                             ref={(el: HTMLButtonElement | null) => {
                               buttonRefs.current[menu.id] = el;
@@ -377,6 +565,16 @@ export default function MegaMenusList() {
                                   >
                                     <Edit className="w-4 h-4" />
                                     Edit Menu
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleExport(menu);
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                  >
+                                    <Download className="w-4 h-4" />
+                                    Dışarı Aktar
                                   </button>
                                   <div className="border-t border-gray-200 my-1" />
                                   <button
@@ -421,6 +619,52 @@ export default function MegaMenusList() {
             </div>
           )}
         </Card>
+
+        {/* Shopify Import Modal */}
+        <Modal
+          open={shopifyImportOpen}
+          onClose={() => setShopifyImportOpen(false)}
+          title="Import from Shopify Navigation"
+          primaryAction={{
+            content: "Import Menu",
+            onAction: () => {
+              if (!selectedShopifyMenuId) return;
+              const actionPath = withSearch("/app/mega-menus");
+              shopifyImportFetcher.submit(
+                { intent: "import-shopify", shopifyMenuId: selectedShopifyMenuId },
+                { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
+              );
+            },
+            loading: shopifyImportFetcher.state === "submitting",
+            disabled: !selectedShopifyMenuId,
+          }}
+          secondaryActions={[
+            {
+              content: "Cancel",
+              onAction: () => setShopifyImportOpen(false),
+            },
+          ]}
+        >
+          <Modal.Section>
+            <BlockStack gap="400">
+              <PolarisText as="p" variant="bodyMd">
+                Select an existing Shopify navigation menu to import. We will convert it into a Mega Menu structure for you.
+              </PolarisText>
+              <Select
+                label="Select Shopify Menu"
+                options={[
+                  { label: "Choose a menu...", value: "" },
+                  ...(useLoaderData<typeof loader>().shopifyMenus || []).map((m: any) => ({
+                    label: m.title,
+                    value: m.id,
+                  })),
+                ]}
+                value={selectedShopifyMenuId}
+                onChange={setSelectedShopifyMenuId}
+              />
+            </BlockStack>
+          </Modal.Section>
+        </Modal>
       </div>
     </div>
   );

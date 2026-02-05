@@ -120,12 +120,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       "Content-Type": "application/json",
     }
     : null;
-  const shopPreferenceClient = (prisma as {
-    shopPreference?: {
-      findUnique: typeof prisma.billingSubscription.findUnique;
-      upsert: typeof prisma.billingSubscription.upsert;
-    };
-  }).shopPreference;
+  const shopPreferenceClient = (prisma as any).shopPreference;
   const preferences = shopPreferenceClient
     ? await shopPreferenceClient.findUnique({ where: { shop } })
     : null;
@@ -158,7 +153,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       (theme: { name?: string; role?: string | null }) =>
         !/app ext\. host/i.test(theme.name ?? "") && theme.role !== "APP"
     );
-    const mainTheme = themes.find((theme: { role?: string }) => theme.role === "MAIN") ?? themes[0];
+    const mainTheme = themes.find((theme: { role?: string | null }) => theme.role === "MAIN") ?? themes[0];
     const preferredTheme = connectedThemeId
       ? themes.find((theme: { id: string }) => theme.id === connectedThemeId) ?? null
       : null;
@@ -327,12 +322,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ ok: false, error: "Missing theme data" }, { status: 400 });
   }
 
-  const shopPreferenceClient = (prisma as {
-    shopPreference?: {
-      findUnique: typeof prisma.billingSubscription.findUnique;
-      upsert: typeof prisma.billingSubscription.upsert;
-    };
-  }).shopPreference;
+  const shopPreferenceClient = (prisma as any).shopPreference;
 
   if (!shopPreferenceClient) {
     return json({ ok: false, error: "Preferences unavailable" }, { status: 500 });
@@ -377,31 +367,45 @@ export default function Dashboard() {
   );
   const revalidateCooldownRef = useRef(0);
 
-  const withSearch = (path: string) => ({
-    pathname: path,
-    search: location.search,
-  });
+  const withSearch = (path: string, extra?: Record<string, string>) => {
+    const search = new URLSearchParams(location.search);
+    if (extra) {
+      Object.entries(extra).forEach(([key, value]) => {
+        search.set(key, value);
+      });
+    }
+    return {
+      pathname: path,
+      search: search.toString() ? `?${search.toString()}` : "",
+    };
+  };
 
-  const features = [
-    {
-      icon: Menu,
-      title: "Create Mega Menu",
-      description: "Build powerful navigation menus with unlimited depth and customization",
-      action: () => navigate(withSearch("/app/mega-menus")),
-    },
-    {
-      icon: Smartphone,
-      title: "Mobile Menu",
-      description: "Responsive mobile-first menus optimized for all devices",
-      action: () => navigate(withSearch("/app/mega-menus")),
-    },
-    {
-      icon: Download,
-      title: "Import Menu",
-      description: "Import existing menus from your Shopify store instantly",
-      action: () => navigate(withSearch("/app/mega-menus")),
-    },
-  ];
+  const features: Array<{
+    icon: any;
+    title: string;
+    description: string;
+    action: () => void;
+    badge?: string;
+  }> = [
+      {
+        icon: Menu,
+        title: "Create Mega Menu",
+        description: "Build powerful navigation menus with unlimited depth and customization",
+        action: () => navigate(withSearch("/app/mega-menus")),
+      },
+      {
+        icon: Smartphone,
+        title: "Mobile Menu",
+        description: "Responsive mobile-first menus optimized for all devices",
+        action: () => navigate(withSearch("/app/mega-menus")),
+      },
+      {
+        icon: Download,
+        title: "Import Menu",
+        description: "Import existing menus from your Shopify store instantly",
+        action: () => navigate(withSearch("/app/mega-menus", { import: "shopify" })),
+      },
+    ];
 
   const setupSteps = [
     { title: "Select theme", completed: Boolean(activeThemeId) },
@@ -572,7 +576,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <Button
-                  variant="outline"
+                  variant={"outline" as any}
                   size="sm"
                   onClick={() => {
                     if (typeof window !== "undefined") {
@@ -603,7 +607,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <Button
-                  variant="outline"
+                  variant={"outline" as any}
                   size="sm"
                   onClick={() => {
                     setSelectedThemeId(activeThemeId || selectedTheme?.id || "");
@@ -626,7 +630,7 @@ export default function Dashboard() {
                   />
                   <div className="mt-3 flex justify-end gap-2">
                     <Button
-                      variant="outline"
+                      variant={"outline" as any}
                       size="sm"
                       onClick={() => {
                         setSelectedThemeId(activeThemeId);
@@ -666,7 +670,7 @@ export default function Dashboard() {
                 </div>
               ))}
               <Button
-                variant="outline"
+                variant={"outline" as any}
                 size="sm"
                 className="w-full mt-4"
                 onClick={handleSetupClick}

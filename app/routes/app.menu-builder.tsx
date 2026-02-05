@@ -11634,7 +11634,9 @@ export default function MenuBuilder() {
       : (previewMenu?.submenuTemplate === "dropdown" ||
         previewMenu?.submenuTemplate === "custom-normal-dropdown" ||
         previewMenu?.submenuTemplate === "simple-left-tabs" ||
-        previewMenu?.submenuTemplate === "simple-right-tabs")
+        previewMenu?.submenuTemplate === "simple-right-tabs" ||
+        previewMenu?.submenuTemplate === "two-level-tabs" ||
+        previewMenu?.submenuTemplate === "three-level-tabs")
         ? 240
         : (previewMenu?.submenuWidth !== "content")
           ? "100%"

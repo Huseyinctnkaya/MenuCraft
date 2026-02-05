@@ -3,6 +3,7 @@ import { Outlet, useLoaderData, useRouteError, useLocation } from "@remix-run/re
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import Sidebar from "../components/Sidebar";
+import CrispChat from "../components/CrispChat";
 
 import { authenticate } from "../shopify.server";
 
@@ -39,11 +40,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     apiKey: process.env.SHOPIFY_API_KEY || "",
     planTier: planSelection.id,
     menuCount,
+    crispWebsiteId: process.env.CRISP_WEBSITE_ID || "",
   };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey, crispWebsiteId } = useLoaderData<typeof loader>();
   const location = useLocation();
   const isBuilderView = location.pathname.startsWith("/app/menu-builder");
 
@@ -61,6 +63,7 @@ export default function App() {
           </main>
         </div>
       )}
+      <CrispChat websiteId={crispWebsiteId} />
     </AppProvider>
   );
 }

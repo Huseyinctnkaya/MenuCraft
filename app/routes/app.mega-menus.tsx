@@ -162,6 +162,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (intent === "import") {
+    // Check plan
+    const billingTestMode = process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+    const { appSubscriptions } = await billing.check({
+      plans: [...ALL_BILLING_PLAN_NAMES],
+      isTest: billingTestMode,
+    });
+    const activeSubscription = appSubscriptions.find((subscription) =>
+      ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+    );
+    const planSelection = getPlanSelection(activeSubscription?.name) ?? { id: "free" as const };
+    const isProPlan = planSelection.id.includes("Pro") || planSelection.id.includes("Plus");
+    if (!isProPlan) {
+      return json({ ok: false, error: "Import feature is only available on Pro plan" }, { status: 403 });
+    }
+
     const configStr = formData.get("config") as string;
     if (!configStr) {
       return json({ ok: false, error: "Missing configuration data" }, { status: 400 });
@@ -196,6 +211,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (intent === "import-shopify") {
+    // Check plan
+    const billingTestMode = process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+    const { appSubscriptions } = await billing.check({
+      plans: [...ALL_BILLING_PLAN_NAMES],
+      isTest: billingTestMode,
+    });
+    const activeSubscription = appSubscriptions.find((subscription) =>
+      ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+    );
+    const planSelection = getPlanSelection(activeSubscription?.name) ?? { id: "free" as const };
+    const isProPlan = planSelection.id.includes("Pro") || planSelection.id.includes("Plus");
+    if (!isProPlan) {
+      return json({ ok: false, error: "Shopify import feature is only available on Pro plan" }, { status: 403 });
+    }
+
     const shopifyMenuId = formData.get("shopifyMenuId") as string;
 
     // Fetch Shopify menus using the same query format as loader
@@ -280,6 +310,7 @@ export default function MegaMenusList() {
   const currentMenuCount = menuCount ?? appData?.menuCount ?? 0;
 
   const isFreePlan = currentPlan === "free";
+  const isProPlan = currentPlan === "pro" || currentPlan === "plus";
   const limitReached = isFreePlan && currentMenuCount >= 1;
   const navigate = useNavigate();
   const location = useLocation();
@@ -297,17 +328,11 @@ export default function MegaMenusList() {
   const [menusState, setMenusState] = useState(rawMenus);
   const deleteRevalidatedRef = useRef(false);
   const duplicateRevalidatedRef = useRef(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   useEffect(() => {
     setMenusState(rawMenus);
   }, [rawMenus]);
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get("import") === "shopify") {
-      setShopifyImportOpen(true);
-    }
-  }, [location.search]);
 
   const countItems = (items: unknown): number => {
     if (!Array.isArray(items)) return 0;
@@ -385,6 +410,11 @@ export default function MegaMenusList() {
   }, [shopifyImportFetcher.state, shopifyImportFetcher.data, revalidator]);
 
   const handleExport = (menu: any) => {
+    if (!isProPlan) {
+      setUpgradeModalOpen(true);
+      setOpenMenuId(null);
+      return;
+    }
     const exportData = {
       name: menu.name,
       items: menu.items,
@@ -402,7 +432,19 @@ export default function MegaMenusList() {
   };
 
   const handleImportClick = () => {
+    if (!isProPlan) {
+      setUpgradeModalOpen(true);
+      return;
+    }
     fileInputRef.current?.click();
+  };
+
+  const handleShopifyImportClick = () => {
+    if (!isProPlan) {
+      setUpgradeModalOpen(true);
+      return;
+    }
+    setShopifyImportOpen(true);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -442,7 +484,7 @@ export default function MegaMenusList() {
               <Upload className="w-4 h-4" />
               Import from File
             </CustomButton>
-            <CustomButton variant={"ghost" as any} onClick={() => setShopifyImportOpen(true)}>
+            <CustomButton variant={"ghost" as any} onClick={handleShopifyImportClick}>
               <Smartphone className="w-4 h-4" />
               Import from Shopify
             </CustomButton>
@@ -600,7 +642,7 @@ export default function MegaMenusList() {
                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                   >
                                     <Download className="w-4 h-4" />
-                                    Dışarı Aktar
+                                    Export Menu
                                   </button>
                                   <div className="border-t border-gray-200 my-1" />
                                   <button
@@ -688,6 +730,40 @@ export default function MegaMenusList() {
                 value={selectedShopifyMenuId}
                 onChange={setSelectedShopifyMenuId}
               />
+            </BlockStack>
+          </Modal.Section>
+        </Modal>
+
+        {/* Upgrade Modal */}
+        <Modal
+          open={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          title="Upgrade to Pro"
+          primaryAction={{
+            content: "Upgrade Now",
+            onAction: () => navigate("/app/pricing"),
+          }}
+          secondaryActions={[
+            {
+              content: "Cancel",
+              onAction: () => setUpgradeModalOpen(false),
+            },
+          ]}
+        >
+          <Modal.Section>
+            <BlockStack gap="400">
+              <PolarisText as="p" variant="bodyMd">
+                Import and Export features are available on the <strong>Pro plan</strong>.
+              </PolarisText>
+              <PolarisText as="p" variant="bodyMd">
+                Upgrade now to unlock:
+              </PolarisText>
+              <ul style={{ marginLeft: "20px", listStyle: "disc" }}>
+                <li>Import menus from Shopify navigation</li>
+                <li>Import menus from JSON files</li>
+                <li>Export menus as JSON files</li>
+                <li>Unlimited menus</li>
+              </ul>
             </BlockStack>
           </Modal.Section>
         </Modal>

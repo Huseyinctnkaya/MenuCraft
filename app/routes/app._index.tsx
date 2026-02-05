@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator } from "@remix-run/react";
+import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator, useRouteLoaderData } from "@remix-run/react";
 import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import {
   AlertCircle,
@@ -12,13 +12,14 @@ import {
   Smartphone,
   Star,
 } from "lucide-react";
-import { Select } from "@shopify/polaris";
+import { Select, Modal, BlockStack, Text as PolarisText } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
+import type { loader as appLoader } from "./app";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -366,6 +367,10 @@ export default function Dashboard() {
     sanitizedConnectedThemeId ? connectedThemeName ?? themeName : "Not selected"
   );
   const revalidateCooldownRef = useRef(0);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const appData = useRouteLoaderData<typeof appLoader>("routes/app");
+  const currentPlan = appData?.planTier ?? "free";
+  const isProPlan = currentPlan === "pro" || currentPlan === "plus";
 
   const withSearch = (path: string, extra?: Record<string, string>) => {
     const search = new URLSearchParams(location.search);
@@ -403,7 +408,14 @@ export default function Dashboard() {
         icon: Download,
         title: "Import Menu",
         description: "Import existing menus from your Shopify store instantly",
-        action: () => navigate(withSearch("/app/mega-menus", { import: "shopify" })),
+        action: () => {
+          if (!isProPlan) {
+            setUpgradeModalOpen(true);
+            return;
+          }
+          navigate(withSearch("/app/mega-menus", { import: "shopify" }));
+        },
+        badge: "PRO",
       },
     ];
 
@@ -720,6 +732,40 @@ export default function Dashboard() {
             ))}
           </div>
         </Card>
+
+        {/* Upgrade Modal */}
+        <Modal
+          open={upgradeModalOpen}
+          onClose={() => setUpgradeModalOpen(false)}
+          title="Upgrade to Pro"
+          primaryAction={{
+            content: "Upgrade Now",
+            onAction: () => navigate("/app/pricing"),
+          }}
+          secondaryActions={[
+            {
+              content: "Cancel",
+              onAction: () => setUpgradeModalOpen(false),
+            },
+          ]}
+        >
+          <Modal.Section>
+            <BlockStack gap="400">
+              <PolarisText as="p" variant="bodyMd">
+                Import and Export features are available on the <strong>Pro plan</strong>.
+              </PolarisText>
+              <PolarisText as="p" variant="bodyMd">
+                Upgrade now to unlock:
+              </PolarisText>
+              <ul style={{ marginLeft: "20px", listStyle: "disc" }}>
+                <li>Import menus from Shopify navigation</li>
+                <li>Import menus from JSON files</li>
+                <li>Export menus as JSON files</li>
+                <li>Unlimited menus</li>
+              </ul>
+            </BlockStack>
+          </Modal.Section>
+        </Modal>
       </div>
     </div>
   );

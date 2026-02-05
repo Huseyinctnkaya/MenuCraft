@@ -125,19 +125,6 @@ export default function Support() {
             ))}
           </div>
         </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg text-gray-900">Need More Help?</h3>
-            <Badge variant="new">Coming soon</Badge>
-          </div>
-          <p className="text-sm text-gray-600 mb-2">
-            Our support team is available Monday-Friday, 9am-5pm EST. We typically respond within 24 hours.
-          </p>
-          <Button variant="primary" disabled>
-            Contact Support
-          </Button>
-        </Card>
       </div>
     </div>
   );

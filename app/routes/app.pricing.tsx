@@ -143,11 +143,18 @@ export default function Pricing() {
       id: "free",
       name: "Free",
       icon: Zap,
-      iconColor: "bg-gray-100 text-gray-600",
-      description: "Perfect for testing and small stores",
+      iconColor: "bg-emerald-100 text-emerald-600",
+      description: "Perfect for new stores",
       priceMonthly: "$0",
       priceYearly: "$0",
-      features: ["1 mega menu", "Basic styling", "7-day analytics", "Basic support"],
+      features: [
+        "1 mega menu",
+        "Dropdown & Mega menu types",
+        "Unlimited menu items",
+        "Basic styling controls",
+        "7-day analytics history",
+        "No watermark / No branding",
+      ],
       popular: false,
     },
     {
@@ -156,15 +163,15 @@ export default function Pricing() {
       icon: Star,
       iconColor: "bg-indigo-100 text-indigo-600",
       description: "Best for growing stores",
-      priceMonthly: "$19.99",
-      priceYearly: "$15.99",
+      priceMonthly: "$9.99",
+      priceYearly: "$7.99",
       features: [
-        "Unlimited mega menus",
-        "Full design controls (typography, colors, spacing)",
-        "Template library access",
-        "Analytics (30/90 days)",
-        "Mobile menu features",
-        "Priority support",
+        "Unlimited Mega Menus",
+        "Full Template Library Access",
+        "Menu Item Badges & Labels",
+        "Product & Collection Grids",
+        "Mobile Menu Features",
+        "90-Day Analytics History",
       ],
       popular: true,
       trial: "Includes 14-day trial",
@@ -174,32 +181,36 @@ export default function Pricing() {
       name: "Plus",
       icon: Rocket,
       iconColor: "bg-purple-100 text-purple-600",
-      description: "Advanced / Agencies",
-      priceMonthly: "$49.99",
-      priceYearly: "$39.99",
+      description: "Advanced stores & Agencies",
+      priceMonthly: "$29.99",
+      priceYearly: "$23.99",
       features: [
-        "Everything in Pro",
-        "Multi-store / client management",
-        "Advanced targeting (segment, device, geo)",
-        "A/B testing & heatmaps",
-        "Import / export tools",
-        "Dedicated support & onboarding",
+        "Tabbed (Sekmeli) Menus",
+        "Custom HTML & Liquid Blocks",
+        "Masonry (Item Group) Layout",
+        "Advanced Targeting (Geo/Device)",
+        "Import / Export Tools",
+        "Dedicated Success Manager",
       ],
       popular: false,
     },
   ];
 
   const comparisonFeatures = [
-    { name: "Mega Menus", free: "1", pro: "Unlimited", plus: "Unlimited" },
-    { name: "Template Library", free: false, pro: true, plus: true },
-    { name: "Design Controls (Typography/Colors/Spacing)", free: "Basic", pro: "Full", plus: "Full" },
-    { name: "Analytics Range", free: "7 days", pro: "30/90 days", plus: "All + Advanced" },
-    { name: "Mobile Menu Features", free: false, pro: true, plus: true },
-    { name: "Advanced Targeting (Segment/Device/Geo)", free: false, pro: false, plus: true },
-    { name: "A/B Testing & Heatmaps", free: false, pro: false, plus: true },
+    { name: "Mega Menus count", free: "1", pro: "Unlimited", plus: "Unlimited" },
+    { name: "No App Branding", free: true, pro: true, plus: true },
+    { name: "Template Library", free: "Limited", pro: "Full Access", plus: "Full Access" },
+    { name: "Design Controls", free: "Basic", pro: "Advanced", plus: "Advanced" },
+    { name: "Analytics Range", free: "7 days", pro: "90 days", plus: "Unlimited" },
+    { name: "Menu Item Badges", free: false, pro: true, plus: true },
+    { name: "Product & Collection Grids", free: false, pro: true, plus: true },
+    { name: "Tabbed Menus", free: false, pro: false, plus: true },
+    { name: "Custom HTML / Liquid", free: false, pro: false, plus: true },
+    { name: "Masonry Layout", free: false, pro: false, plus: true },
+
+    { name: "A/B Testing", free: false, pro: false, plus: true },
     { name: "Import / Export", free: false, pro: false, plus: true },
-    { name: "Multi-store Management", free: false, pro: false, plus: true },
-    { name: "Support Level", free: "Basic", pro: "Priority", plus: "Dedicated" },
+
   ];
 
   return (
@@ -221,21 +232,19 @@ export default function Pricing() {
           <div className="inline-flex items-center gap-3 p-1 bg-white border border-gray-200 rounded-lg shadow-sm">
             <button
               onClick={() => setBillingPeriod("monthly")}
-              className={`px-6 py-2 rounded-md text-sm transition-all ${
-                billingPeriod === "monthly"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-6 py-2 rounded-md text-sm transition-all ${billingPeriod === "monthly"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setBillingPeriod("yearly")}
-              className={`px-6 py-2 rounded-md text-sm transition-all flex items-center gap-2 ${
-                billingPeriod === "yearly"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-6 py-2 rounded-md text-sm transition-all flex items-center gap-2 ${billingPeriod === "yearly"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Yearly
               {billingPeriod === "yearly" && (

@@ -197,11 +197,37 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   if (intent === "import-shopify") {
     const shopifyMenuId = formData.get("shopifyMenuId") as string;
-    const { shopifyMenus } = await (async () => {
-      const response = await admin.graphql(`query { menus(first: 50) { nodes { id title items { title url items { title url items { title url } } } } } }`);
-      const data = await response.json();
-      return { shopifyMenus: data?.data?.menus?.nodes || [] };
-    })();
+
+    // Fetch Shopify menus using the same query format as loader
+    const shopifyMenusResponse = await admin.graphql(
+      `#graphql
+      query getShopifyMenus {
+        menus(first: 50) {
+          nodes {
+            id
+            title
+            handle
+            items {
+              id
+              title
+              url
+              items {
+                id
+                title
+                url
+                items {
+                  id
+                  title
+                  url
+                }
+              }
+            }
+          }
+        }
+      }`
+    );
+    const shopifyMenusData = await shopifyMenusResponse.json();
+    const shopifyMenus = shopifyMenusData?.data?.menus?.nodes || [];
 
     const sourceMenu = shopifyMenus.find((m: any) => m.id === shopifyMenuId);
     if (!sourceMenu) {
@@ -414,11 +440,11 @@ export default function MegaMenusList() {
             />
             <CustomButton variant={"ghost" as any} onClick={handleImportClick} loading={importFetcher.state === "submitting"}>
               <Upload className="w-4 h-4" />
-              Dosyadan Yükle
+              Import from File
             </CustomButton>
             <CustomButton variant={"ghost" as any} onClick={() => setShopifyImportOpen(true)}>
               <Smartphone className="w-4 h-4" />
-              Shopify'dan Al
+              Import from Shopify
             </CustomButton>
             <CustomButton
               disabled={limitReached}

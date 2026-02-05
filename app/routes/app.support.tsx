@@ -71,12 +71,18 @@ export default function Support() {
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
               <MessageCircle className="w-6 h-6 text-green-600" />
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <h3 className="text-sm text-gray-900">Live Chat</h3>
-              <Badge variant="new">Soon</Badge>
-            </div>
-            <p className="text-xs text-gray-600">In-app chat is coming soon</p>
-            <Button variant="outline" size="sm" className="w-full" disabled>
+            <h3 className="text-sm text-gray-900">Live Chat</h3>
+            <p className="text-xs text-gray-600">Chat with us in real-time</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.$crisp) {
+                  window.$crisp.push(["do", "chat:open"]);
+                }
+              }}
+            >
               Start Chat
             </Button>
           </Card>

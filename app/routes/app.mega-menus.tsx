@@ -230,8 +230,8 @@ export default function MegaMenusList() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl text-gray-900">Mega Menus</h1>
-            <p className="text-gray-600 mt-1">Manage all your navigation menus</p>
+            <PolarisText as="h1" variant="headingXl">Mega Menus</PolarisText>
+            <PolarisText as="p" variant="bodyMd" tone="subdued">Manage all your navigation menus</PolarisText>
           </div>
           <CustomButton
             disabled={limitReached}

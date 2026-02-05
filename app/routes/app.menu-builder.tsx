@@ -613,7 +613,7 @@ export default function MenuBuilder() {
   });
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const apiKey = appData?.apiKey ?? "";
-  const planTier = (appData as { planTier?: string } | null)?.planTier ?? "plus";
+  const planTier = (appData as { planTier?: string } | null)?.planTier;
   const isPlusPlan = planTier === "plus";
   const isProPlan = planTier === "pro" || isPlusPlan;
   const navigate = useNavigate();
@@ -2058,13 +2058,13 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-left-tabs") : undefined}
-                        disabled={!isPlusPlan}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-left-tabs") : () => navigate("/app/pricing")}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2096,13 +2096,13 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-right-tabs") : undefined}
-                        disabled={!isPlusPlan}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-right-tabs") : () => navigate("/app/pricing")}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2134,13 +2134,13 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-top-tabs") : undefined}
-                        disabled={!isPlusPlan}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-top-tabs") : () => navigate("/app/pricing")}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2172,13 +2172,13 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-top-tabs") : undefined}
-                        disabled={!isPlusPlan}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-top-tabs") : () => navigate("/app/pricing")}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2210,13 +2210,13 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-top-tabs") : undefined}
-                        disabled={!isPlusPlan}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-top-tabs") : () => navigate("/app/pricing")}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2248,13 +2248,13 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-level-tabs") : undefined}
-                        disabled={!isPlusPlan}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-level-tabs") : () => navigate("/app/pricing")}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2287,14 +2287,14 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={
-                          isPlusPlan ? () => handleApplySubmenuTemplate("two-nested-tabs-right") : undefined
+                          isPlusPlan ? () => handleApplySubmenuTemplate("two-nested-tabs-right") : () => navigate("/app/pricing")
                         }
-                        disabled={!isPlusPlan}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2327,14 +2327,14 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={
-                          isPlusPlan ? () => handleApplySubmenuTemplate("three-nested-tabs-right") : undefined
+                          isPlusPlan ? () => handleApplySubmenuTemplate("three-nested-tabs-right") : () => navigate("/app/pricing")
                         }
-                        disabled={!isPlusPlan}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2366,13 +2366,13 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-level-tabs") : undefined}
-                        disabled={!isPlusPlan}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-level-tabs") : () => navigate("/app/pricing")}
+                        disabled={false}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        Select
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2465,6 +2465,7 @@ export default function MenuBuilder() {
                     plan?: "pro" | "plus";
                   }>
                 ).map((preset) => {
+                  const requiredPlan = preset.plan;
                   const isAllowed =
                     preset.plan === "pro"
                       ? isProPlan
@@ -2473,10 +2474,10 @@ export default function MenuBuilder() {
                         : true;
                   return renderBlockTemplatePreviewCard({
                     title: preset.label,
-                    onSelect: isAllowed ? () => handleApplyMegaMenuPreset(preset.id) : () => { },
+                    onSelect: isAllowed ? () => handleApplyMegaMenuPreset(preset.id) : () => navigate("/app/pricing"),
                     badge: preset.plan ? (preset.plan === "plus" ? "Plus" : "Pro") : undefined,
-                    selectLabel: isAllowed ? "Select" : "Upgrade to use",
-                    selectDisabled: !isAllowed,
+                    selectLabel: isAllowed ? "Select" : (requiredPlan === "plus" ? "Upgrade to Plus" : "Upgrade to Pro"),
+                    selectDisabled: false,
                     showTitle: false,
                     previewHeightClassName: "h-44",
                     previewContainerClassName: "bg-transparent p-0",
@@ -2524,8 +2525,8 @@ export default function MenuBuilder() {
                 <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                   <Button
                     fullWidth
-                    onClick={isPlusPlan ? () => handleApplySubmenuTemplate("custom-normal-dropdown") : undefined}
-                    disabled={!isPlusPlan}
+                    onClick={isPlusPlan ? () => handleApplySubmenuTemplate("custom-normal-dropdown") : () => navigate("/app/pricing")}
+                    disabled={false}
                     size="slim"
                     variant="primary"
                     style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -2633,9 +2634,9 @@ export default function MenuBuilder() {
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Element Group (Mansory Order)",
-                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => { },
+                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => navigate("/app/pricing"),
                 badge: "Plus",
-                selectLabel: isPlusPlan ? "Select" : "Upgrade to use",
+                selectLabel: isPlusPlan ? "Select" : "Upgrade to Plus",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -2654,13 +2655,13 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={
-                          isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => { }
+                          isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => navigate("/app/pricing")
                         }
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isPlusPlan ? "Select" : "Upgrade to use"}
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>
@@ -2699,9 +2700,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "4 product list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -2719,12 +2720,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -2763,9 +2764,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "1 link list + 3 product list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -2784,13 +2785,13 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={
-                          isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => { }
+                          isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => navigate("/app/pricing")
                         }
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -2829,9 +2830,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Product carousel",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -2849,12 +2850,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -2893,9 +2894,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "1 link list + product carousel",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -2914,13 +2915,13 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={
-                          isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => { }
+                          isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => navigate("/app/pricing")
                         }
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -2959,9 +2960,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Image + product carousel",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -2980,13 +2981,13 @@ export default function MenuBuilder() {
                       <Button
                         fullWidth
                         onClick={
-                          isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => { }
+                          isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => navigate("/app/pricing")
                         }
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3096,12 +3097,12 @@ export default function MenuBuilder() {
                 return renderBlockTemplatePreviewCard({
                   title: template.label,
                   onSelect: () => {
-                    if (!isAllowed) return;
+                    if (!isAllowed) return navigate("/app/pricing");
                     handleApplyTabsBlockTemplate(template.id);
                   },
                   badge: "Plus",
-                  selectLabel: isAllowed ? "Select" : "Upgrade to use",
-                  selectDisabled: !isAllowed,
+                  selectLabel: isAllowed ? "Select" : "Upgrade to Plus",
+                  selectDisabled: false,
                   showSelectButton: true,
                   showTitle: false,
                   previewHeightClassName: "h-44",
@@ -3323,9 +3324,9 @@ export default function MenuBuilder() {
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Product grid",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3343,12 +3344,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3387,9 +3388,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Product carousel",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3407,12 +3408,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3451,9 +3452,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Product list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-list") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-list") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3471,12 +3472,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-list") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-list") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3484,9 +3485,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Horizontal product grid",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3504,12 +3505,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3522,9 +3523,9 @@ export default function MenuBuilder() {
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Collection list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("collection") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("collection") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3542,12 +3543,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("collection") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("collection") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3555,9 +3556,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Horizontal collection list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("collection-horizontal") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("collection-horizontal") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3575,12 +3576,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("collection-horizontal") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("collection-horizontal") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3593,9 +3594,9 @@ export default function MenuBuilder() {
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Articles",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3613,12 +3614,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3626,9 +3627,9 @@ export default function MenuBuilder() {
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Latest blog",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => { },
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => navigate("/app/pricing"),
                 badge: "Pro",
-                selectLabel: isProPlan ? "Select" : "Upgrade to use",
+                selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3646,12 +3647,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => { }}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isProPlan ? "Select" : "Upgrade to use"}
+                        {isProPlan ? "Select" : "Upgrade to Pro"}
                       </Button>
                     </div>
                   </div>
@@ -3697,9 +3698,9 @@ export default function MenuBuilder() {
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Special HTML",
-                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => { },
+                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => navigate("/app/pricing"),
                 badge: "Plus",
-                selectLabel: isPlusPlan ? "Select" : "Upgrade to use",
+                selectLabel: isPlusPlan ? "Select" : "Upgrade to Plus",
                 showSelectButton: false,
                 showTitle: false,
                 previewHeightClassName: "h-44",
@@ -3717,12 +3718,12 @@ export default function MenuBuilder() {
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => { }}
+                        onClick={isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => navigate("/app/pricing")}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
                       >
-                        {isPlusPlan ? "Select" : "Upgrade to use"}
+                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
                       </Button>
                     </div>
                   </div>

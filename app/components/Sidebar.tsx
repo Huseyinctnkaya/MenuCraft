@@ -18,7 +18,6 @@ const navItems = [
   { path: "/app/templates", icon: LayoutTemplate, label: "Templates" },
   { path: "/app/install-status", icon: Download, label: "Install & Theme Status" },
   { path: "/app/pricing", icon: CreditCard, label: "Pricing & Plans" },
-  { path: "/app/updates", icon: History, label: "Updates" },
   { path: "/app/support", icon: HelpCircle, label: "Support" },
   { path: "/app/settings", icon: Settings, label: "Settings" },
 ];
@@ -54,11 +53,10 @@ export default function Sidebar() {
               <Link
                 key={item.path}
                 to={{ pathname: item.path, search: location.search }}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  isActive
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive
                     ? "bg-indigo-50 text-indigo-600"
                     : "text-gray-700 hover:bg-gray-50"
-                }`}
+                  }`}
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-sm">{item.label}</span>

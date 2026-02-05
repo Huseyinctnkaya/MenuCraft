@@ -11652,16 +11652,22 @@ export default function MenuBuilder() {
         : parseInt(dropdownPanelWidth as string);
 
   let dropdownLeft = 0;
-  if (dropdownAnchor && (previewMenu?.submenuWidth === "content" || previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown") && !isMobilePreview) {
+  if (dropdownAnchor && (previewMenu?.submenuWidth === "content" || previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown" || previewMenu?.submenuTemplate === "simple-left-tabs" || previewMenu?.submenuTemplate === "simple-right-tabs") && !isMobilePreview) {
     // For standard dropdowns, always position left aligned to anchor, but allow content alignment to vary.
-    const effectiveAlign = (previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown")
+    const effectiveAlign = (previewMenu?.submenuTemplate === "dropdown" || previewMenu?.submenuTemplate === "custom-normal-dropdown" || previewMenu?.submenuTemplate === "simple-left-tabs")
       ? "left"
-      : dropdownContentAlign;
+      : (previewMenu?.submenuTemplate === "simple-right-tabs")
+        ? "right"
+        : dropdownContentAlign;
 
     if (effectiveAlign === "center") {
       dropdownLeft = dropdownAnchor.left + dropdownAnchor.width / 2 - dropdownPanelPixelWidth / 2;
     } else if (effectiveAlign === "right") {
-      dropdownLeft = dropdownAnchor.left + dropdownAnchor.width - dropdownPanelPixelWidth;
+      if (previewMenu?.submenuTemplate === "simple-right-tabs") {
+        dropdownLeft = previewContainerWidth - dropdownPanelPixelWidth;
+      } else {
+        dropdownLeft = dropdownAnchor.left + dropdownAnchor.width - dropdownPanelPixelWidth;
+      }
     } else {
       dropdownLeft = dropdownAnchor.left;
     }

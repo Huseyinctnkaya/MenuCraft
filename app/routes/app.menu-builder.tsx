@@ -7739,17 +7739,19 @@ export default function MenuBuilder() {
     }
 
     return (
-      <Card padding="300">
-        <BlockStack gap="300">
-          <InlineStack align="space-between" blockAlign="center">
-            <Text as="h2" variant="headingMd">
-              Menu items
-            </Text>
-          </InlineStack>
-          <Text as="p" variant="bodySm" tone="subdued">
-            Drag to reorder items.
+      <div className="flex flex-col h-full bg-white">
+        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 shrink-0">
+          <Text as="h2" variant="headingSm">
+            Menu items
           </Text>
-          <Divider />
+        </div>
+        <div className="p-4 flex-1 overflow-y-auto min-h-0">
+          <div className="mb-3">
+            <Text as="p" variant="bodySm" tone="subdued">
+              Drag to reorder items.
+            </Text>
+          </div>
+
           <div
             className={`rounded-lg border-2 border-dotted transition-all duration-150 ${draggedItemId && draggedParentId === null ? "border-blue-500 bg-blue-50/40 p-2" : "border-transparent"
               }`}
@@ -7770,8 +7772,8 @@ export default function MenuBuilder() {
               Add item
             </button>
           </Box>
-        </BlockStack>
-      </Card>
+        </div>
+      </div>
     );
   };
 
@@ -10871,6 +10873,7 @@ export default function MenuBuilder() {
                   }
                   disabled={carouselPage === 0}
                   aria-label="Previous slide"
+                  className="flex items-center justify-center transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   style={{
                     position: "absolute",
                     top: "50%",
@@ -10878,21 +10881,18 @@ export default function MenuBuilder() {
                     transform: "translateY(-50%)",
                     width: 32,
                     height: 32,
-                    borderRadius: 6,
-                    border: "1px solid #cbd5e1",
+                    borderRadius: "50%",
+                    border: "1px solid #e5e7eb",
                     background: "#ffffff",
-                    color: "#111827",
+                    color: "#374151",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                     cursor: carouselPage === 0 ? "not-allowed" : "pointer",
                     opacity: carouselPage === 0 ? 0.4 : 1,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 16,
-                    lineHeight: 1,
                     pointerEvents: "auto",
+                    zIndex: 2,
                   }}
                 >
-                  {"<"}
+                  <Icon source={ChevronLeftIcon} tone="base" />
                 </button>
                 <button
                   type="button"
@@ -10904,6 +10904,7 @@ export default function MenuBuilder() {
                   }
                   disabled={carouselPage >= carouselPageCount - 1}
                   aria-label="Next slide"
+                  className="flex items-center justify-center transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   style={{
                     position: "absolute",
                     top: "50%",
@@ -10911,21 +10912,18 @@ export default function MenuBuilder() {
                     transform: "translateY(-50%)",
                     width: 32,
                     height: 32,
-                    borderRadius: 6,
-                    border: "1px solid #cbd5e1",
+                    borderRadius: "50%",
+                    border: "1px solid #e5e7eb",
                     background: "#ffffff",
-                    color: "#111827",
+                    color: "#374151",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                     cursor: carouselPage >= carouselPageCount - 1 ? "not-allowed" : "pointer",
                     opacity: carouselPage >= carouselPageCount - 1 ? 0.4 : 1,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 16,
-                    lineHeight: 1,
                     pointerEvents: "auto",
+                    zIndex: 2,
                   }}
                 >
-                  {">"}
+                  <Icon source={ChevronRightIcon} tone="base" />
                 </button>
                 <div
                   style={{

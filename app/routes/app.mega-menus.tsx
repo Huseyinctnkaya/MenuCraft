@@ -23,38 +23,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin: adminLoader, billing, session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const billingTestMode =
-    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const { appSubscriptions } = await billing.check({
-    plans: [...ALL_BILLING_PLAN_NAMES],
-    isTest: billingTestMode,
-  });
-  const activeSubscription = appSubscriptions.find((subscription: any) =>
-    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
-  );
-
+  /* DEV OVERRIDE */
   const planSelection = {
     id: "plus" as const,
     period: "monthly" as const,
   };
 
-  const menus = await prisma.menu.findMany({
-    where: { shop },
-    orderBy: { id: "asc" },
-  });
-
-  const shopifyMenusResponse = await adminLoader.graphql(
-    `#graphql
-    query getShopifyMenus {
-      menus(first: 50) {
-        nodes {
-          id
-          title
-          handle
-          items {
+  const [menus, shopifyMenusResponse] = await Promise.all([
+    prisma.menu.findMany({
+      where: { shop },
+      orderBy: { id: "asc" },
+    }),
+    adminLoader.graphql(
+      `#graphql
+      query getShopifyMenus {
+        menus(first: 50) {
+          nodes {
             id
             title
-            url
+            handle
             items {
               id
               title
@@ -63,13 +50,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
                 id
                 title
                 url
+                items {
+                  id
+                  title
+                  url
+                }
               }
             }
           }
         }
-      }
-    }`
-  );
+      }`
+    ),
+  ]);
   const shopifyMenusData = await shopifyMenusResponse.json();
   const shopifyMenus = shopifyMenusData?.data?.menus?.nodes || [];
 

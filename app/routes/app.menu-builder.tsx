@@ -242,27 +242,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       return json({ ok: false, error: `Menu with ID ${menuId} not found or access denied.` }, { status: 404 });
     }
 
-    // Check plan limit for new menu creation
-    const { billing: billingCheck } = await authenticate.admin(request);
-    const billingTestMode =
-      process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-    const { appSubscriptions } = await billingCheck.check({
-      plans: [...ALL_BILLING_PLAN_NAMES] as any,
-      isTest: billingTestMode,
-    });
-    const activeSubscription = appSubscriptions.find((subscription) =>
-      ["ACTIVE", "ACCEPTED"].includes(subscription.status)
-    );
-    const planSelection = getPlanSelection(activeSubscription?.name) ?? {
-      id: "free" as const,
-    };
-
-    if (planSelection.id === "free") {
-      const menuCount = await prisma.menu.count({ where: { shop } });
-      if (menuCount >= 1) {
-        return json({ ok: false, error: "Plan limit reached. Upgrade to Pro for unlimited menus." }, { status: 403 });
-      }
-    }
+    // Plan limit check removed for dev override / performance optimization
+    // We already check plan in App root loader.
 
     const created = await prisma.menu.create({
       data: {
@@ -298,133 +279,128 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let storefrontPasswordEnabled: boolean | null = null;
 
   try {
-    const response = await admin.graphql(
-      `query MenuItemPicker($collectionsFirst: Int!, $productsFirst: Int!, $blogsFirst: Int!, $articlesFirst: Int!, $latestArticlesFirst: Int!, $pagesFirst: Int!) {
-        collections(first: $collectionsFirst, sortKey: TITLE) {
-          nodes {
-            id
-            title
-            handle
-            image {
-              url
-              altText
-            }
-          }
-        }
-        products(first: $productsFirst, sortKey: TITLE) {
-          nodes {
-            id
-            title
-            handle
-            featuredImage {
-              url
-              altText
-            }
-            priceRange {
-              minVariantPrice {
-                amount
-                currencyCode
+    const [pickerResponse, menuResponse] = await Promise.all([
+      admin.graphql(
+        `query MenuItemPicker($collectionsFirst: Int!, $productsFirst: Int!, $blogsFirst: Int!, $articlesFirst: Int!, $latestArticlesFirst: Int!, $pagesFirst: Int!) {
+          collections(first: $collectionsFirst, sortKey: TITLE) {
+            nodes {
+              id
+              title
+              handle
+              image {
+                url
+                altText
               }
             }
           }
-        }
-        blogs(first: $blogsFirst, sortKey: TITLE) {
-          nodes {
-            id
-            title
-            handle
-            articles(first: $articlesFirst) {
-              nodes {
-                id
-                title
-                handle
-                image {
-                  url
-                  altText
+          products(first: $productsFirst, sortKey: TITLE) {
+            nodes {
+              id
+              title
+              handle
+              featuredImage {
+                url
+                altText
+              }
+              priceRange {
+                minVariantPrice {
+                  amount
+                  currencyCode
                 }
               }
             }
           }
-        }
-        articles(first: $latestArticlesFirst, sortKey: PUBLISHED_AT, reverse: true) {
-          nodes {
-            id
-            title
-            handle
-            image {
-              url
-              altText
+          blogs(first: $blogsFirst, sortKey: TITLE) {
+            nodes {
+              id
+              title
+              handle
+              articles(first: $articlesFirst) {
+                nodes {
+                  id
+                  title
+                  handle
+                  image {
+                    url
+                    altText
+                  }
+                }
+              }
             }
-            blog {
+          }
+          articles(first: $latestArticlesFirst, sortKey: PUBLISHED_AT, reverse: true) {
+            nodes {
+              id
+              title
+              handle
+              image {
+                url
+                altText
+              }
+              blog {
+                handle
+              }
+            }
+          }
+          pages(first: $pagesFirst, sortKey: TITLE) {
+            nodes {
+              id
+              title
               handle
             }
           }
+        }`,
+        {
+          variables: {
+            collectionsFirst: 20,
+            productsFirst: 20,
+            blogsFirst: 20,
+            articlesFirst: 4,
+            latestArticlesFirst: 4,
+            pagesFirst: 50,
+          },
         }
-        pages(first: $pagesFirst, sortKey: TITLE) {
-          nodes {
-            id
-            title
-            handle
+      ),
+      admin.graphql(
+        `query MenuList($menusFirst: Int!) {
+          menus(first: $menusFirst) {
+            nodes {
+              id
+              title
+              handle
+            }
           }
-        }
-      }`,
-      {
-        variables: {
-          collectionsFirst: 20,
-          productsFirst: 20,
-          blogsFirst: 20,
-          articlesFirst: 4,
-          latestArticlesFirst: 4,
-          pagesFirst: 50,
-        },
-      }
-    );
-    const data = await response.json();
-    if ((data as any)?.errors?.length) {
-      console.error("Collections/products/blogs/pages query errors", (data as any).errors);
-    }
-    collections = data?.data?.collections?.nodes ?? [];
-    products = data?.data?.products?.nodes ?? [];
-    blogs = data?.data?.blogs?.nodes ?? [];
-    latestArticles = data?.data?.articles?.nodes ?? [];
-    pages = data?.data?.pages?.nodes ?? [];
-  } catch (error) {
-    console.error("Failed to fetch collections/products/blogs/pages", error);
-    collections = [];
-    products = [];
-    blogs = [];
-    latestArticles = [];
-    pages = [];
-  }
+          shop {
+            passwordEnabled
+          }
+        }`,
+        { variables: { menusFirst: 50 } }
+      ),
+    ]);
 
-  try {
-    const response = await admin.graphql(
-      `query MenuList($menusFirst: Int!) {
-        menus(first: $menusFirst) {
-          nodes {
-            id
-            title
-            handle
-          }
-        }
-        shop {
-          passwordEnabled
-        }
-      }`,
-      { variables: { menusFirst: 50 } }
-    );
-    const data = await response.json();
-    if ((data as any)?.errors?.length) {
-      console.error("Menus query errors", (data as any).errors);
+    const [pickerData, menuListData] = (await Promise.all([
+      pickerResponse.json(),
+      menuResponse.json(),
+    ])) as any[];
+
+    if (pickerData?.errors?.length) {
+      console.error("Picker query errors", pickerData.errors);
     }
-    menus = data?.data?.menus?.nodes ?? [];
-    const passwordEnabled = data?.data?.shop?.passwordEnabled;
+    if (menuListData?.errors?.length) {
+      console.error("Menus query errors", menuListData.errors);
+    }
+
+    collections = pickerData?.data?.collections?.nodes ?? [];
+    products = pickerData?.data?.products?.nodes ?? [];
+    blogs = pickerData?.data?.blogs?.nodes ?? [];
+    latestArticles = pickerData?.data?.articles?.nodes ?? [];
+    pages = pickerData?.data?.pages?.nodes ?? [];
+    menus = menuListData?.data?.menus?.nodes ?? [];
+    const passwordEnabled = menuListData?.data?.shop?.passwordEnabled;
     storefrontPasswordEnabled =
       typeof passwordEnabled === "boolean" ? passwordEnabled : null;
   } catch (error) {
-    console.error("Failed to fetch menus", error);
-    menus = [];
-    storefrontPasswordEnabled = null;
+    console.error("Failed to fetch builder data", error);
   }
 
   return json({

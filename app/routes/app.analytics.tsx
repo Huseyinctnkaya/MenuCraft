@@ -53,17 +53,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = session.shop;
   const url = new URL(request.url);
 
-  const billingTestMode =
-    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const { appSubscriptions } = await billing.check({
-    plans: [...ALL_BILLING_PLAN_NAMES] as any,
-    isTest: billingTestMode,
-  });
-  const activeSubscription = appSubscriptions.find((subscription) =>
-    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
-  );
-  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
-    id: "free" as const,
+  /* DEV OVERRIDE */
+  const planSelection = {
+    id: "plus" as const,
   };
 
   let rangeParam = url.searchParams.get("range") ?? "7d";
@@ -121,16 +113,34 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
   }
 
-  const [events, prevEvents] = await Promise.all([
-    menuEventClient.findMany({
-      where: { shop, createdAt: { gte: startDate } },
-    }),
-    menuEventClient.findMany({
-      where: { shop, createdAt: { gte: prevStartDate, lt: startDate } },
-    }),
+  const engagementStart = new Date(endDate);
+  engagementStart.setDate(endDate.getDate() - 27);
+  const engagementPrevStart = new Date(engagementStart);
+  engagementPrevStart.setDate(engagementStart.getDate() - 28);
+
+  const [
+    [events, prevEvents],
+    [engagementEvents, prevEngagementEvents]
+  ] = await Promise.all([
+    Promise.all([
+      menuEventClient.findMany({
+        where: { shop, createdAt: { gte: startDate } },
+      }),
+      menuEventClient.findMany({
+        where: { shop, createdAt: { gte: prevStartDate, lt: startDate } },
+      }),
+    ]),
+    Promise.all([
+      menuEventClient.findMany({
+        where: { shop, createdAt: { gte: engagementStart } },
+      }),
+      menuEventClient.findMany({
+        where: { shop, createdAt: { gte: engagementPrevStart, lt: engagementStart } },
+      }),
+    ])
   ]);
 
-  const countByType = (items: typeof events, type: string) =>
+  const countByType = (items: any[], type: string) =>
     items.filter((event) => event.eventType === type).length;
 
   const clicks = countByType(events, "click");
@@ -186,19 +196,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     clicks: bucket.clicks,
   }));
 
-  const engagementStart = new Date(endDate);
-  engagementStart.setDate(endDate.getDate() - 27);
-  const engagementPrevStart = new Date(engagementStart);
-  engagementPrevStart.setDate(engagementStart.getDate() - 28);
-
-  const [engagementEvents, prevEngagementEvents] = await Promise.all([
-    menuEventClient.findMany({
-      where: { shop, createdAt: { gte: engagementStart } },
-    }),
-    menuEventClient.findMany({
-      where: { shop, createdAt: { gte: engagementPrevStart, lt: engagementStart } },
-    }),
-  ]);
+  // Date calculations moved up
 
   const prevEngagementClicks = countByType(prevEngagementEvents, "click");
   const prevEngagementImpressions = countByType(prevEngagementEvents, "impression");

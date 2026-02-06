@@ -33,9 +33,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );
 
-  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
-    id: "free" as const,
-    period: null,
+  const planSelection = {
+    id: "plus" as const,
+    period: "monthly" as const,
   };
 
   const menus = await prisma.menu.findMany({
@@ -122,9 +122,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
-    const planSelection = getPlanSelection(activeSubscription?.name) ?? {
-      id: "free" as const,
-    };
+    /* DEV OVERRIDE */
+    const planSelection = { id: "plus" as const };
 
     if (planSelection.id === "free") {
       const menuCount = await prisma.menu.count({ where: { shop } });
@@ -184,8 +183,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
-    const planSelection = getPlanSelection(activeSubscription?.name) ?? { id: "free" as const };
-    const isPlusPlan = planSelection.id.includes("Plus");
+    /* DEV OVERRIDE */
+    const planSelection = { id: "plus" as const };
+    const isPlusPlan = planSelection.id === "plus";
     if (!isPlusPlan) {
       return json({ ok: false, error: "Import feature is only available on Plus plan" }, { status: 403 });
     }
@@ -233,8 +233,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
-    const planSelection = getPlanSelection(activeSubscription?.name) ?? { id: "free" as const };
-    const isPlusPlan = planSelection.id.includes("Plus");
+    /* DEV OVERRIDE */
+    const planSelection = { id: "plus" as const };
+    const isPlusPlan = planSelection.id === "plus";
     if (!isPlusPlan) {
       return json({ ok: false, error: "Shopify import feature is only available on Plus plan" }, { status: 403 });
     }

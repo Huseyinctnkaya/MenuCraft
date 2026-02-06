@@ -12,7 +12,7 @@ import Card from "../components/ui/Card";
 import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 import type { loader as appLoader } from "./app";
 import { useRouteLoaderData } from "@remix-run/react";
-import { Banner, BlockStack, Modal, Select, Text as PolarisText } from "@shopify/polaris";
+import { Banner, BlockStack, Modal, Select, Text as PolarisText, TextField } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 export const links = () => [
@@ -159,6 +159,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         views: 0,
       },
     });
+  }
+
+  if (intent === "rename") {
+    const menuId = Number(formData.get("menuId"));
+    const newName = formData.get("newName") as string;
+    if (!menuId || !newName) {
+      return json({ ok: false, error: "Missing menu id or new name" }, { status: 400 });
+    }
+    await prisma.menu.update({
+      where: { id: menuId, shop },
+      data: { name: newName },
+    });
+    return json({ ok: true });
   }
 
   if (intent === "import") {
@@ -317,6 +330,7 @@ export default function MegaMenusList() {
   const deleteFetcher = useFetcher<typeof action>();
   const duplicateFetcher = useFetcher<typeof action>();
   const importFetcher = useFetcher<typeof action>();
+  const renameFetcher = useFetcher<typeof action>();
   const revalidator = useRevalidator();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -328,7 +342,11 @@ export default function MegaMenusList() {
   const [menusState, setMenusState] = useState(rawMenus);
   const deleteRevalidatedRef = useRef(false);
   const duplicateRevalidatedRef = useRef(false);
+  const renameRevalidatedRef = useRef(false);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [renameMenuId, setRenameMenuId] = useState<number | null>(null);
+  const [renameNewName, setRenameNewName] = useState("");
 
   useEffect(() => {
     setMenusState(rawMenus);
@@ -401,6 +419,18 @@ export default function MegaMenusList() {
       revalidator.revalidate();
     }
   }, [duplicateFetcher.state, duplicateFetcher.data, revalidator]);
+
+  useEffect(() => {
+    if (renameFetcher.state === "submitting") {
+      renameRevalidatedRef.current = false;
+      return;
+    }
+    if (renameFetcher.state === "idle" && renameFetcher.data?.ok && !renameRevalidatedRef.current) {
+      renameRevalidatedRef.current = true;
+      setRenameModalOpen(false);
+      revalidator.revalidate();
+    }
+  }, [renameFetcher.state, renameFetcher.data, revalidator]);
 
   useEffect(() => {
     if (shopifyImportFetcher.state === "idle" && shopifyImportFetcher.data?.ok) {
@@ -621,18 +651,15 @@ export default function MegaMenusList() {
                                 <div className="py-1">
                                   <button
                                     onClick={() => {
-                                      navigate(
-                                        withSearch("/app/menu-builder", {
-                                          id: String(menu.id),
-                                          returnTo: location.pathname,
-                                        })
-                                      );
+                                      setRenameMenuId(menu.id);
+                                      setRenameNewName(menu.name);
+                                      setRenameModalOpen(true);
                                       setOpenMenuId(null);
                                     }}
                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                   >
                                     <Edit className="w-4 h-4" />
-                                    Edit Menu
+                                    Rename Menu
                                   </button>
                                   <button
                                     onClick={() => {
@@ -765,6 +792,38 @@ export default function MegaMenusList() {
                 <li>Unlimited menus</li>
               </ul>
             </BlockStack>
+          </Modal.Section>
+        </Modal>
+
+        <Modal
+          open={renameModalOpen}
+          onClose={() => setRenameModalOpen(false)}
+          title="Rename Menu"
+          primaryAction={{
+            content: "Save",
+            loading: renameFetcher.state === "submitting",
+            onAction: () => {
+              renameFetcher.submit(
+                { intent: "rename", menuId: String(renameMenuId), newName: renameNewName },
+                { method: "post" }
+              );
+            },
+          }}
+          secondaryActions={[
+            {
+              content: "Cancel",
+              onAction: () => setRenameModalOpen(false),
+            },
+          ]}
+        >
+          <Modal.Section>
+            <TextField
+              label="New Name"
+              value={renameNewName}
+              onChange={setRenameNewName}
+              autoComplete="off"
+              placeholder="Enter menu name"
+            />
           </Modal.Section>
         </Modal>
       </div>

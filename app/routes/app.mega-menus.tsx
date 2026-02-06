@@ -30,15 +30,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 
   const [menus, shopifyMenusResponse, eventCounts] = await Promise.all([
-    prisma.menu.findMany({
-      where: { shop },
-      select: {
-        id: true,
-        name: true,
-        status: true,
-      },
-      orderBy: { id: "asc" },
-    }),
+    prisma.$queryRaw<any[]>`
+      SELECT id, name, status, json_array_length(items) as itemCount
+      FROM Menu
+      WHERE shop = ${shop}
+      ORDER BY id ASC
+    `,
     adminLoader.graphql(
       `#graphql
       query getShopifyMenus {
@@ -75,7 +72,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       id: menu.id,
       name: menu.name,
       status: menu.status,
-      views: viewCounts.get(menu.id) || 0,
+      itemCount: Number(menu.itemCount || 0),
+      views: Number(viewCounts.get(menu.id) || 0),
     })),
     shopifyMenus,
   });
@@ -584,7 +582,7 @@ export default function MegaMenusList() {
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {(menu.items as any[])?.length || 0}
+                      {menu.itemCount}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {menu.views.toLocaleString()}

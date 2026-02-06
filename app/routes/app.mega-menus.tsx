@@ -623,6 +623,13 @@ export default function MegaMenusList() {
                         >
                           <Copy className="w-4 h-4" />
                         </CustomButton>
+                        <CustomButton
+                          variant={"ghost" as any}
+                          size="sm"
+                          onClick={() => handleExport(menu)}
+                        >
+                          <Download className="w-4 h-4" />
+                        </CustomButton>
                         <div className="relative">
                           <CustomButton
                             variant={"ghost" as any}

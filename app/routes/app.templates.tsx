@@ -459,7 +459,7 @@ export const action = async ({ request }: import("@remix-run/node").ActionFuncti
       }
     });
 
-    return redirect(`/app/menu-builder?id=${menu.id}`);
+    return redirect("/app/mega-menus");
   }
 
   return null;

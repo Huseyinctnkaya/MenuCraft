@@ -117,7 +117,7 @@ export default function Documentation() {
       summary: "Speed up setup with templates or imports.",
       details: [
         "Use Templates to start from a prebuilt layout.",
-        "Import existing Shopify menus if available.",
+        "Import existing Shopify menus (Plus plan).",
         "Duplicate menus to reuse structures quickly.",
       ],
     },
@@ -135,7 +135,8 @@ export default function Documentation() {
       summary: "Understand plan limits and upgrades.",
       details: [
         "Free plan includes one menu and basic styling.",
-        "Pro and Plus unlock advanced features and unlimited menus.",
+        "Pro plan unlocks unlimited menus and advanced features.",
+        "Plus plan adds Import/Export tools and tabbed menus.",
         "Billing is managed through Shopify when public distribution is enabled.",
       ],
     },

@@ -185,9 +185,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
     const planSelection = getPlanSelection(activeSubscription?.name) ?? { id: "free" as const };
-    const isProPlan = planSelection.id.includes("Pro") || planSelection.id.includes("Plus");
-    if (!isProPlan) {
-      return json({ ok: false, error: "Import feature is only available on Pro plan" }, { status: 403 });
+    const isPlusPlan = planSelection.id.includes("Plus");
+    if (!isPlusPlan) {
+      return json({ ok: false, error: "Import feature is only available on Plus plan" }, { status: 403 });
     }
 
     const configStr = formData.get("config") as string;
@@ -234,9 +234,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
     const planSelection = getPlanSelection(activeSubscription?.name) ?? { id: "free" as const };
-    const isProPlan = planSelection.id.includes("Pro") || planSelection.id.includes("Plus");
-    if (!isProPlan) {
-      return json({ ok: false, error: "Shopify import feature is only available on Pro plan" }, { status: 403 });
+    const isPlusPlan = planSelection.id.includes("Plus");
+    if (!isPlusPlan) {
+      return json({ ok: false, error: "Shopify import feature is only available on Plus plan" }, { status: 403 });
     }
 
     const shopifyMenuId = formData.get("shopifyMenuId") as string;
@@ -323,7 +323,7 @@ export default function MegaMenusList() {
   const currentMenuCount = menuCount ?? appData?.menuCount ?? 0;
 
   const isFreePlan = currentPlan === "free";
-  const isProPlan = currentPlan === "pro" || currentPlan === "plus";
+  const isPlusPlan = currentPlan === "plus";
   const limitReached = isFreePlan && currentMenuCount >= 1;
   const navigate = useNavigate();
   const location = useLocation();
@@ -440,7 +440,7 @@ export default function MegaMenusList() {
   }, [shopifyImportFetcher.state, shopifyImportFetcher.data, revalidator]);
 
   const handleExport = (menu: any) => {
-    if (!isProPlan) {
+    if (!isPlusPlan) {
       setUpgradeModalOpen(true);
       setOpenMenuId(null);
       return;
@@ -462,7 +462,7 @@ export default function MegaMenusList() {
   };
 
   const handleImportClick = () => {
-    if (!isProPlan) {
+    if (!isPlusPlan) {
       setUpgradeModalOpen(true);
       return;
     }
@@ -470,7 +470,7 @@ export default function MegaMenusList() {
   };
 
   const handleShopifyImportClick = () => {
-    if (!isProPlan) {
+    if (!isPlusPlan) {
       setUpgradeModalOpen(true);
       return;
     }
@@ -765,7 +765,7 @@ export default function MegaMenusList() {
         <Modal
           open={upgradeModalOpen}
           onClose={() => setUpgradeModalOpen(false)}
-          title="Upgrade to Pro"
+          title="Upgrade to Plus"
           primaryAction={{
             content: "Upgrade Now",
             onAction: () => navigate("/app/pricing"),
@@ -780,7 +780,7 @@ export default function MegaMenusList() {
           <Modal.Section>
             <BlockStack gap="400">
               <PolarisText as="p" variant="bodyMd">
-                Import and Export features are available on the <strong>Pro plan</strong>.
+                Import and Export features are available on the <strong>Plus plan</strong>.
               </PolarisText>
               <PolarisText as="p" variant="bodyMd">
                 Upgrade now to unlock:

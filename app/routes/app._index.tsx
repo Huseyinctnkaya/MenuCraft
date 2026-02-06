@@ -91,10 +91,10 @@ const hasAppBlockInThemeAssets = async (
           .map((asset: { key?: string }) => asset?.key)
           .filter((key: string | undefined): key is string => Boolean(key))
           .filter(
-            (key) =>
+            (key: string) =>
               (key.startsWith("sections/") || key.startsWith("templates/")) && key.endsWith(".json")
           );
-        assetKeys.forEach((key) => keysToScan.add(key));
+        assetKeys.forEach((key: string) => keysToScan.add(key));
       }
     } catch (error) {
       console.error("Failed to list theme assets", error);
@@ -200,8 +200,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         appEmbedEnabled = appEmbedEntries.some(([key, value]) => {
           const matches = key.toLowerCase().includes("menucraft-embed") || key.toLowerCase().includes("menucraft");
           const enabled =
-            typeof value === "object"
-              ? value?.enabled === true || value?.disabled === false || (value?.enabled === undefined && value?.disabled === undefined)
+            typeof value === "object" && value !== null
+              ? (value as any)?.enabled === true || (value as any)?.disabled === false || ((value as any)?.enabled === undefined && (value as any)?.disabled === undefined)
               : Boolean(value);
           return matches && enabled;
         });
@@ -370,7 +370,7 @@ export default function Dashboard() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const currentPlan = appData?.planTier ?? "free";
-  const isProPlan = currentPlan === "pro" || currentPlan === "plus";
+  const isPlusPlan = currentPlan === "plus";
 
   const withSearch = (path: string, extra?: Record<string, string>) => {
     const search = new URLSearchParams(location.search);
@@ -409,13 +409,13 @@ export default function Dashboard() {
         title: "Import Menu",
         description: "Import existing menus from your Shopify store instantly",
         action: () => {
-          if (!isProPlan) {
+          if (!isPlusPlan) {
             setUpgradeModalOpen(true);
             return;
           }
           navigate(withSearch("/app/mega-menus", { import: "shopify" }));
         },
-        badge: "PRO",
+        badge: "Plus",
       },
     ];
 
@@ -519,7 +519,7 @@ export default function Dashboard() {
     },
     {
       q: "Can I try MenuCraft for free?",
-      a: "Yes! MenuCraft offers a free plan with essential features. Upgrade anytime to unlock Pro features.",
+      a: "Yes! MenuCraft offers a free plan with essential features. Upgrade anytime to unlock Plus features.",
     },
     {
       q: "What themes are supported?",
@@ -556,7 +556,7 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <div className="flex items-center justify-center gap-2">
                   <h3 className="text-lg text-gray-900">{feature.title}</h3>
-                  {feature.badge && <Badge variant="pro">{feature.badge}</Badge>}
+                  {feature.badge && <Badge variant="plus">{feature.badge}</Badge>}
                 </div>
                 <p className="text-sm text-gray-600">{feature.description}</p>
               </div>
@@ -737,7 +737,7 @@ export default function Dashboard() {
         <Modal
           open={upgradeModalOpen}
           onClose={() => setUpgradeModalOpen(false)}
-          title="Upgrade to Pro"
+          title="Upgrade to Plus"
           primaryAction={{
             content: "Upgrade Now",
             onAction: () => navigate("/app/pricing"),
@@ -752,7 +752,7 @@ export default function Dashboard() {
           <Modal.Section>
             <BlockStack gap="400">
               <PolarisText as="p" variant="bodyMd">
-                Import and Export features are available on the <strong>Pro plan</strong>.
+                Import and Export features are available on the <strong>Plus plan</strong>.
               </PolarisText>
               <PolarisText as="p" variant="bodyMd">
                 Upgrade now to unlock:

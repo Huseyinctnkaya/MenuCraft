@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "./utils";
 
-type BadgeVariant = "default" | "success" | "warning" | "danger" | "pro" | "new" | "primary";
+type BadgeVariant = "default" | "success" | "warning" | "danger" | "pro" | "plus" | "new" | "primary";
 
 type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
   variant?: BadgeVariant;
@@ -16,6 +16,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   warning: "bg-amber-100 text-amber-700",
   danger: "bg-red-100 text-red-700",
   pro: "bg-indigo-100 text-indigo-700",
+  plus: "bg-indigo-100 text-indigo-700",
   new: "bg-blue-100 text-blue-700",
   primary: "bg-indigo-600 text-white",
 };

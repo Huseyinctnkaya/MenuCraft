@@ -38,7 +38,7 @@ export default function Support() {
     },
     {
       q: "Can I import my existing Shopify menu?",
-      a: "Yes. Pro and Plus plans include menu import functionality. Go to the Menu Builder and choose Import.",
+      a: "Yes. Plus plan includes menu import functionality. Go to the Menu Builder and choose Import.",
     },
   ];
 
@@ -58,7 +58,7 @@ export default function Support() {
             <h3 className="text-sm text-gray-900">Documentation</h3>
             <p className="text-xs text-gray-600">Detailed guides and tutorials</p>
             <Button
-              variant="outline"
+              variant={"outline" as any}
               size="sm"
               className="w-full"
               onClick={() => navigate(withSearch("/app/documentation"))}
@@ -74,7 +74,7 @@ export default function Support() {
             <h3 className="text-sm text-gray-900">Live Chat</h3>
             <p className="text-xs text-gray-600">Chat with us in real-time</p>
             <Button
-              variant="outline"
+              variant={"outline" as any}
               size="sm"
               className="w-full"
               onClick={() => {
@@ -96,7 +96,7 @@ export default function Support() {
               <Badge variant="new">Soon</Badge>
             </div>
             <p className="text-xs text-gray-600">We will add email support shortly</p>
-            <Button variant="outline" size="sm" className="w-full" disabled>
+            <Button variant={"outline" as any} size="sm" className="w-full" disabled>
               Send Email
             </Button>
           </Card>

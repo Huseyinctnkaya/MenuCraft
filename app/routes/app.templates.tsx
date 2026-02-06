@@ -162,49 +162,10 @@ export default function Templates() {
 const TEMPLATES_DATA: Record<number, any> = {
   1: {
     items: [
-      {
-        id: "nav-1",
-        label: "New Arrivals",
-        type: "link",
-        url: "/collections/new-arrivals",
-        children: []
-      },
-      {
-        id: "nav-2",
-        label: "Women",
-        type: "link",
-        url: "/collections/women",
-        children: [
-          {
-            id: "sub-1",
-            label: "Clothing",
-            type: "link",
-            url: "/collections/women-clothing",
-            children: []
-          },
-          {
-            id: "sub-2",
-            label: "Accessories",
-            type: "link",
-            url: "/collections/women-accessories",
-            children: []
-          }
-        ]
-      },
-      {
-        id: "nav-3",
-        label: "Men",
-        type: "link",
-        url: "/collections/men",
-        children: []
-      },
-      {
-        id: "nav-4",
-        label: "Sale",
-        type: "link",
-        url: "/collections/sale",
-        children: []
-      }
+      { id: "nav-1", label: "New Arrivals", type: "link", url: "", children: [] },
+      { id: "nav-2", label: "Women", type: "link", url: "", children: [] },
+      { id: "nav-3", label: "Men", type: "link", url: "", children: [] },
+      { id: "nav-4", label: "Sale", type: "link", url: "", children: [] }
     ],
     settings: {
       layout: "horizontal",
@@ -216,41 +177,10 @@ const TEMPLATES_DATA: Record<number, any> = {
   },
   2: {
     items: [
-      {
-        id: "tech-1",
-        label: "Laptops & Computers",
-        type: "link",
-        url: "/collections/computers",
-        children: [
-          { id: "tech-1-1", label: "Laptops", type: "link", url: "/collections/laptops", children: [] },
-          { id: "tech-1-2", label: "Desktops", type: "link", url: "/collections/desktops", children: [] },
-          { id: "tech-1-3", label: "Monitors", type: "link", url: "/collections/monitors", children: [] }
-        ]
-      },
-      {
-        id: "tech-2",
-        label: "Smartphones",
-        type: "link",
-        url: "/collections/phones",
-        children: []
-      },
-      {
-        id: "tech-3",
-        label: "Audio",
-        type: "link",
-        url: "/collections/audio",
-        children: [
-          { id: "tech-3-1", label: "Headphones", type: "link", url: "/collections/headphones", children: [] },
-          { id: "tech-3-2", label: "Speakers", type: "link", url: "/collections/speakers", children: [] }
-        ]
-      },
-      {
-        id: "tech-4",
-        label: "Accessories",
-        type: "link",
-        url: "/collections/accessories",
-        children: []
-      }
+      { id: "tech-1", label: "Computers", type: "link", url: "", children: [] },
+      { id: "tech-2", label: "Smartphones", type: "link", url: "", children: [] },
+      { id: "tech-3", label: "Audio", type: "link", url: "", children: [] },
+      { id: "tech-4", label: "Accessories", type: "link", url: "", children: [] }
     ],
     settings: {
       layout: "horizontal",
@@ -262,42 +192,10 @@ const TEMPLATES_DATA: Record<number, any> = {
   },
   3: {
     items: [
-      {
-        id: "beauty-1",
-        label: "Skincare",
-        type: "link",
-        url: "/collections/skincare",
-        children: [
-          { id: "beauty-1-1", label: "Cleansers", type: "link", url: "/collections/cleansers", children: [] },
-          { id: "beauty-1-2", label: "Moisturizers", type: "link", url: "/collections/moisturizers", children: [] },
-          { id: "beauty-1-3", label: "Serums", type: "link", url: "/collections/serums", children: [] }
-        ]
-      },
-      {
-        id: "beauty-2",
-        label: "Makeup",
-        type: "link",
-        url: "/collections/makeup",
-        children: [
-          { id: "beauty-2-1", label: "Face", type: "link", url: "/collections/face-makeup", children: [] },
-          { id: "beauty-2-2", label: "Eyes", type: "link", url: "/collections/eye-makeup", children: [] },
-          { id: "beauty-2-3", label: "Lips", type: "link", url: "/collections/lip-makeup", children: [] }
-        ]
-      },
-      {
-        id: "beauty-3",
-        label: "Hair Care",
-        type: "link",
-        url: "/collections/hair-care",
-        children: []
-      },
-      {
-        id: "beauty-4",
-        label: "Fragrance",
-        type: "link",
-        url: "/collections/fragrance",
-        children: []
-      }
+      { id: "beauty-1", label: "Skincare", type: "link", url: "", children: [] },
+      { id: "beauty-2", label: "Makeup", type: "link", url: "", children: [] },
+      { id: "beauty-3", label: "Hair Care", type: "link", url: "", children: [] },
+      { id: "beauty-4", label: "Fragrance", type: "link", url: "", children: [] }
     ],
     settings: {
       layout: "horizontal",
@@ -309,45 +207,10 @@ const TEMPLATES_DATA: Record<number, any> = {
   },
   4: {
     items: [
-      {
-        id: "grocery-1",
-        label: "Fruits & Vegetables",
-        type: "link",
-        url: "/collections/produce",
-        children: [
-          { id: "groc-1-1", label: "Fresh Fruit", type: "link", url: "/collections/fruit", children: [] },
-          { id: "groc-1-2", label: "Fresh Vegetables", type: "link", url: "/collections/vegetables", children: [] },
-          { id: "groc-1-3", label: "Organic", type: "link", url: "/collections/organic", children: [] }
-        ]
-      },
-      {
-        id: "grocery-2",
-        label: "Dairy & Eggs",
-        type: "link",
-        url: "/collections/dairy",
-        children: []
-      },
-      {
-        id: "grocery-3",
-        label: "Bakery",
-        type: "link",
-        url: "/collections/bakery",
-        children: []
-      },
-      {
-        id: "grocery-4",
-        label: "Meat & Seafood",
-        type: "link",
-        url: "/collections/meat",
-        children: []
-      },
-      {
-        id: "grocery-5",
-        label: "Pantry",
-        type: "link",
-        url: "/collections/pantry",
-        children: []
-      }
+      { id: "grocery-1", label: "Fruits & Vegetables", type: "link", url: "", children: [] },
+      { id: "grocery-2", label: "Dairy & Eggs", type: "link", url: "", children: [] },
+      { id: "grocery-3", label: "Bakery", type: "link", url: "", children: [] },
+      { id: "grocery-4", label: "Meat & Seafood", type: "link", url: "", children: [] }
     ],
     settings: {
       layout: "horizontal",
@@ -359,38 +222,10 @@ const TEMPLATES_DATA: Record<number, any> = {
   },
   5: {
     items: [
-      {
-        id: "home-1",
-        label: "Furniture",
-        type: "link",
-        url: "/collections/furniture",
-        children: [
-          { id: "home-1-1", label: "Living Room", type: "link", url: "/collections/living-room", children: [] },
-          { id: "home-1-2", label: "Bedroom", type: "link", url: "/collections/bedroom", children: [] },
-          { id: "home-1-3", label: "Dining", type: "link", url: "/collections/dining", children: [] }
-        ]
-      },
-      {
-        id: "home-2",
-        label: "Decor",
-        type: "link",
-        url: "/collections/decor",
-        children: []
-      },
-      {
-        id: "home-3",
-        label: "Kitchen & Dining",
-        type: "link",
-        url: "/collections/kitchen",
-        children: []
-      },
-      {
-        id: "home-4",
-        label: "Bedding & Bath",
-        type: "link",
-        url: "/collections/bedding",
-        children: []
-      }
+      { id: "home-1", label: "Furniture", type: "link", url: "", children: [] },
+      { id: "home-2", label: "Decor", type: "link", url: "", children: [] },
+      { id: "home-3", label: "Kitchen & Dining", type: "link", url: "", children: [] },
+      { id: "home-4", label: "Bedding & Bath", type: "link", url: "", children: [] }
     ],
     settings: {
       layout: "horizontal",
@@ -402,40 +237,10 @@ const TEMPLATES_DATA: Record<number, any> = {
   },
   6: {
     items: [
-      {
-        id: "sport-1",
-        label: "Camping",
-        type: "link",
-        url: "/collections/camping",
-        children: [
-          { id: "sport-1-1", label: "Tents", type: "link", url: "/collections/tents", children: [] },
-          { id: "sport-1-2", label: "Sleeping Bags", type: "link", url: "/collections/sleeping-bags", children: [] }
-        ]
-      },
-      {
-        id: "sport-2",
-        label: "Hiking",
-        type: "link",
-        url: "/collections/hiking",
-        children: [
-          { id: "sport-2-1", label: "Footwear", type: "link", url: "/collections/hiking-boots", children: [] },
-          { id: "sport-2-2", label: "Backpacks", type: "link", url: "/collections/backpacks", children: [] }
-        ]
-      },
-      {
-        id: "sport-3",
-        label: "Cycling",
-        type: "link",
-        url: "/collections/cycling",
-        children: []
-      },
-      {
-        id: "sport-4",
-        label: "Apparel",
-        type: "link",
-        url: "/collections/outdoor-clothing",
-        children: []
-      }
+      { id: "sport-1", label: "Camping", type: "link", url: "", children: [] },
+      { id: "sport-2", label: "Hiking", type: "link", url: "", children: [] },
+      { id: "sport-3", label: "Cycling", type: "link", url: "", children: [] },
+      { id: "sport-4", label: "Apparel", type: "link", url: "", children: [] }
     ],
     settings: {
       layout: "horizontal",

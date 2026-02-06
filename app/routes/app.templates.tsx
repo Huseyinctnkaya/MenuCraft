@@ -9,6 +9,9 @@ import { json, redirect } from "@remix-run/node";
 import { useLoaderData, useFetcher } from "@remix-run/react";
 import prisma from "../db.server";
 import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
+import { DEFAULT_BUILDER_SETTINGS } from "../menu-builder/constants";
+import { buildId } from "../menu-builder/utils";
+import type { MenuItem } from "../menu-builder/types";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
@@ -161,93 +164,106 @@ export default function Templates() {
 
 const TEMPLATES_DATA: Record<number, any> = {
   1: {
+    name: "Fashion Edit",
     items: [
-      { id: "nav-1", label: "New Arrivals", type: "link", url: "", children: [] },
-      { id: "nav-2", label: "Women", type: "link", url: "", children: [] },
-      { id: "nav-3", label: "Men", type: "link", url: "", children: [] },
-      { id: "nav-4", label: "Sale", type: "link", url: "", children: [] }
+      { label: "New Arrivals", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Women", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Men", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Sale", role: "menu", url: "/", expanded: true, children: [] }
     ],
     settings: {
-      layout: "horizontal",
-      trigger: "hover",
-      maxWidth: "1200px",
-      typography: { fontFamily: "Inter", fontSize: "14px" },
-      colors: { background: "#ffffff", text: "#111827", accent: "#4f46e5" }
+      layoutMaxWidth: "1200px",
+      typographyMainFont: "Inter, system-ui, sans-serif",
+      typographyMainSize: 14,
+      colorMainBackground: "#ffffff",
+      colorMainText: "#111827",
+      colorSubmenuHeading: "#4f46e5"
     }
   },
   2: {
+    name: "Tech Essentials",
     items: [
-      { id: "tech-1", label: "Computers", type: "link", url: "", children: [] },
-      { id: "tech-2", label: "Smartphones", type: "link", url: "", children: [] },
-      { id: "tech-3", label: "Audio", type: "link", url: "", children: [] },
-      { id: "tech-4", label: "Accessories", type: "link", url: "", children: [] }
+      { label: "Computers", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Smartphones", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Audio", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Accessories", role: "menu", url: "/", expanded: true, children: [] }
     ],
     settings: {
-      layout: "horizontal",
-      trigger: "hover",
-      maxWidth: "1200px",
-      typography: { fontFamily: "Roboto", fontSize: "14px" },
-      colors: { background: "#0f172a", text: "#f8fafc", accent: "#3b82f6" }
+      layoutMaxWidth: "1200px",
+      typographyMainFont: "Roboto, system-ui, sans-serif",
+      typographyMainSize: 14,
+      colorMainBackground: "#0f172a",
+      colorMainText: "#f8fafc",
+      colorSubmenuHeading: "#3b82f6"
     }
   },
   3: {
+    name: "Beauty Studio",
     items: [
-      { id: "beauty-1", label: "Skincare", type: "link", url: "", children: [] },
-      { id: "beauty-2", label: "Makeup", type: "link", url: "", children: [] },
-      { id: "beauty-3", label: "Hair Care", type: "link", url: "", children: [] },
-      { id: "beauty-4", label: "Fragrance", type: "link", url: "", children: [] }
+      { label: "Skincare", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Makeup", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Hair Care", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Fragrance", role: "menu", url: "/", expanded: true, children: [] }
     ],
     settings: {
-      layout: "horizontal",
-      trigger: "hover",
-      maxWidth: "1100px",
-      typography: { fontFamily: "Playfair Display", fontSize: "15px" },
-      colors: { background: "#fff1f2", text: "#881337", accent: "#be123c" }
+      layoutMaxWidth: "1100px",
+      typographyMainFont: "Playfair Display, serif",
+      typographyMainSize: 15,
+      colorMainBackground: "#fff1f2",
+      colorMainText: "#881337",
+      colorSubmenuHeading: "#be123c"
     }
   },
   4: {
+    name: "Fresh Market",
     items: [
-      { id: "grocery-1", label: "Fruits & Vegetables", type: "link", url: "", children: [] },
-      { id: "grocery-2", label: "Dairy & Eggs", type: "link", url: "", children: [] },
-      { id: "grocery-3", label: "Bakery", type: "link", url: "", children: [] },
-      { id: "grocery-4", label: "Meat & Seafood", type: "link", url: "", children: [] }
+      { label: "Fruits & Vegetables", role: "menu", url: "/", expanded: true, children: [] },
+      { id: "grocery-2", label: "Dairy & Eggs", role: "menu", url: "/", expanded: true, children: [] },
+      { id: "grocery-3", label: "Bakery", role: "menu", url: "/", expanded: true, children: [] },
+      { id: "grocery-4", label: "Meat & Seafood", role: "menu", url: "/", expanded: true, children: [] }
     ],
     settings: {
-      layout: "horizontal",
-      trigger: "click",
-      maxWidth: "1200px",
-      typography: { fontFamily: "Open Sans", fontSize: "16px" },
-      colors: { background: "#f0fdf4", text: "#14532d", accent: "#16a34a" }
+      animationDesktopTrigger: "click",
+      layoutMaxWidth: "1200px",
+      typographyMainFont: "Open Sans, system-ui, sans-serif",
+      typographyMainSize: 16,
+      colorMainBackground: "#f0fdf4",
+      colorMainText: "#14532d",
+      colorSubmenuHeading: "#16a34a"
     }
   },
   5: {
+    name: "Home & Living",
     items: [
-      { id: "home-1", label: "Furniture", type: "link", url: "", children: [] },
-      { id: "home-2", label: "Decor", type: "link", url: "", children: [] },
-      { id: "home-3", label: "Kitchen & Dining", type: "link", url: "", children: [] },
-      { id: "home-4", label: "Bedding & Bath", type: "link", url: "", children: [] }
+      { label: "Furniture", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Decor", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Kitchen & Dining", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Bedding & Bath", role: "menu", url: "/", expanded: true, children: [] }
     ],
     settings: {
-      layout: "horizontal",
-      trigger: "hover",
-      maxWidth: "1400px",
-      typography: { fontFamily: "Lato", fontSize: "14px" },
-      colors: { background: "#fff7ed", text: "#431407", accent: "#9a3412" }
+      layoutMaxWidth: "1400px",
+      typographyMainFont: "Lato, system-ui, sans-serif",
+      typographyMainSize: 14,
+      colorMainBackground: "#fff7ed",
+      colorMainText: "#431407",
+      colorSubmenuHeading: "#9a3412"
     }
   },
   6: {
+    name: "Outdoor Gear",
     items: [
-      { id: "sport-1", label: "Camping", type: "link", url: "", children: [] },
-      { id: "sport-2", label: "Hiking", type: "link", url: "", children: [] },
-      { id: "sport-3", label: "Cycling", type: "link", url: "", children: [] },
-      { id: "sport-4", label: "Apparel", type: "link", url: "", children: [] }
+      { label: "Camping", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Hiking", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Cycling", role: "menu", url: "/", expanded: true, children: [] },
+      { label: "Apparel", role: "menu", url: "/", expanded: true, children: [] }
     ],
     settings: {
-      layout: "horizontal",
-      trigger: "hover",
-      maxWidth: "1200px",
-      typography: { fontFamily: "Oswald", fontSize: "15px" },
-      colors: { background: "#ffffff", text: "#000000", accent: "#dc2626" }
+      layoutMaxWidth: "1200px",
+      typographyMainFont: "Oswald, system-ui, sans-serif",
+      typographyMainSize: 15,
+      colorMainBackground: "#ffffff",
+      colorMainText: "#000000",
+      colorSubmenuHeading: "#dc2626"
     }
   }
 };
@@ -262,30 +278,42 @@ export const action = async ({ request }: import("@remix-run/node").ActionFuncti
     const templateId = Number(formData.get("templateId"));
     const templateData = TEMPLATES_DATA[templateId];
 
-    // Default fallback if no data found
-    const dataToUse = templateData || { items: [], settings: {} };
-    // Find template name from the list in component (duplication here but simple)
-    const templates = [
-      { id: 1, name: "Fashion Edit" },
-      { id: 2, name: "Tech Essentials" },
-      { id: 3, name: "Beauty Studio" },
-      { id: 4, name: "Fresh Market" },
-      { id: 5, name: "Home & Living" },
-      { id: 6, name: "Outdoor Gear" },
-    ];
-    const templateName = templates.find(t => t.id === templateId)?.name || "New Menu";
+    if (!templateData) {
+      return json({ ok: false, error: "Template not found" }, { status: 404 });
+    }
+
+    // Generate fresh IDs and merge settings at runtime to avoid circular dependency/initialization issues
+    const freshItems = (templateData.items || []).map((item: any) => ({
+      ...item,
+      id: buildId(),
+      children: item.children || [],
+    }));
+
+    const finalSettings = {
+      ...DEFAULT_BUILDER_SETTINGS,
+      ...(templateData.settings || {})
+    };
 
     const menu = await prisma.menu.create({
       data: {
         shop,
-        name: templateName,
+        name: templateData.name || "New Menu",
         status: "draft",
-        items: dataToUse.items as any,
-        settings: dataToUse.settings as any,
+        items: freshItems as any,
+        settings: finalSettings as any,
       }
     });
 
-    return redirect("/app/mega-menus");
+    const url = new URL(request.url);
+    const searchParams = url.searchParams;
+    const redirectUrl = new URL(`/app/menu-builder`, url.origin);
+    redirectUrl.searchParams.set("id", String(menu.id));
+
+    // Preserve mandatory Shopify parameters
+    if (searchParams.has("shop")) redirectUrl.searchParams.set("shop", searchParams.get("shop")!);
+    if (searchParams.has("host")) redirectUrl.searchParams.set("host", searchParams.get("host")!);
+
+    return redirect(redirectUrl.pathname + redirectUrl.search);
   }
 
   return null;

@@ -237,6 +237,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     : null;
 
   if (!menu) {
+    // If an ID was provided but no menu was found, return an error instead of crashing
+    if (menuId) {
+      return json({ ok: false, error: `Menu with ID ${menuId} not found or access denied.` }, { status: 404 });
+    }
+
     // Check plan limit for new menu creation
     const { billing: billingCheck } = await authenticate.admin(request);
     const billingTestMode =
@@ -272,6 +277,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       where: { id: created.id },
       data: { name: `Mega menu #${created.id}` },
     });
+  }
+
+  // Final check to ensure menu is not null before proceeding
+  if (!menu) {
+    return json({ ok: false, error: "Could not create or find menu." }, { status: 500 });
   }
 
   let collections: Array<{
@@ -580,9 +590,30 @@ const findItemInTree = (items: MenuItem[], id: string | null): MenuItem | null =
 };
 
 export default function MenuBuilder() {
+  const loaderData = useLoaderData<typeof loader>();
+
+  // Defensive check for loader errors or missing data to prevent blank screen crashes
+  if (!loaderData || ("ok" in loaderData && loaderData.ok === false)) {
+    const errorMsg = (loaderData as any)?.error || "Failed to load menu data. Please try again.";
+    return (
+      <div style={{ padding: "40px", textAlign: "center", backgroundColor: "#f9fafb", minHeight: "100vh" }}>
+        <div style={{ maxWidth: "500px", margin: "0 auto", padding: "24px", backgroundColor: "#ffffff", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+          <h2 style={{ fontSize: "20px", fontWeight: "600", color: "#b91c1c", marginBottom: "12px" }}>Application Error</h2>
+          <p style={{ color: "#374151", marginBottom: "20px" }}>{errorMsg}</p>
+          <button
+            onClick={() => window.location.href = "/app/mega-menus"}
+            style={{ padding: "10px 20px", backgroundColor: "#4f46e5", color: "#ffffff", borderRadius: "6px", border: "none", cursor: "pointer", fontWeight: "500" }}
+          >
+            Go Back to Menus
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const {
     menu,
-    menuItems: initialMenuItems,
+    menuItems: initialMenuItems = [],
     menuSettingsRaw,
     menuSettings,
     collections,
@@ -593,7 +624,7 @@ export default function MenuBuilder() {
     menus,
     storefrontPasswordEnabled,
     shopDomain,
-  } = useLoaderData<typeof loader>();
+  } = loaderData;
   const normalizedMenuSettings = useMemo(() => {
     const next = { ...menuSettings } as BuilderSettings;
     const hasIconWidthSettings =
@@ -7764,17 +7795,15 @@ export default function MenuBuilder() {
 
     return (
       <div className="flex flex-col h-full bg-white">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 shrink-0">
+        <div className="flex flex-col border-b border-gray-200 px-4 py-3 shrink-0">
           <Text as="h2" variant="headingSm">
             Menu items
           </Text>
+          <Text as="p" variant="bodySm" tone="subdued">
+            Drag to reorder items.
+          </Text>
         </div>
         <div className="p-4 flex-1 overflow-y-auto min-h-0">
-          <div className="mb-3">
-            <Text as="p" variant="bodySm" tone="subdued">
-              Drag to reorder items.
-            </Text>
-          </div>
 
           <div
             className={`rounded-lg border-2 border-dotted transition-all duration-150 ${draggedItemId && draggedParentId === null ? "border-blue-500 bg-blue-50/40 p-2" : "border-transparent"
@@ -7912,15 +7941,14 @@ export default function MenuBuilder() {
       weightKey: keyof BuilderSettings,
       sizeKey: keyof BuilderSettings
     ) => {
-      const fontValue = builderSettings[fontKey] as string;
-      const weightValue = Number(builderSettings[weightKey]);
-      const isCustom = builderSettings[useCustomKey] as boolean;
+      const fontValue = (builderSettings[fontKey] as string) || "Work Sans, system-ui, sans-serif";
+      const weightValue = Number(builderSettings[weightKey] || 400);
+      const isCustom = Boolean(builderSettings[useCustomKey]);
       const weightLabel =
         weightOptions.find((option) => Number(option.value) === weightValue)?.label ?? "Regular";
       const fontLabel =
         FONT_OPTIONS.find((option) => option.value === fontValue)?.label ??
-        fontValue.split(",")[0] ??
-        "Work Sans";
+        (fontValue ? fontValue.split(",")[0] : "Work Sans");
 
       const fontCard = (
         <button
@@ -7930,7 +7958,7 @@ export default function MenuBuilder() {
         >
           <div className="px-4 py-3">
             <Text as="p" variant="headingMd" fontWeight="medium" style={{ fontFamily: fontValue }}>
-              {fontValue.split(",")[0]}
+              {fontLabel}
             </Text>
             <Text as="p" variant="bodySm" tone="subdued">
               {weightLabel}

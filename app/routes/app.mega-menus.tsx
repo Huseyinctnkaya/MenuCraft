@@ -215,6 +215,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
   }
 
+  if (intent === "export-config") {
+    const menuId = Number(formData.get("menuId"));
+    if (!menuId) {
+      return json({ ok: false, error: "Missing menu id" }, { status: 400 });
+    }
+    const menu = await prisma.menu.findFirst({
+      where: { id: menuId, shop },
+      select: {
+        name: true,
+        items: true,
+        settings: true,
+      }
+    });
+    if (!menu) {
+      return json({ ok: false, error: "Menu not found" }, { status: 404 });
+    }
+    return json({ ok: true, config: menu });
+  }
+
   if (intent === "import-shopify") {
     // Check plan
     const billingTestMode = process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
@@ -329,7 +348,8 @@ export default function MegaMenusList() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [shopifyImportOpen, setShopifyImportOpen] = useState(false);
   const [selectedShopifyMenuId, setSelectedShopifyMenuId] = useState("");
-  const shopifyImportFetcher = useFetcher<typeof action>();
+  const shopifyImportFetcher = useFetcher<any>();
+  const exportFetcher = useFetcher<any>();
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const buttonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
   const [menusState, setMenusState] = useState(rawMenus);
@@ -432,26 +452,37 @@ export default function MegaMenusList() {
     }
   }, [shopifyImportFetcher.state, shopifyImportFetcher.data, revalidator]);
 
+  useEffect(() => {
+    if (exportFetcher.state === "idle" && exportFetcher.data?.ok && exportFetcher.data?.config) {
+      const { config } = exportFetcher.data;
+      const exportData = {
+        name: config.name,
+        items: config.items,
+        settings: config.settings,
+      };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${config.name.replace(/\s+/g, "_")}_config.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  }, [exportFetcher.state, exportFetcher.data]);
+
   const handleExport = (menu: any) => {
     if (!isPlusPlan) {
       setUpgradeModalOpen(true);
       setOpenMenuId(null);
       return;
     }
-    const exportData = {
-      name: menu.name,
-      items: menu.items,
-      settings: menu.settings,
-    };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${menu.name.replace(/\s+/g, "_")}_config.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const actionPath = withSearch("/app/mega-menus");
+    exportFetcher.submit(
+      { intent: "export-config", menuId: String(menu.id) },
+      { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
+    );
   };
 
   const handleImportClick = () => {

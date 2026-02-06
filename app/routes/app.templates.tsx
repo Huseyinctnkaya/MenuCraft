@@ -36,14 +36,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     select: { name: true },
   });
 
+  // Fetch templates from database
+  const templates = await prisma.menuTemplate.findMany({
+    orderBy: [
+      { category: 'asc' },
+      { createdAt: 'desc' }
+    ]
+  });
+
   return json({
     planTier: planSelection.id,
     existingMenuNames: existingMenus.map(m => m.name),
+    templates,
   });
 };
 
 export default function Templates() {
-  const { planTier, existingMenuNames } = useLoaderData<typeof loader>();
+  const { planTier, existingMenuNames, templates } = useLoaderData<typeof loader>();
   const isPro = planTier === "pro" || planTier === "plus";
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,15 +71,6 @@ export default function Templates() {
     const output = search.toString();
     return { pathname: path, search: output ? `?${output}` : "" };
   };
-
-  const templates = [
-    { id: 1, name: "Fashion Edit", category: "Fashion", pro: false, new: true },
-    { id: 2, name: "Tech Essentials", category: "Electronics", pro: false, new: false },
-    { id: 3, name: "Beauty Studio", category: "Beauty", pro: false, new: true },
-    { id: 4, name: "Fresh Market", category: "Grocery", pro: false, new: false },
-    { id: 5, name: "Home & Living", category: "Home", pro: false, new: false },
-    { id: 6, name: "Outdoor Gear", category: "Sports", pro: false, new: true },
-  ];
 
   const menuFetcher = useFetcher();
 
@@ -99,8 +99,15 @@ export default function Templates() {
                   // The user only asked for "Use Template".
                 }}
               >
-                <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg mb-4 relative">
-                  {template.pro && !isPro && (
+                <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg mb-4 relative overflow-hidden shadow-sm">
+                  {template.previewUrl && (
+                    <img
+                      src={template.previewUrl}
+                      alt={template.name}
+                      className="absolute inset-0 w-full h-full object-contain bg-white rounded-lg"
+                    />
+                  )}
+                  {template.isPro && !isPro && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <div className="text-center text-white">
                         <Lock className="w-8 h-8 mx-auto mb-2" />
@@ -113,12 +120,15 @@ export default function Templates() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm text-gray-900">{template.name}</h3>
-                    {template.new && <Badge variant="new">New</Badge>}
-                    {template.pro && <Badge variant="pro">Pro</Badge>}
+                    {template.isNew && <Badge variant="new">New</Badge>}
+                    {template.isPro && <Badge variant="pro">Pro</Badge>}
                   </div>
                   <p className="text-xs text-gray-600">{template.category}</p>
+                  {template.description && (
+                    <p className="text-xs text-gray-500 line-clamp-2">{template.description}</p>
+                  )}
                   <div onClick={(e) => e.stopPropagation()}>
-                    {template.pro && !isPro ? (
+                    {template.isPro && !isPro ? (
                       <Button
                         variant="primary"
                         size="sm"
@@ -162,111 +172,6 @@ export default function Templates() {
   );
 }
 
-const TEMPLATES_DATA: Record<number, any> = {
-  1: {
-    name: "Fashion Edit",
-    items: [
-      { label: "New Arrivals", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Women", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Men", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Sale", role: "menu", url: "/", expanded: true, children: [] }
-    ],
-    settings: {
-      layoutMaxWidth: "1200px",
-      typographyMainFont: "Inter, system-ui, sans-serif",
-      typographyMainSize: 14,
-      colorMainBackground: "#ffffff",
-      colorMainText: "#111827",
-      colorSubmenuHeading: "#4f46e5"
-    }
-  },
-  2: {
-    name: "Tech Essentials",
-    items: [
-      { label: "Computers", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Smartphones", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Audio", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Accessories", role: "menu", url: "/", expanded: true, children: [] }
-    ],
-    settings: {
-      layoutMaxWidth: "1200px",
-      typographyMainFont: "Roboto, system-ui, sans-serif",
-      typographyMainSize: 14,
-      colorMainBackground: "#0f172a",
-      colorMainText: "#f8fafc",
-      colorSubmenuHeading: "#3b82f6"
-    }
-  },
-  3: {
-    name: "Beauty Studio",
-    items: [
-      { label: "Skincare", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Makeup", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Hair Care", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Fragrance", role: "menu", url: "/", expanded: true, children: [] }
-    ],
-    settings: {
-      layoutMaxWidth: "1100px",
-      typographyMainFont: "Playfair Display, serif",
-      typographyMainSize: 15,
-      colorMainBackground: "#fff1f2",
-      colorMainText: "#881337",
-      colorSubmenuHeading: "#be123c"
-    }
-  },
-  4: {
-    name: "Fresh Market",
-    items: [
-      { label: "Fruits & Vegetables", role: "menu", url: "/", expanded: true, children: [] },
-      { id: "grocery-2", label: "Dairy & Eggs", role: "menu", url: "/", expanded: true, children: [] },
-      { id: "grocery-3", label: "Bakery", role: "menu", url: "/", expanded: true, children: [] },
-      { id: "grocery-4", label: "Meat & Seafood", role: "menu", url: "/", expanded: true, children: [] }
-    ],
-    settings: {
-      animationDesktopTrigger: "click",
-      layoutMaxWidth: "1200px",
-      typographyMainFont: "Open Sans, system-ui, sans-serif",
-      typographyMainSize: 16,
-      colorMainBackground: "#f0fdf4",
-      colorMainText: "#14532d",
-      colorSubmenuHeading: "#16a34a"
-    }
-  },
-  5: {
-    name: "Home & Living",
-    items: [
-      { label: "Furniture", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Decor", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Kitchen & Dining", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Bedding & Bath", role: "menu", url: "/", expanded: true, children: [] }
-    ],
-    settings: {
-      layoutMaxWidth: "1400px",
-      typographyMainFont: "Lato, system-ui, sans-serif",
-      typographyMainSize: 14,
-      colorMainBackground: "#fff7ed",
-      colorMainText: "#431407",
-      colorSubmenuHeading: "#9a3412"
-    }
-  },
-  6: {
-    name: "Outdoor Gear",
-    items: [
-      { label: "Camping", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Hiking", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Cycling", role: "menu", url: "/", expanded: true, children: [] },
-      { label: "Apparel", role: "menu", url: "/", expanded: true, children: [] }
-    ],
-    settings: {
-      layoutMaxWidth: "1200px",
-      typographyMainFont: "Oswald, system-ui, sans-serif",
-      typographyMainSize: 15,
-      colorMainBackground: "#ffffff",
-      colorMainText: "#000000",
-      colorSubmenuHeading: "#dc2626"
-    }
-  }
-};
 
 export const action = async ({ request }: import("@remix-run/node").ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -276,14 +181,18 @@ export const action = async ({ request }: import("@remix-run/node").ActionFuncti
 
   if (intent === "create-from-template") {
     const templateId = Number(formData.get("templateId"));
-    const templateData = TEMPLATES_DATA[templateId];
 
-    if (!templateData) {
+    // Fetch template from database
+    const template = await prisma.menuTemplate.findUnique({
+      where: { id: templateId }
+    });
+
+    if (!template) {
       return json({ ok: false, error: "Template not found" }, { status: 404 });
     }
 
     // Generate fresh IDs and merge settings at runtime to avoid circular dependency/initialization issues
-    const freshItems = (templateData.items || []).map((item: any) => ({
+    const freshItems = (template.items as any[] || []).map((item: any) => ({
       ...item,
       id: buildId(),
       children: item.children || [],
@@ -291,13 +200,13 @@ export const action = async ({ request }: import("@remix-run/node").ActionFuncti
 
     const finalSettings = {
       ...DEFAULT_BUILDER_SETTINGS,
-      ...(templateData.settings || {})
+      ...(template.settings as any || {})
     };
 
     const menu = await prisma.menu.create({
       data: {
         shop,
-        name: templateData.name || "New Menu",
+        name: template.name || "New Menu",
         status: "draft",
         items: freshItems as any,
         settings: finalSettings as any,
@@ -318,3 +227,4 @@ export const action = async ({ request }: import("@remix-run/node").ActionFuncti
 
   return null;
 };
+

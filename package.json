@@ -16,7 +16,8 @@
     "shopify": "shopify",
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
-    "vite": "vite"
+    "vite": "vite",
+    "seed:templates": "npx tsx prisma/seed-templates.ts"
   },
   "type": "module",
   "engines": {

@@ -104,3 +104,17 @@ model ContactSubmission {
   @@index([menuId])
   @@index([createdAt])
 }
+
+model MenuTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  category    String
+  description String?
+  items       Json
+  settings    Json
+  isPro       Boolean  @default(false)
+  isNew       Boolean  @default(false)
+  previewUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

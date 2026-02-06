@@ -29,9 +29,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     period: "monthly" as const,
   };
 
-  const [menus, shopifyMenusResponse] = await Promise.all([
+  const [menus, shopifyMenusResponse, eventCounts] = await Promise.all([
     prisma.menu.findMany({
       where: { shop },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+      },
       orderBy: { id: "asc" },
     }),
     adminLoader.graphql(
@@ -41,27 +46,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           nodes {
             id
             title
-            handle
-            items {
-              id
-              title
-              url
-              items {
-                id
-                title
-                url
-                items {
-                  id
-                  title
-                  url
-                }
-              }
-            }
           }
         }
       }`
     ),
+    prisma.menuEvent.groupBy({
+      by: ["menuId"],
+      where: {
+        shop,
+        eventType: "impression",
+      },
+      _count: {
+        _all: true,
+      },
+    }),
   ]);
+
+  const viewCounts = new Map(
+    eventCounts.map((ec) => [ec.menuId, ec._count._all])
+  );
   const shopifyMenusData = await shopifyMenusResponse.json();
   const shopifyMenus = shopifyMenusData?.data?.menus?.nodes || [];
 
@@ -72,8 +75,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       id: menu.id,
       name: menu.name,
       status: menu.status,
-      settings: menu.settings,
-      views: 0,
+      views: viewCounts.get(menu.id) || 0,
     })),
     shopifyMenus,
   });
@@ -581,7 +583,9 @@ export default function MegaMenusList() {
                         )}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{menu.items}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {(menu.items as any[])?.length || 0}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {menu.views.toLocaleString()}
                     </td>

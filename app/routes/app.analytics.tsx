@@ -373,15 +373,15 @@ export default function Analytics() {
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-7xl mx-auto space-y-6">
         {isFreePlan && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-blue-600" />
+              <Calendar className="w-5 h-5 text-blue-600 shrink-0" />
               <p className="text-sm text-blue-800">
                 You are on the <strong>Free plan</strong>. Analytics history is limited to the last <strong>7 days</strong>.
                 Upgrade to Pro to see 30 and 90-day history.
               </p>
             </div>
-            <Button variant="primary" size="sm" onClick={() => navigate("/app/pricing")}>
+            <Button variant="primary" size="sm" onClick={() => navigate("/app/pricing")} className="whitespace-nowrap shrink-0">
               Upgrade to Pro
             </Button>
           </div>

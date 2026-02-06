@@ -11,7 +11,8 @@ import prisma from "../db.server";
 import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { billing } = await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
+  const shop = session.shop;
 
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
@@ -26,13 +27,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     id: "free" as const,
   };
 
+  // Fetch existing menus to check for duplicates
+  const existingMenus = await prisma.menu.findMany({
+    where: { shop },
+    select: { name: true },
+  });
+
   return json({
     planTier: planSelection.id,
+    existingMenuNames: existingMenus.map(m => m.name),
   });
 };
 
 export default function Templates() {
-  const { planTier } = useLoaderData<typeof loader>();
+  const { planTier, existingMenuNames } = useLoaderData<typeof loader>();
   const isPro = planTier === "pro" || planTier === "plus";
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,11 +62,11 @@ export default function Templates() {
 
   const templates = [
     { id: 1, name: "Fashion Edit", category: "Fashion", pro: false, new: true },
-    { id: 2, name: "Tech Essentials", category: "Electronics", pro: true, new: false },
-    { id: 3, name: "Beauty Studio", category: "Beauty", pro: true, new: true },
-    { id: 4, name: "Fresh Market", category: "Grocery", pro: true, new: false },
-    { id: 5, name: "Home & Living", category: "Home", pro: true, new: false },
-    { id: 6, name: "Outdoor Gear", category: "Sports", pro: true, new: true },
+    { id: 2, name: "Tech Essentials", category: "Electronics", pro: false, new: false },
+    { id: 3, name: "Beauty Studio", category: "Beauty", pro: false, new: true },
+    { id: 4, name: "Fresh Market", category: "Grocery", pro: false, new: false },
+    { id: 5, name: "Home & Living", category: "Home", pro: false, new: false },
+    { id: 6, name: "Outdoor Gear", category: "Sports", pro: false, new: true },
   ];
 
   const menuFetcher = useFetcher();
@@ -72,66 +80,79 @@ export default function Templates() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {templates.map((template) => (
-            <Card
-              key={template.id}
-              className="group cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden p-6"
-              onClick={() => {
-                // Optional: could trigger the same action or just view details. 
-                // For now keeping card click as "view details" or similar if we implemented a details view.
-                // But since the button handles the main action, maybe we can leave the card click as navigates to preview?
-                // The prompt doesn't specify preview, so let's stick to the button action.
-                // Actually the original code navigated to /app/templates/:id. I'll leave that if it exists, or remove if unused.
-                // The user only asked for "Use Template".
-              }}
-            >
-              <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg mb-4 relative">
-                {template.pro && !isPro && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <Lock className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm">Pro Template</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+          {templates.map((template) => {
+            const isAlreadyUsed = existingMenuNames.includes(template.name);
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm text-gray-900">{template.name}</h3>
-                  {template.new && <Badge variant="new">New</Badge>}
-                  {template.pro && <Badge variant="pro">Pro</Badge>}
+            return (
+              <Card
+                key={template.id}
+                className="group cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden p-6"
+                onClick={() => {
+                  // Optional: could trigger the same action or just view details. 
+                  // For now keeping card click as "view details" or similar if we implemented a details view.
+                  // But since the button handles the main action, maybe we can leave the card click as navigates to preview?
+                  // The prompt doesn't specify preview, so let's stick to the button action.
+                  // Actually the original code navigated to /app/templates/:id. I'll leave that if it exists, or remove if unused.
+                  // The user only asked for "Use Template".
+                }}
+              >
+                <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg mb-4 relative">
+                  {template.pro && !isPro && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <Lock className="w-8 h-8 mx-auto mb-2" />
+                        <p className="text-sm">Pro Template</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-gray-600">{template.category}</p>
-                <div onClick={(e) => e.stopPropagation()}>
-                  {template.pro && !isPro ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => navigate(withSearch("/app/pricing"))}
-                    >
-                      Upgrade to Use
-                    </Button>
-                  ) : (
-                    <menuFetcher.Form method="post">
-                      <input type="hidden" name="intent" value="create-from-template" />
-                      <input type="hidden" name="templateId" value={template.id} />
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm text-gray-900">{template.name}</h3>
+                    {template.new && <Badge variant="new">New</Badge>}
+                    {template.pro && <Badge variant="pro">Pro</Badge>}
+                  </div>
+                  <p className="text-xs text-gray-600">{template.category}</p>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    {template.pro && !isPro ? (
                       <Button
                         variant="primary"
                         size="sm"
                         className="w-full"
-                        type="submit"
-                        loading={menuFetcher.state === "submitting" && menuFetcher.formData?.get("templateId") === String(template.id)}
+                        onClick={() => navigate(withSearch("/app/pricing"))}
                       >
-                        Use Template
+                        Upgrade to Use
                       </Button>
-                    </menuFetcher.Form>
-                  )}
+                    ) : isAlreadyUsed ? (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="w-full"
+                        disabled
+                      >
+                        Already in Use
+                      </Button>
+                    ) : (
+                      <menuFetcher.Form method="post">
+                        <input type="hidden" name="intent" value="create-from-template" />
+                        <input type="hidden" name="templateId" value={template.id} />
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="w-full"
+                          type="submit"
+                          loading={menuFetcher.state === "submitting" && menuFetcher.formData?.get("templateId") === String(template.id)}
+                        >
+                          Use Template
+                        </Button>
+                      </menuFetcher.Form>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       </div>
     </div>

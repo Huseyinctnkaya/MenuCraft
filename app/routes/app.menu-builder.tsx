@@ -12082,50 +12082,7 @@ export default function MenuBuilder() {
                             </div>
                           );
                         })}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAddRoot(child.id)}
-                          className="text-sm font-medium"
-                          style={{
-                            alignSelf: "stretch",
-                            width: "100%",
-                            minHeight: dropdownItemHeight,
-                            textAlign: dropdownContentAlign,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: dropdownAlignJustify,
-                            gap: 8,
-                            padding: "6px 0",
-                            color: themeSettings.menuActive,
-                            background: "transparent",
-                            border: "none",
-                            ...descriptionTypography,
-                          }}
-                          onMouseEnter={(event) => {
-                            event.currentTarget.style.color = previewColors.submenuTextHover;
-                          }}
-                          onMouseLeave={(event) => {
-                            event.currentTarget.style.color = themeSettings.menuActive;
-                          }}
-                        >
-                          <span
-                            aria-hidden="true"
-                            style={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: 9999,
-                              border: "2px solid currentColor",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 14,
-                              lineHeight: 1,
-                            }}
-                          >
-                            +
-                          </span>
-                          Add item
-                        </button>
+
                         {activeNestedHasBlocks ? (
                           <div
                             style={{
@@ -12242,50 +12199,7 @@ export default function MenuBuilder() {
                             </div>
                           );
                         })}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAddRoot(child.id)}
-                          className="text-sm font-medium"
-                          style={{
-                            alignSelf: "stretch",
-                            width: "100%",
-                            minHeight: dropdownItemHeight,
-                            textAlign: dropdownContentAlign,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: dropdownAlignJustify,
-                            gap: 8,
-                            padding: "6px 0",
-                            color: themeSettings.menuActive,
-                            background: "transparent",
-                            border: "none",
-                            ...descriptionTypography,
-                          }}
-                          onMouseEnter={(event) => {
-                            event.currentTarget.style.color = previewColors.submenuTextHover;
-                          }}
-                          onMouseLeave={(event) => {
-                            event.currentTarget.style.color = themeSettings.menuActive;
-                          }}
-                        >
-                          <span
-                            aria-hidden="true"
-                            style={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: 9999,
-                              border: "2px solid currentColor",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 14,
-                              lineHeight: 1,
-                            }}
-                          >
-                            +
-                          </span>
-                          Add item
-                        </button>
+
                         {activeDeepParent ? (
                           <div
                             style={{
@@ -12477,50 +12391,7 @@ export default function MenuBuilder() {
                             </div>
                           </div>
                         ))}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAddRoot(child.id)}
-                          className="text-sm font-medium"
-                          style={{
-                            alignSelf: "stretch",
-                            width: "100%",
-                            minHeight: dropdownItemHeight,
-                            textAlign: dropdownContentAlign,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: dropdownAlignJustify,
-                            gap: 8,
-                            padding: "6px 0",
-                            color: themeSettings.menuActive,
-                            background: "transparent",
-                            border: "none",
-                            ...descriptionTypography,
-                          }}
-                          onMouseEnter={(event) => {
-                            event.currentTarget.style.color = previewColors.submenuTextHover;
-                          }}
-                          onMouseLeave={(event) => {
-                            event.currentTarget.style.color = themeSettings.menuActive;
-                          }}
-                        >
-                          <span
-                            aria-hidden="true"
-                            style={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: 9999,
-                              border: "2px solid currentColor",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 14,
-                              lineHeight: 1,
-                            }}
-                          >
-                            +
-                          </span>
-                          Add item
-                        </button>
+
                       </>
                     )}
                   </div>
@@ -12528,50 +12399,7 @@ export default function MenuBuilder() {
               </div>
             );
           })}
-          <button
-            type="button"
-            onClick={() => handleOpenAddRoot(previewMenu.id)}
-            className="text-sm font-medium"
-            style={{
-              alignSelf: "stretch",
-              width: "100%",
-              minHeight: dropdownItemHeight,
-              textAlign: dropdownContentAlign,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: dropdownAlignJustify,
-              gap: 8,
-              padding: "12px 20px 18px",
-              color: themeSettings.menuActive,
-              background: "transparent",
-              border: "none",
-              ...descriptionTypography,
-            }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = previewColors.submenuTextHover;
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = themeSettings.menuActive;
-            }}
-          >
-            <span
-              aria-hidden="true"
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 9999,
-                border: "2px solid currentColor",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 14,
-                lineHeight: 1,
-              }}
-            >
-              +
-            </span>
-            Add item
-          </button>
+
           <div
             style={{
               marginTop: 0,
@@ -13062,50 +12890,7 @@ export default function MenuBuilder() {
                             </div>
                           );
                         })}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAddRoot(child.id)}
-                          className="text-sm font-medium"
-                          style={{
-                            alignSelf: "stretch",
-                            width: "100%",
-                            minHeight: dropdownItemHeight,
-                            textAlign: dropdownContentAlign,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: dropdownAlignJustify,
-                            gap: 8,
-                            padding: "6px 0",
-                            color: themeSettings.menuActive,
-                            background: "transparent",
-                            border: "none",
-                            ...descriptionTypography,
-                          }}
-                          onMouseEnter={(event) => {
-                            event.currentTarget.style.color = previewColors.submenuTextHover;
-                          }}
-                          onMouseLeave={(event) => {
-                            event.currentTarget.style.color = themeSettings.menuActive;
-                          }}
-                        >
-                          <span
-                            aria-hidden="true"
-                            style={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: 9999,
-                              border: "2px solid currentColor",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 14,
-                              lineHeight: 1,
-                            }}
-                          >
-                            +
-                          </span>
-                          Add item
-                        </button>
+
                         {activeDeepParent ? (
                           <div
                             style={{
@@ -13297,50 +13082,7 @@ export default function MenuBuilder() {
                             </div>
                           </div>
                         ))}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAddRoot(child.id)}
-                          className="text-sm font-medium"
-                          style={{
-                            alignSelf: "stretch",
-                            width: "100%",
-                            minHeight: dropdownItemHeight,
-                            textAlign: dropdownContentAlign,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: dropdownAlignJustify,
-                            gap: 8,
-                            padding: "6px 0",
-                            color: themeSettings.menuActive,
-                            background: "transparent",
-                            border: "none",
-                            ...descriptionTypography,
-                          }}
-                          onMouseEnter={(event) => {
-                            event.currentTarget.style.color = previewColors.submenuTextHover;
-                          }}
-                          onMouseLeave={(event) => {
-                            event.currentTarget.style.color = themeSettings.menuActive;
-                          }}
-                        >
-                          <span
-                            aria-hidden="true"
-                            style={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: 9999,
-                              border: "2px solid currentColor",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: 14,
-                              lineHeight: 1,
-                            }}
-                          >
-                            +
-                          </span>
-                          Add item
-                        </button>
+
                       </>
                     )}
                   </div>
@@ -15062,50 +14804,7 @@ export default function MenuBuilder() {
                                       </div>
                                     );
                                   })}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenAddRoot(previewMenu.id)}
-                                    className="text-sm font-medium"
-                                    style={{
-                                      alignSelf: "stretch",
-                                      minHeight: dropdownItemHeight,
-                                      textAlign: dropdownContentAlign,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: dropdownAlignJustify,
-                                      gap: 8,
-                                      width: "100%",
-                                      padding: "6px 8px",
-                                      color: themeSettings.menuActive,
-                                      background: "transparent",
-                                      border: "none",
-                                      ...descriptionTypography,
-                                    }}
-                                    onMouseEnter={(event) => {
-                                      event.currentTarget.style.color = previewColors.submenuTextHover;
-                                    }}
-                                    onMouseLeave={(event) => {
-                                      event.currentTarget.style.color = themeSettings.menuActive;
-                                    }}
-                                  >
-                                    <span
-                                      aria-hidden="true"
-                                      style={{
-                                        width: 20,
-                                        height: 20,
-                                        borderRadius: 9999,
-                                        border: "2px solid currentColor",
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        fontSize: 14,
-                                        lineHeight: 1,
-                                      }}
-                                    >
-                                      +
-                                    </span>
-                                    Add item
-                                  </button>
+
                                 </div>
                                 <div
                                   className="flex items-center gap-0"
@@ -15349,50 +15048,7 @@ export default function MenuBuilder() {
                                               </div>
                                             );
                                           })}
-                                          <button
-                                            type="button"
-                                            onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
-                                            className="text-sm font-medium"
-                                            style={{
-                                              alignSelf: "stretch",
-                                              minHeight: dropdownItemHeight,
-                                              textAlign: dropdownContentAlign,
-                                              display: "flex",
-                                              alignItems: "center",
-                                              justifyContent: dropdownAlignJustify,
-                                              gap: 8,
-                                              width: "100%",
-                                              padding: "6px 8px",
-                                              color: themeSettings.menuActive,
-                                              background: "transparent",
-                                              border: "none",
-                                              ...descriptionTypography,
-                                            }}
-                                            onMouseEnter={(event) => {
-                                              event.currentTarget.style.color = previewColors.submenuTextHover;
-                                            }}
-                                            onMouseLeave={(event) => {
-                                              event.currentTarget.style.color = themeSettings.menuActive;
-                                            }}
-                                          >
-                                            <span
-                                              aria-hidden="true"
-                                              style={{
-                                                width: 20,
-                                                height: 20,
-                                                borderRadius: 9999,
-                                                border: "2px solid currentColor",
-                                                display: "inline-flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                fontSize: 14,
-                                                lineHeight: 1,
-                                              }}
-                                            >
-                                              +
-                                            </span>
-                                            Add item
-                                          </button>
+
                                         </div>
                                       </div>
                                       {secondLevelHasBlocks ? (
@@ -15681,50 +15337,7 @@ export default function MenuBuilder() {
                                               </div>
                                             );
                                           })}
-                                          <button
-                                            type="button"
-                                            onClick={() => handleOpenAddRoot(activeDropdownItem.id)}
-                                            className="text-sm font-medium"
-                                            style={{
-                                              alignSelf: "stretch",
-                                              minHeight: dropdownItemHeight,
-                                              textAlign: dropdownContentAlign,
-                                              display: "flex",
-                                              alignItems: "center",
-                                              justifyContent: dropdownAlignJustify,
-                                              gap: 8,
-                                              width: "100%",
-                                              padding: "6px 8px",
-                                              color: themeSettings.menuActive,
-                                              background: "transparent",
-                                              border: "none",
-                                              ...descriptionTypography,
-                                            }}
-                                            onMouseEnter={(event) => {
-                                              event.currentTarget.style.color = previewColors.submenuTextHover;
-                                            }}
-                                            onMouseLeave={(event) => {
-                                              event.currentTarget.style.color = themeSettings.menuActive;
-                                            }}
-                                          >
-                                            <span
-                                              aria-hidden="true"
-                                              style={{
-                                                width: 20,
-                                                height: 20,
-                                                borderRadius: 9999,
-                                                border: "2px solid currentColor",
-                                                display: "inline-flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                fontSize: 14,
-                                                lineHeight: 1,
-                                              }}
-                                            >
-                                              +
-                                            </span>
-                                            Add item
-                                          </button>
+
                                         </div>
                                       </div>
                                       {activeSecondLevelItem ? (
@@ -15871,50 +15484,7 @@ export default function MenuBuilder() {
                                                 </div>
                                               );
                                             })}
-                                            <button
-                                              type="button"
-                                              onClick={() => handleOpenAddRoot(activeSecondLevelItem.id)}
-                                              className="text-sm font-medium"
-                                              style={{
-                                                alignSelf: "stretch",
-                                                minHeight: dropdownItemHeight,
-                                                textAlign: dropdownContentAlign,
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: dropdownAlignJustify,
-                                                gap: 8,
-                                                width: "100%",
-                                                padding: "6px 8px",
-                                                color: themeSettings.menuActive,
-                                                background: "transparent",
-                                                border: "none",
-                                                ...descriptionTypography,
-                                              }}
-                                              onMouseEnter={(event) => {
-                                                event.currentTarget.style.color = previewColors.submenuTextHover;
-                                              }}
-                                              onMouseLeave={(event) => {
-                                                event.currentTarget.style.color = themeSettings.menuActive;
-                                              }}
-                                            >
-                                              <span
-                                                aria-hidden="true"
-                                                style={{
-                                                  width: 20,
-                                                  height: 20,
-                                                  borderRadius: 9999,
-                                                  border: "2px solid currentColor",
-                                                  display: "inline-flex",
-                                                  alignItems: "center",
-                                                  justifyContent: "center",
-                                                  fontSize: 14,
-                                                  lineHeight: 1,
-                                                }}
-                                              >
-                                                +
-                                              </span>
-                                              Add item
-                                            </button>
+
                                           </div>
                                         </div>
                                       ) : null}

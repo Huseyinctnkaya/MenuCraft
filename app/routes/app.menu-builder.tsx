@@ -276,7 +276,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let latestArticles: LatestArticleSummary[] = [];
   let pages: PageSummary[] = [];
   let menus: Array<{ id: string; title: string; handle?: string | null }> = [];
-  let storefrontPasswordEnabled: boolean | null = null;
+
 
   try {
     const [pickerResponse, menuResponse] = await Promise.all([
@@ -370,9 +370,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
               handle
             }
           }
-          shop {
-            passwordEnabled
-          }
         }`,
         { variables: { menusFirst: 50 } }
       ),
@@ -382,6 +379,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       pickerResponse.json(),
       menuResponse.json(),
     ])) as any[];
+
 
     if (pickerData?.errors?.length) {
       console.error("Picker query errors", pickerData.errors);
@@ -396,9 +394,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     latestArticles = pickerData?.data?.articles?.nodes ?? [];
     pages = pickerData?.data?.pages?.nodes ?? [];
     menus = menuListData?.data?.menus?.nodes ?? [];
-    const passwordEnabled = menuListData?.data?.shop?.passwordEnabled;
-    storefrontPasswordEnabled =
-      typeof passwordEnabled === "boolean" ? passwordEnabled : null;
+
+    // DEBUG: Log fetched data counts
+    console.log("📊 Menu Builder Loader Data:", {
+      collections: collections.length,
+      products: products.length,
+      pages: pages.length,
+      blogs: blogs.length,
+      menus: menus.length
+    });
   } catch (error) {
     console.error("Failed to fetch builder data", error);
   }
@@ -418,7 +422,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     latestArticles,
     pages,
     menus,
-    storefrontPasswordEnabled,
     shopDomain: shop,
   });
 };
@@ -598,7 +601,6 @@ export default function MenuBuilder() {
     latestArticles,
     pages,
     menus,
-    storefrontPasswordEnabled,
     shopDomain,
   } = loaderData;
   const normalizedMenuSettings = useMemo(() => {
@@ -8338,25 +8340,6 @@ export default function MenuBuilder() {
                   value={builderSettings.layoutReplaceMobileMenuId}
                   onChange={(value) => updateBuilderSetting("layoutReplaceMobileMenuId", value)}
                 />
-                {storefrontPasswordEnabled !== false ? (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                    <Text as="p" variant="bodySm" tone="subdued">
-                      To refresh the menu list, please remove the storefront password.
-                    </Text>
-                    <div className="mt-3">
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          if (typeof window === "undefined") return;
-                          const url = `https://${shopDomain}/admin/online_store/preferences`;
-                          window.open(url, "_blank", "noopener,noreferrer");
-                        }}
-                      >
-                        Remove storefront password
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
               </BlockStack>
             ) : null}
             <ChoiceList
@@ -9114,8 +9097,8 @@ export default function MenuBuilder() {
               }
             />
           </BlockStack>
-        </BlockStack>
-      </Card>
+        </BlockStack >
+      </Card >
     );
   };
 

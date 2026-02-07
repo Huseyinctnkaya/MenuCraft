@@ -6,7 +6,6 @@ import {
   HelpCircle,
   History,
   LayoutDashboard,
-  LayoutTemplate,
   Menu,
   Settings,
 } from "lucide-react";
@@ -15,7 +14,6 @@ const navItems = [
   { path: "/app", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/app/analytics", icon: BarChart3, label: "Analytics" },
   { path: "/app/mega-menus", icon: Menu, label: "Mega Menus" },
-  { path: "/app/templates", icon: LayoutTemplate, label: "Templates" },
   { path: "/app/install-status", icon: Download, label: "Install & Theme Status" },
   { path: "/app/pricing", icon: CreditCard, label: "Pricing & Plans" },
   { path: "/app/support", icon: HelpCircle, label: "Support" },
@@ -54,8 +52,8 @@ export default function Sidebar() {
                 key={item.path}
                 to={{ pathname: item.path, search: location.search }}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive
-                    ? "bg-indigo-50 text-indigo-600"
-                    : "text-gray-700 hover:bg-gray-50"
+                  ? "bg-indigo-50 text-indigo-600"
+                  : "text-gray-700 hover:bg-gray-50"
                   }`}
               >
                 <Icon className="w-5 h-5" />

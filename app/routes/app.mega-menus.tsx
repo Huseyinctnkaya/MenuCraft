@@ -570,59 +570,28 @@ export default function MegaMenusList() {
         )}
 
         <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs text-gray-600">Menu Name</th>
-                  <th className="px-6 py-3 text-left text-xs text-gray-600">Status</th>
-                  <th className="px-6 py-3 text-left text-xs text-gray-600">Items</th>
-                  <th className="px-6 py-3 text-left text-xs text-gray-600">Views</th>
-                  <th className="px-6 py-3 text-right text-xs text-gray-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {menus.map((menu) => (
-                  <tr key={menu.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <button
-                        className="text-sm text-gray-900 hover:text-indigo-600"
-                        onClick={() =>
-                          navigate(
-                            withSearch("/app/menu-builder", {
-                              id: String(menu.id),
-                              returnTo: location.pathname,
-                            })
-                          )
-                        }
-                      >
-                        {menu.name}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={menu.status === "active" ? "success" : "default"}>
-                        {menu.status === "active" ? (
-                          <>
-                            <Eye className="w-3 h-3" /> Active
-                          </>
-                        ) : (
-                          <>
-                            <EyeOff className="w-3 h-3" /> Draft
-                          </>
-                        )}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {menu.itemCount}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {menu.views.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 relative">
-                      <div className="flex items-center justify-end gap-2">
-                        <CustomButton
-                          variant={"ghost" as any}
-                          size="sm"
+          {menus.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-600">No menus yet. Create your first one!</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs text-gray-600">Menu Name</th>
+                    <th className="px-6 py-3 text-left text-xs text-gray-600">Status</th>
+                    <th className="px-6 py-3 text-left text-xs text-gray-600">Items</th>
+                    <th className="px-6 py-3 text-left text-xs text-gray-600">Views</th>
+                    <th className="px-6 py-3 text-right text-xs text-gray-600">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {menus.map((menu) => (
+                    <tr key={menu.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <button
+                          className="text-sm text-gray-900 hover:text-indigo-600"
                           onClick={() =>
                             navigate(
                               withSearch("/app/menu-builder", {
@@ -632,111 +601,134 @@ export default function MegaMenusList() {
                             )
                           }
                         >
-                          Customize
-                        </CustomButton>
-                        <CustomButton
-                          variant={"ghost" as any}
-                          size="sm"
-                          disabled={limitReached}
-                          onClick={() => {
-                            if (limitReached) return;
-                            const actionPath = withSearch("/app/mega-menus");
-                            duplicateFetcher.submit(
-                              { intent: "duplicate", menuId: String(menu.id) },
-                              { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
-                            );
-                          }}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </CustomButton>
-                        <div className="relative">
+                          {menu.name}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant={menu.status === "active" ? "success" : "default"}>
+                          {menu.status === "active" ? (
+                            <>
+                              <Eye className="w-3 h-3" /> Active
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-3 h-3" /> Draft
+                            </>
+                          )}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {menu.itemCount}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {menu.views.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 relative">
+                        <div className="flex items-center justify-end gap-2">
                           <CustomButton
                             variant={"ghost" as any}
                             size="sm"
-                            ref={(el: HTMLButtonElement | null) => {
-                              buttonRefs.current[menu.id] = el;
-                            }}
-                            onClick={() => handleOpenDropdown(menu.id)}
+                            onClick={() =>
+                              navigate(
+                                withSearch("/app/menu-builder", {
+                                  id: String(menu.id),
+                                  returnTo: location.pathname,
+                                })
+                              )
+                            }
                           >
-                            <MoreVertical className="w-4 h-4" />
+                            Customize
                           </CustomButton>
+                          <CustomButton
+                            variant={"ghost" as any}
+                            size="sm"
+                            disabled={limitReached}
+                            onClick={() => {
+                              if (limitReached) return;
+                              const actionPath = withSearch("/app/mega-menus");
+                              duplicateFetcher.submit(
+                                { intent: "duplicate", menuId: String(menu.id) },
+                                { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
+                              );
+                            }}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </CustomButton>
+                          <div className="relative">
+                            <CustomButton
+                              variant={"ghost" as any}
+                              size="sm"
+                              ref={(el: HTMLButtonElement | null) => {
+                                buttonRefs.current[menu.id] = el;
+                              }}
+                              onClick={() => handleOpenDropdown(menu.id)}
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </CustomButton>
 
-                          {openMenuId === menu.id && (
-                            <>
-                              <div
-                                className="fixed inset-0 z-10"
-                                onClick={() => setOpenMenuId(null)}
-                              />
-                              <div
-                                className="fixed w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50"
-                                style={{
-                                  top: `${dropdownPosition.top}px`,
-                                  right: `${dropdownPosition.right}px`,
-                                }}
-                              >
-                                <div className="py-1">
-                                  <button
-                                    onClick={() => {
-                                      setRenameMenuId(menu.id);
-                                      setRenameNewName(menu.name);
-                                      setRenameModalOpen(true);
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                    Rename Menu
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleExport(menu);
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                  >
-                                    <Download className="w-4 h-4" />
-                                    Export Menu
-                                  </button>
-                                  <div className="border-t border-gray-200 my-1" />
-                                  <button
-                                    onClick={() => {
-                                      setMenusState((prev) => prev.filter((item) => item.id !== menu.id));
-                                      const actionPath = withSearch("/app/mega-menus");
-                                      deleteFetcher.submit(
-                                        { intent: "delete", menuId: String(menu.id) },
-                                        { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
-                                      );
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                    Delete Menu
-                                  </button>
+                            {openMenuId === menu.id && (
+                              <>
+                                <div
+                                  className="fixed inset-0 z-10"
+                                  onClick={() => setOpenMenuId(null)}
+                                />
+                                <div
+                                  className="fixed w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50"
+                                  style={{
+                                    top: `${dropdownPosition.top}px`,
+                                    right: `${dropdownPosition.right}px`,
+                                  }}
+                                >
+                                  <div className="py-1">
+                                    <button
+                                      onClick={() => {
+                                        setRenameMenuId(menu.id);
+                                        setRenameNewName(menu.name);
+                                        setRenameModalOpen(true);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                      Rename Menu
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        handleExport(menu);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                      Export Menu
+                                    </button>
+                                    <div className="border-t border-gray-200 my-1" />
+                                    <button
+                                      onClick={() => {
+                                        setMenusState((prev) => prev.filter((item) => item.id !== menu.id));
+                                        const actionPath = withSearch("/app/mega-menus");
+                                        deleteFetcher.submit(
+                                          { intent: "delete", menuId: String(menu.id) },
+                                          { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
+                                        );
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                      Delete Menu
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            </>
-                          )}
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {menus.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-4">No menus yet. Create your first one!</p>
-              <CustomButton
-                onClick={() =>
-                  navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname }))
-                }
-              >
-                <Plus className="w-4 h-4" />
-                Create Menu
-              </CustomButton>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </Card>

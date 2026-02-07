@@ -167,7 +167,6 @@ export default function Pricing() {
       priceYearly: "$7.99",
       features: [
         "Unlimited Mega Menus",
-        "Full Template Library Access",
         "Menu Item Badges & Labels",
         "Product & Collection Grids",
         "Mobile Menu Features",
@@ -199,7 +198,6 @@ export default function Pricing() {
   const comparisonFeatures = [
     { name: "Mega Menus count", free: "1", pro: "Unlimited", plus: "Unlimited" },
     { name: "No App Branding", free: true, pro: true, plus: true },
-    { name: "Template Library", free: "Limited", pro: "Full Access", plus: "Full Access" },
     { name: "Design Controls", free: "Basic", pro: "Advanced", plus: "Advanced" },
     { name: "Analytics Range", free: "7 days", pro: "90 days", plus: "Unlimited" },
     { name: "Menu Item Badges", free: false, pro: true, plus: true },

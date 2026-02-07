@@ -23,9 +23,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin: adminLoader, billing, session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  /* DEV OVERRIDE */
-  const planSelection = {
-    id: "plus" as const,
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES],
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+
+  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free" as const,
     period: "monthly" as const,
   };
 
@@ -114,8 +123,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
-    /* DEV OVERRIDE */
-    const planSelection = { id: "plus" as const };
+    const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+      id: "free" as const,
+    };
 
     if (planSelection.id === "free") {
       const menuCount = await prisma.menu.count({ where: { shop } });
@@ -175,8 +185,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
-    /* DEV OVERRIDE */
-    const planSelection = { id: "plus" as const };
+    const planSelection = getPlanSelection(activeSubscription?.name) ?? { id: "free" as const };
     const isPlusPlan = planSelection.id === "plus";
     if (!isPlusPlan) {
       return json({ ok: false, error: "Import feature is only available on Plus plan" }, { status: 403 });
@@ -244,8 +253,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
-    /* DEV OVERRIDE */
-    const planSelection = { id: "plus" as const };
+    const planSelection = getPlanSelection(activeSubscription?.name) ?? { id: "free" as const };
     const isPlusPlan = planSelection.id === "plus";
     if (!isPlusPlan) {
       return json({ ok: false, error: "Shopify import feature is only available on Plus plan" }, { status: 403 });

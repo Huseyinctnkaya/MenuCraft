@@ -28,11 +28,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );
 
-  /* 
-     DEV OVERRIDE: Unlocking Plus plan for template design.
-     Change this back before production.
-  */
-  const planSelection = { id: "plus" as const, period: "monthly" as const };
+  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free" as const,
+    period: null,
+  };
 
   // Check menu count
   const menuCount = await prisma.menu.count({ where: { shop } });

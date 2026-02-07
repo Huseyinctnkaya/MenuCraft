@@ -53,9 +53,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = session.shop;
   const url = new URL(request.url);
 
-  /* DEV OVERRIDE */
-  const planSelection = {
-    id: "plus" as const,
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const { appSubscriptions } = await billing.check({
+    plans: [...ALL_BILLING_PLAN_NAMES],
+    isTest: billingTestMode,
+  });
+  const activeSubscription = appSubscriptions.find((subscription) =>
+    ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+  );
+
+  const planSelection = getPlanSelection(activeSubscription?.name) ?? {
+    id: "free" as const,
   };
 
   let rangeParam = url.searchParams.get("range") ?? "7d";

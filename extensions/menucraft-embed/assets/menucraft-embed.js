@@ -102,9 +102,7 @@
     }
 
     const wrapper = createElement("div", "menucraft-link-wrapper");
-    wrapper.style.display = "flex";
-    wrapper.style.alignItems = "center";
-    wrapper.style.gap = "8px";
+    wrapper.style.gap = "12px";
 
     if (item.icon) {
       let iconSrc = item.icon;
@@ -322,37 +320,37 @@
 
     container.style.display = "flex";
     container.style.flexDirection = isImageLeft ? "row" : "column";
-    container.style.gap = "14px";
-    container.style.padding = "12px";
-    container.style.borderRadius = "12px";
+    container.style.gap = "12px";
+    container.style.padding = "0";
     container.style.background = "transparent";
-    container.style.transition = "all 0.3s ease";
     container.style.textDecoration = "none";
     container.style.color = "inherit";
-    container.style.border = "1px solid transparent";
+    container.style.transition = "all 150ms ease";
 
     if (product?.handle) {
       container.href = `/products/${product.handle}`;
     }
 
-    const imgUrl = product?.featuredImage?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png";
+    const productImageSize = isImageLeft ? 74 : "100%";
     const imageWrapper = createElement("div", "menucraft-product-image-wrapper");
-    imageWrapper.style.width = isImageLeft ? "100px" : "100%";
-    imageWrapper.style.aspectRatio = isImageLeft ? "1/1" : "4/5";
-    imageWrapper.style.flexShrink = "0";
+    imageWrapper.style.width = isImageLeft ? `${productImageSize}px` : "100%";
+    imageWrapper.style.height = isImageLeft ? `${productImageSize}px` : "auto";
+    imageWrapper.style.flex = isImageLeft ? `0 0 ${productImageSize}px` : "undefined";
     imageWrapper.style.background = "#f3f4f4";
-    imageWrapper.style.borderRadius = "8px";
+    imageWrapper.style.border = "1px solid #e5e7eb";
+    // imageWrapper.style.borderRadius = "0"; // Builder uses 0 for inner image box
     imageWrapper.style.overflow = "hidden";
     imageWrapper.style.display = "flex";
     imageWrapper.style.alignItems = "center";
     imageWrapper.style.justifyContent = "center";
+    imageWrapper.style.boxSizing = "border-box";
 
+    const imgUrl = product?.featuredImage?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png";
     const img = createElement("img");
     img.src = imgUrl;
     img.style.width = "100%";
     img.style.height = "100%";
     img.style.objectFit = "contain";
-    // Hide broken images
     img.onerror = () => { img.style.display = "none"; };
     imageWrapper.appendChild(img);
     container.appendChild(imageWrapper);
@@ -361,67 +359,84 @@
     info.style.display = "flex";
     info.style.flexDirection = "column";
     info.style.gap = "6px";
-    info.style.padding = "4px 0";
+    info.style.justifyContent = "center";
 
     const title = createElement("div", "menucraft-product-title", product?.title || "Example Product Title");
     title.style.fontWeight = "600";
-    title.style.fontSize = "15px";
+    title.style.fontSize = "14px";
     title.style.fontFamily = settings.typographySubheadingFont;
     title.style.color = settings.colorSubmenuText || "#111";
-    title.style.lineHeight = "1.3";
+    title.style.lineHeight = "1.2";
     info.appendChild(title);
 
     if (product?.priceRange?.minVariantPrice) {
       const price = createElement("div", "menucraft-product-price");
       price.textContent = formatPrice(product.priceRange.minVariantPrice);
-      price.style.fontSize = "14px";
-      price.style.fontWeight = "500";
+      price.style.fontSize = "13px";
+      price.style.fontWeight = "400";
       price.style.color = settings.colorSubmenuDescription || "#888";
       info.appendChild(price);
     }
     container.appendChild(info);
-
-    container.onmouseenter = () => {
-      container.style.background = "#fcfcfc";
-      container.style.borderColor = "#eee";
-      container.style.boxShadow = "0 8px 24px rgba(0,0,0,0.06)";
-    };
-    container.onmouseleave = () => {
-      container.style.background = "transparent";
-      container.style.borderColor = "transparent";
-      container.style.boxShadow = "none";
-    };
 
     return container;
   };
 
   const buildProductBlock = (item, settings) => {
     const container = createElement("div", "menucraft-block-product-group");
+    container.style.borderRadius = "16px";
+    container.style.padding = "5px";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "10px";
+
+    const productWidth = getBlockSpan(item);
+    const isCarousel = item.blockTemplate === "product-carousel";
     const layout = item.productLayout || (item.blockTemplate === "product-horizontal" ? "image-left" : "image-top");
+    const isImageLeft = layout === "image-left";
+
     const ids = Array.isArray(item.productIds) ? item.productIds : [];
 
+    // Heading handling check
+    const productHeading = (item.label || "").trim();
+    if (productHeading) {
+      const heading = createElement("div", "menucraft-product-block-heading");
+      heading.textContent = productHeading;
+      heading.style.color = settings.colorSubmenuHeading;
+      heading.style.fontWeight = "600";
+      heading.style.fontFamily = settings.typographySubheadingFont;
+      heading.style.fontSize = "14px";
+      heading.style.lineHeight = "1.2";
+      container.appendChild(heading);
+
+      const hr = createElement("div");
+      hr.style.borderTop = `1px solid ${settings.colorSubmenuHeading}`;
+      hr.style.opacity = "0.5";
+      container.appendChild(hr);
+    }
+
     const grid = createElement("div", "menucraft-product-grid");
-    grid.style.display = "grid";
-    grid.style.gap = "20px";
-
-    const isCarousel = item.blockTemplate === "product-carousel";
-    const isHorizontal = item.blockTemplate === "product-horizontal" || layout === "image-left";
-
     if (isCarousel) {
       grid.style.display = "flex";
-      grid.style.overflowX = "auto";
-      grid.style.scrollSnapType = "x mandatory";
-      grid.style.paddingBottom = "10px";
       grid.style.gap = "16px";
-    } else if (ids.length > 1) {
-      grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(200px, 1fr))";
+      grid.style.overflowX = "auto";
+      grid.style.paddingBottom = "10px";
     } else {
-      grid.style.gridTemplateColumns = "1fr";
+      grid.style.display = "grid";
+      grid.style.gap = "16px";
+      if (isImageLeft || ids.length === 1) {
+        grid.style.gridTemplateColumns = "1fr";
+      } else {
+        grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
+      }
     }
 
     ids.forEach(id => {
-      const card = buildProductCard(id, settings, layout === "image-left" ? "row" : "column");
-      if (isCarousel) card.style.flex = "0 0 250px";
+      const card = buildProductCard(id, settings, isImageLeft ? "row" : "column");
+      if (isCarousel) {
+        const carouselPageSize = productWidth < 10 ? 3 : 4;
+        card.style.flex = `0 0 calc(${100 / carouselPageSize}% - ${(16 * (carouselPageSize - 1)) / carouselPageSize}px)`;
+      }
       grid.appendChild(card);
     });
 
@@ -453,64 +468,143 @@
 
   const buildLinkListBlock = (group, settings) => {
     const container = createElement("div", "menucraft-block-links");
+    container.style.borderRadius = "16px";
+    container.style.padding = "6px 12px 12px";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "12px";
+
     const columnCount = Math.max(1, group.linkColumns || 1);
-    const linkItems = (group.children || []).filter(c => !c.isHeading);
-    const headingItem = (group.children || []).find(c => c.isHeading);
+    const children = group.children || [];
+    const headingItem = children.find(c => c.isHeading);
+    const linkItems = children.filter(c => !c.isHeading);
 
     if (headingItem) {
-      container.appendChild(buildLink(headingItem, settings));
+      const hWrapper = createElement("div", "menucraft-link-list-heading-wrapper");
+      hWrapper.style.display = "flex";
+      hWrapper.style.flexDirection = "column";
+
+      const hLink = buildLink(headingItem, settings);
+      hLink.style.padding = "4px 8px";
+      hWrapper.appendChild(hLink);
+
+      const hr = createElement("div");
+      hr.style.borderTop = `1px solid ${settings.colorSubmenuHeading}`;
+      hr.style.opacity = "0.5";
+      hWrapper.appendChild(hr);
+
+      container.appendChild(hWrapper);
     }
 
-    const columnsWrapper = createElement("div", "menucraft-block-links-columns");
-    columnsWrapper.style.display = "flex";
-    columnsWrapper.style.gap = "20px";
+    const grid = createElement("div", "menucraft-block-links-grid");
+    grid.style.display = "flex";
+    grid.style.gap = "32px";
 
     const itemsPerColumn = Math.ceil(linkItems.length / columnCount);
     for (let i = 0; i < columnCount; i++) {
       const column = createElement("div", "menucraft-block-column");
-      column.style.flex = "1";
-      const columnList = createElement("ul", "menucraft-submenu-list");
+      column.style.flex = "1 1 0";
+      column.style.display = "flex";
+      column.style.flexDirection = "column";
+      column.style.gap = "6px";
+
       const start = i * itemsPerColumn;
       const end = Math.min(start + itemsPerColumn, linkItems.length);
       const columnItems = linkItems.slice(start, end);
 
       columnItems.forEach(item => {
-        const li = createElement("li", "menucraft-submenu-item");
-        li.appendChild(buildLink(item, settings));
-        columnList.appendChild(li);
+        const itemBtn = buildLink(item, settings);
+        itemBtn.style.padding = "6px 8px";
+        itemBtn.style.borderRadius = "8px";
+        itemBtn.style.width = "100%";
+
+        // Add hover effect for button look
+        itemBtn.onmouseenter = () => {
+          itemBtn.style.background = "rgba(0,0,0,0.04)";
+        };
+        itemBtn.onmouseleave = () => {
+          itemBtn.style.background = "transparent";
+        };
+
+        column.appendChild(itemBtn);
       });
-      column.appendChild(columnList);
-      columnsWrapper.appendChild(column);
+      grid.appendChild(column);
     }
-    container.appendChild(columnsWrapper);
+    container.appendChild(grid);
     return container;
   };
 
   const buildImageBlock = (item, settings) => {
     const container = createElement("div", "menucraft-block-image");
+    container.style.borderRadius = "16px";
+    container.style.padding = "5px";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "10px";
+
+    const isOverlay = item.blockTemplate === "image2";
+    const imageAlign = item.imageTextAlign || "left";
+    const textAlignItems = imageAlign === "center" ? "center" : imageAlign === "right" ? "flex-end" : "flex-start";
+
+    const imgWrapper = createElement("div", "menucraft-image-block-wrapper");
+    imgWrapper.style.position = "relative";
+    imgWrapper.style.overflow = "hidden";
+    imgWrapper.style.display = "flex";
+    imgWrapper.style.alignItems = "center";
+    imgWrapper.style.justifyContent = "center";
+
     if (item.imageUrl) {
       const img = createElement("img");
       img.src = item.imageUrl;
-      img.style.maxWidth = "100%";
-      img.style.height = "auto";
+      img.style.width = "100%";
       img.style.display = "block";
-      img.style.borderRadius = "8px";
-      container.appendChild(img);
+      imgWrapper.appendChild(img);
+    } else {
+      imgWrapper.style.background = "rgba(133, 133, 133, 0.1)";
+      imgWrapper.style.minHeight = "150px";
+      imgWrapper.innerHTML = `<svg viewBox="0 0 525.5 525.5" style="width: 100%; height: 100%; fill: rgba(133, 133, 133, 0.35);"><path d="M324.5 212.7H203c-1.6 0-2.8 1.3-2.8 2.8V308c0 1.6 1.3 2.8 2.8 2.8h121.6c1.6 0 2.8-1.3 2.8-2.8v-92.5c0-1.6-1.3-2.8-2.9-2.8zm1.1 95.3c0 .6-.5 1.1-1.1 1.1H203c-.6 0-1.1-.5-1.1-1.1v-92.5c0-.6.5-1.1 1.1-1.1h121.6c.6 0 1.1.5 1.1 1.1V308z" /><path d="M210.4 299.5H240v.1s.1 0 .2-.1h75.2v-76.2h-105v76.2zm1.8-7.2l20-20c1.6-1.6 3.8-2.5 6.1-2.5s4.5.9 6.1 2.5l11.5 11.5 16.8 16.8c-12.9 3.3-20.7 6.3-22.8 7.2h-27.7v-5.5zm101.5-10.1c-20.1 1.7-36.7 4.8-49.1 7.9l-16.9-16.9 26.3-26.3c1.6-1.6 3.8-2.5 6.1-2.5s4.5.9 6.1 2.5l27.5 27.5v7.8zm-68.9 15.5c9.7-3.5 33.9-10.9 68.9-13.8v13.8h-68.9zm68.9-72.7v46.8l-26.2-26.2c-1.9-1.9-4.5-3-7.3-3s-5.4 1.1-7.3 3l-18.8 18.8V225h101.4z" /><path d="M232.8 254c4.6 0 8.3-3.7 8.3-8.3s-3.7-8.3-8.3-8.3-8.3 3.7-8.3 8.3 3.7 8.3 8.3 8.3zm0-14.9c3.6 0 6.6 2.9 6.6 6.6s-2.9 6.6-6.6 6.6-6.6-2.9-6.6-6.6 3-6.6 6.6-6.6z" /></svg>`;
     }
+    container.appendChild(imgWrapper);
+
+    const info = createElement("div", "menucraft-image-info");
+    info.style.display = "flex";
+    info.style.flexDirection = "column";
+    info.style.gap = "4px";
+    info.style.textAlign = imageAlign;
+    info.style.alignSelf = textAlignItems;
+
     if (item.label) {
-      const label = createElement("div", "menucraft-block-image-label", item.label);
-      label.style.marginTop = "8px";
+      const label = createElement("div", "menucraft-image-label", item.label);
       label.style.fontWeight = "600";
-      label.style.fontSize = `${settings.typographySubtextSize + 2}px`;
-      container.appendChild(label);
+      label.style.fontFamily = settings.typographySubheadingFont;
+      label.style.fontSize = "14px";
+      label.style.lineHeight = "1.2";
+      label.style.color = settings.colorSubmenuText;
+      info.appendChild(label);
     }
+
     if (item.description) {
-      const desc = createElement("div", "menucraft-block-image-desc", item.description);
-      desc.style.marginTop = "4px";
-      desc.style.fontSize = `${settings.typographySubtextSize}px`;
-      desc.style.color = settings.colorSubmenuDescription || "#666";
-      container.appendChild(desc);
+      const desc = createElement("div", "menucraft-image-desc", item.description);
+      desc.style.fontSize = "12px";
+      desc.style.fontFamily = settings.typographySubtextFont;
+      desc.style.color = settings.colorSubmenuDescription;
+      desc.style.lineHeight = "1.2";
+      info.appendChild(desc);
     }
+
+    if (isOverlay) {
+      info.style.position = "absolute";
+      info.style.left = "16px";
+      info.style.right = "16px";
+      info.style.bottom = "16px";
+      info.style.background = "#3f3f3f";
+      info.style.color = "#ffffff";
+      info.style.padding = "10px 12px";
+      imgWrapper.appendChild(info);
+    } else {
+      container.appendChild(info);
+    }
+
     return container;
   };
 
@@ -526,21 +620,48 @@
 
   const buildCollectionBlock = (item, settings) => {
     const container = createElement("div", "menucraft-block-collection");
-    container.style.display = "grid";
-    container.style.gap = "16px";
-    container.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
+    container.style.borderRadius = "16px";
+    container.style.padding = "5px";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "10px";
 
     const ids = Array.isArray(item.collectionIds) ? item.collectionIds : [];
+
+    // Heading check
+    const blockHeading = (item.label || "").trim();
+    if (blockHeading) {
+      const heading = createElement("div", "menucraft-collection-block-heading");
+      heading.textContent = blockHeading;
+      heading.style.color = settings.colorSubmenuHeading;
+      heading.style.fontWeight = "600";
+      heading.style.fontFamily = settings.typographySubheadingFont;
+      heading.style.fontSize = "14px";
+      heading.style.lineHeight = "1.2";
+      container.appendChild(heading);
+
+      const hr = createElement("div");
+      hr.style.borderTop = `1px solid ${settings.colorSubmenuHeading}`;
+      hr.style.opacity = "0.5";
+      container.appendChild(hr);
+    }
+
+    const grid = createElement("div", "menucraft-collection-grid");
+    grid.style.display = "grid";
+    grid.style.gap = "16px";
+    grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
 
     ids.forEach(id => {
       const collection = getResource("collection", id);
       const card = createElement("a", "menucraft-collection-card");
       card.style.display = "block";
       card.style.position = "relative";
-      card.style.borderRadius = "10px";
+      card.style.borderRadius = "16px";
       card.style.overflow = "hidden";
       card.style.textDecoration = "none";
-      card.style.transition = "transform 0.3s ease";
+      card.style.background = "#f3f4f4";
+      card.style.border = "1px solid #e5e7eb";
+      card.style.aspectRatio = "16/9";
 
       if (collection?.handle) {
         card.href = `/collections/${collection.handle}`;
@@ -550,10 +671,10 @@
       const img = createElement("img");
       img.src = imgUrl;
       img.style.width = "100%";
-      img.style.aspectRatio = "16/9";
+      img.style.height = "100%";
       img.style.objectFit = "cover";
       img.style.display = "block";
-      img.style.transition = "transform 0.5s ease";
+      img.style.transition = "transform 500ms ease";
       card.appendChild(img);
 
       const overlay = createElement("div", "menucraft-collection-overlay");
@@ -567,7 +688,7 @@
       overlay.style.display = "flex";
       overlay.style.flexDirection = "column";
       overlay.style.justifyContent = "flex-end";
-      overlay.style.height = "50%";
+      overlay.style.height = "60%";
 
       const label = createElement("div", "menucraft-collection-label", collection?.title || "Collection");
       label.style.fontWeight = "600";
@@ -579,101 +700,107 @@
 
       card.onmouseenter = () => {
         img.style.transform = "scale(1.05)";
-        card.style.transform = "translateY(-2px)";
       };
       card.onmouseleave = () => {
         img.style.transform = "none";
-        card.style.transform = "none";
       };
 
-      container.appendChild(card);
+      grid.appendChild(card);
     });
+    container.appendChild(grid);
     return container;
   };
 
   const buildBlogBlock = (item, settings) => {
     const container = createElement("div", "menucraft-block-blog");
+    container.style.borderRadius = "16px";
+    container.style.padding = "5px";
     container.style.display = "flex";
     container.style.flexDirection = "column";
-    container.style.gap = "20px";
+    container.style.gap = "10px";
 
-    const ids = Array.isArray(item.blogIds) ? item.blogIds : [];
+    const blogId = Array.isArray(item.blogIds) ? item.blogIds[0] : null;
+    const blog = getResource("blog", blogId);
+    const articles = blog?.articles || [];
+    const limit = item.articleCount || 3;
+    const displayArticles = articles.slice(0, limit);
 
-    ids.forEach(id => {
-      const blog = getResource("blog", id);
-      if (!blog) return;
+    // Heading
+    const blogTitle = (item.label || blog?.title || "Blog").trim();
+    if (blogTitle) {
+      const heading = createElement("div", "menucraft-blog-block-heading");
+      heading.textContent = blogTitle;
+      heading.style.color = settings.colorSubmenuHeading;
+      heading.style.fontWeight = "600";
+      heading.style.fontFamily = settings.typographySubheadingFont;
+      heading.style.fontSize = "14px";
+      heading.style.lineHeight = "1.2";
+      container.appendChild(heading);
 
-      const blogGroup = createElement("div", "menucraft-blog-group");
+      const hr = createElement("div");
+      hr.style.borderTop = `1px solid ${settings.colorSubmenuHeading}`;
+      hr.style.opacity = "0.5";
+      container.appendChild(hr);
+    }
 
-      const blogTitle = createElement("h4", "menucraft-blog-title", blog.title);
-      blogTitle.style.marginBottom = "16px";
-      blogTitle.style.fontSize = "16px";
-      blogTitle.style.fontWeight = "600";
-      blogTitle.style.fontFamily = settings.typographySubheadingFont;
-      blogTitle.style.color = settings.colorSubmenuHeading;
-      blogTitle.style.paddingBottom = "8px";
-      blogTitle.style.borderBottom = `1px solid ${settings.colorMainDivider || '#eee'}`;
-      blogGroup.appendChild(blogTitle);
+    const list = createElement("div", "menucraft-blog-list");
+    list.style.display = "flex";
+    list.style.flexDirection = "column";
+    list.style.gap = "4px";
 
-      const articlesContainer = createElement("div", "menucraft-articles-list");
-      articlesContainer.style.display = "flex";
-      articlesContainer.style.flexDirection = "column";
-      articlesContainer.style.gap = "12px";
+    displayArticles.forEach(article => {
+      const row = createElement("a", "menucraft-blog-article-row");
+      row.href = `/blogs/${blog.handle}/${article.handle}`;
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "12px";
+      row.style.padding = "8px 10px";
+      row.style.borderRadius = "8px";
+      row.style.textDecoration = "none";
+      row.style.color = "inherit";
+      row.style.transition = "background 150ms ease";
 
-      const articles = blog.articles?.nodes || [];
-      articles.forEach(article => {
-        const row = createElement("a", "menucraft-article-row");
-        row.href = `/blogs/${blog.handle}/${article.handle}`;
-        row.style.display = "flex";
-        row.style.gap = "12px";
-        row.style.textDecoration = "none";
-        row.style.color = "inherit";
-        row.style.padding = "4px";
-        row.style.borderRadius = "8px";
-        row.style.transition = "background 0.2s ease";
+      const thumbWrapper = createElement("div", "menucraft-article-thumb-wrapper");
+      thumbWrapper.style.width = "48px";
+      thumbWrapper.style.height = "48px";
+      thumbWrapper.style.flexShrink = "0";
+      thumbWrapper.style.borderRadius = "6px";
+      thumbWrapper.style.overflow = "hidden";
+      thumbWrapper.style.background = "#f3f4f4";
 
-        if (article.image) {
-          const imgWrapper = createElement("div", "menucraft-article-image-wrapper");
-          imgWrapper.style.width = "60px";
-          imgWrapper.style.height = "60px";
-          imgWrapper.style.flexShrink = "0";
-          imgWrapper.style.borderRadius = "6px";
-          imgWrapper.style.overflow = "hidden";
+      const img = createElement("img");
+      img.src = article.image?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-lifestyle-2_large.png";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+      thumbWrapper.appendChild(img);
+      row.appendChild(thumbWrapper);
 
-          const img = createElement("img");
-          img.src = article.image.url;
-          img.style.width = "100%";
-          img.style.height = "100%";
-          img.style.objectFit = "cover";
-          imgWrapper.appendChild(img);
-          row.appendChild(imgWrapper);
-        }
+      const title = createElement("div", "menucraft-article-title", article.title);
+      title.style.fontSize = "14px";
+      title.style.fontWeight = "500";
+      title.style.color = settings.colorSubmenuText;
+      title.style.lineHeight = "1.3";
+      title.style.display = "-webkit-box";
+      title.style.webkitLineClamp = "2";
+      title.style.webkitBoxOrient = "vertical";
+      title.style.overflow = "hidden";
+      row.appendChild(title);
 
-        const info = createElement("div", "menucraft-article-info");
-        info.style.display = "flex";
-        info.style.flexDirection = "column";
-        info.style.justifyContent = "center";
+      row.onmouseenter = () => {
+        row.style.background = "rgba(0,0,0,0.04)";
+      };
+      row.onmouseleave = () => {
+        row.style.background = "transparent";
+      };
 
-        const atitle = createElement("div", "menucraft-article-title", article.title);
-        atitle.style.fontSize = "14px";
-        atitle.style.fontWeight = "500";
-        atitle.style.fontFamily = settings.typographySubtextFont;
-        atitle.style.color = settings.colorSubmenuText;
-        info.appendChild(atitle);
-
-        row.appendChild(info);
-
-        row.onmouseenter = () => { row.style.background = "#f5f5f5"; };
-        row.onmouseleave = () => { row.style.background = "transparent"; };
-
-        articlesContainer.appendChild(row);
-      });
-
-      blogGroup.appendChild(articlesContainer);
-      container.appendChild(blogGroup);
+      list.appendChild(row);
     });
+
+    container.appendChild(list);
     return container;
   };
+
 
   const buildSpaceBlock = (item) => {
     const div = createElement("div", "menucraft-block-space");
@@ -902,10 +1029,13 @@
       
       .menucraft-product-card {
         border: none;
-        border-radius: 12px;
         overflow: hidden;
         background: transparent;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 150ms ease;
+      }
+      .menucraft-product-card:hover {
+        background: rgba(0,0,0,0.04);
+        border-radius: 8px;
       }
       
       .menucraft-product-grid {

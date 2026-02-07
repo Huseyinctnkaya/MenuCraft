@@ -7781,7 +7781,7 @@ export default function MenuBuilder() {
             Drag to reorder items.
           </Text>
         </div>
-        <div className="p-4 flex-1 overflow-y-auto min-h-0">
+        <div className="p-2 flex-1 overflow-y-auto min-h-0">
 
           <div
             className={`rounded-lg border-2 border-dotted transition-all duration-150 ${draggedItemId && draggedParentId === null ? "border-blue-500 bg-blue-50/40 p-2" : "border-transparent"

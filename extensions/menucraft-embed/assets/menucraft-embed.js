@@ -405,11 +405,11 @@
       heading.style.color = settings.colorSubmenuHeading;
       heading.style.fontWeight = "600";
       heading.style.fontFamily = settings.typographySubheadingFont;
-      heading.style.fontSize = "22px";
+      heading.style.fontSize = "18px";
       heading.style.fontWeight = "700";
       heading.style.lineHeight = "1.3";
       heading.style.letterSpacing = "-0.01em";
-      heading.style.marginBottom = "12px";
+      heading.style.marginBottom = "10px";
       container.appendChild(heading);
 
       const hr = createElement("div");
@@ -430,7 +430,7 @@
       if (isImageLeft || ids.length === 1) {
         grid.style.gridTemplateColumns = "1fr";
       } else {
-        grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
+        grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(210px, 1fr))";
       }
     }
 
@@ -639,11 +639,11 @@
       heading.style.color = settings.colorSubmenuHeading;
       heading.style.fontWeight = "600";
       heading.style.fontFamily = settings.typographySubheadingFont;
-      heading.style.fontSize = "22px";
+      heading.style.fontSize = "18px";
       heading.style.fontWeight = "700";
       heading.style.lineHeight = "1.3";
       heading.style.letterSpacing = "-0.01em";
-      heading.style.marginBottom = "12px";
+      heading.style.marginBottom = "10px";
       container.appendChild(heading);
 
       const hr = createElement("div");
@@ -739,11 +739,11 @@
       heading.style.color = settings.colorSubmenuHeading;
       heading.style.fontWeight = "600";
       heading.style.fontFamily = settings.typographySubheadingFont;
-      heading.style.fontSize = "22px";
+      heading.style.fontSize = "18px";
       heading.style.fontWeight = "700";
       heading.style.lineHeight = "1.3";
       heading.style.letterSpacing = "-0.01em";
-      heading.style.marginBottom = "12px";
+      heading.style.marginBottom = "10px";
       container.appendChild(heading);
 
       const hr = createElement("div");
@@ -1040,7 +1040,7 @@
         transform: translateY(10px) !important;
         box-sizing: border-box !important;
         min-height: 500px;
-        padding: 60px 40px !important; 
+        padding: 50px 40px !important; 
         background: ${settings.colorSubmenuBackground};
       }
       
@@ -1057,12 +1057,12 @@
       .menucraft-mega-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 60px;
+        gap: 40px;
         align-items: start;
         width: 100%;
         max-width: 1400px;
         margin: 0 auto;
-        padding: 20px !important;
+        padding: 0 !important;
       }
       
       .menucraft-product-card {
@@ -1118,12 +1118,12 @@
       .menucraft-submenu .menucraft-menu-link:hover { color: ${settings.colorSubmenuTextHover}; }
       
       .menucraft-menu-heading {
-        margin-bottom: 24px;
-        border-bottom: 2px solid ${settings.colorMainDivider};
-        padding-bottom: 16px !important;
-        font-size: 24px !important;
+        margin-bottom: 16px;
+        border-bottom: 1px solid ${settings.colorMainDivider};
+        padding-bottom: 12px !important;
+        font-size: 18px !important;
         font-weight: 700 !important;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.01em;
       }
 
       .menucraft-search-wrapper { 

@@ -88,7 +88,7 @@
     return el;
   };
 
-  const buildLink = (item, settings) => {
+  const buildLink = (item, settings, depth = 0) => {
     if (item.isHeading) {
       const span = createElement("span", "menucraft-menu-heading");
       span.textContent = item.label || "";
@@ -180,7 +180,7 @@
       if (!item || item.hideOnDesktop) return;
 
       const li = createElement("li", depth === 0 ? "menucraft-menu-item" : "menucraft-submenu-item");
-      const link = buildLink(item, settings);
+      const link = buildLink(item, settings, depth);
       li.appendChild(link);
 
       const hasChildren = Array.isArray(item.children) && item.children.length > 0;
@@ -487,7 +487,7 @@
       hWrapper.style.display = "flex";
       hWrapper.style.flexDirection = "column";
 
-      const hLink = buildLink(headingItem, settings);
+      const hLink = buildLink(headingItem, settings, 1);
       hLink.style.padding = "4px 8px";
       hWrapper.appendChild(hLink);
 
@@ -516,7 +516,7 @@
       const columnItems = linkItems.slice(start, end);
 
       columnItems.forEach(item => {
-        const itemBtn = buildLink(item, settings);
+        const itemBtn = buildLink(item, settings, 1);
         itemBtn.style.padding = "6px 8px";
         itemBtn.style.borderRadius = "8px";
         itemBtn.style.width = "100%";
@@ -901,7 +901,7 @@
 
       if (isActive) li.classList.add("is-active");
 
-      const link = buildLink(item, settings);
+      const link = buildLink(item, settings, 0);
       li.appendChild(link);
 
       const hasChildren = Array.isArray(item.children) && item.children.length > 0;

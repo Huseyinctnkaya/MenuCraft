@@ -819,6 +819,8 @@
         (/^\d+$/.test(settings.layoutMaxWidth) ? `${settings.layoutMaxWidth}px` : settings.layoutMaxWidth) :
         "1200px";
       container.style.margin = "0 auto";
+      container.style.width = "100%";
+      container.style.boxSizing = "border-box";
 
       const items = Array.isArray(parentItem.children) ? parentItem.children : [];
 
@@ -944,11 +946,18 @@
       .menucraft-menu-list {
         display: flex;
         align-items: stretch;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
         gap: 0;
         list-style: none;
         margin: 0;
         padding: 0;
         width: 100%;
+      }
+      .menucraft-menu-list::-webkit-scrollbar {
+        display: none;
       }
       .menucraft-menu-item {
         position: relative;
@@ -1012,11 +1021,18 @@
         transform: translateY(10px);
         transition: opacity 0.2s, transform 0.2s;
       }
-      .menucraft-menu-item.is-mega { position: static; }
-      .menucraft-menu-item.is-mega .menucraft-submenu { width: 100%; left: 0; right: 0; }
+      .menucraft-menu-item.is-mega { position: static !important; }
+      .menucraft-menu-item.is-mega .menucraft-submenu { 
+        width: 100% !important; 
+        left: 0 !important; 
+        right: 0 !important; 
+        box-sizing: border-box !important;
+      }
 
       .menucraft-menu-item.has-children:hover .menucraft-submenu { 
-        display: block; opacity: 1; transform: translateY(0); 
+        display: block !important; 
+        opacity: 1 !important; 
+        transform: translateY(0) !important; 
       }
       
       .menucraft-mega-container {

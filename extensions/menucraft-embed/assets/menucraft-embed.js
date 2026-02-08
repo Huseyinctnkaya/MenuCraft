@@ -940,7 +940,7 @@
       #${rootId} { width: 100%; }
       .menucraft-menu { 
         width: 100%; 
-        position: relative; 
+        position: static; 
         z-index: 999; 
       }
       .menucraft-menu-inner { 
@@ -1035,24 +1035,23 @@
       .menucraft-menu-item.is-mega { position: static !important; }
       .menucraft-menu-item.is-mega .menucraft-submenu { 
         width: 100vw !important; 
-        left: 50% !important; 
+        left: 0 !important; 
         right: auto !important;
-        transform: translate(-50%, 10px) !important;
+        transform: translateY(10px) !important;
         box-sizing: border-box !important;
         min-height: 500px;
-        padding: 40px 10vw !important; /* Wide side padding to compress content towards center but allow background to be full width */
+        padding: 60px 40px !important; 
         background: ${settings.colorSubmenuBackground};
+      }
+      
+      /* Reset transform for mega menu hover */
+      .menucraft-menu-item.is-mega:hover .menucraft-submenu {
+        transform: translateY(0) !important;
       }
 
       .menucraft-menu-item.has-children:hover .menucraft-submenu { 
         display: block !important; 
         opacity: 1 !important; 
-        transform: translateY(0) !important; 
-      }
-      
-      /* Specific override for mega menu to maintain centering */
-      .menucraft-menu-item.is-mega:hover .menucraft-submenu {
-        transform: translate(-50%, 0) !important;
       }
       
       .menucraft-mega-container {
@@ -1061,9 +1060,9 @@
         gap: 60px;
         align-items: start;
         width: 100%;
-        max-width: 1600px;
+        max-width: 1400px;
         margin: 0 auto;
-        padding: 0 !important;
+        padding: 20px !important;
       }
       
       .menucraft-product-card {

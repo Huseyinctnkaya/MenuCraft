@@ -933,15 +933,14 @@
         width: 100%; 
         position: relative; 
         z-index: 999; 
-        border-top: 1px solid ${settings.colorMainDivider};
-        border-bottom: 1px solid ${settings.colorMainDivider};
       }
       .menucraft-menu-inner { 
         width: 100%; 
         margin: 0 auto; 
         padding: 0; 
         display: flex; 
-        align-items: stretch; 
+        align-items: stretch;
+        justify-content: ${settings.layoutAlignment === "center" ? "center" : settings.layoutAlignment === "right" ? "flex-end" : "flex-start"};
       }
       .menucraft-menu-list {
         display: flex;
@@ -954,7 +953,9 @@
         list-style: none;
         margin: 0;
         padding: 0;
-        width: 100%;
+        width: fit-content;
+        background: ${settings.colorMainBackground};
+        border: 1px solid ${settings.colorMainDivider};
       }
       .menucraft-menu-list::-webkit-scrollbar {
         display: none;
@@ -970,7 +971,7 @@
         transition: background-color 0.2s ease;
         cursor: pointer;
       }
-      .menucraft-menu-item:first-child { border-left: 1px solid ${settings.colorMainDivider}; }
+      .menucraft-menu-item:last-child { border-right: none; }
       
       .menucraft-menu-item.is-active {
         background-color: ${settings.colorMainText};

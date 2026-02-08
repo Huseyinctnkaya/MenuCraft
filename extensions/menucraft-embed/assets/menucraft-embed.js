@@ -2,7 +2,7 @@
   if (window.__menucraftEmbedLoaded) return;
   window.__menucraftEmbedLoaded = true;
 
-  const ROOT_IDS = ["menucraft-block-root"];
+  const ROOT_IDS = ["menucraft-block-root", "menucraft-embed-root"];
   const PROXY_URL = "/apps/menucraft/menu";
 
   const getRoot = () => {

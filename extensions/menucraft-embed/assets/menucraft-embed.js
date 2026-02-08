@@ -2,7 +2,7 @@
   if (window.__menucraftEmbedLoaded) return;
   window.__menucraftEmbedLoaded = true;
 
-  const ROOT_IDS = ["menucraft-block-root", "menucraft-embed-root"];
+  const ROOT_IDS = ["menucraft-block-root"];
   const PROXY_URL = "/apps/menucraft/menu";
 
   const getRoot = () => {
@@ -989,6 +989,7 @@
         font-family: ${settings.typographyMainFont};
         font-weight: ${settings.typographyMainWeight};
         font-size: ${settings.typographyMainSize}px;
+        white-space: nowrap;
       }
       .menucraft-menu-item:hover { 
         background: ${settings.colorMainBackgroundHover}; 

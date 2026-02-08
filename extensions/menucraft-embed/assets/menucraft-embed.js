@@ -848,7 +848,8 @@
         }
 
         const span = getBlockSpan(child);
-        block.style.gridColumn = `span ${span}`;
+        // Remove fixed gridColumn for auto-fit support
+        // block.style.gridColumn = `span ${span}`; 
         container.appendChild(block);
       });
       return container;
@@ -1025,10 +1026,15 @@
       }
       .menucraft-menu-item.is-mega { position: static !important; }
       .menucraft-menu-item.is-mega .menucraft-submenu { 
-        width: 100% !important; 
-        left: 0 !important; 
-        right: 0 !important; 
+        width: 100vw !important; 
+        left: 50% !important; 
+        right: auto !important;
+        transform: translate(-50%, 10px) !important;
         box-sizing: border-box !important;
+      }
+
+      .menucraft-menu-item.is-mega:hover .menucraft-submenu {
+        transform: translate(-50%, 0) !important;
       }
 
       .menucraft-menu-item.has-children:hover .menucraft-submenu { 
@@ -1039,10 +1045,11 @@
       
       .menucraft-mega-container {
         display: grid;
-        grid-template-columns: repeat(12, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 32px;
         align-items: start;
         width: 100%;
+        margin: 0 auto;
       }
       
       .menucraft-product-card {

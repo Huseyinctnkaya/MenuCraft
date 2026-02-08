@@ -163,7 +163,7 @@
 
     if (item.description) {
       const desc = createElement("div", "menucraft-link-description", item.description);
-      desc.style.fontSize = `${settings.typographySubtextSize}px`;
+      desc.style.fontSize = depth > 0 ? "14px" : `${settings.typographySubtextSize}px`;
       desc.style.color = settings.colorSubmenuDescription;
       desc.style.marginTop = "2px";
       desc.style.lineHeight = "1.2";
@@ -405,8 +405,11 @@
       heading.style.color = settings.colorSubmenuHeading;
       heading.style.fontWeight = "600";
       heading.style.fontFamily = settings.typographySubheadingFont;
-      heading.style.fontSize = "14px";
-      heading.style.lineHeight = "1.2";
+      heading.style.fontSize = "22px";
+      heading.style.fontWeight = "700";
+      heading.style.lineHeight = "1.3";
+      heading.style.letterSpacing = "-0.01em";
+      heading.style.marginBottom = "12px";
       container.appendChild(heading);
 
       const hr = createElement("div");
@@ -427,7 +430,7 @@
       if (isImageLeft || ids.length === 1) {
         grid.style.gridTemplateColumns = "1fr";
       } else {
-        grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
+        grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
       }
     }
 
@@ -457,10 +460,10 @@
 
     const form = createElement("form", "menucraft-contact-form");
     form.innerHTML = `
-        <div style="margin-bottom: 8px;"><input type="text" placeholder="${item.contactNameLabel || 'Name'}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></div>
-        <div style="margin-bottom: 8px;"><input type="email" placeholder="${item.contactEmailLabel || 'Email'}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></div>
-        <div style="margin-bottom: 8px;"><textarea placeholder="${item.contactMessageLabel || 'Message'}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; height: 60px;"></textarea></div>
-        <button type="submit" style="background: ${settings.colorButtonBackground}; color: ${settings.colorButtonText}; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">${item.contactSubmitLabel || 'Send'}</button>
+        <div style="margin-bottom: 12px;"><input type="text" placeholder="${item.contactNameLabel || 'Name'}" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;"></div>
+        <div style="margin-bottom: 12px;"><input type="email" placeholder="${item.contactEmailLabel || 'Email'}" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;"></div>
+        <div style="margin-bottom: 12px;"><textarea placeholder="${item.contactMessageLabel || 'Message'}" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; height: 100px; font-size: 16px;"></textarea></div>
+        <button type="submit" style="background: ${settings.colorButtonBackground}; color: ${settings.colorButtonText}; border: none; padding: 14px 28px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; width: 100%;">${item.contactSubmitLabel || 'Send'}</button>
     `;
     container.appendChild(form);
     return container;
@@ -577,8 +580,8 @@
       const label = createElement("div", "menucraft-image-label", item.label);
       label.style.fontWeight = "600";
       label.style.fontFamily = settings.typographySubheadingFont;
-      label.style.fontSize = "14px";
-      label.style.lineHeight = "1.2";
+      label.style.fontSize = "18px";
+      label.style.lineHeight = "1.3";
       label.style.color = settings.colorSubmenuText;
       info.appendChild(label);
     }
@@ -636,8 +639,11 @@
       heading.style.color = settings.colorSubmenuHeading;
       heading.style.fontWeight = "600";
       heading.style.fontFamily = settings.typographySubheadingFont;
-      heading.style.fontSize = "14px";
-      heading.style.lineHeight = "1.2";
+      heading.style.fontSize = "22px";
+      heading.style.fontWeight = "700";
+      heading.style.lineHeight = "1.3";
+      heading.style.letterSpacing = "-0.01em";
+      heading.style.marginBottom = "12px";
       container.appendChild(heading);
 
       const hr = createElement("div");
@@ -649,7 +655,7 @@
     const grid = createElement("div", "menucraft-collection-grid");
     grid.style.display = "grid";
     grid.style.gap = "16px";
-    grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
+    grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
 
     ids.forEach(id => {
       const collection = getResource("collection", id);
@@ -733,8 +739,11 @@
       heading.style.color = settings.colorSubmenuHeading;
       heading.style.fontWeight = "600";
       heading.style.fontFamily = settings.typographySubheadingFont;
-      heading.style.fontSize = "14px";
-      heading.style.lineHeight = "1.2";
+      heading.style.fontSize = "22px";
+      heading.style.fontWeight = "700";
+      heading.style.lineHeight = "1.3";
+      heading.style.letterSpacing = "-0.01em";
+      heading.style.marginBottom = "12px";
       container.appendChild(heading);
 
       const hr = createElement("div");
@@ -777,8 +786,8 @@
       row.appendChild(thumbWrapper);
 
       const title = createElement("div", "menucraft-article-title", article.title);
-      title.style.fontSize = "14px";
-      title.style.fontWeight = "500";
+      title.style.fontSize = "16px";
+      title.style.fontWeight = "600";
       title.style.color = settings.colorSubmenuText;
       title.style.lineHeight = "1.3";
       title.style.display = "-webkit-box";
@@ -946,7 +955,7 @@
         display: flex;
         align-items: stretch;
         flex-wrap: nowrap;
-        overflow-x: auto;
+        overflow: visible !important;
         -ms-overflow-style: none;
         scrollbar-width: none;
         gap: 0;
@@ -1025,15 +1034,14 @@
       }
       .menucraft-menu-item.is-mega { position: static !important; }
       .menucraft-menu-item.is-mega .menucraft-submenu { 
-        width: 100% !important; 
-        left: 0 !important; 
-        right: 0 !important; 
-        transform: translateY(10px) !important;
+        width: 100vw !important; 
+        left: 50% !important; 
+        right: auto !important;
+        transform: translate(-50%, 10px) !important;
         box-sizing: border-box !important;
-      }
-
-      .menucraft-menu-item.is-mega:hover .menucraft-submenu {
-        transform: translateY(0) !important;
+        min-height: 500px;
+        padding: 40px 10vw !important; /* Wide side padding to compress content towards center but allow background to be full width */
+        background: ${settings.colorSubmenuBackground};
       }
 
       .menucraft-menu-item.has-children:hover .menucraft-submenu { 
@@ -1042,13 +1050,20 @@
         transform: translateY(0) !important; 
       }
       
+      /* Specific override for mega menu to maintain centering */
+      .menucraft-menu-item.is-mega:hover .menucraft-submenu {
+        transform: translate(-50%, 0) !important;
+      }
+      
       .menucraft-mega-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 32px;
+        gap: 60px;
         align-items: start;
         width: 100%;
+        max-width: 1600px;
         margin: 0 auto;
+        padding: 0 !important;
       }
       
       .menucraft-product-card {
@@ -1104,9 +1119,12 @@
       .menucraft-submenu .menucraft-menu-link:hover { color: ${settings.colorSubmenuTextHover}; }
       
       .menucraft-menu-heading {
-        margin-bottom: 12px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 8px !important;
+        margin-bottom: 24px;
+        border-bottom: 2px solid ${settings.colorMainDivider};
+        padding-bottom: 16px !important;
+        font-size: 24px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em;
       }
 
       .menucraft-search-wrapper { 

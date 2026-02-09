@@ -1437,17 +1437,16 @@
   };
 
   const setupMobileInteractions = (container) => {
-    // Select all menu items that have a submenu (indicator or submenu class)
+    // Select all menu items that have a submenu
     const itemsWithChildren = container.querySelectorAll('.menucraft-menu-item.has-children');
 
     itemsWithChildren.forEach(item => {
+      // Prevent duplicate listeners
+      if (item.dataset.mobileSetup === "true") return;
+      item.dataset.mobileSetup = "true";
+
       // Make the entire LI clickable
       item.style.cursor = "pointer";
-
-      // Remove any previous listener by cloning the item (careful with children references)
-      // Actually, cloning the whole item breaks references to children in the DOM list.
-      // Better to just clean up the link specifically or use a flag.
-      // Since we are running this once on mount, we can just add the listener to the item.
 
       // Clean up link default behavior
       const link = item.querySelector('.menucraft-menu-link');
@@ -1462,10 +1461,9 @@
         e.preventDefault();
         e.stopPropagation();
 
-        // Toggle this item
-        const isOpen = item.classList.contains('is-open');
+        const wasOpen = item.classList.contains('is-open');
 
-        // Close siblings for accordion effect
+        // Close siblings (Accordion effect)
         const siblings = item.parentNode.children;
         Array.from(siblings).forEach(sibling => {
           if (sibling !== item && sibling.classList.contains('menucraft-menu-item')) {
@@ -1473,14 +1471,16 @@
           }
         });
 
-        item.classList.toggle('is-open', !isOpen);
+        // Toggle current item
+        if (wasOpen) {
+          item.classList.remove('is-open');
+        } else {
+          item.classList.add('is-open');
+        }
       });
 
-      // Ensure visual state is reset
-      const indicator = item.querySelector('.menucraft-indicator');
-      if (indicator) {
-        item.classList.remove('is-open');
-      }
+      // Ensure visual state is reset initially
+      item.classList.remove('is-open');
     });
   };
 

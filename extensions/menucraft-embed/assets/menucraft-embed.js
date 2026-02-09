@@ -200,14 +200,22 @@
 
         // Mobile Toggle Logic
         li.addEventListener("click", (e) => {
-          const isMobile = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
+          const isMobile = window.matchMedia(`(max-width: ${settings.advancedMobileBreakpoint || 768}px)`).matches;
           if (isMobile) {
-            // Allow navigation if clicking inside the submenu
+            // If clicking inside the actual submenu content, let it through (don't toggle parent)
             if (e.target.closest('.menucraft-submenu')) return;
 
             e.preventDefault();
             e.stopPropagation();
-            li.classList.toggle("is-open");
+
+            const isOpen = li.classList.contains("is-open");
+            if (isOpen) {
+              li.classList.remove("is-open");
+            } else {
+              // Close other siblings if you want a true accordion feel (Optional)
+              // Array.from(li.parentElement.children).forEach(sibling => sibling.classList.remove('is-open'));
+              li.classList.add("is-open");
+            }
           }
         });
       }
@@ -248,7 +256,7 @@
   const getMountTarget = (settings) => {
     const rootId = root.id;
     const mobileBreakpoint = settings.advancedMobileBreakpoint || 768;
-    const isMobile = window.innerWidth <= mobileBreakpoint;
+    const isMobile = window.matchMedia(`(max-width: ${mobileBreakpoint}px)`).matches;
 
     // 1. If CSS Selector is chosen, try that first
     if (settings.layoutLocation === "cssSelector") {
@@ -536,14 +544,9 @@
 
       // Mobile nested toggle
       hWrapper.addEventListener("click", () => {
-        const isMobile = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
+        const isMobile = window.matchMedia(`(max-width: ${settings.advancedMobileBreakpoint || 768}px)`).matches;
         if (isMobile) {
-          const grid = container.querySelector(".menucraft-block-links-grid");
-          if (grid) {
-            const isOpen = grid.style.display !== "none";
-            grid.style.display = isOpen ? "none" : "flex";
-            hWrapper.style.marginBottom = isOpen ? "0" : "10px";
-          }
+          container.classList.toggle("is-open");
         }
       });
     }
@@ -1305,6 +1308,17 @@
           flex-direction: column !important;
           gap: 16px !important;
           overflow: visible !important;
+        }
+
+        /* Mobile specific hiding for nested accordions */
+        .menucraft-block-links .menucraft-block-links-grid {
+          display: none !important;
+        }
+        .menucraft-block-links.is-open .menucraft-block-links-grid {
+          display: flex !important;
+        }
+        .menucraft-block-links.is-open .menucraft-link-list-heading-wrapper {
+          margin-bottom: 10px !important;
         }
 
         .menucraft-product-card {

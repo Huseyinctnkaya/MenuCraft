@@ -244,33 +244,52 @@
 
   const getMountTarget = (settings) => {
     const rootId = root.id;
+    const mobileBreakpoint = settings.advancedMobileBreakpoint || 768;
+    const isMobile = window.innerWidth <= mobileBreakpoint;
 
+    // 1. If CSS Selector is chosen, try that first
     if (settings.layoutLocation === "cssSelector") {
-      const mobileBreakpoint = settings.advancedMobileBreakpoint || 768;
-      const isMobile = window.innerWidth <= mobileBreakpoint;
-      const selector = isMobile
-        ? settings.layoutCssSelectorMobile
-        : settings.layoutCssSelectorDesktop;
-
+      const selector = isMobile ? settings.layoutCssSelectorMobile : settings.layoutCssSelectorDesktop;
       if (selector) {
         const target = document.querySelector(selector);
         if (target) return target;
       }
     }
 
+    // 2. If it's a mobile view, look for common mobile menu containers (fallback)
+    if (isMobile) {
+      const fallbacks = [
+        ".menu-drawer__navigation", // Dawn
+        ".mobile-nav-wrapper",
+        "#MobileNav",
+        ".drawer__inner",
+        ".drawer__main",
+        ".mobile-menu",
+        ".header__drawer nav",
+        ".nav-drawer",
+        "#AccessibleNav"
+      ];
+      for (const s of fallbacks) {
+        const t = document.querySelector(s);
+        if (t) return t;
+      }
+
+      // If we are on mobile and haven't found a drawer yet, return null 
+      // so the loader can try again later (drawers often load late)
+      return null;
+    }
+
+    // 3. Fallback to replaceNavigation or header (Desktop)
     const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
     if (shouldReplace) {
       hideExistingNavigation(rootId);
     }
+
     if (rootId === "menucraft-block-root" && root.parentElement) {
       return root.parentElement;
     }
-    const header =
-      document.querySelector("header") ||
-      document.querySelector(".header") ||
-      document.querySelector(".site-header") ||
-      document.body;
-    return header;
+
+    return document.querySelector("header") || document.querySelector(".site-header") || document.body;
   };
 
 
@@ -1160,15 +1179,40 @@
         /* Hide the menu bar by default on mobile header to prevent clutter */
         .menucraft-menu { display: none !important; }
         
-        /* Show when explicitly allowed (e.g., inside mobile drawer) */
+        /* Show when explicitly allowed or within common Shopify drawer containers */
         .menucraft-mobile-show .menucraft-menu,
-        .menucraft-menu.is-mobile-active { display: block !important; }
+        .menucraft-menu.is-mobile-active,
+        [class*="drawer"] .menucraft-menu,
+        [class*="mobile-menu"] .menucraft-menu,
+        details-disclosure .menucraft-menu,
+        .menu-drawer .menucraft-menu { 
+          display: block !important; 
+        }
 
-        .menucraft-menu-list { flex-direction: column; background: ${settings.colorMainBackground}; }
-        .menucraft-menu-item { width: 100%; border-right: none; border-bottom: 1px solid ${settings.colorMainDivider}; }
-        .menucraft-submenu { position: static; width: 100%; box-shadow: none; display: none; opacity: 1; transform: none; padding: 15px; background: ${settings.colorMainBackground}; }
-        .menucraft-menu-item.has-children.is-open .menucraft-submenu { display: block; }
-        .menucraft-mega-container { grid-template-columns: 1fr; gap: 20px; padding: 0 !important; }
+        .menucraft-menu-list { 
+          flex-direction: column !important; 
+          background: ${settings.colorMainBackground} !important; 
+          width: 100% !important;
+          border: none !important;
+        }
+        .menucraft-menu-item { 
+          width: 100% !important; 
+          border-right: none !important; 
+          border-bottom: 1px solid ${settings.colorMainDivider} !important; 
+        }
+        .menucraft-submenu { 
+          position: static !important; 
+          width: 100% !important; 
+          box-shadow: none !important; 
+          display: none !important; 
+          opacity: 1 !important; 
+          transform: none !important; 
+          padding: 15px !important; 
+          background: ${settings.colorMainBackground} !important; 
+          border: none !important;
+        }
+        .menucraft-menu-item.has-children.is-open .menucraft-submenu { display: block !important; }
+        .menucraft-mega-container { grid-template-columns: 1fr !important; gap: 20px !important; padding: 0 !important; }
       }
       ${settings.customCss || ""}
     `;
@@ -1214,7 +1258,21 @@
         return;
       }
       window.MenuCraftData = data;
-      renderMenu(data.menu);
+
+      const tryRender = (retries = 0) => {
+        const mountTarget = getMountTarget(data.menu.settings);
+        const isMobile = window.innerWidth <= (data.menu.settings.advancedMobileBreakpoint || 768);
+
+        if (isMobile && !mountTarget && retries < 15) {
+          console.log(`[MenuCraft] Mobile drawer not found, retrying... (${retries + 1}/15)`);
+          setTimeout(() => tryRender(retries + 1), 1000);
+          return;
+        }
+
+        renderMenu(data.menu);
+      };
+
+      tryRender();
     } catch (error) {
       console.error("[MenuCraft] Load failed", error);
     }

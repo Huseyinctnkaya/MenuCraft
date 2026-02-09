@@ -154,6 +154,7 @@
     }
 
     link.textContent = label;
+    link.style.color = settings.colorMainText;
     link.style.fontFamily = settings.typographyMainFont;
     link.style.fontWeight = String(settings.typographyMainWeight);
     link.style.fontSize = `${settings.typographyMainSize}px`;
@@ -1256,6 +1257,10 @@
           padding-right: 15px !important;
           color: inherit !important;
           flex-shrink: 0 !important;
+        }
+        .menucraft-menu-link,
+        .menucraft-link-description {
+          color: inherit !important;
         }
 
         /* Submenus strictly respect settings and stack vertically */

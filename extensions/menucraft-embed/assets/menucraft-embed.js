@@ -1219,8 +1219,8 @@
       .menucraft-search:hover { opacity: 0.7; }
 
       @media (max-width: ${settings.advancedMobileBreakpoint || 768}px) {
-        /* On mobile, only hide the menu if it's NOT in a mobile-active context (drawer/etc) */
-        .menucraft-menu:not(.is-mobile-active) { display: none !important; }
+        /* On mobile, hide the menu bar by default (will be shown in drawers via explicit rules below) */
+        .menucraft-menu { display: none !important; }
         
         .menucraft-mobile-show .menucraft-menu,
         .menucraft-menu.is-mobile-active,

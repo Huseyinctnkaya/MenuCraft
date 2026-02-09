@@ -1442,13 +1442,18 @@
       window.MenuCraftData = data;
 
       const tryRender = (retries = 0) => {
-        const mountTarget = getMountTarget(data.menu.settings);
-        const isMobile = window.innerWidth <= (data.menu.settings.advancedMobileBreakpoint || 768);
+        const mountTarget = getMountTarget(data.menu.settings, retries);
+        const mobileBreakpoint = data.menu.settings.advancedMobileBreakpoint || 768;
+        const isMobile = window.matchMedia(`(max-width: ${mobileBreakpoint}px)`).matches;
 
         if (isMobile && !mountTarget && retries < 15) {
           console.log(`[MenuCraft] Mobile drawer not found, retrying... (${retries + 1}/15)`);
           setTimeout(() => tryRender(retries + 1), 1000);
           return;
+        }
+
+        if (isMobile && !mountTarget) {
+          console.error("[MenuCraft] Failed to find mobile mount target after multiple retries.");
         }
 
         renderMenu(data.menu);
@@ -1460,5 +1465,9 @@
     }
   };
 
-  loadMenu();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadMenu);
+  } else {
+    loadMenu();
+  }
 })();

@@ -1421,8 +1421,8 @@
       // The list has the background color, so padding will be colored correctly
       const mobileList = container.querySelector('.menucraft-menu-list');
       if (mobileList) {
-        mobileList.style.setProperty("padding-left", "20px", "important");
-        mobileList.style.setProperty("padding-right", "20px", "important");
+        // mobileList.style.setProperty("padding-left", "20px", "important");
+        // mobileList.style.setProperty("padding-right", "20px", "important");
         mobileList.style.setProperty("box-sizing", "border-box", "important");
       }
 

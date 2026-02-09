@@ -942,7 +942,6 @@
       #${rootId} { width: 100%; }
       .menucraft-menu { 
         width: 100%; 
-        position: relative; 
         z-index: 999; 
       }
       .menucraft-menu-inner { 
@@ -957,6 +956,7 @@
         display: flex;
         align-items: stretch;
         flex-wrap: nowrap;
+        position: relative;
         overflow: visible !important;
         -ms-overflow-style: none;
         scrollbar-width: none;

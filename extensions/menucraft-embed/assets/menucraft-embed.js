@@ -1413,6 +1413,9 @@
       container.style.setProperty("margin", "0", "important");
       container.style.setProperty("width", "100%", "important");
       container.style.setProperty("transform", "none", "important");
+      container.style.setProperty("padding-left", "20px", "important");
+      container.style.setProperty("padding-right", "20px", "important");
+      container.style.setProperty("box-sizing", "border-box", "important");
     }
 
     root.appendChild(container);

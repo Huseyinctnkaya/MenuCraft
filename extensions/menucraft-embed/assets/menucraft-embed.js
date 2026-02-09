@@ -1441,21 +1441,31 @@
     const itemsWithChildren = container.querySelectorAll('.menucraft-menu-item.has-children');
 
     itemsWithChildren.forEach(item => {
+      // Make the entire LI clickable
+      item.style.cursor = "pointer";
+
+      // Remove any previous listener by cloning the item (careful with children references)
+      // Actually, cloning the whole item breaks references to children in the DOM list.
+      // Better to just clean up the link specifically or use a flag.
+      // Since we are running this once on mount, we can just add the listener to the item.
+
+      // Clean up link default behavior
       const link = item.querySelector('.menucraft-menu-link');
-      if (!link) return;
+      if (link) {
+        link.addEventListener('click', (e) => e.preventDefault());
+      }
 
-      // Clone the link to remove any existing listeners (start fresh)
-      const newLink = link.cloneNode(true);
-      link.parentNode.replaceChild(newLink, link);
+      item.addEventListener('click', (e) => {
+        // Did we click inside a submenu? If so, don't toggle the parent!
+        if (e.target.closest('.menucraft-submenu')) return;
 
-      newLink.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
 
         // Toggle this item
         const isOpen = item.classList.contains('is-open');
 
-        // Optional: Close siblings for accordion effect
+        // Close siblings for accordion effect
         const siblings = item.parentNode.children;
         Array.from(siblings).forEach(sibling => {
           if (sibling !== item && sibling.classList.contains('menucraft-menu-item')) {
@@ -1466,10 +1476,9 @@
         item.classList.toggle('is-open', !isOpen);
       });
 
-      // Also make the indicator clickable if it exists separately
+      // Ensure visual state is reset
       const indicator = item.querySelector('.menucraft-indicator');
       if (indicator) {
-        // Ensure indicator visual state is reset
         item.classList.remove('is-open');
       }
     });

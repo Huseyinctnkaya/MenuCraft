@@ -242,14 +242,23 @@
       ".header-nav",
       ".navigation",
       ".nav-bar",
+      ".menu-drawer__menu", // Dawn mobile items
+      ".mobile-nav",
+      ".mobile-menu-list",
+      ".drawer__menu",
+      ".drawer__nav-list",
+      ".mobile-menu nav",
+      ".nav-drawer-menu"
     ];
 
     selectors.forEach((selector) => {
-      const el = document.querySelector(selector);
-      if (el && !el.closest(`#${rootId}`)) {
-        el.setAttribute("data-menucraft-hidden", "true");
-        el.style.display = "none";
-      }
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(el => {
+        if (el && !el.closest(`#${rootId}`)) {
+          el.setAttribute("data-menucraft-hidden", "true");
+          el.style.display = "none";
+        }
+      });
     });
   };
 
@@ -282,7 +291,13 @@
       ];
       for (const s of fallbacks) {
         const t = document.querySelector(s);
-        if (t) return t;
+        if (t) {
+          const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
+          if (shouldReplace) {
+            hideExistingNavigation(rootId);
+          }
+          return t;
+        }
       }
 
       // If we are on mobile and haven't found a drawer yet, return null 

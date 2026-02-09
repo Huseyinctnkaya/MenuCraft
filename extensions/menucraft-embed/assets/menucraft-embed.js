@@ -942,7 +942,7 @@
       #${rootId} { width: 100%; }
       .menucraft-menu { 
         width: 100%; 
-        position: relative; 
+        position: static; 
         z-index: 999; 
       }
       .menucraft-menu-inner { 
@@ -1036,24 +1036,19 @@
       }
       .menucraft-menu-item.is-mega { position: static !important; }
       .menucraft-menu-item.is-mega .menucraft-submenu { 
-        width: max-content !important;
-        max-width: min(1400px, 95vw) !important;
-        left: 50% !important; 
+        width: 100vw !important; 
+        left: 0 !important; 
         right: auto !important;
-        transform: translate(-50%, 10px) !important;
+        transform: translateY(10px) !important;
         box-sizing: border-box !important;
-        min-height: auto;
-        padding: 40px !important; 
+        min-height: 500px;
+        padding: 50px 40px !important; 
         background: ${settings.colorSubmenuBackground};
-        border-radius: 16px !important;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.15) !important;
-        border: 1px solid rgba(0,0,0,0.05) !important;
-        overflow: hidden !important;
       }
       
-      /* Reset transform for mega menu hover to maintain centering */
+      /* Reset transform for mega menu hover */
       .menucraft-menu-item.is-mega:hover .menucraft-submenu {
-        transform: translate(-50%, 0) !important;
+        transform: translateY(0) !important;
       }
 
       .menucraft-menu-item.has-children:hover .menucraft-submenu { 
@@ -1076,20 +1071,11 @@
         border: none;
         overflow: hidden;
         background: transparent;
-        padding: 0;
-        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        transition: all 150ms ease;
       }
       .menucraft-product-card:hover {
         background: rgba(0,0,0,0.04);
         border-radius: 8px;
-        transform: translateY(-5px);
-      }
-      .menucraft-product-image-wrapper {
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 15px;
-        background: #f9f9f9;
-        aspect-ratio: 1;
       }
       
       .menucraft-product-grid {

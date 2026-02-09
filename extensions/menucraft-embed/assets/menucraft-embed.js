@@ -1267,6 +1267,20 @@
           display: block !important; 
         }
 
+        /* Stronger reset for mobile active state (drawer content) */
+        .menucraft-menu.is-mobile-active {
+            z-index: 999999 !important;
+            position: relative !important;
+            left: 0 !important;
+            right: auto !important;
+            margin: 0 !important;
+            width: 100% !important;
+            transform: none !important;
+            box-sizing: border-box !important;
+            background-color: ${settings.colorMainBackground} !important;
+            background-clip: border-box !important;
+        }
+
         .menucraft-menu-list { 
           flex-direction: column !important; 
           background: ${settings.colorMainBackground} !important; 
@@ -1406,29 +1420,6 @@
 
     if (isMobileBreakpoint && isSpecialMobileTarget) {
       container.classList.add("is-mobile-active");
-      // Force reset positioning - Essential for mobile drawers
-      container.style.setProperty("z-index", "999999", "important");
-      container.style.setProperty("position", "relative", "important");
-      container.style.setProperty("display", "block", "important");
-      container.style.setProperty("left", "0", "important");
-      container.style.setProperty("right", "auto", "important");
-      container.style.setProperty("margin", "0", "important");
-      container.style.setProperty("width", "100%", "important");
-      container.style.setProperty("transform", "none", "important");
-      container.style.setProperty("box-sizing", "border-box", "important");
-
-      // Fix for black sidebars: Apply padding to the list instead of container
-      // The list has the background color, so padding will be colored correctly
-      const mobileList = container.querySelector('.menucraft-menu-list');
-      if (mobileList) {
-        // mobileList.style.setProperty("padding-left", "20px", "important");
-        // mobileList.style.setProperty("padding-right", "20px", "important");
-        mobileList.style.setProperty("box-sizing", "border-box", "important");
-      }
-
-      // Fix for black sidebars: Ensure background covers the padding area
-      container.style.setProperty("background-color", settings.colorMainBackground, "important");
-      container.style.setProperty("background-clip", "border-box", "important");
     }
 
     root.appendChild(container);

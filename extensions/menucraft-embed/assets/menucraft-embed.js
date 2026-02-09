@@ -1430,6 +1430,49 @@
     if (shouldReplace) {
       hideExistingNavigation();
     }
+
+    if (isMobileBreakpoint) {
+      setupMobileInteractions(container);
+    }
+  };
+
+  const setupMobileInteractions = (container) => {
+    // Select all menu items that have a submenu (indicator or submenu class)
+    const itemsWithChildren = container.querySelectorAll('.menucraft-menu-item.has-children');
+
+    itemsWithChildren.forEach(item => {
+      const link = item.querySelector('.menucraft-menu-link');
+      if (!link) return;
+
+      // Clone the link to remove any existing listeners (start fresh)
+      const newLink = link.cloneNode(true);
+      link.parentNode.replaceChild(newLink, link);
+
+      newLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Toggle this item
+        const isOpen = item.classList.contains('is-open');
+
+        // Optional: Close siblings for accordion effect
+        const siblings = item.parentNode.children;
+        Array.from(siblings).forEach(sibling => {
+          if (sibling !== item && sibling.classList.contains('menucraft-menu-item')) {
+            sibling.classList.remove('is-open');
+          }
+        });
+
+        item.classList.toggle('is-open', !isOpen);
+      });
+
+      // Also make the indicator clickable if it exists separately
+      const indicator = item.querySelector('.menucraft-indicator');
+      if (indicator) {
+        // Ensure indicator visual state is reset
+        item.classList.remove('is-open');
+      }
+    });
   };
 
   const loadMenu = async () => {

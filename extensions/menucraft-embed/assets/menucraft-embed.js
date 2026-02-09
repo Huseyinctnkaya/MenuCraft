@@ -1384,7 +1384,8 @@
     // Only hide existing navigation if requested
     const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
     if (shouldReplace) {
-      hideExistingNavigation();
+      // TEMPORARILY DISABLED TO DEBUG DESKTOP VISIBILITY
+      // hideExistingNavigation();
     }
   };
 

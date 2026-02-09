@@ -275,7 +275,7 @@
     });
   };
 
-  const getMountTarget = (settings) => {
+  const getMountTarget = (settings, retries = 0) => {
     const rootId = root.id;
     const mobileBreakpoint = settings.advancedMobileBreakpoint || 768;
     const isMobile = window.matchMedia(`(max-width: ${mobileBreakpoint}px)`).matches;
@@ -285,7 +285,10 @@
       const selector = isMobile ? settings.layoutCssSelectorMobile : settings.layoutCssSelectorDesktop;
       if (selector) {
         const target = document.querySelector(selector);
-        if (target) return target;
+        if (target) {
+          console.log(`[MenuCraft] Found mount target via CSS selector: ${selector}`);
+          return target;
+        }
       }
     }
 
@@ -293,6 +296,9 @@
     if (isMobile) {
       const fallbacks = [
         ".menu-drawer__navigation", // Dawn
+        ".menu-drawer__inner-container",
+        ".js-menu-drawer__menu",
+        ".drawer__menu-page",
         ".mobile-nav-wrapper",
         "#MobileNav",
         ".drawer__inner",
@@ -300,15 +306,23 @@
         ".mobile-menu",
         ".header__drawer nav",
         ".nav-drawer",
-        "#AccessibleNav"
+        "#AccessibleNav",
+        "aside.drawer-menu",
+        ".slideout-menu",
+        ".mobile-menu-container",
+        '[id^="Drawer"]'
       ];
       for (const s of fallbacks) {
         const t = document.querySelector(s);
-        if (t) return t;
+        if (t) {
+          console.log(`[MenuCraft] Found mobile mount target: ${s}`);
+          return t;
+        }
       }
 
-      // If we are on mobile and haven't found a drawer yet, return null 
+      // If we are on mobile and haven't found a drawer yet, return null
       // so the loader can try again later (drawers often load late)
+      console.log("[MenuCraft] No mobile drawer found yet.");
       return null;
     }
 
@@ -317,8 +331,11 @@
       return root.parentElement;
     }
 
-    return document.querySelector("header") || document.querySelector(".site-header") || document.body;
+    const header = document.querySelector("header") || document.querySelector(".site-header") || document.body;
+    console.log(`[MenuCraft] Fallback desktop mount: ${header.tagName || 'BODY'}`);
+    return header;
   };
+
 
 
   const getResource = (type, id) => {

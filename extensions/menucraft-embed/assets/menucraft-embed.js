@@ -1415,9 +1415,16 @@
       container.style.setProperty("margin", "0", "important");
       container.style.setProperty("width", "100%", "important");
       container.style.setProperty("transform", "none", "important");
-      container.style.setProperty("padding-left", "20px", "important");
-      container.style.setProperty("padding-right", "20px", "important");
       container.style.setProperty("box-sizing", "border-box", "important");
+
+      // Fix for black sidebars: Apply padding to the list instead of container
+      // The list has the background color, so padding will be colored correctly
+      const mobileList = container.querySelector('.menucraft-menu-list');
+      if (mobileList) {
+        mobileList.style.setProperty("padding-left", "20px", "important");
+        mobileList.style.setProperty("padding-right", "20px", "important");
+        mobileList.style.setProperty("box-sizing", "border-box", "important");
+      }
 
       // Fix for black sidebars: Ensure background covers the padding area
       container.style.setProperty("background-color", settings.colorMainBackground, "important");

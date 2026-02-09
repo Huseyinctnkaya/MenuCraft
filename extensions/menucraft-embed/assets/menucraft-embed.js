@@ -1418,7 +1418,9 @@
     const isMobileBreakpoint = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
     const isSpecialMobileTarget = mountTarget.closest('.drawer, [class*="drawer"], [class*="mobile-menu"], [class*="nav-drawer"]');
 
-    if (isMobileBreakpoint && isSpecialMobileTarget) {
+    // Simplified check: If we are on mobile screen size, apply mobile styles
+    // This is safer than checking specific drawer classes which might change
+    if (isMobileBreakpoint) {
       container.classList.add("is-mobile-active");
     }
 
@@ -1502,6 +1504,25 @@
   };
 
   const loadMenu = async () => {
+    // Check if we already have the menu data (e.g. from session storage)
+    // This prevents re-fetching without query params on navigation and persists across reloads
+    try {
+      const cached = sessionStorage.getItem("MenuCraftData");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        // Optional: Check if cache is stale (e.g. timestamp) but for now just use it
+        if (parsed && parsed.menu) {
+          console.log("[MenuCraft] Using cached menu data from session");
+          window.MenuCraftData = parsed;
+          renderMenu(parsed.menu);
+          // Still try to fetch in background to update cache? Maybe not needed for this fix.
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("[MenuCraft] Failed to read session storage", e);
+    }
+
     console.log("[MenuCraft] Loading menu...");
     try {
       const response = await fetch(PROXY_URL + window.location.search, { credentials: "include" });
@@ -1513,6 +1534,13 @@
       if (!data || !data.menu) {
         console.warn("[MenuCraft] No menu data returned from proxy", data);
         return;
+      }
+
+      // Cache valid data to session storage
+      try {
+        sessionStorage.setItem("MenuCraftData", JSON.stringify(data));
+      } catch (e) {
+        console.warn("[MenuCraft] Failed to write session storage", e);
       }
       if (data.menu.status !== "active") {
         console.warn("[MenuCraft] Menu is not active. Current status:", data.menu.status);

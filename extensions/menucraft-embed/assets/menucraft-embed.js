@@ -197,6 +197,16 @@
         const submenu = createElement("div", "menucraft-submenu");
         submenu.appendChild(buildSubmenuContent(item, settings));
         li.appendChild(submenu);
+
+        // Mobile Toggle Logic
+        li.addEventListener("click", (e) => {
+          const isMobile = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
+          if (isMobile) {
+            e.preventDefault();
+            e.stopPropagation();
+            li.classList.toggle("is-open");
+          }
+        });
       }
 
       list.appendChild(li);
@@ -1147,11 +1157,18 @@
       .menucraft-search:hover { opacity: 0.7; }
 
       @media (max-width: ${settings.advancedMobileBreakpoint || 768}px) {
-        .menucraft-menu-list { flex-direction: column; }
+        /* Hide the menu bar by default on mobile header to prevent clutter */
+        .menucraft-menu { display: none !important; }
+        
+        /* Show when explicitly allowed (e.g., inside mobile drawer) */
+        .menucraft-mobile-show .menucraft-menu,
+        .menucraft-menu.is-mobile-active { display: block !important; }
+
+        .menucraft-menu-list { flex-direction: column; background: ${settings.colorMainBackground}; }
         .menucraft-menu-item { width: 100%; border-right: none; border-bottom: 1px solid ${settings.colorMainDivider}; }
-        .menucraft-submenu { position: static; width: 100%; box-shadow: none; display: none; opacity: 1; transform: none; padding: 15px; }
+        .menucraft-submenu { position: static; width: 100%; box-shadow: none; display: none; opacity: 1; transform: none; padding: 15px; background: ${settings.colorMainBackground}; }
         .menucraft-menu-item.has-children.is-open .menucraft-submenu { display: block; }
-        .menucraft-mega-container { grid-template-columns: 1fr; gap: 20px; }
+        .menucraft-mega-container { grid-template-columns: 1fr; gap: 20px; padding: 0 !important; }
       }
       ${settings.customCss || ""}
     `;
@@ -1160,6 +1177,15 @@
     if (!mountTarget) return;
 
     root.innerHTML = "";
+
+    // Tag for mobile behavior if mounted in a drawer/special location
+    const isMobileBreakpoint = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
+    const isSpecialMobileTarget = mountTarget.closest('.drawer, [class*="drawer"], [class*="mobile-menu"], [class*="nav-drawer"]');
+
+    if (isMobileBreakpoint && isSpecialMobileTarget) {
+      container.classList.add("is-mobile-active");
+    }
+
     root.appendChild(container);
 
     const existingStyle = document.head.querySelector("style[data-menucraft]");

@@ -102,7 +102,9 @@
     }
 
     const wrapper = createElement("div", "menucraft-link-wrapper");
-    wrapper.style.gap = "12px";
+    wrapper.style.display = "flex";
+    wrapper.style.alignItems = "center";
+    wrapper.style.gap = "8px";
 
     if (item.icon) {
       let iconSrc = item.icon;

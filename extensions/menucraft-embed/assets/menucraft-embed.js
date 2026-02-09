@@ -258,27 +258,17 @@
     selectors.forEach((selector) => {
       const elements = document.querySelectorAll(selector);
       elements.forEach(el => {
-        // 1. Skip if it is our root or a child of our root
-        if (el === root || root.contains(el)) return;
-
-        // 2. If it contains our root, hide its sibling theme links instead of the whole container
-        if (el.contains(root)) {
-          Array.from(el.children).forEach(child => {
-            if (child !== root && !child.contains(root)) {
-              // Hide direct children that aren't part of our root's lineage
-              child.setAttribute("data-menucraft-hidden", "true");
-              child.style.display = "none";
-            }
-          });
+        // Skip if it's our root, contains our root, or is a child of our root
+        if (el === root || el.contains(root) || root.contains(el)) {
           return;
         }
 
-        // 3. Skip if it has any MenuCraft class/id
+        // Skip if it has any MenuCraft class
         const hasMenuCraft = (el.className && typeof el.className === 'string' && el.className.includes('menucraft')) ||
           (el.id && el.id.includes('menucraft'));
         if (hasMenuCraft) return;
 
-        // 4. Safe to hide entire element
+        // Safe to hide this element
         el.setAttribute("data-menucraft-hidden", "true");
         el.style.display = "none";
       });
@@ -949,10 +939,10 @@
 
   const renderMenu = (menu) => {
     const settings = normalizeSettings(menu.settings);
-    const container = createElement("nav", "menucraft-menu");
+    console.log("[MenuCraft] Rendering with settings:", settings);
 
-    container.style.background = settings.colorMainBackground;
-    container.style.color = settings.colorMainText;
+    container.style.setProperty("background", settings.colorMainBackground, "important");
+    container.style.setProperty("color", settings.colorMainText, "important");
     container.style.minHeight = `${settings.spacingMainRowHeight}px`;
 
     const inner = createElement("div", "menucraft-menu-inner");
@@ -1036,70 +1026,74 @@
         justify-content: ${settings.layoutAlignment === "center" ? "center" : settings.layoutAlignment === "right" ? "flex-end" : "flex-start"};
       }
       .menucraft-menu-list {
-        display: flex;
-        align-items: stretch;
-        flex-wrap: nowrap;
+        display: flex !important;
+        align-items: stretch !important;
+        flex-wrap: nowrap !important;
         overflow: visible !important;
         -ms-overflow-style: none;
         scrollbar-width: none;
         gap: 0;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        width: fit-content;
-        background: ${settings.colorMainBackground};
-        border: 1px solid ${settings.colorMainDivider};
+        list-style: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: fit-content !important;
+        background: ${settings.colorMainBackground} !important;
+        border: 1px solid ${settings.colorMainDivider} !important;
       }
       .menucraft-menu-list::-webkit-scrollbar {
         display: none;
       }
       .menucraft-menu-item {
-        position: relative;
-        display: flex;
-        align-items: center;
-        padding: 0 ${settings.spacingMainPadding}px;
-        min-height: ${settings.spacingMainRowHeight}px;
-        color: ${settings.colorMainText};
-        border-right: 1px solid ${settings.colorMainDivider};
-        transition: background-color 0.2s ease;
-        cursor: pointer;
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 ${settings.spacingMainPadding}px !important;
+        min-height: ${settings.spacingMainRowHeight}px !important;
+        background: ${settings.colorMainBackground} !important;
+        color: ${settings.colorMainText} !important;
+        border: none !important;
+        border-right: 1px solid ${settings.colorMainDivider} !important;
+        transition: background-color 0.2s ease !important;
+        cursor: pointer !important;
       }
-      .menucraft-menu-item:last-child { border-right: none; }
+      .menucraft-menu-item:last-child { border-right: none !important; }
       
       .menucraft-menu-item.is-active {
-        background-color: ${settings.colorMainText};
-        color: ${settings.colorMainBackground};
+        background-color: ${settings.colorMainText} !important;
+        color: ${settings.colorMainBackground} !important;
       }
       .menucraft-menu-item.is-active .menucraft-menu-link {
-        color: ${settings.colorMainBackground};
+        color: ${settings.colorMainBackground} !important;
       }
 
       .menucraft-menu-link {
-        color: inherit;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        height: 100%;
-        font-family: ${settings.typographyMainFont};
-        font-weight: ${settings.typographyMainWeight};
-        font-size: ${settings.typographyMainSize}px;
-        white-space: nowrap;
+        color: inherit !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        height: 100% !important;
+        font-family: ${settings.typographyMainFont} !important;
+        font-weight: ${settings.typographyMainWeight} !important;
+        font-size: ${settings.typographyMainSize}px !important;
+        white-space: nowrap !important;
+        background: transparent !important;
       }
       .menucraft-menu-item:hover { 
-        background: ${settings.colorMainBackgroundHover}; 
-        color: ${settings.colorMainTextHover}; 
+        background: ${settings.colorMainBackgroundHover} !important; 
+        color: ${settings.colorMainTextHover} !important; 
       }
       .menucraft-submenu-item {
-        position: relative;
-        display: block;
-        padding: 5px 0;
-        cursor: pointer;
+        position: relative !important;
+        display: block !important;
+        padding: 5px 0 !important;
+        cursor: pointer !important;
+        background: transparent !important;
       }
       .menucraft-submenu-item:hover .menucraft-menu-link {
-        color: ${settings.colorSubmenuTextHover};
+        color: ${settings.colorSubmenuTextHover} !important;
       }
-      .menucraft-indicator { font-size: 12px; margin-left: 6px; transition: transform 0.2s; }
-      .menucraft-menu-item:hover .menucraft-indicator { transform: translateY(2px); }
+      .menucraft-indicator { font-size: 12px !important; margin-left: 6px !important; transition: transform 0.2s !important; color: inherit !important; }
+      .menucraft-menu-item:hover .menucraft-indicator { transform: translateY(2px) !important; }
 
       .menucraft-submenu {
         position: absolute;

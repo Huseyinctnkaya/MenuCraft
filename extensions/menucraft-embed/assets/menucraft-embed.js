@@ -202,6 +202,9 @@
         li.addEventListener("click", (e) => {
           const isMobile = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
           if (isMobile) {
+            // Allow navigation if clicking inside the submenu
+            if (e.target.closest('.menucraft-submenu')) return;
+
             e.preventDefault();
             e.stopPropagation();
             li.classList.toggle("is-open");
@@ -1218,9 +1221,20 @@
           border-right: none !important; 
           border-bottom: 1px solid ${settings.colorMainDivider} !important; 
           position: relative !important;
-          padding: 0 15px !important;
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: wrap !important;
+          align-items: center !important;
+          padding: 0 !important;
           box-sizing: border-box !important;
-          justify-content: space-between !important;
+        }
+        .menucraft-link-wrapper {
+          flex: 1 !important;
+          padding: 15px !important;
+          width: auto !important;
+        }
+        .menucraft-indicator {
+          padding-right: 15px !important;
         }
 
         /* Reset all submenu and mega menu behaviors to accordion flow */
@@ -1259,9 +1273,40 @@
           background: transparent !important;
         }
         
+        .menucraft-block-product-group,
+        .menucraft-block-links,
+        .menucraft-block-image,
+        .menucraft-block-html,
         .menucraft-mega-container > div {
           width: 100% !important;
-          margin-bottom: 20px !important;
+          margin: 0 0 24px 0 !important;
+          padding: 0 !important;
+          flex: 0 0 100% !important;
+          max-width: 100% !important;
+        }
+
+        .menucraft-product-grid, 
+        .menucraft-block-links-grid {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 16px !important;
+          overflow: visible !important;
+        }
+
+        .menucraft-product-card {
+          width: 100% !important;
+          max-width: 100% !important;
+          flex: 0 0 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          background: transparent !important;
+          margin: 0 !important;
+        }
+
+        .menucraft-product-image-wrapper {
+          width: 100% !important;
+          height: auto !important;
+          aspect-ratio: 1/1 !important;
         }
       }
       ${settings.customCss || ""}

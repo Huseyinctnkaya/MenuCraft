@@ -517,9 +517,11 @@
       const hWrapper = createElement("div", "menucraft-link-list-heading-wrapper");
       hWrapper.style.display = "flex";
       hWrapper.style.flexDirection = "column";
+      hWrapper.style.cursor = "pointer";
 
       const hLink = buildLink(headingItem, settings, 1);
       hLink.style.padding = "4px 8px";
+      hLink.style.pointerEvents = "none"; // Let the wrapper handle the click
       hWrapper.appendChild(hLink);
 
       const hr = createElement("div");
@@ -528,11 +530,26 @@
       hWrapper.appendChild(hr);
 
       container.appendChild(hWrapper);
+
+      // Mobile nested toggle
+      hWrapper.addEventListener("click", () => {
+        const isMobile = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
+        if (isMobile) {
+          const grid = container.querySelector(".menucraft-block-links-grid");
+          if (grid) {
+            const isOpen = grid.style.display !== "none";
+            grid.style.display = isOpen ? "none" : "flex";
+            hWrapper.style.marginBottom = isOpen ? "0" : "10px";
+          }
+        }
+      });
     }
 
     const grid = createElement("div", "menucraft-block-links-grid");
-    grid.style.display = "flex";
-    grid.style.gap = "32px";
+    const isMobile = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
+    grid.style.display = (isMobile && headingItem) ? "none" : "flex";
+    grid.style.flexDirection = "column"; // Force vertical on mobile
+    grid.style.gap = isMobile ? "10px" : "32px";
 
     const itemsPerColumn = Math.ceil(linkItems.length / columnCount);
     for (let i = 0; i < columnCount; i++) {
@@ -1194,25 +1211,58 @@
           background: ${settings.colorMainBackground} !important; 
           width: 100% !important;
           border: none !important;
+          display: flex !important;
         }
         .menucraft-menu-item { 
           width: 100% !important; 
           border-right: none !important; 
           border-bottom: 1px solid ${settings.colorMainDivider} !important; 
+          position: relative !important;
+          padding: 0 15px !important;
+          box-sizing: border-box !important;
+          justify-content: space-between !important;
         }
-        .menucraft-submenu { 
+
+        /* Reset all submenu and mega menu behaviors to accordion flow */
+        .menucraft-submenu,
+        .menucraft-menu-item.is-mega .menucraft-submenu { 
           position: static !important; 
           width: 100% !important; 
+          left: auto !important;
+          right: auto !important;
           box-shadow: none !important; 
           display: none !important; 
           opacity: 1 !important; 
           transform: none !important; 
-          padding: 15px !important; 
+          padding: 15px 0 !important; 
           background: ${settings.colorMainBackground} !important; 
           border: none !important;
+          min-height: 0 !important;
+          max-height: none !important;
+          box-sizing: border-box !important;
         }
-        .menucraft-menu-item.has-children.is-open .menucraft-submenu { display: block !important; }
-        .menucraft-mega-container { grid-template-columns: 1fr !important; gap: 20px !important; padding: 0 !important; }
+        
+        .menucraft-menu-item.has-children.is-open > .menucraft-submenu { 
+          display: block !important; 
+        }
+        .menucraft-menu-item.is-open > .menucraft-indicator { 
+          transform: rotate(180deg) !important;
+        }
+
+        .menucraft-mega-container { 
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          gap: 0 !important;
+          background: transparent !important;
+        }
+        
+        .menucraft-mega-container > div {
+          width: 100% !important;
+          margin-bottom: 20px !important;
+        }
       }
       ${settings.customCss || ""}
     `;

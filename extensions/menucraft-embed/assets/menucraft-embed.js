@@ -179,8 +179,11 @@
 
   const buildMenuItems = (items, settings, depth = 0) => {
     const list = createElement("ul", depth === 0 ? "menucraft-menu-list" : "menucraft-submenu-list");
+    const isMobile = window.matchMedia(`(max-width: ${settings.advancedMobileBreakpoint || 768}px)`).matches;
     items.forEach((item) => {
-      if (!item || item.hideOnDesktop) return;
+      if (!item) return;
+      if (isMobile && item.hideOnMobile) return;
+      if (!isMobile && item.hideOnDesktop) return;
 
       const li = createElement("li", depth === 0 ? "menucraft-menu-item" : "menucraft-submenu-item");
       const link = buildLink(item, settings, depth);
@@ -950,8 +953,11 @@
 
     const items = Array.isArray(menu.items) ? menu.items : [];
 
+    const isMobile = window.matchMedia(`(max-width: ${settings.advancedMobileBreakpoint || 768}px)`).matches;
     items.forEach((item) => {
-      if (!item || item.hideOnDesktop) return;
+      if (!item) return;
+      if (isMobile && item.hideOnMobile) return;
+      if (!isMobile && item.hideOnDesktop) return;
 
       // Safety filter for genuinely empty items (to avoid ghost black boxes)
       // Only hide if it has absolutely no content
@@ -1213,7 +1219,8 @@
       .menucraft-search:hover { opacity: 0.7; }
 
       @media (max-width: ${settings.advancedMobileBreakpoint || 768}px) {
-        .menucraft-menu { display: none !important; }
+        /* On mobile, only hide the menu if it's NOT in a mobile-active context (drawer/etc) */
+        .menucraft-menu:not(.is-mobile-active) { display: none !important; }
         
         .menucraft-mobile-show .menucraft-menu,
         .menucraft-menu.is-mobile-active,

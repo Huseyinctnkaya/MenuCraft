@@ -881,7 +881,17 @@
         : settings.layoutMaxWidth;
     }
 
-    const currentPath = window.location.pathname;
+    const normalizeUrl = (url) => {
+      if (!url || url === "#") return "";
+      try {
+        const u = new URL(url, window.location.origin);
+        return u.pathname.replace(/\/$/, "") || "/";
+      } catch (e) {
+        return url.split("?")[0].split("#")[0].replace(/\/$/, "") || "/";
+      }
+    };
+
+    const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
     const list = createElement("ul", "menucraft-menu-list");
 
     if (settings.layoutAlignment === "center") list.style.justifyContent = "center";
@@ -897,7 +907,8 @@
       if (!item.label && !item.icon && (!item.children || item.children.length === 0) && !item.blockTemplate) return;
 
       const li = createElement("li", "menucraft-menu-item");
-      const isActive = item.url === currentPath || (item.url === "/" && currentPath === "/");
+      const normalizedItemUrl = normalizeUrl(item.url);
+      const isActive = normalizedItemUrl === currentPath;
 
       if (isActive) li.classList.add("is-active");
 
@@ -983,11 +994,21 @@
       .menucraft-menu-item:last-child { border-right: none; }
       
       .menucraft-menu-item.is-active {
-        background-color: ${settings.colorMainText};
-        color: ${settings.colorMainBackground};
+        background: transparent !important;
+      }
+      .menucraft-menu-item.is-active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 20%;
+        right: 20%;
+        height: 3px;
+        background: ${settings.colorMainText};
+        border-radius: 3px 3px 0 0;
       }
       .menucraft-menu-item.is-active .menucraft-menu-link {
-        color: ${settings.colorMainBackground};
+        color: ${settings.colorMainText} !important;
+        font-weight: 700 !important;
       }
 
       .menucraft-menu-link {

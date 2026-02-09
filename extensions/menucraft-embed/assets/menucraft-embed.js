@@ -225,7 +225,8 @@
     return list;
   };
 
-  const hideExistingNavigation = (rootId) => {
+  const hideExistingNavigation = () => {
+    const rootId = root.id;
     const selectors = [
       "#HeaderMenu",
       ".header__inline-menu",
@@ -254,7 +255,8 @@
     selectors.forEach((selector) => {
       const elements = document.querySelectorAll(selector);
       elements.forEach(el => {
-        if (el && !el.closest(`#${rootId}`)) {
+        // Only hide if it's NOT our root, NOT a parent of our root, and NOT containing our root
+        if (el && el !== root && !el.contains(root)) {
           el.setAttribute("data-menucraft-hidden", "true");
           el.style.display = "none";
         }
@@ -291,13 +293,7 @@
       ];
       for (const s of fallbacks) {
         const t = document.querySelector(s);
-        if (t) {
-          const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
-          if (shouldReplace) {
-            hideExistingNavigation(rootId);
-          }
-          return t;
-        }
+        if (t) return t;
       }
 
       // If we are on mobile and haven't found a drawer yet, return null 
@@ -306,11 +302,6 @@
     }
 
     // 3. Fallback to replaceNavigation or header (Desktop)
-    const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
-    if (shouldReplace) {
-      hideExistingNavigation(rootId);
-    }
-
     if (rootId === "menucraft-block-root" && root.parentElement) {
       return root.parentElement;
     }
@@ -1377,6 +1368,12 @@
     document.head.appendChild(styleTag);
 
     if (root.parentElement !== mountTarget) mountTarget.prepend(root);
+
+    // Only hide existing navigation if requested
+    const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
+    if (shouldReplace) {
+      hideExistingNavigation();
+    }
   };
 
   const loadMenu = async () => {

@@ -1404,12 +1404,15 @@
 
     if (isMobileBreakpoint && isSpecialMobileTarget) {
       container.classList.add("is-mobile-active");
-      // Force high index and visibility
+      // Force reset positioning
       container.style.setProperty("z-index", "999999", "important");
       container.style.setProperty("position", "relative", "important");
       container.style.setProperty("display", "block", "important");
-      // Debug border
-      container.style.border = "5px solid red";
+      container.style.setProperty("left", "0", "important");
+      container.style.setProperty("right", "auto", "important");
+      container.style.setProperty("margin", "0", "important");
+      container.style.setProperty("width", "100%", "important");
+      container.style.setProperty("transform", "none", "important");
     }
 
     root.appendChild(container);

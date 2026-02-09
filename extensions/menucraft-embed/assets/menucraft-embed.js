@@ -1498,6 +1498,16 @@
       // Ensure visual state is reset initially
       item.classList.remove('is-open');
     });
+
+    // Close menu when clicking a leaf link (link without children)
+    const leafLinks = container.querySelectorAll('.menucraft-menu-link:not(.has-children)');
+    leafLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        // Find all open items and close them
+        const openItems = container.querySelectorAll('.menucraft-menu-item.is-open');
+        openItems.forEach(item => item.classList.remove('is-open'));
+      });
+    });
   };
 
   const loadMenu = async () => {
@@ -1548,4 +1558,8 @@
   } else {
     loadMenu();
   }
+
+  // Support for Turbo and Turbolinks (Shopify standard for SPA-like navigation)
+  document.addEventListener("turbo:load", loadMenu);
+  document.addEventListener("turbolinks:load", loadMenu);
 })();

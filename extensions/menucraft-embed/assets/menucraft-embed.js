@@ -941,6 +941,8 @@
     const settings = normalizeSettings(menu.settings);
     console.log("[MenuCraft] Rendering with settings:", settings);
 
+    const container = createElement("nav", "menucraft-menu");
+
     container.style.setProperty("background", settings.colorMainBackground, "important");
     container.style.setProperty("color", settings.colorMainText, "important");
     container.style.minHeight = `${settings.spacingMainRowHeight}px`;

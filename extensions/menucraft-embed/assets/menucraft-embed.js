@@ -1148,14 +1148,16 @@
         background: ${settings.colorSubmenuBackground} !important;
       }
       
-      /* Reset transform for mega menu hover */
-      .menucraft-menu-item.is-mega:hover .menucraft-submenu {
-        transform: translateY(0) !important;
-      }
+      @media (min-width: ${(Number(settings.advancedMobileBreakpoint) || 768) + 1}px) {
+        /* Only apply hover effects on desktop to prevent sticky hover on mobile */
+        .menucraft-menu-item.is-mega:hover .menucraft-submenu {
+          transform: translateY(0) !important;
+        }
 
-      .menucraft-menu-item.has-children:hover > .menucraft-submenu { 
-        display: block !important; 
-        opacity: 1 !important; 
+        .menucraft-menu-item.has-children:hover > .menucraft-submenu { 
+          display: block !important; 
+          opacity: 1 !important; 
+        }
       }
       
       .menucraft-mega-container {
@@ -1416,6 +1418,10 @@
       container.style.setProperty("padding-left", "20px", "important");
       container.style.setProperty("padding-right", "20px", "important");
       container.style.setProperty("box-sizing", "border-box", "important");
+
+      // Fix for black sidebars: Ensure background covers the padding area
+      container.style.setProperty("background-color", settings.colorMainBackground, "important");
+      container.style.setProperty("background-clip", "border-box", "important");
     }
 
     root.appendChild(container);

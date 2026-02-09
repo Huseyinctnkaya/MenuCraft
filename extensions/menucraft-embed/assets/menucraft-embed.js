@@ -1233,7 +1233,11 @@
 
       @media (max-width: ${settings.advancedMobileBreakpoint || 768}px) {
         /* On mobile, hide the menu bar by default (will be shown in drawers via explicit rules below) */
-        .menucraft-menu { display: none !important; }
+        .menucraft-menu { 
+            display: none; 
+            background: ${settings.colorMainBackground} !important;
+            color: ${settings.colorMainText} !important;
+        }
         
         .menucraft-mobile-show .menucraft-menu,
         .menucraft-menu.is-mobile-active,

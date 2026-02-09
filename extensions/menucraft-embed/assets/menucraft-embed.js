@@ -1404,6 +1404,12 @@
 
     if (isMobileBreakpoint && isSpecialMobileTarget) {
       container.classList.add("is-mobile-active");
+      // Force high index and visibility
+      container.style.setProperty("z-index", "999999", "important");
+      container.style.setProperty("position", "relative", "important");
+      container.style.setProperty("display", "block", "important");
+      // Debug border
+      container.style.border = "5px solid red";
     }
 
     root.appendChild(container);
@@ -1413,7 +1419,17 @@
     styleTag.setAttribute("data-menucraft", "true");
     document.head.appendChild(styleTag);
 
-    if (root.parentElement !== mountTarget) mountTarget.prepend(root);
+    // Prepend to ensure it's at the top of the drawer
+    mountTarget.prepend(root);
+
+    // Debug logging for visibility
+    if (isMobileBreakpoint) {
+      setTimeout(() => {
+        const rect = container.getBoundingClientRect();
+        console.log(`[MenuCraft] Menu rendered at: ${rect.top}x${rect.left}, size: ${rect.width}x${rect.height}`);
+        console.log(`[MenuCraft] Container display: ${window.getComputedStyle(container).display}`);
+      }, 500);
+    }
 
     // Only hide existing navigation if requested
     const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";

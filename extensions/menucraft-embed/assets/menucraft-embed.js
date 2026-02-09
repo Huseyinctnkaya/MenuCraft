@@ -230,7 +230,6 @@
   };
 
   const hideExistingNavigation = () => {
-    const rootId = root.id;
     const selectors = [
       "#HeaderMenu",
       ".header__inline-menu",
@@ -259,11 +258,29 @@
     selectors.forEach((selector) => {
       const elements = document.querySelectorAll(selector);
       elements.forEach(el => {
-        // Only hide if it's NOT our root, NOT a parent of our root, and NOT containing our root
-        if (el && el !== root && !el.contains(root)) {
-          el.setAttribute("data-menucraft-hidden", "true");
-          el.style.display = "none";
+        // 1. Skip if it is our root or a child of our root
+        if (el === root || root.contains(el)) return;
+
+        // 2. If it contains our root, hide its sibling theme links instead of the whole container
+        if (el.contains(root)) {
+          Array.from(el.children).forEach(child => {
+            if (child !== root && !child.contains(root)) {
+              // Hide direct children that aren't part of our root's lineage
+              child.setAttribute("data-menucraft-hidden", "true");
+              child.style.display = "none";
+            }
+          });
+          return;
         }
+
+        // 3. Skip if it has any MenuCraft class/id
+        const hasMenuCraft = (el.className && typeof el.className === 'string' && el.className.includes('menucraft')) ||
+          (el.id && el.id.includes('menucraft'));
+        if (hasMenuCraft) return;
+
+        // 4. Safe to hide entire element
+        el.setAttribute("data-menucraft-hidden", "true");
+        el.style.display = "none";
       });
     });
   };
@@ -1384,8 +1401,7 @@
     // Only hide existing navigation if requested
     const shouldReplace = settings.layoutLocation === "replaceNavigation" || settings.layoutLocation === "auto";
     if (shouldReplace) {
-      // TEMPORARILY DISABLED TO DEBUG DESKTOP VISIBILITY
-      // hideExistingNavigation();
+      hideExistingNavigation();
     }
   };
 

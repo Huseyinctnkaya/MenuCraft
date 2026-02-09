@@ -1073,6 +1073,7 @@
         left: 0;
         top: 100%;
         background: ${settings.colorSubmenuBackground};
+        color: ${settings.colorSubmenuText} !important;
         border: ${settings.submenuShowBorder ? `1px solid ${settings.colorSubmenuBorder}` : "none"};
         padding: 24px;
         min-width: 240px;
@@ -1083,6 +1084,12 @@
         transform: translateY(10px);
         transition: opacity 0.2s, transform 0.2s;
       }
+      .menucraft-submenu .menucraft-menu-link {
+        color: inherit !important;
+      }
+      .menucraft-submenu-item:hover .menucraft-menu-link {
+        color: ${settings.colorSubmenuTextHover} !important;
+      }
       .menucraft-menu-item.is-mega { position: static !important; }
       .menucraft-menu-item.is-mega .menucraft-submenu { 
         width: 100vw !important; 
@@ -1092,7 +1099,7 @@
         box-sizing: border-box !important;
         min-height: 500px;
         padding: 50px 40px !important; 
-        background: ${settings.colorSubmenuBackground};
+        background: ${settings.colorSubmenuBackground} !important;
       }
       
       /* Reset transform for mega menu hover */
@@ -1100,7 +1107,7 @@
         transform: translateY(0) !important;
       }
 
-      .menucraft-menu-item.has-children:hover .menucraft-submenu { 
+      .menucraft-menu-item.has-children:hover > .menucraft-submenu { 
         display: block !important; 
         opacity: 1 !important; 
       }
@@ -1196,10 +1203,8 @@
       .menucraft-search:hover { opacity: 0.7; }
 
       @media (max-width: ${settings.advancedMobileBreakpoint || 768}px) {
-        /* Hide the menu bar by default on mobile header to prevent clutter */
         .menucraft-menu { display: none !important; }
         
-        /* Show when explicitly allowed or within common Shopify drawer containers */
         .menucraft-mobile-show .menucraft-menu,
         .menucraft-menu.is-mobile-active,
         [class*="drawer"] .menucraft-menu,
@@ -1215,6 +1220,7 @@
           width: 100% !important;
           border: none !important;
           display: flex !important;
+          padding: 0 !important;
         }
         .menucraft-menu-item { 
           width: 100% !important; 
@@ -1225,34 +1231,41 @@
           flex-direction: row !important;
           flex-wrap: wrap !important;
           align-items: center !important;
+          background: ${settings.colorMainBackground} !important;
+          color: ${settings.colorMainText} !important;
           padding: 0 !important;
           box-sizing: border-box !important;
         }
         .menucraft-link-wrapper {
           flex: 1 !important;
           padding: 15px !important;
-          width: auto !important;
+          display: flex !important;
+          align-items: center !important;
+          color: inherit !important;
         }
         .menucraft-indicator {
           padding-right: 15px !important;
+          color: inherit !important;
+          flex-shrink: 0 !important;
         }
 
-        /* Reset all submenu and mega menu behaviors to accordion flow */
+        /* Submenus strictly respect settings and stack vertically */
         .menucraft-submenu,
         .menucraft-menu-item.is-mega .menucraft-submenu { 
           position: static !important; 
           width: 100% !important; 
+          flex: 0 0 100% !important;
           left: auto !important;
           right: auto !important;
           box-shadow: none !important; 
           display: none !important; 
           opacity: 1 !important; 
           transform: none !important; 
-          padding: 15px 0 !important; 
-          background: ${settings.colorMainBackground} !important; 
+          padding: 20px !important; 
+          background: ${settings.colorSubmenuBackground} !important; 
+          color: ${settings.colorSubmenuText} !important;
           border: none !important;
           min-height: 0 !important;
-          max-height: none !important;
           box-sizing: border-box !important;
         }
         
@@ -1264,12 +1277,13 @@
         }
 
         .menucraft-mega-container { 
-          display: block !important;
+          display: flex !important;
+          flex-direction: column !important;
           width: 100% !important;
           max-width: 100% !important;
           margin: 0 !important;
           padding: 0 !important;
-          gap: 0 !important;
+          gap: 20px !important;
           background: transparent !important;
         }
         
@@ -1301,6 +1315,7 @@
           flex-direction: column !important;
           background: transparent !important;
           margin: 0 !important;
+          color: ${settings.colorSubmenuText} !important;
         }
 
         .menucraft-product-image-wrapper {

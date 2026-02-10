@@ -618,6 +618,7 @@
       column.style.display = "flex";
       column.style.flexDirection = "column";
       column.style.gap = "6px";
+      column.style.alignItems = "flex-start"; /* Prevent items from stretching */
 
       const start = i * itemsPerColumn;
       const end = Math.min(start + itemsPerColumn, linkItems.length);
@@ -627,7 +628,8 @@
         const itemBtn = buildLink(item, settings, 1);
         itemBtn.style.padding = "6px 8px";
         itemBtn.style.borderRadius = "8px";
-        itemBtn.style.width = "100%";
+        itemBtn.style.width = "auto"; /* Let content define width */
+        itemBtn.style.maxWidth = "100%"; /* Prevent overflow */
 
         // Add hover effect for button look
         itemBtn.onmouseenter = () => {

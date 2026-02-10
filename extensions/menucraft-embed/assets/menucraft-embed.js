@@ -581,16 +581,13 @@
       hWrapper.style.display = "flex";
       hWrapper.style.flexDirection = "column";
       hWrapper.style.cursor = "pointer";
+      hWrapper.style.marginBottom = "8px";
 
       const hLink = buildLink(headingItem, settings, 1);
-      hLink.style.padding = "4px 8px";
-      hLink.style.pointerEvents = "none"; // Let the wrapper handle the click
+      hLink.classList.add("menucraft-menu-heading");
+      hLink.style.padding = "0 0 8px 0";
+      hLink.style.pointerEvents = "none";
       hWrapper.appendChild(hLink);
-
-      const hr = createElement("div");
-      hr.style.borderTop = `1px solid ${settings.colorSubmenuHeading}`;
-      hr.style.opacity = "0.5";
-      hWrapper.appendChild(hr);
 
       container.appendChild(hWrapper);
 
@@ -678,7 +675,8 @@
     const info = createElement("div", "menucraft-image-info");
     info.style.display = "flex";
     info.style.flexDirection = "column";
-    info.style.gap = "4px";
+    info.style.gap = "8px";
+    info.style.marginTop = "12px";
     info.style.textAlign = imageAlign;
     info.style.alignSelf = textAlignItems;
 
@@ -1230,8 +1228,10 @@
       }
       .menucraft-tabs-content {
         flex: 1;
-        padding: 0;
+        padding: 40px !important;
         display: none;
+        box-sizing: border-box !important;
+        overflow-y: auto;
       }
       .menucraft-tabs-content.is-active {
         display: block;
@@ -1323,7 +1323,7 @@
       .menucraft-mega-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 40px;
+        gap: 24px;
         align-items: start;
         width: 100%;
         max-width: 1400px;
@@ -1384,12 +1384,15 @@
       .menucraft-submenu .menucraft-menu-link:hover { color: ${settings.colorSubmenuTextHover}; }
       
       .menucraft-menu-heading {
-        margin-bottom: 16px;
-        border-bottom: 1px solid ${settings.colorMainDivider};
-        padding-bottom: 12px !important;
-        font-size: 18px !important;
+        margin-bottom: 20px;
+        border-bottom: 2px solid ${settings.colorSubmenuHeading};
+        padding-bottom: 8px !important;
+        font-size: 16px !important;
         font-weight: 700 !important;
-        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: ${settings.colorSubmenuHeading} !important;
+        width: fit-content;
       }
 
       .menucraft-search-wrapper { 

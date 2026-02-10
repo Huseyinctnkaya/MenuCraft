@@ -646,7 +646,7 @@ export default function MenuBuilder() {
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const apiKey = appData?.apiKey ?? "";
   const planTier = (appData as { planTier?: string } | null)?.planTier;
-  const isPlusPlan = planTier === "plus";
+  const isPlusPlan = true; // planTier === "plus"; // TEMPORARY OVERRIDE FOR TESTING
   const isProPlan = planTier === "pro" || isPlusPlan;
   const navigate = useNavigate();
   const location = useLocation();

@@ -1197,7 +1197,6 @@
       .menucraft-tabs-container {
         display: flex;
         width: 100%;
-        min-height: 300px;
         background: transparent;
       }
       .menucraft-tabs-menu {
@@ -1228,7 +1227,7 @@
       }
       .menucraft-tabs-content {
         flex: 1;
-        padding: 40px !important;
+        padding: 0px !important;
         display: none;
         box-sizing: border-box !important;
         overflow-y: auto;
@@ -1313,8 +1312,8 @@
         right: auto !important;
         transform: translateY(10px) !important;
         box-sizing: border-box !important;
-        min-height: 500px;
-        padding: 50px 40px !important; 
+        min-height: unset !important;
+        padding: 20px 0px !important; 
         background: ${settings.colorSubmenuBackground} !important;
       }
       
@@ -1337,9 +1336,9 @@
         gap: 48px 32px;
         align-items: start;
         width: 100%;
-        max-width: 1400px;
+        max-width: 100% !important;
         margin: 0 auto;
-        padding: 0 !important;
+        padding: 20px 40px !important;
       }
       
       .menucraft-product-card {

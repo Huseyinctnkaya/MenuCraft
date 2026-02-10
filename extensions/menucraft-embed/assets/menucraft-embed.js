@@ -483,6 +483,8 @@
     container.style.display = "flex";
     container.style.flexDirection = "column";
     container.style.gap = "10px";
+    container.style.width = "100%";
+    container.style.boxSizing = "border-box";
 
     const productWidth = getBlockSpan(item);
     const isCarousel = item.blockTemplate === "product-carousel";
@@ -570,6 +572,8 @@
     container.style.display = "flex";
     container.style.flexDirection = "column";
     container.style.gap = "16px";
+    container.style.width = "100%";
+    container.style.boxSizing = "border-box";
 
     const columnCount = Math.max(1, group.linkColumns || 1);
     const children = group.children || [];
@@ -647,6 +651,8 @@
     container.style.display = "flex";
     container.style.flexDirection = "column";
     container.style.gap = "16px";
+    container.style.width = "100%";
+    container.style.boxSizing = "border-box";
 
     const isOverlay = item.blockTemplate === "image2";
     const imageAlign = item.imageTextAlign || "left";
@@ -1336,12 +1342,17 @@
       .menucraft-mega-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 40px 24px;
+        gap: 32px;
         align-items: start;
         width: 100%;
         max-width: 100% !important;
         margin: 0 auto;
         padding: 0 !important;
+        box-sizing: border-box !important;
+      }
+      .menucraft-mega-container > div {
+        min-width: 0 !important;
+        overflow: visible !important;
       }
       
       .menucraft-product-card {

@@ -1176,6 +1176,9 @@
         white-space: nowrap !important;
         background: transparent !important;
       }
+      .menucraft-submenu .menucraft-menu-link {
+        white-space: normal !important;
+      }
       .menucraft-menu-item:hover { 
         background: ${settings.colorMainBackgroundHover} !important; 
         color: ${settings.colorMainTextHover} !important; 
@@ -1313,7 +1316,7 @@
         transform: translateY(10px) !important;
         box-sizing: border-box !important;
         min-height: unset !important;
-        padding: 20px 0px !important; 
+        padding: 0 !important; 
         background: ${settings.colorSubmenuBackground} !important;
       }
       
@@ -1333,12 +1336,12 @@
       .menucraft-mega-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 48px 32px;
+        gap: 40px 24px;
         align-items: start;
         width: 100%;
         max-width: 100% !important;
         margin: 0 auto;
-        padding: 20px 40px !important;
+        padding: 0 !important;
       }
       
       .menucraft-product-card {

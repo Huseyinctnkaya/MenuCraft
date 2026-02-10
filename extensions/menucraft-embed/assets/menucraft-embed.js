@@ -1233,7 +1233,7 @@
         padding: 0px !important;
         display: none;
         box-sizing: border-box !important;
-        overflow-y: auto;
+        overflow: visible !important;
       }
       .menucraft-tabs-content.is-active {
         display: block;

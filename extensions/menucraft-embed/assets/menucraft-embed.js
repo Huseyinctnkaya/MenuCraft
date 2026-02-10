@@ -566,10 +566,10 @@
   const buildLinkListBlock = (group, settings) => {
     const container = createElement("div", "menucraft-block-links");
     container.style.borderRadius = "16px";
-    container.style.padding = "6px 12px 12px";
+    container.style.padding = "10px";
     container.style.display = "flex";
     container.style.flexDirection = "column";
-    container.style.gap = "12px";
+    container.style.gap = "16px";
 
     const columnCount = Math.max(1, group.linkColumns || 1);
     const children = group.children || [];
@@ -643,10 +643,10 @@
   const buildImageBlock = (item, settings) => {
     const container = createElement("div", "menucraft-block-image");
     container.style.borderRadius = "16px";
-    container.style.padding = "5px";
+    container.style.padding = "10px";
     container.style.display = "flex";
     container.style.flexDirection = "column";
-    container.style.gap = "10px";
+    container.style.gap = "16px";
 
     const isOverlay = item.blockTemplate === "image2";
     const imageAlign = item.imageTextAlign || "left";
@@ -1201,7 +1201,7 @@
         background: transparent;
       }
       .menucraft-tabs-menu {
-        flex: 0 0 250px;
+        flex: 0 0 220px;
         border-right: 1px solid ${settings.colorSubmenuBorder};
         display: flex;
         flex-direction: column;
@@ -1334,7 +1334,7 @@
       .menucraft-mega-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 24px;
+        gap: 48px 32px;
         align-items: start;
         width: 100%;
         max-width: 1400px;

@@ -1290,6 +1290,16 @@
         transform: translateY(10px);
         transition: opacity 0.2s, transform 0.2s;
       }
+      /* Invisible bridge to prevent menu from closing when moving mouse from trigger to content */
+      .menucraft-submenu::before {
+        content: "";
+        position: absolute;
+        top: -30px;
+        left: 0;
+        width: 100%;
+        height: 30px;
+        background: transparent;
+      }
       .menucraft-submenu .menucraft-menu-link {
         color: inherit !important;
       }
@@ -1317,6 +1327,7 @@
         .menucraft-menu-item.has-children:hover > .menucraft-submenu { 
           display: block !important; 
           opacity: 1 !important; 
+          transform: translateY(0) !important;
         }
       }
       

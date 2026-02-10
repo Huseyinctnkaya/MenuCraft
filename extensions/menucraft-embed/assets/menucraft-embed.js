@@ -40,6 +40,9 @@
     typographySubtextFont: "Work Sans, system-ui, sans-serif",
     typographySubtextWeight: 400,
     typographySubtextSize: 13,
+    typographyTabFont: "Work Sans, system-ui, sans-serif",
+    typographyTabWeight: 500,
+    typographyTabSize: 14,
     colorMainBackground: "#000000",
     colorMainBackgroundHover: "#1D1D1D",
     colorMainDivider: "#0F0F0F",
@@ -194,7 +197,8 @@
   const buildMenuItems = (items, settings, depth = 0) => {
     const list = createElement("ul", depth === 0 ? "menucraft-menu-list" : "menucraft-submenu-list");
     const isMobile = window.matchMedia(`(max-width: ${settings.advancedMobileBreakpoint || 768}px)`).matches;
-    items.forEach((item) => {
+    const safeItems = Array.isArray(items) ? items : [];
+    safeItems.forEach((item) => {
       if (!item) return;
       if (isMobile && item.hideOnMobile) return;
       if (!isMobile && item.hideOnDesktop) return;
@@ -1028,7 +1032,7 @@
       return container;
     }
     // Default dropdown
-    return buildMenuItems(parentItem.children, settings, 1);
+    return buildMenuItems(parentItem.children || [], settings, 1);
   };
 
   const renderMenu = (menu) => {

@@ -1404,7 +1404,7 @@
         gap: 20px;
       }
       
-      @media screen and (max-width: 768px) {
+      @media screen and (max-width: 600px) { /* Higher breakpoint for mobile stacking */
         .menucraft-mega-container {
             flex-direction: column !important;
         }
@@ -1414,6 +1414,7 @@
         .menucraft-mega-container > div {
             width: 100% !important;
             max-width: 100% !important;
+            min-width: unset !important;
         }
       }
 

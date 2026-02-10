@@ -607,8 +607,9 @@
     const grid = createElement("div", "menucraft-block-links-grid");
     const isMobile = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
     grid.style.display = (isMobile && headingItem) ? "none" : "flex";
-    grid.style.flexDirection = "column"; // Force vertical on mobile
+    grid.style.flexDirection = isMobile ? "column" : "row";
     grid.style.gap = isMobile ? "10px" : "32px";
+    grid.style.flexWrap = "wrap";
 
     const itemsPerColumn = Math.ceil(linkItems.length / columnCount);
     for (let i = 0; i < columnCount; i++) {
@@ -702,6 +703,8 @@
       desc.style.fontFamily = settings.typographySubtextFont;
       desc.style.color = settings.colorSubmenuDescription;
       desc.style.lineHeight = "1.2";
+      desc.style.overflowWrap = "break-word";
+      desc.style.wordBreak = "break-word";
       info.appendChild(desc);
     }
 
@@ -1184,6 +1187,11 @@
       }
       .menucraft-submenu .menucraft-menu-link {
         white-space: normal !important;
+        overflow-wrap: anywhere !important;
+      }
+      .menucraft-link-description, .menucraft-image-label, .menucraft-image-desc, .menucraft-product-title {
+        overflow-wrap: break-word !important; 
+        /* Removed word-break: break-word to prevent breaking words mid-string unless necessary */
       }
       .menucraft-menu-item:hover { 
         background: ${settings.colorMainBackgroundHover} !important; 
@@ -1351,8 +1359,9 @@
         box-sizing: border-box !important;
       }
       .menucraft-mega-container > div {
-        min-width: 0 !important;
+        /* Removed min-width: 0 to prevent crushing */
         overflow: visible !important;
+        min-width: 200px !important; /* Enforce minimum legibility */
       }
       
       .menucraft-product-card {

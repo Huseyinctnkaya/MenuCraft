@@ -998,10 +998,8 @@
 
     if (isMegaMenu(parentItem)) {
       const container = createElement("div", "menucraft-mega-container");
-      container.style.display = "grid";
-      container.style.gridTemplateColumns = "repeat(12, 1fr)";
-      container.style.gap = "32px";
-      container.style.padding = "20px";
+      const container = createElement("div", "menucraft-mega-container");
+      // Sizing handled by CSS class and settings below
       container.style.maxWidth = settings.layoutMaxWidth ?
         (/^\d+$/.test(settings.layoutMaxWidth) ? `${settings.layoutMaxWidth}px` : settings.layoutMaxWidth) :
         "1200px";
@@ -1035,7 +1033,20 @@
         }
 
         const span = getBlockSpan(child);
-        block.style.gridColumn = `span ${span}`;
+
+        // Flexbox layout logic:
+        if (child.blockTemplate === "links" || child.blockTemplate?.startsWith("links-")) {
+          // Link lists should be compact
+          block.style.flex = "0 0 auto";
+          block.style.width = "auto";
+          block.style.minWidth = "150px";
+        } else {
+          // Other blocks like images/products use proportional width
+          const pct = (span / 12) * 100;
+          block.style.flex = "0 0 auto";
+          block.style.width = `calc(${pct}% - 20px)`;
+        }
+
         container.appendChild(block);
       });
       return container;

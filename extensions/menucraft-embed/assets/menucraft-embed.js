@@ -1005,6 +1005,7 @@
       container.style.margin = "0 auto";
       container.style.width = "100%";
       container.style.boxSizing = "border-box";
+      container.style.justifyContent = "center"; // Center items horizontally
 
       const items = Array.isArray(parentItem.children) ? parentItem.children : [];
 
@@ -1365,6 +1366,7 @@
         flex-wrap: wrap;
         gap: 20px;
         align-items: start;
+        justify-content: center; /* Center items horizontally */
         width: 100%;
         max-width: 100% !important;
         margin: 0 auto;

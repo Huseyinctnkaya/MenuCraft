@@ -998,7 +998,6 @@
 
     if (isMegaMenu(parentItem)) {
       const container = createElement("div", "menucraft-mega-container");
-      const container = createElement("div", "menucraft-mega-container");
       // Sizing handled by CSS class and settings below
       container.style.maxWidth = settings.layoutMaxWidth ?
         (/^\d+$/.test(settings.layoutMaxWidth) ? `${settings.layoutMaxWidth}px` : settings.layoutMaxWidth) :

@@ -1245,6 +1245,7 @@
       .menucraft-tabs-content {
         flex: 1;
         padding: 0px !important;
+        padding-left: 40px !important; /* Added left padding for separation from tabs */
         display: none;
         box-sizing: border-box !important;
         overflow: visible !important;

@@ -1341,7 +1341,7 @@
         width: 100vw !important; 
         left: 0 !important; 
         right: auto !important;
-        transform: translateY(10px) !important;
+        transform: translateY(0) !important; /* Fixed: reset to 0 to avoid offset */
         box-sizing: border-box !important;
         min-height: unset !important;
         padding: 0 !important; 
@@ -1374,9 +1374,8 @@
         box-sizing: border-box !important;
       }
       .menucraft-mega-container > div {
-        /* Removed min-width: 0 to prevent crushing */
         overflow: visible !important;
-        min-width: 200px !important; /* Enforce minimum legibility */
+        /* Removed min-width: 200px to allow tabs and narrow contexts to fit multiple columns */
       }
       
       .menucraft-product-card {

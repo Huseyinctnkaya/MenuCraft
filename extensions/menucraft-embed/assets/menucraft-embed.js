@@ -1351,9 +1351,9 @@
       }
       
       .menucraft-mega-container {
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        gap: 20px; /* Reduced from 32px */
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
         align-items: start;
         width: 100%;
         max-width: 100% !important;
@@ -1393,13 +1393,14 @@
       
       @media screen and (max-width: 768px) {
         .menucraft-mega-container {
-            grid-template-columns: 1fr !important;
+            flex-direction: column !important;
         }
         .menucraft-menu-item {
             padding: 0 10px;
         }
         .menucraft-mega-container > div {
-            grid-column: span 1 !important;
+            width: 100% !important;
+            max-width: 100% !important;
         }
       }
 

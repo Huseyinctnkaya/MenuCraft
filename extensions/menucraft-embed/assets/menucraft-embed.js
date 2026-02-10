@@ -585,7 +585,7 @@
       hWrapper.style.display = "flex";
       hWrapper.style.flexDirection = "column";
       hWrapper.style.cursor = "pointer";
-      hWrapper.style.marginBottom = "8px";
+      hWrapper.style.marginBottom = "4px"; /* Reduced from 8px */
 
       const hLink = buildLink(headingItem, settings, 1);
       hLink.classList.add("menucraft-menu-heading");
@@ -608,7 +608,7 @@
     const isMobile = window.innerWidth <= (settings.advancedMobileBreakpoint || 768);
     grid.style.display = (isMobile && headingItem) ? "none" : "flex";
     grid.style.flexDirection = isMobile ? "column" : "row";
-    grid.style.gap = isMobile ? "10px" : "32px";
+    grid.style.gap = isMobile ? "10px" : "20px"; /* Reduced from 32px to 20px */
     grid.style.flexWrap = "wrap";
 
     const itemsPerColumn = Math.ceil(linkItems.length / columnCount);
@@ -1353,7 +1353,7 @@
       .menucraft-mega-container {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 32px;
+        gap: 20px; /* Reduced from 32px */
         align-items: start;
         width: 100%;
         max-width: 100% !important;

@@ -1039,7 +1039,7 @@
           // Link lists should be compact
           block.style.flex = "0 0 auto";
           block.style.width = "auto";
-          block.style.minWidth = "150px";
+          block.style.minWidth = "100px"; // Reduced to allow fitting in tabs
         } else {
           // Other blocks like images/products use proportional width
           const pct = (span / 12) * 100;
@@ -1372,6 +1372,10 @@
         margin: 0 auto;
         padding: 0 !important;
         box-sizing: border-box !important;
+      }
+      /* Ensure tab content doesn't center and wrap awkwardly */
+      .menucraft-tabs-content .menucraft-mega-container {
+        justify-content: flex-start !important;
       }
       .menucraft-mega-container > div {
         overflow: visible !important;

@@ -998,14 +998,13 @@
 
     if (isMegaMenu(parentItem)) {
       const container = createElement("div", "menucraft-mega-container");
-      // Sizing handled by CSS class and settings below
       container.style.maxWidth = settings.layoutMaxWidth ?
         (/^\d+$/.test(settings.layoutMaxWidth) ? `${settings.layoutMaxWidth}px` : settings.layoutMaxWidth) :
         "1200px";
       container.style.margin = "0 auto";
       container.style.width = "100%";
       container.style.boxSizing = "border-box";
-      container.style.justifyContent = "center"; // Center items horizontally
+      // Centering handled by CSS class .menucraft-mega-container
 
       const items = Array.isArray(parentItem.children) ? parentItem.children : [];
 
@@ -1036,15 +1035,14 @@
 
         // Flexbox layout logic:
         if (child.blockTemplate === "links" || child.blockTemplate?.startsWith("links-")) {
-          // Link lists should be compact
-          block.style.flex = "0 0 auto";
+          block.style.flex = "0 1 auto"; // Allow shrinking
           block.style.width = "auto";
-          block.style.minWidth = "100px"; // Reduced to allow fitting in tabs
+          block.style.minWidth = "unset";
         } else {
-          // Other blocks like images/products use proportional width
           const pct = (span / 12) * 100;
-          block.style.flex = "0 0 auto";
+          block.style.flex = "0 1 auto"; // Allow shrinking
           block.style.width = `calc(${pct}% - 20px)`;
+          block.style.minWidth = "120px";
         }
 
         container.appendChild(block);

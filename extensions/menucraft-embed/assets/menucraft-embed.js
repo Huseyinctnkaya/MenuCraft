@@ -75,10 +75,24 @@
   };
 
   const normalizeSettings = (raw) => {
-    if (!raw || typeof raw !== "object") {
-      return { ...DEFAULT_SETTINGS };
-    }
-    return { ...DEFAULT_SETTINGS, ...raw };
+    // 1. Ensure we have an object
+    const safeRaw = (raw && typeof raw === "object") ? raw : {};
+
+    // 2. Merge with defaults
+    const merged = { ...DEFAULT_SETTINGS, ...safeRaw };
+
+    // 3. Validate colors specifically
+    // If a color setting is empty string, null, or just "#", revert to default
+    Object.keys(DEFAULT_SETTINGS).forEach(key => {
+      if (key.startsWith("color")) {
+        const val = merged[key];
+        if (!val || val === "#" || (typeof val === "string" && val.trim() === "")) {
+          merged[key] = DEFAULT_SETTINGS[key];
+        }
+      }
+    });
+
+    return merged;
   };
 
   const createElement = (tag, className, text) => {
@@ -704,6 +718,14 @@
     if (item.submenuType === "dropdown" || item.submenuTemplate === "dropdown") return false;
     if (item.submenuType === "horizontal-dropdown" || item.submenuTemplate === "horizontal-dropdown") return false;
 
+    // Check for tab templates - these should also be treated as mega menus/grid layouts
+    const tabTemplates = [
+      "tabs", "simple-left-tabs", "simple-right-tabs", "simple-top-tabs",
+      "two-level-tabs", "three-level-tabs", "two-top-tabs", "three-top-tabs",
+      "two-nested-tabs-right", "three-nested-tabs-right"
+    ];
+    if (tabTemplates.includes(item.submenuTemplate)) return true;
+
     // Auto-detect if any child has a block template
     return Array.isArray(item.children) && item.children.length > 0 &&
       item.children.some(child => child.blockTemplate && child.blockTemplate !== "none");
@@ -905,7 +927,62 @@
     return div;
   };
 
+  const buildTabsBlock = (parentItem, settings) => {
+    const container = createElement("div", "menucraft-tabs-container");
+    const template = parentItem.submenuTemplate || "simple-left-tabs";
+
+    if (template.includes("top")) container.classList.add("is-top");
+    if (template.includes("right")) container.classList.add("is-right");
+
+    const tabsMenu = createElement("div", "menucraft-tabs-menu");
+    const contentArea = createElement("div", "menucraft-tabs-content-wrapper");
+    contentArea.style.flex = "1";
+
+    const tabs = Array.isArray(parentItem.children) ? parentItem.children : [];
+    const contentPanels = [];
+
+    tabs.forEach((tab, index) => {
+      const tabBtn = createElement("div", "menucraft-tab-item", tab.label || "Tab");
+      const panel = createElement("div", "menucraft-tabs-content");
+
+      // Render children of this tab into the panel
+      panel.appendChild(buildSubmenuContent(tab, settings));
+      contentPanels.push(panel);
+
+      if (index === 0) {
+        tabBtn.classList.add("is-active");
+        panel.classList.add("is-active");
+      }
+
+      const activate = () => {
+        tabsMenu.querySelectorAll(".menucraft-tab-item").forEach(b => b.classList.remove("is-active"));
+        contentArea.querySelectorAll(".menucraft-tabs-content").forEach(p => p.classList.remove("is-active"));
+        tabBtn.classList.add("is-active");
+        panel.classList.add("is-active");
+      };
+
+      tabBtn.addEventListener("mouseenter", activate);
+      tabBtn.addEventListener("click", activate);
+
+      tabsMenu.appendChild(tabBtn);
+      contentArea.appendChild(panel);
+    });
+
+    container.appendChild(tabsMenu);
+    container.appendChild(contentArea);
+    return container;
+  };
+
   const buildSubmenuContent = (parentItem, settings) => {
+    const tabTemplates = [
+      "tabs", "simple-left-tabs", "simple-right-tabs", "simple-top-tabs",
+      "two-level-tabs", "three-level-tabs", "two-top-tabs", "three-top-tabs",
+      "two-nested-tabs-right", "three-nested-tabs-right"
+    ];
+    if (tabTemplates.includes(parentItem.submenuTemplate)) {
+      return buildTabsBlock(parentItem, settings);
+    }
+
     if (isMegaMenu(parentItem)) {
       const container = createElement("div", "menucraft-mega-container");
       container.style.display = "grid";
@@ -1078,11 +1155,11 @@
       .menucraft-menu-item:last-child { border-right: none !important; }
       
       .menucraft-menu-item.is-active {
-        background-color: ${settings.colorMainText} !important;
-        color: ${settings.colorMainBackground} !important;
+        /* Removed inverted colors for active state as it confuses users when multiple items link to Home */
+        opacity: 1 !important;
       }
       .menucraft-menu-item.is-active .menucraft-menu-link {
-        color: ${settings.colorMainBackground} !important;
+        /* color: ${settings.colorMainBackground} !important; */
       }
 
       .menucraft-menu-link {
@@ -1113,6 +1190,85 @@
       }
       .menucraft-indicator { font-size: 12px !important; margin-left: 6px !important; transition: transform 0.2s !important; color: inherit !important; }
       .menucraft-menu-item:hover .menucraft-indicator { transform: translateY(2px) !important; }
+
+      /* Tab System CSS */
+      .menucraft-tabs-container {
+        display: flex;
+        width: 100%;
+        min-height: 300px;
+        background: transparent;
+      }
+      .menucraft-tabs-menu {
+        flex: 0 0 250px;
+        border-right: 1px solid ${settings.colorSubmenuBorder};
+        display: flex;
+        flex-direction: column;
+        background: rgba(0,0,0,0.01);
+      }
+      .menucraft-tab-item {
+        padding: 14px 20px;
+        cursor: pointer;
+        font-family: ${settings.typographyTabFont} !important;
+        font-weight: ${settings.typographyTabWeight} !important;
+        font-size: ${settings.typographyTabSize}px !important;
+        color: ${settings.colorTabHeading};
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+        text-align: left;
+      }
+      .menucraft-tab-item:hover {
+        background: rgba(0,0,0,0.03);
+      }
+      .menucraft-tab-item.is-active {
+        background: ${settings.colorTabBackgroundActive} !important;
+        color: ${settings.colorTabHeadingActive} !important;
+        border-left-color: ${settings.colorSubmenuHeading} !important;
+      }
+      .menucraft-tabs-content {
+        flex: 1;
+        padding: 0;
+        display: none;
+      }
+      .menucraft-tabs-content.is-active {
+        display: block;
+      }
+
+      /* Top Tabs Modifier */
+      .menucraft-tabs-container.is-top {
+        flex-direction: column;
+      }
+      .menucraft-tabs-container.is-top .menucraft-tabs-menu {
+        flex: 0 0 auto;
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid ${settings.colorSubmenuBorder};
+        overflow-x: auto;
+      }
+      .menucraft-tabs-container.is-top .menucraft-tab-item {
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+      }
+      .menucraft-tabs-container.is-top .menucraft-tab-item.is-active {
+        border-bottom-color: ${settings.colorSubmenuHeading} !important;
+      }
+
+      /* Right Tabs Modifier */
+      .menucraft-tabs-container.is-right {
+        flex-direction: row-reverse;
+      }
+      .menucraft-tabs-container.is-right .menucraft-tabs-menu {
+        border-right: none;
+        border-left: 1px solid ${settings.colorSubmenuBorder};
+      }
+      .menucraft-tabs-container.is-right .menucraft-tab-item {
+        border-left: none;
+        border-right: 3px solid transparent;
+        text-align: right;
+      }
+      .menucraft-tabs-container.is-right .menucraft-tab-item.is-active {
+        border-right-color: ${settings.colorSubmenuHeading} !important;
+      }
 
       .menucraft-submenu {
         position: absolute;
@@ -1505,7 +1661,8 @@
 
   const loadMenu = async () => {
     // Check if we already have the menu data (e.g. from session storage)
-    // This prevents re-fetching without query params on navigation and persists across reloads
+    // DISABLED CACHE: To ensure setting updates (like color changes) are reflected immediately.
+    /*
     try {
       const cached = sessionStorage.getItem("MenuCraftData");
       if (cached) {
@@ -1522,6 +1679,7 @@
     } catch (e) {
       console.warn("[MenuCraft] Failed to read session storage", e);
     }
+    */
 
     console.log("[MenuCraft] Loading menu...");
     try {

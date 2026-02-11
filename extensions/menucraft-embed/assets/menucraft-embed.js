@@ -942,7 +942,7 @@
 
   const buildTabsBlock = (parentItem, settings) => {
     const container = createElement("div", "menucraft-tabs-container");
-    const template = parentItem.submenuTemplate || "simple-left-tabs";
+    const template = parentItem.submenuTemplate || "simple-top-tabs";
 
     if (template.includes("top")) container.classList.add("is-top");
     if (template.includes("right")) container.classList.add("is-right");

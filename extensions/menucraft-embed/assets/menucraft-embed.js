@@ -289,14 +289,18 @@
   const buildLink = (item, settings, depth) => {
     if (item.isHeading) {
       const wrapper = el("div", "mc-heading-wrapper");
-      wrapper.style.cssText = `display:flex;align-items:center;gap:8px;padding:8px 0;`;
+      wrapper.style.cssText = `display:flex;align-items:center;gap:6px;padding:12px 0 4px 0;width:100%;`;
+
       const span = el("span", "mc-heading");
       span.textContent = item.label || "";
-      span.style.cssText = `font-family:${settings.typographySubheadingFont};font-weight:${settings.typographySubheadingWeight};font-size:${settings.typographySubheadingSize}px;color:${settings.colorSubmenuHeading};display:block;`;
+      span.style.cssText = `font-family:${settings.typographySubheadingFont};font-weight:${settings.typographySubheadingWeight};font-size:${settings.typographySubheadingSize}px;color:${settings.colorSubmenuHeading};display:block;letter-spacing:0.02em;`;
       wrapper.appendChild(span);
 
       const iconEl = buildIcon(item.icon, settings, item);
-      if (iconEl) wrapper.insertBefore(iconEl, span);
+      if (iconEl) {
+        iconEl.style.marginRight = "2px";
+        wrapper.insertBefore(iconEl, span);
+      }
 
       const badge = buildBadge(item, settings);
       if (badge) wrapper.appendChild(badge);
@@ -305,18 +309,18 @@
     }
 
     const wrapper = el("div", "mc-link-wrapper");
-    wrapper.style.cssText = "display:flex;align-items:center;gap:8px;";
+    wrapper.style.cssText = "display:flex;align-items:center;gap:6px;width:100%;";
     if (item.extraClassName) wrapper.classList.add(item.extraClassName);
 
     const iconEl = buildIcon(item.icon, settings, item);
     if (iconEl) wrapper.appendChild(iconEl);
 
     const textContent = el("div", "mc-link-text");
-    textContent.style.cssText = "display:flex;flex-direction:column;";
+    textContent.style.cssText = "display:flex;flex-direction:column;flex:1;min-width:0;";
 
     const link = el("a", "mc-link");
     link.href = item.url || "#";
-    let label = item.label || "";
+    let label = (item.label || "").trim();
     if (!label && item.productIds && item.productIds.length) {
       const p = getResource("product", item.productIds[0]);
       if (p) label = p.title;
@@ -329,7 +333,10 @@
     if (depth === 0) {
       link.style.cssText = `color:${item.customTextColor || settings.colorMainText};font-family:${settings.typographyMainFont};font-weight:${settings.typographyMainWeight};font-size:${settings.typographyMainSize}px;text-decoration:none;display:inline-flex;align-items:center;height:100%;white-space:nowrap;background:transparent;`;
     } else {
-      link.style.cssText = `color:${item.customTextColor || settings.colorSubmenuText};font-family:${settings.typographySubtextFont};font-weight:${settings.typographySubtextWeight};font-size:${settings.typographySubtextSize}px;text-decoration:none;display:inline-flex;align-items:center;white-space:normal;overflow-wrap:anywhere;background:transparent;`;
+      // Fallback to dark color if submenu text is white/very light
+      const submenuTextColor = item.customTextColor || settings.colorSubmenuText;
+      const safeColor = (submenuTextColor && (submenuTextColor.toLowerCase() === '#fff' || submenuTextColor.toLowerCase() === '#ffffff' || submenuTextColor.toLowerCase() === 'white')) ? '#1a1a1a' : submenuTextColor;
+      link.style.cssText = `color:${safeColor};font-family:${settings.typographySubtextFont};font-weight:${settings.typographySubtextWeight};font-size:${settings.typographySubtextSize}px;text-decoration:none;display:inline-flex;align-items:center;white-space:normal;overflow-wrap:anywhere;background:transparent;line-height:1.2;`;
     }
 
     if (item.openInNewTab) {
@@ -338,16 +345,23 @@
     }
     textContent.appendChild(link);
 
-    if (item.description) {
-      const desc = el("div", "mc-link-desc", item.description);
-      desc.style.cssText = `font-size:${depth > 0 ? "12px" : settings.typographySubtextSize + "px"};color:${settings.colorSubmenuDescription};margin-top:2px;line-height:1.3;overflow-wrap:break-word;`;
+    const descText = (item.description || "").trim();
+    const isRedundantDesc = descText.toLowerCase() === "description" || descText === label;
+    if (descText && !isRedundantDesc) {
+      const desc = el("div", "mc-link-desc", descText);
+      desc.style.cssText = `font-size:${depth > 0 ? "11px" : "12px"};color:${settings.colorSubmenuDescription};margin-top:1px;line-height:1.2;overflow-wrap:break-word;opacity:0.8;`;
       textContent.appendChild(desc);
     }
 
     wrapper.appendChild(textContent);
 
     const badge = buildBadge(item, settings);
-    if (badge) wrapper.appendChild(badge);
+    if (badge) {
+      const bWrap = el("div", "mc-badge-wrap");
+      bWrap.style.cssText = "margin-left:auto;padding-left:4px;flex-shrink:0;";
+      bWrap.appendChild(badge);
+      wrapper.appendChild(bWrap);
+    }
 
     // Per-item hover colors
     if (item.customBackgroundColor || item.customTextColor) {
@@ -382,60 +396,35 @@
   // ── 5.1 Link List Block ───────────────────────────────────────────
   const buildLinkListBlock = (group, settings) => {
     const container = el("div", "mc-block-links");
-    container.style.cssText = "padding:10px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:16px 24px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;";
 
     const columnCount = Math.max(1, group.linkColumns || 1);
     const children = group.children || [];
-    const headingItem = children.find((c) => c.isHeading);
-    const linkItems = children.filter((c) => !c.isHeading);
     const textAlign = group.linkTextAlign || "left";
     const mobile = checkMobile(settings);
 
-    if (headingItem) {
-      const hWrapper = el("div", "mc-link-heading-wrap");
-      hWrapper.style.cssText = "display:flex;flex-direction:column;cursor:pointer;margin-bottom:4px;";
-      const hLink = buildLink(headingItem, settings, 1);
-      hLink.classList.add("mc-heading");
-      hLink.style.padding = "0 0 8px 0";
-      hWrapper.appendChild(hLink);
-
-      const sep = el("div", "mc-heading-sep");
-      sep.style.cssText = `border-top:2px solid ${settings.colorSubmenuHeading};opacity:0.5;margin-bottom:4px;`;
-      hWrapper.appendChild(sep);
-
-      container.appendChild(hWrapper);
-
-      hWrapper.addEventListener("click", () => {
-        if (checkMobile(settings)) {
-          container.classList.toggle("is-open");
-        }
-      });
-    }
-
     const grid = el("div", "mc-links-grid");
-    grid.style.display = mobile && headingItem ? "none" : "flex";
-    grid.style.flexDirection = mobile ? "column" : "row";
-    grid.style.gap = mobile ? "6px" : "20px";
-    grid.style.flexWrap = "wrap";
+    grid.style.cssText = `display:flex;flex-direction:${mobile ? "column" : "row"};gap:${mobile ? "12px" : "32px"};flex-wrap:wrap;width:100%;`;
 
-    const itemsPerCol = Math.ceil(linkItems.length / columnCount);
+    const itemsPerCol = Math.ceil(children.length / columnCount);
     for (let i = 0; i < columnCount; i++) {
       const col = el("div", "mc-link-col");
-      col.style.cssText = `flex:1 1 0;display:flex;flex-direction:column;gap:4px;align-items:${textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start"};`;
+      col.style.cssText = `flex:1 1 0;display:flex;flex-direction:column;gap:6px;align-items:${textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start"};min-width:180px;`;
 
       const start = i * itemsPerCol;
-      const end = Math.min(start + itemsPerCol, linkItems.length);
-      linkItems.slice(start, end).forEach((child) => {
+      const end = Math.min(start + itemsPerCol, children.length);
+      children.slice(start, end).forEach((child) => {
         if (checkMobile(settings) && child.hideOnMobile) return;
         if (!checkMobile(settings) && child.hideOnDesktop) return;
+
         const itemEl = buildLink(child, settings, 1);
-        itemEl.style.padding = "6px 8px";
-        itemEl.style.borderRadius = "6px";
-        itemEl.style.width = "auto";
-        itemEl.style.maxWidth = "100%";
-        itemEl.style.textAlign = textAlign;
-        itemEl.onmouseenter = () => { itemEl.style.background = "rgba(0,0,0,0.04)"; };
-        itemEl.onmouseleave = () => { itemEl.style.background = "transparent"; };
+        if (!child.isHeading) {
+          itemEl.style.padding = "8px 12px";
+          itemEl.style.borderRadius = "6px";
+          itemEl.style.width = textAlign === "center" ? "auto" : "100%";
+          itemEl.onmouseenter = () => { itemEl.style.background = "rgba(0,0,0,0.04)"; };
+          itemEl.onmouseleave = () => { itemEl.style.background = "transparent"; };
+        }
         col.appendChild(itemEl);
       });
       grid.appendChild(col);
@@ -1494,9 +1483,10 @@
 
       /* ── Headings ── */
       .mc-heading {
-        margin-bottom:8px;padding-bottom:4px !important;font-weight:700 !important;
-        text-transform:uppercase;letter-spacing:0.05em;
-        color:${settings.colorSubmenuHeading} !important;width:fit-content;
+        margin: 0; padding: 0 !important;
+        font-weight:700 !important;
+        color:${settings.colorSubmenuHeading} !important;
+        width:fit-content;
       }
 
       /* ── Submenu Panel ── */

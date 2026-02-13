@@ -15919,7 +15919,7 @@ export default function MenuBuilder() {
                           }}
                         >
                           <div style={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%" }}>
-                            <div style={{ display: "flex", flexDirection: "row", gap: 0, flexWrap: "wrap", alignItems: "center", justifyContent: getSubmenuJustify(previewMenu.submenuContentAlign), flex: 1, padding: "0 12px" }}>
+                            <div style={{ display: "flex", flexDirection: "row", gap: 0, flexWrap: "nowrap", alignItems: "center", justifyContent: getSubmenuJustify(previewMenu.submenuContentAlign), flex: 1, padding: "0 12px" }}>
                               {horizontalDropdownItems.map((child) => {
                                 const isActive = activeHorizontalItem?.id === child.id;
                                 return (
@@ -16078,7 +16078,7 @@ export default function MenuBuilder() {
                                   whiteSpace: "nowrap",
                                 }}
                               >
-                                + Öğe Ekle
+                                Add item
                               </button>
                             </div>
 
@@ -16124,7 +16124,7 @@ export default function MenuBuilder() {
                                   display: "flex",
                                   flexDirection: "row",
                                   gap: 0,
-                                  flexWrap: "wrap",
+                                  flexWrap: "nowrap",
                                   alignItems: "center",
                                   justifyContent: getSubmenuJustify(activeHorizontalItem.submenuContentAlign),
                                   flex: 1,
@@ -16301,7 +16301,7 @@ export default function MenuBuilder() {
                                     whiteSpace: "nowrap",
                                   }}
                                 >
-                                  + Öğe Ekle
+                                  Add item
                                 </button>
                               </div>
 
@@ -16376,7 +16376,7 @@ export default function MenuBuilder() {
                                   display: "flex",
                                   flexDirection: "row",
                                   gap: 0,
-                                  flexWrap: "wrap",
+                                  flexWrap: "nowrap",
                                   alignItems: "center",
                                   justifyContent: getSubmenuJustify(activeHorizontalChild.submenuContentAlign),
                                   flex: 1,
@@ -16524,7 +16524,7 @@ export default function MenuBuilder() {
                                     whiteSpace: "nowrap",
                                   }}
                                 >
-                                  + Öğe Ekle
+                                  Add item
                                 </button>
                               </div>
                               <div

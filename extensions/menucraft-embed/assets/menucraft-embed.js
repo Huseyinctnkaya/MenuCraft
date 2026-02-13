@@ -1118,20 +1118,24 @@
     else if (align === "space-around") justifyContent = "space-around";
     else if (align === "space-evenly") justifyContent = "space-evenly";
 
-    container.style.cssText = `display:flex;flex-wrap:wrap;gap:16px;align-items:stretch;justify-content:${justifyContent};width:100%;max-width:${maxW};padding:20px;box-sizing:border-box;`;
+    container.style.cssText = `display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;justify-content:${justifyContent};width:100%;max-width:${maxW};margin:0 auto;padding:20px;box-sizing:border-box;`;
 
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
-    const count = items.length;
+
+    const totalSpan = items.reduce((sum, c) => sum + getBlockSpan(c), 0);
 
     items.forEach((child) => {
       const block = buildBlockByType(child, settings);
       const span = getBlockSpan(child);
-      const pct = (span / 12) * 100;
 
-      // flex-grow allows items to fill remaining space, flex-basis sets preferred size
-      block.style.flex = `1 1 calc(${pct}% - 16px)`;
-      block.style.minWidth = `${Math.min(150, Math.floor(100 / count))}px`;
+      // If total span exceeds 12, scale proportionally so everything fits
+      const effectiveSpan = totalSpan > 12 ? (span / totalSpan) * 12 : span;
+      const pct = (effectiveSpan / 12) * 100;
+      block.style.flex = `1 1 calc(${pct}% - 20px)`;
+      block.style.maxWidth = `calc(${pct}% - 20px)`;
+      block.style.minWidth = "0";
       block.style.boxSizing = "border-box";
+      block.style.overflow = "hidden";
 
       container.appendChild(block);
     });
@@ -1587,12 +1591,12 @@
 
       /* ── Mega container ── */
       .mc-mega-container {
-        display:flex;flex-wrap:wrap;gap:16px;align-items:stretch;
-        width:100%;padding:20px;box-sizing:border-box;
+        display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;
+        width:100%;max-width:100%;margin:0 auto;padding:20px;box-sizing:border-box;
       }
       .mc-tabs-content-area .mc-mega-container { justify-content:flex-start !important; }
-      .mc-mega-container > div { box-sizing:border-box; }
-      .mc-menu-item.is-mega > .mc-submenu { overflow-x:hidden; }
+      .mc-mega-container > div { overflow:hidden;box-sizing:border-box; }
+      .mc-menu-item.is-mega > .mc-submenu { overflow:hidden; }
 
       /* ── Product card ── */
       .mc-product-card { border:none;overflow:hidden;background:transparent;transition:all 150ms ease; }

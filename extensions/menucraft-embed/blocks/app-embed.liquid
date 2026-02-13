@@ -2,7 +2,11 @@
   MenuCraft app embed (theme app extension).
 {% endcomment %}
 <div id="menucraft-embed-root"></div>
-{{ 'menucraft-embed.js' | asset_url | script_tag }}
+{% assign menucraft_embed_src = 'menucraft-embed.js' | asset_url %}
+<script
+  src="{{ menucraft_embed_src }}{% if menucraft_embed_src contains '?' %}&{% else %}?{% endif %}mcv=20260213c"
+  defer
+></script>
 
 {% schema %}
 {

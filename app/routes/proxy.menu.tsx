@@ -1,6 +1,5 @@
 import { json } from "@remix-run/node";
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import crypto from "node:crypto";
 
 import prisma from "../db.server";
 import shopify from "../shopify.server";
@@ -11,8 +10,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const { admin, shop } = (await shopify.authenticate.public.appProxy(request)) as any;
 
-    const url = new URL(request.url);
-
     const menu = await prisma.menu.findFirst({
       where: { shop, status: "active" },
       orderBy: { updatedAt: "desc" },
@@ -20,6 +17,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         id: true,
         name: true,
         status: true,
+        updatedAt: true,
         items: true,
         settings: true,
       },

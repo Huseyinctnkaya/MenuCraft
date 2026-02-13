@@ -1,6 +1,8 @@
 (() => {
   if (window.__menucraftEmbedLoaded) return;
   window.__menucraftEmbedLoaded = true;
+  const EMBED_VERSION = "2026-02-13.2";
+  window.__menucraftEmbedVersion = EMBED_VERSION;
 
   /* ═══════════════════════════════════════════════════════════════════
      Section 1 — Init & Configuration
@@ -1072,6 +1074,18 @@
       const li = el("li", "mc-submenu-item");
       li.style.cssText = "position:relative;display:block;padding:4px 0;";
 
+      // If a dropdown child is actually a block template, render the block directly
+      // instead of flattening it into a plain text list entry.
+      if (item.blockTemplate && item.blockTemplate !== "none") {
+        const block = buildBlockByType(item, settings);
+        if (block) {
+          li.style.padding = "6px 0";
+          li.appendChild(block);
+          list.appendChild(li);
+          return;
+        }
+      }
+
       const link = buildLink(item, settings, depth);
       link.style.padding = "6px 10px";
       link.style.borderRadius = "6px";
@@ -1451,6 +1465,12 @@
     const animEffect = settings.animationEffect || "fade";
     const animDur = settings.animationDuration || 300;
     const animDelay = settings.animationDelay || 150;
+    const desktopSubmenuOverflow = settings.submenuEnableDesktopScroll
+      ? "max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;"
+      : "overflow:visible;";
+    const mobileSubmenuOverflow = settings.submenuEnableMobileScroll
+      ? "max-height:60vh !important;overflow-y:auto !important;overscroll-behavior:contain !important;-webkit-overflow-scrolling:touch;"
+      : "overflow:visible !important;";
 
     let submenuTransform, submenuTransformActive;
     if (animEffect === "slide") {
@@ -1534,6 +1554,7 @@
         display:none;z-index:1000;
         opacity:0;transform:${submenuTransform};
         transition:opacity ${animDur}ms ease ${animDelay}ms, transform ${animDur}ms ease ${animDelay}ms;
+        ${desktopSubmenuOverflow}
       }
       .mc-submenu::before {
         content:"";position:absolute;top:-30px;left:0;width:100%;height:30px;background:transparent;
@@ -1665,6 +1686,7 @@
           padding:20px !important;background:${settings.colorSubmenuBackground} !important;
           color:${settings.colorSubmenuText} !important;border:none !important;
           min-height:0 !important;box-sizing:border-box !important;
+          ${mobileSubmenuOverflow}
         }
         .mc-menu-item.has-children.is-open > .mc-submenu { display:block !important; }
         .mc-menu-item.is-open > .mc-indicator { transform:rotate(180deg) !important; }
@@ -1916,39 +1938,47 @@
   };
 
   const loadMenu = async () => {
-    // 1. Cache-first: render instantly from sessionStorage if available
-    let renderedFromCache = false;
+    const cacheKey = `MenuCraftData:${window.location.hostname}`;
+    const legacyCacheKey = "MenuCraftData";
+    let networkError = null;
+
     try {
-      const cached = sessionStorage.getItem("MenuCraftData");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed && parsed.menu && parsed.menu.status === "active") {
-          renderedFromCache = doRender(parsed);
-        }
-      }
+      // Drop old cache key from previous script versions.
+      sessionStorage.removeItem(legacyCacheKey);
     } catch (e) { /* ignore cache errors */ }
 
-    // 2. Always fetch fresh data from proxy (background refresh)
+    // 1. Network-first: always prefer fresh menu data from proxy.
     try {
-      const response = await fetch(PROXY_URL + window.location.search, { credentials: "include" });
-      if (!response.ok) return;
+      const response = await fetch(PROXY_URL + window.location.search, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      if (!data || !data.menu) return;
+      if (!data || !data.menu) throw new Error("Invalid menu payload");
 
-      try { sessionStorage.setItem("MenuCraftData", JSON.stringify(data)); } catch (e) { /* ignore */ }
-
-      // Only re-render if data changed or we didn't render from cache
-      if (!renderedFromCache) {
-        doRender(data);
-      } else {
-        // Update resources silently (products/collections may have changed)
-        window.MenuCraftData = data;
-      }
+      try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch (e) { /* ignore */ }
+      doRender(data);
+      return;
     } catch (error) {
-      // If fetch fails but we rendered from cache, that's still OK
-      if (!renderedFromCache) {
-        console.error("[MenuCraft] Load failed", error);
+      networkError = error;
+    }
+
+    // 2. Fallback to session cache only when network request fails.
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (!cached) {
+        if (networkError) console.error("[MenuCraft] Load failed", networkError);
+        return;
       }
+      const parsed = JSON.parse(cached);
+      const rendered = doRender(parsed);
+      if (!rendered && networkError) {
+        console.error("[MenuCraft] Load failed", networkError);
+      }
+    } catch (cacheError) {
+      if (networkError) console.error("[MenuCraft] Load failed", networkError);
+      else console.error("[MenuCraft] Cache fallback failed", cacheError);
     }
   };
 

@@ -1380,8 +1380,7 @@
         // Submenu width for non-mega
         if (!isMegaMenu(item)) {
           if (item.submenuWidth === "full") {
-            submenu.style.width = "100vw";
-            submenu.style.left = "0";
+            submenu.dataset.fullWidth = "true";
             li.style.position = "static";
           } else if (item.submenuCustomWidth) {
             submenu.style.width = `${item.submenuCustomWidth}px`;
@@ -1445,7 +1444,7 @@
     styleTag.textContent = `
       /* ── Base ── */
       #${rootId} { width:100%; }
-      .mc-menu { width:100%;position:static;z-index:999; }
+      .mc-menu { width:100%;position:relative;z-index:999;overflow:visible; }
       .mc-menu * { box-sizing:border-box; }
       .mc-menu-inner { width:100%;margin:0 auto;padding:0;display:flex;align-items:stretch;justify-content:${settings.layoutAlignment === "center" ? "center" : settings.layoutAlignment === "right" ? "flex-end" : "flex-start"}; }
       .mc-menu-list {
@@ -1519,7 +1518,6 @@
       /* ── Mega submenu ── */
       .mc-menu-item.is-mega { position:static !important; }
       .mc-menu-item.is-mega > .mc-submenu {
-        width:100vw !important;left:0 !important;right:auto !important;
         transform:${submenuTransform} !important;
         box-sizing:border-box !important;min-height:unset !important;
         padding:0 !important;background:${settings.colorSubmenuBackground} !important;
@@ -1727,6 +1725,31 @@
           list.querySelectorAll(".mc-menu-item.is-open").forEach((s) => s.classList.remove("is-open"));
         }
       });
+    }
+
+    // Position full-width submenus (mega + full-width dropdowns) via JS
+    if (!isMobileBreakpoint) {
+      const positionFullWidthSubmenus = () => {
+        const nav = container;
+        const navRect = nav.getBoundingClientRect();
+        const vw = document.documentElement.clientWidth;
+        // Mega submenus
+        nav.querySelectorAll(".mc-menu-item.is-mega > .mc-submenu").forEach((sub) => {
+          sub.style.left = `-${navRect.left}px`;
+          sub.style.width = `${vw}px`;
+        });
+        // Non-mega full-width submenus
+        nav.querySelectorAll('.mc-submenu[data-full-width="true"]').forEach((sub) => {
+          sub.style.left = `-${navRect.left}px`;
+          sub.style.width = `${vw}px`;
+        });
+      };
+      // Run after mount
+      requestAnimationFrame(positionFullWidthSubmenus);
+      // Recalculate on resize
+      window.addEventListener("resize", positionFullWidthSubmenus);
+      // Prevent horizontal scrollbar
+      document.documentElement.style.overflowX = "clip";
     }
   };
 

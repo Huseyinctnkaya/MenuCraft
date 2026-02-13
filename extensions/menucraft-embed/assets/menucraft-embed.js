@@ -1108,15 +1108,20 @@
 
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
 
+    const totalSpan = items.reduce((sum, c) => sum + getBlockSpan(c), 0);
+
     items.forEach((child) => {
       const block = buildBlockByType(child, settings);
       const span = getBlockSpan(child);
 
-      const pct = (span / 12) * 100;
-      block.style.flex = `0 1 calc(${pct}% - 20px)`;
-      block.style.width = `calc(${pct}% - 20px)`;
-      block.style.minWidth = "120px";
+      // If total span exceeds 12, scale proportionally so everything fits
+      const effectiveSpan = totalSpan > 12 ? (span / totalSpan) * 12 : span;
+      const pct = (effectiveSpan / 12) * 100;
+      block.style.flex = `1 1 calc(${pct}% - 20px)`;
+      block.style.maxWidth = `calc(${pct}% - 20px)`;
+      block.style.minWidth = "0";
       block.style.boxSizing = "border-box";
+      block.style.overflow = "hidden";
 
       container.appendChild(block);
     });
@@ -1566,10 +1571,11 @@
       /* ── Mega container ── */
       .mc-mega-container {
         display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;
-        width:100%;max-width:100% !important;margin:0 auto;padding:20px;box-sizing:border-box !important;
+        width:100%;max-width:100%;margin:0 auto;padding:20px;box-sizing:border-box;
       }
       .mc-tabs-content-area .mc-mega-container { justify-content:flex-start !important; }
-      .mc-mega-container > div { overflow:visible !important; }
+      .mc-mega-container > div { overflow:hidden;box-sizing:border-box; }
+      .mc-menu-item.is-mega > .mc-submenu { overflow:hidden; }
 
       /* ── Product card ── */
       .mc-product-card { border:none;overflow:hidden;background:transparent;transition:all 150ms ease; }

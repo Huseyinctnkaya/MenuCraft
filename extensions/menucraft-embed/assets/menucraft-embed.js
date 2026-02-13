@@ -122,6 +122,21 @@
     imageLibrary: [],
   };
 
+  const hexToLuminance = (hex) => {
+    if (!hex || typeof hex !== "string") return -1;
+    let c = hex.trim().toLowerCase();
+    if (c === "white" || c === "transparent") return 1;
+    // Expand 3-digit hex
+    const m3 = c.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/);
+    if (m3) c = `#${m3[1]}${m3[1]}${m3[2]}${m3[2]}${m3[3]}${m3[3]}`;
+    const m6 = c.match(/^#([0-9a-f]{6})$/);
+    if (!m6) return -1;
+    const r = parseInt(m6[1].substring(0, 2), 16);
+    const g = parseInt(m6[1].substring(2, 4), 16);
+    const b = parseInt(m6[1].substring(4, 6), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  };
+
   const normalizeSettings = (raw) => {
     const safeRaw = raw && typeof raw === "object" ? raw : {};
     const merged = { ...DEFAULT_SETTINGS, ...safeRaw };
@@ -133,6 +148,20 @@
         }
       }
     });
+
+    // Ensure submenu text colors are readable on light submenu backgrounds
+    const bgLum = hexToLuminance(merged.colorSubmenuBackground);
+    const textLum = hexToLuminance(merged.colorSubmenuText);
+    const descLum = hexToLuminance(merged.colorSubmenuDescription);
+    // If background is light (lum > 0.7) and text is also light (lum > 0.7), fix the text
+    if (bgLum > 0.7) {
+      if (textLum > 0.7) merged.colorSubmenuText = DEFAULT_SETTINGS.colorSubmenuText;
+      if (descLum > 0.7) merged.colorSubmenuDescription = DEFAULT_SETTINGS.colorSubmenuDescription;
+    }
+    // If we can't determine bg, but text is very light, still fix it
+    if (bgLum < 0 && textLum > 0.85) merged.colorSubmenuText = DEFAULT_SETTINGS.colorSubmenuText;
+    if (bgLum < 0 && descLum > 0.85) merged.colorSubmenuDescription = DEFAULT_SETTINGS.colorSubmenuDescription;
+
     return merged;
   };
 
@@ -331,12 +360,11 @@
     link.textContent = label;
 
     if (depth === 0) {
-      link.style.cssText = `color:${item.customTextColor || settings.colorMainText};font-family:${settings.typographyMainFont};font-weight:${settings.typographyMainWeight};font-size:${settings.typographyMainSize}px;text-decoration:none;display:inline-flex;align-items:center;height:100%;white-space:nowrap;background:transparent;`;
+      link.style.cssText = `font-family:${settings.typographyMainFont};font-weight:${settings.typographyMainWeight};font-size:${settings.typographyMainSize}px;text-decoration:none;display:inline-flex;align-items:center;height:100%;white-space:nowrap;background:transparent;`;
+      link.style.setProperty("color", item.customTextColor || settings.colorMainText, "important");
     } else {
-      // Fallback to dark color if submenu text is white/very light
-      const submenuTextColor = item.customTextColor || settings.colorSubmenuText;
-      const safeColor = (submenuTextColor && (submenuTextColor.toLowerCase() === '#fff' || submenuTextColor.toLowerCase() === '#ffffff' || submenuTextColor.toLowerCase() === 'white')) ? '#1a1a1a' : submenuTextColor;
-      link.style.cssText = `color:${safeColor};font-family:${settings.typographySubtextFont};font-weight:${settings.typographySubtextWeight};font-size:${settings.typographySubtextSize}px;text-decoration:none;display:inline-flex;align-items:center;white-space:normal;overflow-wrap:anywhere;background:transparent;line-height:1.2;`;
+      link.style.cssText = `font-family:${settings.typographySubtextFont};font-weight:${settings.typographySubtextWeight};font-size:${settings.typographySubtextSize}px;text-decoration:none;display:inline-flex;align-items:center;white-space:normal;overflow-wrap:anywhere;background:transparent;line-height:1.2;`;
+      link.style.setProperty("color", item.customTextColor || settings.colorSubmenuText, "important");
     }
 
     if (item.openInNewTab) {
@@ -349,7 +377,8 @@
     const isRedundantDesc = descText.toLowerCase() === "description" || descText === label;
     if (descText && !isRedundantDesc) {
       const desc = el("div", "mc-link-desc", descText);
-      desc.style.cssText = `font-size:${depth > 0 ? "11px" : "12px"};color:${settings.colorSubmenuDescription};margin-top:1px;line-height:1.2;overflow-wrap:break-word;opacity:0.8;`;
+      desc.style.cssText = `font-size:${depth > 0 ? "11px" : "12px"};margin-top:1px;line-height:1.2;overflow-wrap:break-word;opacity:0.8;`;
+      desc.style.setProperty("color", settings.colorSubmenuDescription, "important");
       textContent.appendChild(desc);
     }
 
@@ -478,12 +507,14 @@
 
       if (item.label) {
         const lbl = el("div", "mc-img-label", item.label);
-        lbl.style.cssText = `font-weight:600;font-family:${settings.typographySubheadingFont};font-size:16px;line-height:1.3;color:${isOverlay ? "#fff" : settings.colorSubmenuText};`;
+        lbl.style.cssText = `font-weight:600;font-family:${settings.typographySubheadingFont};font-size:16px;line-height:1.3;`;
+        lbl.style.setProperty("color", isOverlay ? "#fff" : settings.colorSubmenuText, "important");
         info.appendChild(lbl);
       }
       if (item.description) {
         const desc = el("div", "mc-img-desc", item.description);
-        desc.style.cssText = `font-size:12px;font-family:${settings.typographySubtextFont};color:${isOverlay ? "rgba(255,255,255,0.8)" : settings.colorSubmenuDescription};line-height:1.3;overflow-wrap:break-word;`;
+        desc.style.cssText = `font-size:12px;font-family:${settings.typographySubtextFont};line-height:1.3;overflow-wrap:break-word;`;
+        desc.style.setProperty("color", isOverlay ? "rgba(255,255,255,0.8)" : settings.colorSubmenuDescription, "important");
         info.appendChild(desc);
       }
 
@@ -519,7 +550,7 @@
 
     const imgSize = isLeft ? 74 : "100%";
     const imgWrap = el("div", "mc-product-img-wrap");
-    imgWrap.style.cssText = `width:${isLeft ? imgSize + "px" : "100%"};height:${isLeft ? imgSize + "px" : "auto"};${isLeft ? `flex:0 0 ${imgSize}px;` : ""}background:#f3f4f4;border:1px solid #e5e7eb;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:6px;`;
+    imgWrap.style.cssText = `width:${isLeft ? imgSize + "px" : "100%"};height:${isLeft ? imgSize + "px" : "auto"};${isLeft ? `flex:0 0 ${imgSize}px;` : "aspect-ratio:1/1;max-height:280px;"}background:#f3f4f4;border:1px solid #e5e7eb;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:6px;`;
 
     const imgUrl = product?.featuredImage?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png";
     const img = el("img");
@@ -535,12 +566,14 @@
     info.style.cssText = "display:flex;flex-direction:column;gap:4px;justify-content:center;";
 
     const title = el("div", "mc-product-title", product?.title || "Product");
-    title.style.cssText = `font-weight:600;font-size:14px;font-family:${settings.typographySubheadingFont};color:${settings.colorSubmenuText};line-height:1.3;`;
+    title.style.cssText = `font-weight:600;font-size:14px;font-family:${settings.typographySubheadingFont};line-height:1.3;`;
+    title.style.setProperty("color", settings.colorSubmenuText, "important");
     info.appendChild(title);
 
     if (product?.priceRange?.minVariantPrice) {
       const price = el("div", "mc-product-price", formatPrice(product.priceRange.minVariantPrice));
-      price.style.cssText = `font-size:13px;font-weight:400;color:${settings.colorSubmenuDescription};`;
+      price.style.cssText = `font-size:13px;font-weight:400;`;
+      price.style.setProperty("color", settings.colorSubmenuDescription, "important");
       info.appendChild(price);
     }
 
@@ -673,13 +706,16 @@
       // Grid / List / Standard
       const grid = el("div", "mc-product-grid");
       if (isGrid) {
-        grid.style.cssText = "display:grid;gap:16px;grid-template-columns:repeat(2, 1fr);";
+        const cols = Math.min(ids.length, 2);
+        grid.style.cssText = `display:grid;gap:16px;grid-template-columns:repeat(${cols}, 1fr);`;
       } else if (isList) {
-        grid.style.cssText = "display:grid;gap:16px;grid-template-columns:1fr;";
-      } else if (isHorizontal || ids.length === 1) {
-        grid.style.cssText = "display:grid;gap:16px;grid-template-columns:1fr;";
+        grid.style.cssText = "display:grid;gap:16px;grid-template-columns:1fr;max-width:360px;";
+      } else if (isHorizontal) {
+        grid.style.cssText = "display:grid;gap:16px;grid-template-columns:1fr;max-width:360px;";
+      } else if (ids.length === 1) {
+        grid.style.cssText = "display:grid;gap:16px;grid-template-columns:1fr;max-width:280px;";
       } else {
-        grid.style.cssText = "display:grid;gap:16px;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));";
+        grid.style.cssText = "display:grid;gap:16px;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));";
       }
 
       ids.forEach((id) => {
@@ -738,7 +774,8 @@
         row.appendChild(thumb);
 
         const lbl = el("div", "mc-collection-label", collection?.title || "Collection");
-        lbl.style.cssText = `font-weight:600;font-size:14px;font-family:${settings.typographySubheadingFont};color:${settings.colorSubmenuText};`;
+        lbl.style.cssText = `font-weight:600;font-size:14px;font-family:${settings.typographySubheadingFont};`;
+        lbl.style.setProperty("color", settings.colorSubmenuText, "important");
         row.appendChild(lbl);
 
         row.onmouseenter = () => { row.style.background = "rgba(0,0,0,0.04)"; };
@@ -821,7 +858,8 @@
       row.appendChild(thumbWrap);
 
       const title = el("div", "mc-blog-title", article.title);
-      title.style.cssText = `font-size:14px;font-weight:600;color:${settings.colorSubmenuText};line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;`;
+      title.style.cssText = `font-size:14px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;`;
+      title.style.setProperty("color", settings.colorSubmenuText, "important");
       row.appendChild(title);
 
       row.onmouseenter = () => { row.style.background = "rgba(0,0,0,0.04)"; };
@@ -952,7 +990,8 @@
     }
 
     const content = el("div", "mc-html-content");
-    content.style.cssText = `color:${settings.colorSubmenuText};font-family:${settings.typographySubtextFont};font-size:${settings.typographySubtextSize}px;line-height:1.5;`;
+    content.style.cssText = `font-family:${settings.typographySubtextFont};font-size:${settings.typographySubtextSize}px;line-height:1.5;`;
+    content.style.setProperty("color", settings.colorSubmenuText, "important");
     content.innerHTML = item.htmlContent || "";
     container.appendChild(content);
     return container;
@@ -1072,18 +1111,12 @@
     items.forEach((child) => {
       const block = buildBlockByType(child, settings);
       const span = getBlockSpan(child);
-      const bt = child.blockTemplate;
 
-      if (bt === "links" || bt === "links-easy" || bt === "links-3" || bt === "links-icons") {
-        block.style.flex = "0 1 auto";
-        block.style.width = "auto";
-        block.style.minWidth = "unset";
-      } else {
-        const pct = (span / 12) * 100;
-        block.style.flex = "0 1 auto";
-        block.style.width = `calc(${pct}% - 20px)`;
-        block.style.minWidth = "120px";
-      }
+      const pct = (span / 12) * 100;
+      block.style.flex = `0 1 calc(${pct}% - 20px)`;
+      block.style.width = `calc(${pct}% - 20px)`;
+      block.style.minWidth = "120px";
+      block.style.boxSizing = "border-box";
 
       container.appendChild(block);
     });
@@ -1652,8 +1685,14 @@
         .mc-collection-grid { grid-template-columns:1fr !important; }
 
         /* Mobile link accordion */
-        .mc-block-links .mc-links-grid { display:none !important; }
-        .mc-block-links.is-open .mc-links-grid { display:flex !important; }
+        .mc-link-col .mc-link-wrapper { display:none !important; }
+        .mc-link-col.is-open .mc-link-wrapper { display:flex !important; }
+        .mc-heading-wrapper { cursor:pointer; }
+        .mc-heading-toggle {
+          margin-left:auto;font-size:14px;transition:transform 0.2s;color:${settings.colorSubmenuHeading};
+          flex-shrink:0;
+        }
+        .mc-link-col.is-open .mc-heading-toggle { transform:rotate(180deg); }
 
         .mc-product-card {
           width:100% !important;max-width:100% !important;flex:0 0 100% !important;
@@ -1828,6 +1867,25 @@
       });
 
       item.classList.remove("is-open");
+    });
+
+    // Link list heading accordion
+    container.querySelectorAll(".mc-link-col").forEach((col) => {
+      if (col.dataset.accordionSetup === "true") return;
+      col.dataset.accordionSetup = "true";
+
+      const heading = col.querySelector(".mc-heading-wrapper");
+      if (!heading) return;
+
+      // Add toggle chevron
+      const toggle = el("span", "mc-heading-toggle", "▾");
+      heading.appendChild(toggle);
+      heading.style.cursor = "pointer";
+
+      heading.addEventListener("click", (e) => {
+        e.stopPropagation();
+        col.classList.toggle("is-open");
+      });
     });
   };
 

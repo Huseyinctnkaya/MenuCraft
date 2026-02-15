@@ -1500,20 +1500,21 @@
   // ── 6.5 Submenu content router ────────────────────────────────────
   const buildSubmenuContent = (parentItem, settings) => {
     const tmpl = parentItem.submenuTemplate;
+    console.log("[MenuCraft Debug] submenuTemplate:", tmpl, "submenuType:", parentItem.submenuType, "label:", parentItem.label);
 
     // Tab templates
     if (isTabTemplate(tmpl)) {
       return buildTabsContent(parentItem, settings);
     }
 
+    // Horizontal dropdown (check BEFORE regular dropdown)
+    if (tmpl === "horizontal-dropdown" || parentItem.submenuType === "horizontal-dropdown") {
+      return buildHorizontalDropdownContent(parentItem, settings);
+    }
+
     // Dropdown
     if (tmpl === "dropdown" || tmpl === "custom-normal-dropdown" || parentItem.submenuType === "dropdown") {
       return buildDropdownContent(parentItem, settings);
-    }
-
-    // Horizontal dropdown
-    if (tmpl === "horizontal-dropdown" || parentItem.submenuType === "horizontal-dropdown") {
-      return buildHorizontalDropdownContent(parentItem, settings);
     }
 
     // Mega menu (default for items with block templates)
@@ -1599,14 +1600,22 @@
 
         // Submenu width for non-mega
         if (!isMegaMenu(item)) {
+          const isHorizontalDropdown = item.submenuTemplate === "horizontal-dropdown" || item.submenuType === "horizontal-dropdown";
+
           // Dropdown should never be full-width, only custom width or default
           if (item.submenuCustomWidth) {
             submenu.style.width = `${item.submenuCustomWidth}px`;
             submenu.style.maxWidth = "none";
           } else {
-            // Default: set max-width for dropdown to prevent full-width
-            submenu.style.maxWidth = "320px";
-            submenu.style.width = "auto";
+            // Horizontal dropdown needs more width since items are side-by-side
+            if (isHorizontalDropdown) {
+              submenu.style.maxWidth = "600px";
+              submenu.style.width = "auto";
+            } else {
+              // Regular dropdown: narrower width
+              submenu.style.maxWidth = "320px";
+              submenu.style.width = "auto";
+            }
           }
           // Note: Full-width is ignored for dropdowns, only applies to mega menus
         }
@@ -1802,6 +1811,14 @@
 
       /* ── Submenu list ── */
       .mc-submenu-list { list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px; }
+
+      /* ── Horizontal dropdown ── */
+      .mc-menu-item.is-hdropdown > .mc-submenu { max-width:none !important;width:auto !important; }
+      .mc-hdropdown-content { display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;gap:8px !important; }
+      .mc-hdropdown-content .mc-hdropdown-item { flex:0 0 auto !important;white-space:nowrap !important; }
+      .mc-hdropdown-content .mc-link-wrapper { width:auto !important; }
+      .mc-hdropdown-content .mc-link-text { flex:0 0 auto !important; }
+      .mc-hdropdown-content .mc-link { white-space:nowrap !important; }
 
       /* ── Contact form responsive ── */
       @media (max-width:600px) {

@@ -2,16 +2,15 @@
 
 client_id = "e458d01dd187d4941bb99548a78e9421"
 name = "MenuCraft"
-application_url = "https://missed-farms-par-court.trycloudflare.com"
+application_url = "https://welfare-papua-birth-max.trycloudflare.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
 dev_store_url = "mega-menu-test-2.myshopify.com"
-include_config_on_deploy = true
 
 [app_proxy]
-url = "https://missed-farms-par-court.trycloudflare.com/proxy"
+url = "https://welfare-papua-birth-max.trycloudflare.com/proxy"
 subpath = "menucraft"
 prefix = "apps"
 
@@ -38,5 +37,5 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://missed-farms-par-court.trycloudflare.com/auth/callback"
+  "https://welfare-papua-birth-max.trycloudflare.com/auth/callback"
 ]

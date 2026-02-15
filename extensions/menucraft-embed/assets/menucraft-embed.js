@@ -425,7 +425,7 @@
   // ── 5.1 Link List Block ───────────────────────────────────────────
   const buildLinkListBlock = (group, settings) => {
     const container = el("div", "mc-block-links");
-    container.style.cssText = "padding:16px 24px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:16px 20px;display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;";
 
     const columnCount = Math.max(1, group.linkColumns || 1);
     const children = group.children || [];
@@ -433,12 +433,12 @@
     const mobile = checkMobile(settings);
 
     const grid = el("div", "mc-links-grid");
-    grid.style.cssText = `display:flex;flex-direction:${mobile ? "column" : "row"};gap:${mobile ? "12px" : "32px"};flex-wrap:wrap;width:100%;`;
+    grid.style.cssText = `display:flex;flex-direction:${mobile ? "column" : "row"};gap:${mobile ? "14px" : "36px"};flex-wrap:wrap;width:100%;`;
 
     const itemsPerCol = Math.ceil(children.length / columnCount);
     for (let i = 0; i < columnCount; i++) {
       const col = el("div", "mc-link-col");
-      col.style.cssText = `flex:1 1 0;display:flex;flex-direction:column;gap:6px;align-items:${textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start"};min-width:180px;`;
+      col.style.cssText = `flex:1 1 0;display:flex;flex-direction:column;gap:4px;align-items:${textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start"};min-width:200px;`;
 
       const start = i * itemsPerCol;
       const end = Math.min(start + itemsPerCol, children.length);
@@ -448,11 +448,20 @@
 
         const itemEl = buildLink(child, settings, 1);
         if (!child.isHeading) {
-          itemEl.style.padding = "8px 12px";
-          itemEl.style.borderRadius = "6px";
+          itemEl.style.padding = "10px 14px";
+          itemEl.style.borderRadius = "8px";
           itemEl.style.width = textAlign === "center" ? "auto" : "100%";
-          itemEl.onmouseenter = () => { itemEl.style.background = "rgba(0,0,0,0.04)"; };
-          itemEl.onmouseleave = () => { itemEl.style.background = "transparent"; };
+          itemEl.style.transition = "all 150ms ease";
+          itemEl.onmouseenter = () => {
+            itemEl.style.background = "rgba(0,0,0,0.04)";
+            itemEl.style.transform = "translateX(4px)";
+          };
+          itemEl.onmouseleave = () => {
+            itemEl.style.background = "transparent";
+            itemEl.style.transform = "translateX(0)";
+          };
+        } else {
+          itemEl.style.marginTop = "8px";
         }
         col.appendChild(itemEl);
       });
@@ -465,31 +474,51 @@
   // ── 5.2 Image Block ───────────────────────────────────────────────
   const buildImageBlock = (item, settings) => {
     const container = el("div", "mc-block-image");
-    container.style.cssText = "padding:10px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:12px;display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;";
 
     const isOverlay = item.blockTemplate === "image2";
     const align = item.imageTextAlign || "left";
     const alignItems = align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start";
+    const justifyContent = align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start";
 
     const imgWrap = el("div", "mc-img-wrap");
-    imgWrap.style.cssText = "position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border-radius:8px;";
+    imgWrap.style.cssText = "position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border-radius:12px;transition:transform 300ms ease,box-shadow 300ms ease;";
 
     if (item.imageUrl) {
       const img = el("img");
       img.src = item.imageUrl;
       img.alt = item.label || "";
-      img.style.cssText = "width:100%;display:block;";
+      img.style.cssText = "width:100%;height:100%;display:block;object-fit:cover;transition:transform 300ms ease;";
       if (!item.imageNoFill) {
-        imgWrap.style.background = "#f3f4f4";
+        imgWrap.style.background = "#f9fafb";
         imgWrap.style.border = "1px solid #e5e7eb";
+        imgWrap.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
       }
       if (settings.advancedEnableLazyLoading) img.loading = "lazy";
       img.onerror = () => { img.style.display = "none"; };
       imgWrap.appendChild(img);
+
+      // Add hover effect for images with links
+      if (item.url && item.url !== "#") {
+        container.style.cursor = "pointer";
+        container.addEventListener("mouseenter", () => {
+          img.style.transform = "scale(1.05)";
+          if (!item.imageNoFill) {
+            imgWrap.style.boxShadow = "0 10px 20px rgba(0,0,0,0.1)";
+          }
+        });
+        container.addEventListener("mouseleave", () => {
+          img.style.transform = "scale(1)";
+          if (!item.imageNoFill) {
+            imgWrap.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+          }
+        });
+      }
     } else {
-      imgWrap.style.background = "rgba(133,133,133,0.1)";
-      imgWrap.style.minHeight = "150px";
-      imgWrap.innerHTML = `<svg viewBox="0 0 525.5 525.5" style="width:60%;height:60%;fill:rgba(133,133,133,0.35);"><path d="M324.5 212.7H203c-1.6 0-2.8 1.3-2.8 2.8V308c0 1.6 1.3 2.8 2.8 2.8h121.6c1.6 0 2.8-1.3 2.8-2.8v-92.5c0-1.6-1.3-2.8-2.9-2.8zm1.1 95.3c0 .6-.5 1.1-1.1 1.1H203c-.6 0-1.1-.5-1.1-1.1v-92.5c0-.6.5-1.1 1.1-1.1h121.6c.6 0 1.1.5 1.1 1.1V308z"/></svg>`;
+      imgWrap.style.background = "linear-gradient(135deg, rgba(133,133,133,0.08) 0%, rgba(133,133,133,0.15) 100%)";
+      imgWrap.style.minHeight = "180px";
+      imgWrap.style.border = "1px dashed #d1d5db";
+      imgWrap.innerHTML = `<svg viewBox="0 0 525.5 525.5" style="width:50%;height:50%;fill:rgba(133,133,133,0.25);"><path d="M324.5 212.7H203c-1.6 0-2.8 1.3-2.8 2.8V308c0 1.6 1.3 2.8 2.8 2.8h121.6c1.6 0 2.8-1.3 2.8-2.8v-92.5c0-1.6-1.3-2.8-2.9-2.8zm1.1 95.3c0 .6-.5 1.1-1.1 1.1H203c-.6 0-1.1-.5-1.1-1.1v-92.5c0-.6.5-1.1 1.1-1.1h121.6c.6 0 1.1.5 1.1 1.1V308z"/></svg>`;
     }
     container.appendChild(imgWrap);
 
@@ -497,24 +526,25 @@
     const hasInfo = item.label || item.description;
     if (hasInfo) {
       const info = el("div", "mc-img-info");
-      info.style.cssText = `display:flex;flex-direction:column;gap:6px;text-align:${align};align-self:${alignItems};`;
+      info.style.cssText = `display:flex;flex-direction:column;gap:8px;text-align:${align};align-items:${alignItems};justify-content:${justifyContent};width:100%;`;
 
       if (isOverlay) {
-        info.style.cssText += "position:absolute;left:16px;right:16px;bottom:16px;background:rgba(0,0,0,0.7);color:#fff;padding:12px 14px;border-radius:6px;";
+        info.style.cssText += "position:absolute;left:20px;right:20px;bottom:20px;background:linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);backdrop-filter:blur(8px);color:#fff;padding:16px 18px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
       } else {
-        info.style.marginTop = "10px";
+        info.style.marginTop = "12px";
+        info.style.padding = "0 4px";
       }
 
       if (item.label) {
         const lbl = el("div", "mc-img-label", item.label);
-        lbl.style.cssText = `font-weight:600;font-family:${settings.typographySubheadingFont};font-size:16px;line-height:1.3;`;
+        lbl.style.cssText = `font-weight:700;font-family:${settings.typographySubheadingFont};font-size:17px;line-height:1.3;letter-spacing:-0.02em;`;
         lbl.style.setProperty("color", isOverlay ? "#fff" : settings.colorSubmenuText, "important");
         info.appendChild(lbl);
       }
       if (item.description) {
         const desc = el("div", "mc-img-desc", item.description);
-        desc.style.cssText = `font-size:12px;font-family:${settings.typographySubtextFont};line-height:1.3;overflow-wrap:break-word;`;
-        desc.style.setProperty("color", isOverlay ? "rgba(255,255,255,0.8)" : settings.colorSubmenuDescription, "important");
+        desc.style.cssText = `font-size:13px;font-family:${settings.typographySubtextFont};line-height:1.4;overflow-wrap:break-word;opacity:${isOverlay ? "0.95" : "0.85"};`;
+        desc.style.setProperty("color", isOverlay ? "rgba(255,255,255,0.95)" : settings.colorSubmenuDescription, "important");
         info.appendChild(desc);
       }
 
@@ -525,9 +555,18 @@
       }
     }
 
-    // Wrap in link if URL
-    if (item.url && item.url !== "#") {
+    // Wrap in link if URL (only add click if not already added in hover section)
+    if (item.url && item.url !== "#" && !item.imageUrl) {
       container.style.cursor = "pointer";
+      container.addEventListener("click", () => {
+        if (item.openInNewTab) {
+          window.open(item.url, "_blank", "noopener,noreferrer");
+        } else {
+          window.location.href = item.url;
+        }
+      });
+    } else if (item.url && item.url !== "#" && item.imageUrl) {
+      // Click handler already added in hover section above
       container.addEventListener("click", () => {
         if (item.openInNewTab) {
           window.open(item.url, "_blank", "noopener,noreferrer");
@@ -545,50 +584,70 @@
     const product = getResource("product", productId);
     const isLeft = layout === "image-left";
     const card = el("a", "mc-product-card");
-    card.style.cssText = `display:flex;flex-direction:${isLeft ? "row" : "column"};gap:12px;padding:0;background:transparent;text-decoration:none;color:inherit;transition:all 150ms ease;border-radius:8px;`;
+    card.style.cssText = `display:flex;flex-direction:${isLeft ? "row" : "column"};gap:${isLeft ? "12px" : "10px"};padding:0;background:transparent;text-decoration:none;color:inherit;transition:all 200ms ease;border-radius:10px;`;
     if (product && product.handle) card.href = `/products/${product.handle}`;
 
-    const imgSize = isLeft ? 74 : "100%";
+    const imgSize = isLeft ? 80 : "100%";
     const imgWrap = el("div", "mc-product-img-wrap");
-    imgWrap.style.cssText = `width:${isLeft ? imgSize + "px" : "100%"};height:${isLeft ? imgSize + "px" : "auto"};${isLeft ? `flex:0 0 ${imgSize}px;` : "aspect-ratio:1/1;max-height:280px;"}background:#f3f4f4;border:1px solid #e5e7eb;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:6px;`;
+    imgWrap.style.cssText = `width:${isLeft ? imgSize + "px" : "100%"};height:${isLeft ? imgSize + "px" : "auto"};${isLeft ? `flex:0 0 ${imgSize}px;` : "aspect-ratio:1/1;max-height:280px;"}background:#f9fafb;border:1px solid #e5e7eb;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 200ms ease,box-shadow 200ms ease;`;
 
     const imgUrl = product?.featuredImage?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png";
     const img = el("img");
     img.src = imgUrl;
     img.alt = product?.title || "";
-    img.style.cssText = "width:100%;height:100%;object-fit:contain;";
+    img.style.cssText = "width:100%;height:100%;object-fit:contain;transition:transform 200ms ease;";
     img.onerror = () => { img.style.display = "none"; };
     if (settings.advancedEnableLazyLoading) img.loading = "lazy";
     imgWrap.appendChild(img);
     card.appendChild(imgWrap);
 
     const info = el("div", "mc-product-info");
-    info.style.cssText = "display:flex;flex-direction:column;gap:4px;justify-content:center;";
+    info.style.cssText = "display:flex;flex-direction:column;gap:6px;justify-content:center;flex:1;";
 
     const title = el("div", "mc-product-title", product?.title || "Product");
-    title.style.cssText = `font-weight:600;font-size:14px;font-family:${settings.typographySubheadingFont};line-height:1.3;`;
+    title.style.cssText = `font-weight:600;font-size:${isLeft ? "14px" : "15px"};font-family:${settings.typographySubheadingFont};line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:color 150ms ease;`;
     title.style.setProperty("color", settings.colorSubmenuText, "important");
     info.appendChild(title);
 
     if (product?.priceRange?.minVariantPrice) {
       const price = el("div", "mc-product-price", formatPrice(product.priceRange.minVariantPrice));
-      price.style.cssText = `font-size:13px;font-weight:400;`;
-      price.style.setProperty("color", settings.colorSubmenuDescription, "important");
+      price.style.cssText = `font-size:${isLeft ? "13px" : "14px"};font-weight:600;margin-top:2px;`;
+      price.style.setProperty("color", settings.colorSubmenuHeading || "#111827", "important");
       info.appendChild(price);
     }
 
     if (settings.advancedShowAddToCart && product) {
       const btn = el("button", "mc-add-to-cart", "Add to Cart");
-      btn.style.cssText = `margin-top:6px;padding:6px 14px;border:none;border-radius:6px;background:${settings.colorButtonBackground};color:${settings.colorButtonText};font-size:12px;font-weight:600;cursor:pointer;transition:background 150ms;`;
-      btn.onmouseenter = () => { btn.style.background = settings.colorButtonBackgroundHover; btn.style.color = settings.colorButtonTextHover; };
-      btn.onmouseleave = () => { btn.style.background = settings.colorButtonBackground; btn.style.color = settings.colorButtonText; };
+      btn.style.cssText = `margin-top:8px;padding:8px 16px;border:none;border-radius:8px;background:${settings.colorButtonBackground};color:${settings.colorButtonText};font-size:13px;font-weight:600;cursor:pointer;transition:all 200ms ease;box-shadow:0 1px 3px rgba(0,0,0,0.1);`;
+      btn.onmouseenter = () => {
+        btn.style.background = settings.colorButtonBackgroundHover;
+        btn.style.color = settings.colorButtonTextHover;
+        btn.style.transform = "translateY(-1px)";
+        btn.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+      };
+      btn.onmouseleave = () => {
+        btn.style.background = settings.colorButtonBackground;
+        btn.style.color = settings.colorButtonText;
+        btn.style.transform = "translateY(0)";
+        btn.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+      };
       info.appendChild(btn);
     }
 
     card.appendChild(info);
 
-    card.onmouseenter = () => { card.style.background = "rgba(0,0,0,0.04)"; };
-    card.onmouseleave = () => { card.style.background = "transparent"; };
+    card.onmouseenter = () => {
+      card.style.background = "rgba(0,0,0,0.02)";
+      imgWrap.style.transform = "scale(1.03)";
+      imgWrap.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+      title.style.color = settings.colorSubmenuTextHover || settings.colorSubmenuHeading;
+    };
+    card.onmouseleave = () => {
+      card.style.background = "transparent";
+      imgWrap.style.transform = "scale(1)";
+      imgWrap.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+      title.style.color = settings.colorSubmenuText;
+    };
 
     return card;
   };
@@ -596,7 +655,7 @@
   // ── 5.4 Product Block ─────────────────────────────────────────────
   const buildProductBlock = (item, settings) => {
     const container = el("div", "mc-block-product");
-    container.style.cssText = "padding:5px;display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:12px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
 
     const bt = item.blockTemplate || "product";
     const isCarousel = bt === "product-carousel";
@@ -610,10 +669,10 @@
     const heading = (item.label || "").trim();
     if (heading) {
       const h = el("div", "mc-block-heading", heading);
-      h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:16px;line-height:1.3;letter-spacing:-0.01em;margin-bottom:6px;`;
+      h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:18px;line-height:1.2;letter-spacing:-0.02em;margin-bottom:4px;`;
       container.appendChild(h);
       const hr = el("div");
-      hr.style.cssText = `border-top:1px solid ${settings.colorSubmenuHeading};opacity:0.5;margin-bottom:6px;`;
+      hr.style.cssText = `border-top:2px solid ${settings.colorSubmenuHeading};opacity:0.2;margin-bottom:8px;border-radius:2px;`;
       container.appendChild(hr);
     }
 
@@ -730,7 +789,7 @@
   // ── 5.5 Collection Block ──────────────────────────────────────────
   const buildCollectionBlock = (item, settings) => {
     const container = el("div", "mc-block-collection");
-    container.style.cssText = "padding:5px;display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:12px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
 
     const isHorizontal = item.blockTemplate === "collection-horizontal";
     const ids = Array.isArray(item.collectionIds) ? item.collectionIds : [];
@@ -739,10 +798,10 @@
     const heading = (item.label || "").trim();
     if (heading) {
       const h = el("div", "mc-block-heading", heading);
-      h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:16px;line-height:1.3;letter-spacing:-0.01em;margin-bottom:6px;`;
+      h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:18px;line-height:1.2;letter-spacing:-0.02em;margin-bottom:4px;`;
       container.appendChild(h);
       const hr = el("div");
-      hr.style.cssText = `border-top:1px solid ${settings.colorSubmenuHeading};opacity:0.5;margin-bottom:6px;`;
+      hr.style.cssText = `border-top:2px solid ${settings.colorSubmenuHeading};opacity:0.2;margin-bottom:8px;border-radius:2px;`;
       container.appendChild(hr);
     }
 
@@ -759,54 +818,74 @@
       if (isHorizontal) {
         // Horizontal layout: image left
         const row = el("a", "mc-collection-row");
-        row.style.cssText = `display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;padding:8px;border-radius:8px;transition:background 150ms;`;
+        row.style.cssText = `display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;padding:10px 12px;border-radius:10px;transition:all 200ms ease;background:transparent;`;
         if (collection?.handle) row.href = `/collections/${collection.handle}`;
 
         const thumb = el("div", "mc-collection-thumb");
-        thumb.style.cssText = "width:60px;height:60px;flex:0 0 60px;border-radius:8px;overflow:hidden;background:#f3f4f4;border:1px solid #e5e7eb;";
+        thumb.style.cssText = "width:70px;height:70px;flex:0 0 70px;border-radius:10px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:all 200ms ease;";
         const img = el("img");
         img.src = collection?.image?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-collection-1_large.png";
         img.alt = collection?.title || "";
-        img.style.cssText = "width:100%;height:100%;object-fit:cover;";
+        img.style.cssText = "width:100%;height:100%;object-fit:cover;transition:transform 200ms ease;";
         img.onerror = () => { img.style.display = "none"; };
         if (settings.advancedEnableLazyLoading) img.loading = "lazy";
         thumb.appendChild(img);
         row.appendChild(thumb);
 
         const lbl = el("div", "mc-collection-label", collection?.title || "Collection");
-        lbl.style.cssText = `font-weight:600;font-size:14px;font-family:${settings.typographySubheadingFont};`;
+        lbl.style.cssText = `font-weight:600;font-size:15px;font-family:${settings.typographySubheadingFont};line-height:1.3;transition:color 150ms ease;`;
         lbl.style.setProperty("color", settings.colorSubmenuText, "important");
         row.appendChild(lbl);
 
-        row.onmouseenter = () => { row.style.background = "rgba(0,0,0,0.04)"; };
-        row.onmouseleave = () => { row.style.background = "transparent"; };
+        row.onmouseenter = () => {
+          row.style.background = "rgba(0,0,0,0.03)";
+          thumb.style.transform = "scale(1.05)";
+          thumb.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
+          lbl.style.color = settings.colorSubmenuTextHover || settings.colorSubmenuHeading;
+        };
+        row.onmouseleave = () => {
+          row.style.background = "transparent";
+          thumb.style.transform = "scale(1)";
+          thumb.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+          lbl.style.color = settings.colorSubmenuText;
+        };
 
         grid.appendChild(row);
       } else {
         // Card layout with overlay
         const card = el("a", "mc-collection-card");
-        card.style.cssText = "display:block;position:relative;border-radius:12px;overflow:hidden;text-decoration:none;background:#f3f4f4;border:1px solid #e5e7eb;aspect-ratio:16/9;";
+        card.style.cssText = "display:block;position:relative;border-radius:14px;overflow:hidden;text-decoration:none;background:#f9fafb;border:1px solid #e5e7eb;aspect-ratio:16/9;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:all 250ms ease;";
         if (collection?.handle) card.href = `/collections/${collection.handle}`;
 
         const imgUrl = collection?.image?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-collection-1_large.png";
         const img = el("img");
         img.src = imgUrl;
         img.alt = collection?.title || "";
-        img.style.cssText = "width:100%;height:100%;object-fit:cover;display:block;transition:transform 500ms ease;";
+        img.style.cssText = "width:100%;height:100%;object-fit:cover;display:block;transition:transform 400ms ease;";
         img.onerror = () => { img.style.display = "none"; };
         if (settings.advancedEnableLazyLoading) img.loading = "lazy";
         card.appendChild(img);
 
         const overlay = el("div", "mc-collection-overlay");
-        overlay.style.cssText = "position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(to top,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.4) 60%,transparent 100%);color:#fff;display:flex;flex-direction:column;justify-content:flex-end;height:60%;";
+        overlay.style.cssText = "position:absolute;bottom:0;left:0;right:0;padding:18px 20px;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.5) 50%,transparent 100%);color:#fff;display:flex;flex-direction:column;justify-content:flex-end;height:65%;transition:padding 200ms ease;";
 
         const lbl = el("div", "mc-collection-label", collection?.title || "Collection");
-        lbl.style.cssText = `font-weight:600;font-size:15px;font-family:${settings.typographySubheadingFont};`;
+        lbl.style.cssText = `font-weight:700;font-size:17px;font-family:${settings.typographySubheadingFont};letter-spacing:-0.01em;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,0.3);`;
         overlay.appendChild(lbl);
         card.appendChild(overlay);
 
-        card.onmouseenter = () => { img.style.transform = "scale(1.05)"; };
-        card.onmouseleave = () => { img.style.transform = "none"; };
+        card.onmouseenter = () => {
+          img.style.transform = "scale(1.08)";
+          card.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)";
+          card.style.transform = "translateY(-2px)";
+          overlay.style.paddingBottom = "24px";
+        };
+        card.onmouseleave = () => {
+          img.style.transform = "scale(1)";
+          card.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
+          card.style.transform = "translateY(0)";
+          overlay.style.paddingBottom = "18px";
+        };
 
         grid.appendChild(card);
       }
@@ -819,7 +898,7 @@
   // ── 5.6 Blog Block ────────────────────────────────────────────────
   const buildBlogBlock = (item, settings) => {
     const container = el("div", "mc-block-blog");
-    container.style.cssText = "padding:5px;display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:12px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
 
     const blogId = Array.isArray(item.blogIds) ? item.blogIds[0] : null;
     const blog = getResource("blog", blogId);
@@ -831,39 +910,54 @@
     const blogTitle = (item.label || blog?.title || "Blog").trim();
     if (blogTitle) {
       const h = el("div", "mc-block-heading", blogTitle);
-      h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:16px;line-height:1.3;letter-spacing:-0.01em;margin-bottom:6px;`;
+      h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:18px;line-height:1.2;letter-spacing:-0.02em;margin-bottom:4px;`;
       container.appendChild(h);
       const hr = el("div");
-      hr.style.cssText = `border-top:1px solid ${settings.colorSubmenuHeading};opacity:0.5;margin-bottom:6px;`;
+      hr.style.cssText = `border-top:2px solid ${settings.colorSubmenuHeading};opacity:0.2;margin-bottom:8px;border-radius:2px;`;
       container.appendChild(hr);
     }
 
     const list = el("div", "mc-blog-list");
-    list.style.cssText = "display:flex;flex-direction:column;gap:4px;";
+    list.style.cssText = "display:flex;flex-direction:column;gap:8px;";
 
     displayArticles.forEach((article) => {
       const row = el("a", "mc-blog-row");
       row.href = blog ? `/blogs/${blog.handle}/${article.handle}` : "#";
-      row.style.cssText = `display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:8px;text-decoration:none;color:inherit;transition:background 150ms;`;
+      row.style.cssText = `display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:10px;text-decoration:none;color:inherit;transition:all 200ms ease;background:transparent;`;
 
       const thumbWrap = el("div", "mc-blog-thumb");
-      thumbWrap.style.cssText = "width:48px;height:48px;flex:0 0 48px;border-radius:6px;overflow:hidden;background:#f3f4f4;";
+      thumbWrap.style.cssText = "width:60px;height:60px;flex:0 0 60px;border-radius:8px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:all 200ms ease;";
       const img = el("img");
       img.src = article.image?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-lifestyle-2_large.png";
       img.alt = article.title || "";
-      img.style.cssText = "width:100%;height:100%;object-fit:cover;";
+      img.style.cssText = "width:100%;height:100%;object-fit:cover;transition:transform 200ms ease;";
       img.onerror = () => { img.style.display = "none"; };
       if (settings.advancedEnableLazyLoading) img.loading = "lazy";
       thumbWrap.appendChild(img);
       row.appendChild(thumbWrap);
 
-      const title = el("div", "mc-blog-title", article.title);
-      title.style.cssText = `font-size:14px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;`;
-      title.style.setProperty("color", settings.colorSubmenuText, "important");
-      row.appendChild(title);
+      const textWrap = el("div", "mc-blog-text");
+      textWrap.style.cssText = "flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;";
 
-      row.onmouseenter = () => { row.style.background = "rgba(0,0,0,0.04)"; };
-      row.onmouseleave = () => { row.style.background = "transparent"; };
+      const title = el("div", "mc-blog-title", article.title);
+      title.style.cssText = `font-size:14px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:color 150ms ease;`;
+      title.style.setProperty("color", settings.colorSubmenuText, "important");
+      textWrap.appendChild(title);
+
+      row.appendChild(textWrap);
+
+      row.onmouseenter = () => {
+        row.style.background = "rgba(0,0,0,0.03)";
+        thumbWrap.style.transform = "scale(1.05)";
+        thumbWrap.style.boxShadow = "0 4px 10px rgba(0,0,0,0.12)";
+        title.style.color = settings.colorSubmenuTextHover || settings.colorSubmenuHeading;
+      };
+      row.onmouseleave = () => {
+        row.style.background = "transparent";
+        thumbWrap.style.transform = "scale(1)";
+        thumbWrap.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+        title.style.color = settings.colorSubmenuText;
+      };
 
       list.appendChild(row);
     });
@@ -875,23 +969,23 @@
   // ── 5.7 Contact Block ─────────────────────────────────────────────
   const buildContactBlock = (item, settings) => {
     const container = el("div", "mc-block-contact");
-    container.style.cssText = "padding:16px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:20px;display:flex;flex-direction:column;gap:16px;width:100%;box-sizing:border-box;background:rgba(0,0,0,0.01);border-radius:12px;border:1px solid rgba(0,0,0,0.06);";
 
     if (item.contactTitle) {
       const title = el("h3", "mc-contact-title", item.contactTitle);
-      title.style.cssText = `color:${settings.colorSubmenuHeading};font-family:${settings.typographySubheadingFont};font-weight:600;font-size:16px;margin:0;`;
+      title.style.cssText = `color:${settings.colorSubmenuHeading};font-family:${settings.typographySubheadingFont};font-weight:700;font-size:18px;margin:0;letter-spacing:-0.01em;line-height:1.2;`;
       container.appendChild(title);
     }
     if (item.contactDescription) {
       const desc = el("p", "mc-contact-desc", item.contactDescription);
-      desc.style.cssText = `color:${settings.colorSubmenuDescription};font-size:13px;margin:0;line-height:1.4;`;
+      desc.style.cssText = `color:${settings.colorSubmenuDescription};font-size:14px;margin:0;line-height:1.5;opacity:0.9;`;
       container.appendChild(desc);
     }
 
     const form = el("form", "mc-contact-form");
-    form.style.cssText = "display:flex;flex-direction:column;gap:10px;";
+    form.style.cssText = "display:flex;flex-direction:column;gap:12px;";
 
-    const inputStyle = "width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;box-sizing:border-box;outline:none;transition:border-color 150ms;";
+    const inputStyle = "width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:8px;font-size:14px;font-family:inherit;box-sizing:border-box;outline:none;transition:all 200ms ease;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.04);";
 
     const row1 = el("div", "mc-contact-row");
     row1.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:10px;";
@@ -901,8 +995,16 @@
     nameInput.name = "name";
     nameInput.placeholder = item.contactNameLabel || "Name";
     nameInput.style.cssText = inputStyle;
-    nameInput.onfocus = () => { nameInput.style.borderColor = settings.colorSubmenuHeading; };
-    nameInput.onblur = () => { nameInput.style.borderColor = "#e5e7eb"; };
+    nameInput.onfocus = () => {
+      nameInput.style.borderColor = settings.colorSubmenuHeading;
+      nameInput.style.boxShadow = `0 0 0 3px ${settings.colorSubmenuHeading}15`;
+      nameInput.style.transform = "translateY(-1px)";
+    };
+    nameInput.onblur = () => {
+      nameInput.style.borderColor = "#e5e7eb";
+      nameInput.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)";
+      nameInput.style.transform = "translateY(0)";
+    };
     row1.appendChild(nameInput);
 
     const emailInput = el("input");
@@ -911,8 +1013,16 @@
     emailInput.placeholder = item.contactEmailLabel || "Email";
     emailInput.required = true;
     emailInput.style.cssText = inputStyle;
-    emailInput.onfocus = () => { emailInput.style.borderColor = settings.colorSubmenuHeading; };
-    emailInput.onblur = () => { emailInput.style.borderColor = "#e5e7eb"; };
+    emailInput.onfocus = () => {
+      emailInput.style.borderColor = settings.colorSubmenuHeading;
+      emailInput.style.boxShadow = `0 0 0 3px ${settings.colorSubmenuHeading}15`;
+      emailInput.style.transform = "translateY(-1px)";
+    };
+    emailInput.onblur = () => {
+      emailInput.style.borderColor = "#e5e7eb";
+      emailInput.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)";
+      emailInput.style.transform = "translateY(0)";
+    };
     row1.appendChild(emailInput);
     form.appendChild(row1);
 
@@ -922,29 +1032,55 @@
       phoneInput.name = "phone";
       phoneInput.placeholder = item.contactPhoneLabel || "Phone";
       phoneInput.style.cssText = inputStyle;
-      phoneInput.onfocus = () => { phoneInput.style.borderColor = settings.colorSubmenuHeading; };
-      phoneInput.onblur = () => { phoneInput.style.borderColor = "#e5e7eb"; };
+      phoneInput.onfocus = () => {
+        phoneInput.style.borderColor = settings.colorSubmenuHeading;
+        phoneInput.style.boxShadow = `0 0 0 3px ${settings.colorSubmenuHeading}15`;
+        phoneInput.style.transform = "translateY(-1px)";
+      };
+      phoneInput.onblur = () => {
+        phoneInput.style.borderColor = "#e5e7eb";
+        phoneInput.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)";
+        phoneInput.style.transform = "translateY(0)";
+      };
       form.appendChild(phoneInput);
     }
 
     const msgInput = el("textarea");
     msgInput.name = "message";
     msgInput.placeholder = item.contactMessageLabel || "Message";
-    msgInput.style.cssText = inputStyle + "height:80px;resize:none;";
-    msgInput.onfocus = () => { msgInput.style.borderColor = settings.colorSubmenuHeading; };
-    msgInput.onblur = () => { msgInput.style.borderColor = "#e5e7eb"; };
+    msgInput.style.cssText = inputStyle + "height:100px;resize:vertical;min-height:80px;max-height:200px;";
+    msgInput.onfocus = () => {
+      msgInput.style.borderColor = settings.colorSubmenuHeading;
+      msgInput.style.boxShadow = `0 0 0 3px ${settings.colorSubmenuHeading}15`;
+      msgInput.style.transform = "translateY(-1px)";
+    };
+    msgInput.onblur = () => {
+      msgInput.style.borderColor = "#e5e7eb";
+      msgInput.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)";
+      msgInput.style.transform = "translateY(0)";
+    };
     form.appendChild(msgInput);
 
-    const submitBtn = el("button", "mc-contact-submit", item.contactSubmitLabel || "Send");
+    const submitBtn = el("button", "mc-contact-submit", item.contactSubmitLabel || "Send Message");
     submitBtn.type = "submit";
-    submitBtn.style.cssText = `background:${settings.colorButtonBackground};color:${settings.colorButtonText};border:none;padding:12px 24px;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px;width:100%;transition:background 150ms;`;
-    submitBtn.onmouseenter = () => { submitBtn.style.background = settings.colorButtonBackgroundHover; submitBtn.style.color = settings.colorButtonTextHover; };
-    submitBtn.onmouseleave = () => { submitBtn.style.background = settings.colorButtonBackground; submitBtn.style.color = settings.colorButtonText; };
+    submitBtn.style.cssText = `background:${settings.colorButtonBackground};color:${settings.colorButtonText};border:none;padding:14px 28px;border-radius:10px;cursor:pointer;font-weight:700;font-size:15px;width:100%;transition:all 200ms ease;box-shadow:0 2px 8px rgba(0,0,0,0.12);letter-spacing:0.01em;`;
+    submitBtn.onmouseenter = () => {
+      submitBtn.style.background = settings.colorButtonBackgroundHover;
+      submitBtn.style.color = settings.colorButtonTextHover;
+      submitBtn.style.transform = "translateY(-2px)";
+      submitBtn.style.boxShadow = "0 6px 16px rgba(0,0,0,0.18)";
+    };
+    submitBtn.onmouseleave = () => {
+      submitBtn.style.background = settings.colorButtonBackground;
+      submitBtn.style.color = settings.colorButtonText;
+      submitBtn.style.transform = "translateY(0)";
+      submitBtn.style.boxShadow = "0 2px 8px rgba(0,0,0,0.12)";
+    };
     form.appendChild(submitBtn);
 
     const successMsg = el("div", "mc-contact-success");
-    successMsg.textContent = item.contactSuccessMessage || "Thank you! Your message has been sent.";
-    successMsg.style.cssText = "display:none;color:#16a34a;font-size:14px;padding:10px;text-align:center;";
+    successMsg.textContent = item.contactSuccessMessage || "✓ Thank you! Your message has been sent successfully.";
+    successMsg.style.cssText = "display:none;color:#16a34a;font-size:14px;padding:14px 18px;text-align:center;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-weight:500;";
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1070,13 +1206,20 @@
       if (!mobile && item.hideOnDesktop) return;
 
       const li = el("li", "mc-submenu-item");
-      li.style.cssText = "position:relative;display:block;padding:4px 0;";
+      li.style.cssText = "position:relative;display:block;padding:2px 0;";
 
       const link = buildLink(item, settings, depth);
-      link.style.padding = "6px 10px";
-      link.style.borderRadius = "6px";
-      link.onmouseenter = () => { link.style.background = "rgba(0,0,0,0.04)"; };
-      link.onmouseleave = () => { link.style.background = "transparent"; };
+      link.style.padding = "8px 12px";
+      link.style.borderRadius = "8px";
+      link.style.transition = "all 150ms ease";
+      link.onmouseenter = () => {
+        link.style.background = "rgba(0,0,0,0.04)";
+        link.style.transform = "translateX(4px)";
+      };
+      link.onmouseleave = () => {
+        link.style.background = "transparent";
+        link.style.transform = "translateX(0)";
+      };
       li.appendChild(link);
 
       // Nested children in dropdown
@@ -1104,7 +1247,7 @@
     else if (align === "space-around") justifyContent = "space-around";
     else if (align === "space-evenly") justifyContent = "space-evenly";
 
-    container.style.cssText = `display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;justify-content:${justifyContent};width:100%;max-width:${maxW};margin:0 auto;padding:20px;box-sizing:border-box;`;
+    container.style.cssText = `display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:${justifyContent};width:100%;max-width:${maxW};margin:0 auto;padding:24px 28px;box-sizing:border-box;`;
 
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
 
@@ -1131,13 +1274,16 @@
   // ── 6.2 Dropdown content ──────────────────────────────────────────
   const buildDropdownContent = (parentItem, settings) => {
     const container = el("div", "mc-dropdown-content");
-    container.style.cssText = "display:flex;flex-direction:column;gap:0;padding:8px 0;";
+    container.style.cssText = "display:flex;flex-direction:column;gap:2px;padding:10px 6px;min-width:200px;max-width:300px;width:auto;";
 
     // Submenu width
     if (parentItem.submenuWidth === "full") {
       container.style.width = "100%";
+      container.style.maxWidth = "none";
     } else if (parentItem.submenuCustomWidth) {
       container.style.width = `${parentItem.submenuCustomWidth}px`;
+      container.style.minWidth = "auto";
+      container.style.maxWidth = "none";
     }
 
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
@@ -1146,21 +1292,57 @@
         container.appendChild(buildBlockByType(child, settings));
       } else {
         const itemEl = el("div", "mc-dropdown-item");
-        itemEl.style.cssText = `padding:10px 20px;min-height:${settings.spacingLinkListRowHeight}px;display:flex;align-items:center;transition:background 150ms;`;
+        itemEl.style.cssText = `padding:12px 18px;min-height:${settings.spacingLinkListRowHeight}px;display:flex;align-items:center;justify-content:space-between;transition:all 150ms ease;border-radius:8px;position:relative;`;
         const link = buildLink(child, settings, 1);
         itemEl.appendChild(link);
 
-        itemEl.onmouseenter = () => { itemEl.style.background = "rgba(0,0,0,0.04)"; };
-        itemEl.onmouseleave = () => { itemEl.style.background = "transparent"; };
-
-        // Nested dropdown for child items
+        // Add arrow indicator if has children
         if (child.children && child.children.length > 0) {
+          const arrow = el("span", "mc-submenu-arrow");
+          arrow.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4l4 4-4 4V4z"/></svg>`;
+          arrow.style.cssText = "margin-left:8px;display:flex;align-items:center;opacity:0.5;";
+          itemEl.appendChild(arrow);
+        }
+
+        itemEl.onmouseenter = () => {
+          itemEl.style.background = "rgba(0,0,0,0.04)";
+          itemEl.style.transform = "translateX(4px)";
+        };
+        itemEl.onmouseleave = () => {
+          itemEl.style.background = "transparent";
+          itemEl.style.transform = "translateX(0)";
+        };
+
+        // Nested dropdown flyout for child items
+        if (child.children && child.children.length > 0) {
+          const wrapper = el("div", "mc-dropdown-wrapper");
+          wrapper.style.cssText = "position:relative;";
+
+          const nestedPanel = el("div", "mc-nested-dropdown");
+          nestedPanel.style.cssText = `position:absolute;left:100%;top:0;min-width:200px;background:${settings.colorSubmenuBackground};border:1px solid ${settings.colorSubmenuBorder};border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:8px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1000;margin-left:8px;`;
+
           const nestedList = buildSimpleList(child.children, settings, 2);
-          nestedList.style.paddingLeft = "16px";
-          nestedList.style.paddingTop = "6px";
-          const wrapper = el("div");
+          nestedPanel.appendChild(nestedList);
+
           wrapper.appendChild(itemEl);
-          wrapper.appendChild(nestedList);
+          wrapper.appendChild(nestedPanel);
+
+          // Show/hide nested on hover
+          let hideTimeout;
+          wrapper.onmouseenter = () => {
+            clearTimeout(hideTimeout);
+            nestedPanel.style.opacity = "1";
+            nestedPanel.style.visibility = "visible";
+            nestedPanel.style.pointerEvents = "auto";
+          };
+          wrapper.onmouseleave = () => {
+            hideTimeout = setTimeout(() => {
+              nestedPanel.style.opacity = "0";
+              nestedPanel.style.visibility = "hidden";
+              nestedPanel.style.pointerEvents = "none";
+            }, 150);
+          };
+
           container.appendChild(wrapper);
         } else {
           container.appendChild(itemEl);
@@ -1173,7 +1355,7 @@
   // ── 6.3 Horizontal dropdown content ───────────────────────────────
   const buildHorizontalDropdownContent = (parentItem, settings) => {
     const container = el("div", "mc-hdropdown-content");
-    container.style.cssText = "display:flex;flex-direction:row;flex-wrap:wrap;gap:0;padding:8px;";
+    container.style.cssText = "display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;padding:12px 16px;align-items:flex-start;";
 
     if (parentItem.submenuWidth === "full") {
       container.style.width = "100%";
@@ -1184,13 +1366,24 @@
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
     items.forEach((child) => {
       if (child.blockTemplate && child.blockTemplate !== "none") {
-        container.appendChild(buildBlockByType(child, settings));
+        const block = buildBlockByType(child, settings);
+        block.style.flex = "0 0 auto";
+        container.appendChild(block);
       } else {
-        const itemEl = el("div", "mc-dropdown-item");
-        itemEl.style.cssText = `padding:10px 16px;display:flex;align-items:center;transition:background 150ms;`;
-        itemEl.appendChild(buildLink(child, settings, 1));
-        itemEl.onmouseenter = () => { itemEl.style.background = "rgba(0,0,0,0.04)"; };
-        itemEl.onmouseleave = () => { itemEl.style.background = "transparent"; };
+        const itemEl = el("div", "mc-hdropdown-item");
+        itemEl.style.cssText = `padding:10px 18px;display:flex;align-items:center;white-space:nowrap;transition:all 150ms ease;border-radius:8px;flex:0 0 auto;`;
+        const linkWrapper = buildLink(child, settings, 1);
+        // Override width for horizontal layout
+        linkWrapper.style.width = "auto";
+        itemEl.appendChild(linkWrapper);
+        itemEl.onmouseenter = () => {
+          itemEl.style.background = "rgba(0,0,0,0.04)";
+          itemEl.style.transform = "translateY(-2px)";
+        };
+        itemEl.onmouseleave = () => {
+          itemEl.style.background = "transparent";
+          itemEl.style.transform = "translateY(0)";
+        };
         container.appendChild(itemEl);
       }
     });
@@ -1406,12 +1599,16 @@
 
         // Submenu width for non-mega
         if (!isMegaMenu(item)) {
-          if (item.submenuWidth === "full") {
-            submenu.dataset.fullWidth = "true";
-            li.style.position = "static";
-          } else if (item.submenuCustomWidth) {
+          // Dropdown should never be full-width, only custom width or default
+          if (item.submenuCustomWidth) {
             submenu.style.width = `${item.submenuCustomWidth}px`;
+            submenu.style.maxWidth = "none";
+          } else {
+            // Default: set max-width for dropdown to prevent full-width
+            submenu.style.maxWidth = "320px";
+            submenu.style.width = "auto";
           }
+          // Note: Full-width is ignored for dropdowns, only applies to mega menus
         }
 
         submenu.appendChild(buildSubmenuContent(item, settings));

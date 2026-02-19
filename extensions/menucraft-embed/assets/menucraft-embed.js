@@ -1533,21 +1533,25 @@
     const settings = normalizeSettings(menu.settings);
     const mobile = checkMobile(settings);
     const bp = settings.advancedMobileBreakpoint || 768;
+    const isVertical = settings.layoutOrientation === "vertical";
 
     const container = el("nav", "mc-menu");
     container.setAttribute("aria-label", "Main menu");
+    if (isVertical) container.classList.add("mc-vertical");
     container.style.setProperty("background", settings.colorMainBackground, "important");
     container.style.setProperty("color", settings.colorMainText, "important");
     container.style.minHeight = `${settings.spacingMainRowHeight}px`;
 
     const inner = el("div", "mc-menu-inner");
     const maxW = parseCssSize(settings.layoutMaxWidth);
-    if (maxW) inner.style.maxWidth = maxW;
+    if (maxW && !isVertical) inner.style.maxWidth = maxW;
 
     const currentPath = window.location.pathname;
     const list = el("ul", "mc-menu-list");
-    if (settings.layoutAlignment === "center") list.style.justifyContent = "center";
-    else if (settings.layoutAlignment === "right") list.style.justifyContent = "flex-end";
+    if (!isVertical) {
+      if (settings.layoutAlignment === "center") list.style.justifyContent = "center";
+      else if (settings.layoutAlignment === "right") list.style.justifyContent = "flex-end";
+    }
 
     const items = Array.isArray(menu.items) ? menu.items : [];
 
@@ -1739,9 +1743,9 @@
         background:${settings.colorSubmenuBackground};
         color:${settings.colorSubmenuText} !important;
         ${settings.submenuShowBorder ? `border:1px solid ${settings.colorSubmenuBorder};` : ""}
-        padding:0;min-width:240px;
+        padding:0;min-width:240px;border-radius:12px;
         box-shadow:0 10px 30px rgba(0,0,0,0.12);
-        display:none;z-index:1000;
+        display:none;z-index:1000;overflow:hidden;
         opacity:0;transform:${submenuTransform};
         transition:opacity ${animDur}ms ease ${animDelay}ms, transform ${animDur}ms ease ${animDelay}ms;
       }
@@ -1755,6 +1759,7 @@
         transform:${submenuTransform} !important;
         box-sizing:border-box !important;min-height:unset !important;
         padding:0 !important;background:${settings.colorSubmenuBackground} !important;
+        border-radius:12px !important;overflow:hidden !important;
       }
 
       /* ── Desktop hover ── */
@@ -1935,6 +1940,102 @@
         .mc-search-wrapper { display:none !important; }
       }
 
+      /* ═══════════════════════════════════════════════════════════
+         Vertical Layout Styles
+         ═══════════════════════════════════════════════════════════ */
+      .mc-menu.mc-vertical {
+        width:260px !important;min-height:auto !important;
+        display:flex !important;flex-direction:column !important;
+      }
+      .mc-vertical .mc-menu-inner {
+        flex-direction:column !important;width:100% !important;
+      }
+      .mc-vertical .mc-menu-list {
+        flex-direction:column !important;width:100% !important;
+        border:none !important;
+        ${settings.elementsShowDesktopDivider ? `border:1px solid ${settings.colorMainDivider} !important;` : ""}
+      }
+      .mc-vertical .mc-menu-item {
+        width:100% !important;border-right:none !important;
+        ${settings.elementsShowDesktopDivider ? `border-bottom:1px solid ${settings.colorMainDivider} !important;` : ""}
+        position:relative !important;flex-wrap:wrap !important;
+      }
+      .mc-vertical .mc-menu-item:last-child { border-bottom:none !important; }
+
+      /* Vertical: dropdown submenu opens to the right */
+      .mc-vertical .mc-menu-item.is-dropdown > .mc-submenu,
+      .mc-vertical .mc-menu-item.is-hdropdown > .mc-submenu,
+      .mc-vertical .mc-menu-item.has-children:not(.is-mega) > .mc-submenu {
+        position:absolute !important;left:100% !important;top:0 !important;
+        min-width:240px !important;max-width:400px !important;
+        box-shadow:4px 4px 16px rgba(0,0,0,0.12) !important;
+        margin-left:0 !important;
+      }
+
+      /* Vertical: mega submenu opens to the right as panel */
+      .mc-vertical .mc-menu-item.is-mega {
+        position:relative !important;
+      }
+      .mc-vertical .mc-menu-item.is-mega > .mc-submenu {
+        position:absolute !important;left:100% !important;top:0 !important;
+        width:auto !important;min-width:400px !important;max-width:700px !important;
+        box-shadow:4px 4px 20px rgba(0,0,0,0.15) !important;
+      }
+
+      /* Vertical: indicator rotated to point right */
+      .mc-vertical .mc-indicator {
+        transform:rotate(-90deg) !important;margin-left:auto !important;
+      }
+      .mc-vertical .mc-menu-item:hover .mc-indicator {
+        transform:rotate(-90deg) translateX(2px) !important;
+      }
+
+      /* Vertical: search at the bottom */
+      .mc-vertical .mc-search-wrapper {
+        margin-left:0 !important;border-left:none !important;
+        border-top:1px solid ${settings.colorMainDivider} !important;
+        padding:10px !important;justify-content:center !important;
+      }
+
+      /* Desktop hover for vertical */
+      @media (min-width:${bp + 1}px) {
+        ${settings.animationDesktopTrigger === "hover" ? `
+        .mc-vertical .mc-menu-item.has-children:hover > .mc-submenu {
+          display:block !important;opacity:1 !important;
+          transform:translateX(0) !important;
+        }
+        ` : `
+        .mc-vertical .mc-menu-item.has-children.is-open > .mc-submenu {
+          display:block !important;opacity:1 !important;
+          transform:translateX(0) !important;
+        }
+        `}
+      }
+
+      /* Vertical submenu animation */
+      .mc-vertical .mc-submenu {
+        transform:translateX(-10px) !important;
+        transition:opacity ${animDur}ms ease ${animDelay}ms, transform ${animDur}ms ease ${animDelay}ms !important;
+      }
+
+      /* Vertical mobile: collapse inline like horizontal mobile */
+      @media (max-width:${bp}px) {
+        .mc-menu.mc-vertical { width:100% !important; }
+        .mc-vertical .mc-indicator {
+          transform:rotate(0deg) !important;padding-right:15px !important;
+        }
+        .mc-vertical .mc-menu-item.is-open > .mc-indicator {
+          transform:rotate(180deg) !important;
+        }
+        .mc-vertical .mc-menu-item.has-children:not(.is-mega) > .mc-submenu,
+        .mc-vertical .mc-menu-item.is-mega > .mc-submenu {
+          position:static !important;left:auto !important;top:auto !important;
+          width:100% !important;max-width:100% !important;min-width:0 !important;
+          box-shadow:none !important;transform:none !important;
+          border-radius:0 !important;
+        }
+      }
+
       ${settings.customCss || ""}
     `;
 
@@ -1967,6 +2068,20 @@
       setupMobileInteractions(container, settings);
     }
 
+    // Vertical desktop also needs click-based toggling when trigger is click
+    if (!isMobileBreakpoint && isVertical && settings.animationDesktopTrigger === "click") {
+      container.querySelectorAll(".mc-menu-item.has-children").forEach((item) => {
+        item.addEventListener("click", (e) => {
+          if (e.target.closest(".mc-submenu")) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const wasOpen = item.classList.contains("is-open");
+          list.querySelectorAll(".mc-menu-item.is-open").forEach((s) => s.classList.remove("is-open"));
+          if (!wasOpen) item.classList.add("is-open");
+        });
+      });
+    }
+
     // Close desktop click-triggered menus when clicking outside
     if (!mobile && settings.animationDesktopTrigger === "click") {
       document.addEventListener("click", (e) => {
@@ -1977,7 +2092,8 @@
     }
 
     // Position full-width submenus (mega + full-width dropdowns) via JS
-    if (!isMobileBreakpoint) {
+    // Only for horizontal layout; vertical layout uses CSS-based right-side positioning
+    if (!isMobileBreakpoint && !isVertical) {
       const positionFullWidthSubmenus = () => {
         const nav = container;
         const navRect = nav.getBoundingClientRect();
@@ -1999,6 +2115,25 @@
       window.addEventListener("resize", positionFullWidthSubmenus);
       // Prevent horizontal scrollbar
       document.documentElement.style.overflowX = "clip";
+    }
+
+    // Vertical layout: position flyout submenus to prevent overflow
+    if (!isMobileBreakpoint && isVertical) {
+      const positionVerticalSubmenus = () => {
+        const nav = container;
+        const vw = document.documentElement.clientWidth;
+        nav.querySelectorAll(".mc-menu-item.has-children > .mc-submenu").forEach((sub) => {
+          const parentRect = sub.parentElement.getBoundingClientRect();
+          const subWidth = sub.offsetWidth || 400;
+          // If submenu would overflow right edge, open to left instead
+          if (parentRect.right + subWidth > vw) {
+            sub.style.left = "auto";
+            sub.style.right = "100%";
+          }
+        });
+      };
+      requestAnimationFrame(positionVerticalSubmenus);
+      window.addEventListener("resize", positionVerticalSubmenus);
     }
   };
 

@@ -2,7 +2,7 @@
 
 client_id = "e458d01dd187d4941bb99548a78e9421"
 name = "MenuCraft"
-application_url = "https://welfare-papua-birth-max.trycloudflare.com"
+application_url = "https://moss-raw-conditional-housing.trycloudflare.com"
 embedded = true
 
 [build]
@@ -10,7 +10,7 @@ automatically_update_urls_on_dev = true
 dev_store_url = "mega-menu-test-2.myshopify.com"
 
 [app_proxy]
-url = "https://welfare-papua-birth-max.trycloudflare.com/proxy"
+url = "https://moss-raw-conditional-housing.trycloudflare.com/proxy"
 subpath = "menucraft"
 prefix = "apps"
 
@@ -37,5 +37,5 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://welfare-papua-birth-max.trycloudflare.com/auth/callback"
+  "https://moss-raw-conditional-housing.trycloudflare.com/auth/callback"
 ]

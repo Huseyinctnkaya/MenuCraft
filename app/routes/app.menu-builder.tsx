@@ -4540,7 +4540,7 @@ export default function MenuBuilder() {
 
   const getBlockSpan = (item: MenuItem): number => {
     if (item.blockTemplate === "links") {
-      return Math.max(1, Math.min(12, item.linkWidth ?? 6));
+      return Math.max(1, Math.min(12, item.linkWidth ?? 3));
     }
     if (item.blockTemplate === "image" || item.blockTemplate === "image2") {
       return Math.max(1, Math.min(12, item.imageWidth ?? 3));
@@ -4558,13 +4558,13 @@ export default function MenuBuilder() {
       return Math.max(1, Math.min(12, item.productWidth ?? 3));
     }
     if (item.blockTemplate === "collection" || item.blockTemplate === "collection-horizontal") {
-      return Math.max(1, Math.min(12, item.imageWidth ?? 6));
+      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
     }
     if (item.blockTemplate === "blogs" || item.blockTemplate === "blogs-latest") {
-      return Math.max(1, Math.min(12, item.imageWidth ?? 6));
+      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
     }
     if (item.blockTemplate === "contact") {
-      return Math.max(1, Math.min(12, item.imageWidth ?? 6));
+      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
     }
     return 3; // Default
   };
@@ -5882,7 +5882,7 @@ export default function MenuBuilder() {
                       <div style={{ flex: 1 }}>
                         <RangeSlider
                           label="Width"
-                          value={editingItem.linkWidth ?? 6}
+                          value={editingItem.linkWidth ?? 3}
                           min={1}
                           max={12}
                           onChange={(value) => updateEditDraft("linkWidth", value)}
@@ -5893,7 +5893,7 @@ export default function MenuBuilder() {
                           label="Width"
                           labelHidden
                           type="number"
-                          value={String(editingItem.linkWidth ?? 6)}
+                          value={String(editingItem.linkWidth ?? 3)}
                           onChange={(value) => {
                             const next = Number(value);
                             if (!Number.isFinite(next)) return;
@@ -5938,7 +5938,7 @@ export default function MenuBuilder() {
                       <div style={{ flex: 1 }}>
                         <RangeSlider
                           label="Width"
-                          value={editingItem.imageWidth ?? 6}
+                          value={editingItem.imageWidth ?? 3}
                           min={1}
                           max={12}
                           onChange={(value) => updateEditDraft("imageWidth", value)}
@@ -5949,7 +5949,7 @@ export default function MenuBuilder() {
                           label="Width"
                           labelHidden
                           type="number"
-                          value={String(editingItem.imageWidth ?? 6)}
+                          value={String(editingItem.imageWidth ?? 3)}
                           onChange={(value) => {
                             const next = Number(value);
                             if (!Number.isFinite(next)) return;
@@ -6059,7 +6059,7 @@ export default function MenuBuilder() {
                       <div style={{ flex: 1 }}>
                         <RangeSlider
                           label="Width"
-                          value={editingItem.imageWidth ?? 6}
+                          value={editingItem.imageWidth ?? 3}
                           min={1}
                           max={12}
                           onChange={(value) => updateEditDraft("imageWidth", value)}
@@ -6070,7 +6070,7 @@ export default function MenuBuilder() {
                           label="Width"
                           labelHidden
                           type="number"
-                          value={String(editingItem.imageWidth ?? 6)}
+                          value={String(editingItem.imageWidth ?? 3)}
                           onChange={(value) => {
                             const next = Number(value);
                             if (!Number.isFinite(next)) return;
@@ -6089,7 +6089,7 @@ export default function MenuBuilder() {
                       <div style={{ flex: 1 }}>
                         <RangeSlider
                           label="Width"
-                          value={editingItem.imageWidth ?? 6}
+                          value={editingItem.imageWidth ?? 3}
                           min={1}
                           max={12}
                           onChange={(value) => updateEditDraft("imageWidth", value)}
@@ -6100,7 +6100,7 @@ export default function MenuBuilder() {
                           label="Width"
                           labelHidden
                           type="number"
-                          value={String(editingItem.imageWidth ?? 6)}
+                          value={String(editingItem.imageWidth ?? 3)}
                           onChange={(value) => {
                             const next = Number(value);
                             if (!Number.isFinite(next)) return;
@@ -9225,7 +9225,7 @@ export default function MenuBuilder() {
     const columnsItems = Array.from({ length: resolvedColumnCount }, (_, columnIndex) =>
       linkItems.slice(columnIndex * itemsPerColumn, (columnIndex + 1) * itemsPerColumn)
     );
-    const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 6));
+    const linkWidth = Math.max(1, Math.min(12, group.linkWidth ?? 3));
     const linkFlexBasis = columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
     const linkTextAlign = group.linkTextAlign ?? "left";
     const linkJustify =
@@ -10073,7 +10073,7 @@ export default function MenuBuilder() {
     options: { flex?: string; wrapperStyle?: CSSProperties } = {}
   ) => {
     const isGroupSelected = selectedItemId === group.id;
-    const contactWidth = Math.max(1, Math.min(12, group.imageWidth ?? 6));
+    const contactWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
     const contactFlexBasis = `${Math.round((contactWidth / 12) * 100)}%`;
     const contactNamePlaceholder = group.contactNameLabel || "Name";
     const contactEmailPlaceholder = group.contactEmailLabel || "Email";
@@ -10985,7 +10985,7 @@ export default function MenuBuilder() {
     options: { flex?: string; wrapperStyle?: CSSProperties } = {}
   ) => {
     const isGroupSelected = selectedItemId === group.id;
-    const collectionWidth = Math.max(1, Math.min(12, group.imageWidth ?? 6));
+    const collectionWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
     const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
     const collectionItems = group.children ?? [];
     const displayItems =
@@ -11159,7 +11159,7 @@ export default function MenuBuilder() {
     options: { flex?: string; wrapperStyle?: CSSProperties } = {}
   ) => {
     const isGroupSelected = selectedItemId === group.id;
-    const blogWidth = Math.max(1, Math.min(12, group.imageWidth ?? 6));
+    const blogWidth = Math.max(1, Math.min(12, group.imageWidth ?? 3));
     const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
     const isLatestBlock = group.blockTemplate === "blogs-latest";
     const selectedBlogId = group.blogIds?.[0];
@@ -11369,7 +11369,7 @@ export default function MenuBuilder() {
     const linkGroups = groups.filter((group) => group.blockTemplate === "links");
     const leftWidthUnits = Math.max(
       1,
-      Math.min(11, productGroup?.productWidth ?? htmlGroup?.imageWidth ?? 6)
+      Math.min(11, productGroup?.productWidth ?? htmlGroup?.imageWidth ?? 3)
     );
     const rightWidthUnits = Math.max(1, 12 - leftWidthUnits);
     const leftBasis = `${Math.round((leftWidthUnits / 12) * 100)}%`;
@@ -13944,13 +13944,20 @@ export default function MenuBuilder() {
                     },
                   });
                 }
+                const span = getBlockSpan(group);
+                const desktopGap = useImageSpaceLayout ? 0 : 24;
+                const commonFlexBasis = isMobileInline
+                  ? "100%"
+                  : `calc(${(span / 12) * 100}% - ${desktopGap * (1 - span / 12)}px)`;
+                const commonFlexStyle = isMobileInline || !useBlockFlexLayout ? {} : { flex: `0 0 ${commonFlexBasis}` };
+
                 if (group.blockTemplate === "links") {
-                  const span = getBlockSpan(group);
                   return renderLinkListBlock(group, {
                     flex: isMobileInline ? "1 1 100%" : "auto",
                     wrapperStyle: {
                       minWidth: 0,
                       width: isMobileInline ? "100%" : undefined,
+                      ...commonFlexStyle
                     },
                     toolbarPlacement: "floating",
                   });
@@ -13969,13 +13976,6 @@ export default function MenuBuilder() {
                   group.blockTemplate === "blogs-latest" ||
                   group.blockTemplate === "html"
                 ) {
-                  const span = getBlockSpan(group);
-                  const desktopGap = useImageSpaceLayout ? 0 : 24;
-                  const commonFlexBasis = isMobileInline
-                    ? "100%"
-                    : `calc(${(span / 12) * 100}% - ${desktopGap * (1 - span / 12)}px)`;
-                  const commonFlexStyle = isMobileInline || !useBlockFlexLayout ? {} : { flex: `0 0 ${commonFlexBasis}` };
-
                   if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
                     return renderImageBlock(group, {
                       flex: isMobileInline ? "1 1 100%" : "auto",
@@ -14463,7 +14463,7 @@ export default function MenuBuilder() {
                         const activeDropdownChildren = activeDropdownItem?.children ?? [];
                         const activeDropdownHasBlocks =
                           (isLeftTabsStyleTemplate || isRightTabsTemplate) &&
-                          activeDropdownChildren.some((child) => child.blockTemplate);
+                          (activeDropdownChildren.some((child) => child.blockTemplate) || activeDropdownChildren.length === 0);
                         const activeSecondLevelItem =
                           isTwoLevelTabsVariant || isThreeLevelTabsVariant
                             ? activeDropdownChildren.find((child) => child.id === activeDropdownChildId) ?? null
@@ -15077,7 +15077,7 @@ export default function MenuBuilder() {
                                                 {secondLevelChildren.map((child) => {
                                                   if (child.blockTemplate === "links") {
                                                     const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                                    const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                                    const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 3));
                                                     const linkFlexBasis =
                                                       columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
                                                     return renderLinkListBlock(child, {
@@ -15128,7 +15128,7 @@ export default function MenuBuilder() {
                                                     child.blockTemplate === "collection" ||
                                                     child.blockTemplate === "collection-horizontal"
                                                   ) {
-                                                    const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                    const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
                                                     const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
                                                     return renderCollectionBlock(child, {
                                                       flex: `0 0 ${collectionFlexBasis}`,
@@ -15139,7 +15139,7 @@ export default function MenuBuilder() {
                                                     child.blockTemplate === "blogs" ||
                                                     child.blockTemplate === "blogs-latest"
                                                   ) {
-                                                    const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                    const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
                                                     const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
                                                     return renderBlogBlock(child, {
                                                       flex: `0 0 ${blogFlexBasis}`,
@@ -15507,7 +15507,7 @@ export default function MenuBuilder() {
                                                 {thirdLevelChildren.map((child) => {
                                                   if (child.blockTemplate === "links") {
                                                     const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                                    const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                                    const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 3));
                                                     const linkFlexBasis =
                                                       columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
                                                     return renderLinkListBlock(child, {
@@ -15557,7 +15557,7 @@ export default function MenuBuilder() {
                                                     child.blockTemplate === "collection" ||
                                                     child.blockTemplate === "collection-horizontal"
                                                   ) {
-                                                    const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                    const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
                                                     const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
                                                     return renderCollectionBlock(child, {
                                                       flex: `0 0 ${collectionFlexBasis}`,
@@ -15568,7 +15568,7 @@ export default function MenuBuilder() {
                                                     child.blockTemplate === "blogs" ||
                                                     child.blockTemplate === "blogs-latest"
                                                   ) {
-                                                    const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
+                                                    const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
                                                     const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
                                                     return renderBlogBlock(child, {
                                                       flex: `0 0 ${blogFlexBasis}`,
@@ -15602,7 +15602,7 @@ export default function MenuBuilder() {
                                               : undefined,
                                             columnGap: useCustomNormalDropdownLayout ? 0 : undefined,
                                             rowGap: useCustomNormalDropdownLayout ? 0 : undefined,
-                                            flexWrap: useCustomNormalDropdownLayout ? undefined : "nowrap",
+                                            flexWrap: "wrap",
                                             gap: useCustomNormalDropdownLayout ? undefined : 24,
                                             alignItems: "flex-start",
                                             justifyContent: useCustomNormalDropdownLayout
@@ -15615,74 +15615,107 @@ export default function MenuBuilder() {
                                               : useSimpleLeftTabsCompactLayout
                                                 ? undefined
                                                 : 960,
+                                            width: "100%",
                                           }}
                                         >
-                                          {activeDropdownChildren.map((child) => {
-                                            if (child.blockTemplate === "links") {
-                                              const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                              const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
-                                              const linkFlexBasis =
-                                                columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
-                                              return renderLinkListBlock(child, {
-                                                ...(useCustomNormalDropdownLayout
-                                                  ? { wrapperStyle: { minWidth: 0 } }
-                                                  : { flex: `0 0 ${linkFlexBasis}`, wrapperStyle: { minWidth: 0 } }),
-                                                toolbarPlacement: "floating",
-                                              });
-                                            }
-                                            if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
-                                              return renderImageBlock(child, {
-                                                ...(useCustomNormalDropdownLayout
-                                                  ? { wrapperStyle: { minWidth: 0 } }
-                                                  : { flex: "0 0 20%", wrapperStyle: { minWidth: 0 } }),
-                                              });
-                                            }
-                                            if (child.blockTemplate === "html") {
-                                              const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
-                                              const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
-                                              return renderHtmlBlock(child, {
-                                                flex: `0 0 ${htmlFlexBasis}`,
-                                                wrapperStyle: { minWidth: 0 },
-                                              });
-                                            }
-                                            if (
-                                              child.blockTemplate === "product" ||
-                                              child.blockTemplate === "product-horizontal" ||
-                                              child.blockTemplate === "product-grid" ||
-                                              child.blockTemplate === "product-carousel" ||
-                                              child.blockTemplate === "product-grid-horizontal"
-                                            ) {
-                                              const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
-                                              const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
-                                              return renderProductBlock(child, {
-                                                flex: `0 0 ${productFlexBasis}`,
-                                                wrapperStyle: { minWidth: 0 },
-                                              });
-                                            }
-                                            if (
-                                              child.blockTemplate === "collection" ||
-                                              child.blockTemplate === "collection-horizontal"
-                                            ) {
-                                              const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
-                                              const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
-                                              return renderCollectionBlock(child, {
-                                                flex: `0 0 ${collectionFlexBasis}`,
-                                                wrapperStyle: { minWidth: 0 },
-                                              });
-                                            }
-                                            if (
-                                              child.blockTemplate === "blogs" ||
-                                              child.blockTemplate === "blogs-latest"
-                                            ) {
-                                              const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 6));
-                                              const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
-                                              return renderBlogBlock(child, {
-                                                flex: `0 0 ${blogFlexBasis}`,
-                                                wrapperStyle: { minWidth: 0 },
-                                              });
-                                            }
-                                            return null;
-                                          })}
+                                          {activeDropdownChildren.length === 0 ? (
+                                            <div
+                                              style={{
+                                                flex: "1 1 100%",
+                                                padding: "24px",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                gap: 12,
+                                                border: "1px dashed #cbd5e1",
+                                                borderRadius: 12,
+                                                margin: "12px",
+                                                background: "rgba(240, 242, 245, 0.5)",
+                                              }}
+                                            >
+                                              <Text as="p" variant="bodyMd" tone="subdued">
+                                                No blocks added to this tab yet
+                                              </Text>
+                                              <Button
+                                                variant="secondary"
+                                                icon={PlusIcon}
+                                                size="slim"
+                                                onClick={() => handleOpenBlockTemplatePicker(activeDropdownItem.id)}
+                                              >
+                                                Add block
+                                              </Button>
+                                            </div>
+                                          ) : (
+                                            activeDropdownChildren.map((child) => {
+                                              if (child.blockTemplate === "links") {
+                                                const columnCount = Math.max(1, child.linkColumns ?? 2);
+                                                const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 3));
+                                                const linkFlexBasis =
+                                                  columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
+                                                return renderLinkListBlock(child, {
+                                                  ...(useCustomNormalDropdownLayout
+                                                    ? { wrapperStyle: { minWidth: 0, width: "100%", flex: "1 1 auto" } }
+                                                    : { flex: `0 0 ${linkFlexBasis}`, wrapperStyle: { minWidth: 0, width: linkFlexBasis } }),
+                                                  toolbarPlacement: "floating",
+                                                });
+                                              }
+                                              if (child.blockTemplate === "image" || child.blockTemplate === "image2") {
+                                                const imageWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                const imageFlexBasis = `${Math.round((imageWidth / 12) * 100)}%`;
+                                                return renderImageBlock(child, {
+                                                  ...(useCustomNormalDropdownLayout
+                                                    ? { wrapperStyle: { minWidth: 0, width: "100%", flex: "1 1 auto" } }
+                                                    : { flex: `0 0 ${imageFlexBasis}`, wrapperStyle: { minWidth: 0, width: imageFlexBasis } }),
+                                                });
+                                              }
+                                              if (child.blockTemplate === "html") {
+                                                const htmlWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                const htmlFlexBasis = `${Math.round((htmlWidth / 12) * 100)}%`;
+                                                return renderHtmlBlock(child, {
+                                                  flex: `0 0 ${htmlFlexBasis}`,
+                                                  wrapperStyle: { minWidth: 0, width: htmlFlexBasis },
+                                                });
+                                              }
+                                              if (
+                                                child.blockTemplate === "product" ||
+                                                child.blockTemplate === "product-horizontal" ||
+                                                child.blockTemplate === "product-grid" ||
+                                                child.blockTemplate === "product-carousel" ||
+                                                child.blockTemplate === "product-grid-horizontal"
+                                              ) {
+                                                const productWidth = Math.max(1, Math.min(12, child.productWidth ?? 3));
+                                                const productFlexBasis = `${Math.round((productWidth / 12) * 100)}%`;
+                                                return renderProductBlock(child, {
+                                                  flex: `0 0 ${productFlexBasis}`,
+                                                  wrapperStyle: { minWidth: 0, width: productFlexBasis },
+                                                });
+                                              }
+                                              if (
+                                                child.blockTemplate === "collection" ||
+                                                child.blockTemplate === "collection-horizontal"
+                                              ) {
+                                                const collectionWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                const collectionFlexBasis = `${Math.round((collectionWidth / 12) * 100)}%`;
+                                                return renderCollectionBlock(child, {
+                                                  flex: `0 0 ${collectionFlexBasis}`,
+                                                  wrapperStyle: { minWidth: 0, width: collectionFlexBasis },
+                                                });
+                                              }
+                                              if (
+                                                child.blockTemplate === "blogs" ||
+                                                child.blockTemplate === "blogs-latest"
+                                              ) {
+                                                const blogWidth = Math.max(1, Math.min(12, child.imageWidth ?? 3));
+                                                const blogFlexBasis = `${Math.round((blogWidth / 12) * 100)}%`;
+                                                return renderBlogBlock(child, {
+                                                  flex: `0 0 ${blogFlexBasis}`,
+                                                  wrapperStyle: { minWidth: 0, width: blogFlexBasis },
+                                                });
+                                              }
+                                              return null;
+                                            })
+                                          )}
                                         </div>
                                       </div>
                                     </div>
@@ -16612,7 +16645,7 @@ export default function MenuBuilder() {
                                     {activeHorizontalChildBlocks.map((child) => {
                                       if (child.blockTemplate === "links") {
                                         const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                        const rawLinkWidth = child.linkWidth ?? 6;
+                                        const rawLinkWidth = child.linkWidth ?? 3;
                                         const linkWidth = Math.max(1, Math.min(12, rawLinkWidth));
                                         const resolvedLinkWidth =
                                           isTwoTopTabsTemplate && rawLinkWidth === 6 ? 4 : linkWidth;
@@ -16710,7 +16743,7 @@ export default function MenuBuilder() {
                                     {activeHorizontalChildren.map((child) => {
                                       if (child.blockTemplate === "links") {
                                         const columnCount = Math.max(1, child.linkColumns ?? 2);
-                                        const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 6));
+                                        const linkWidth = Math.max(1, Math.min(12, child.linkWidth ?? 3));
                                         const linkFlexBasis =
                                           columnCount === 3 ? "70%" : `${Math.round((linkWidth / 12) * 100)}%`;
                                         return renderLinkListBlock(child, {

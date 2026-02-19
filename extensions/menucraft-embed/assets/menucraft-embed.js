@@ -209,9 +209,9 @@
     if (bt && bt.startsWith("image")) return item.imageWidth || 3;
     if (bt && bt.startsWith("product")) return item.productWidth || 3;
     if (bt && bt.startsWith("collection")) return item.imageWidth || 3;
-    if (bt && bt.startsWith("blog")) return item.imageWidth || 4;
-    if (bt === "contact") return 6;
-    if (bt === "html" || bt === "html-special") return 6;
+    if (bt && bt.startsWith("blog")) return item.imageWidth || 3;
+    if (bt === "contact") return 3;
+    if (bt === "html" || bt === "html-special") return 3;
     if (bt === "space") return item.linkWidth || 1;
     if (bt && bt.startsWith("multi")) return 12;
     return 3;
@@ -425,7 +425,7 @@
   // ── 5.1 Link List Block ───────────────────────────────────────────
   const buildLinkListBlock = (group, settings) => {
     const container = el("div", "mc-block-links");
-    container.style.cssText = "padding:12px 8px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:12px 6px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;";
 
     const columnCount = Math.max(1, group.linkColumns || 1);
     const children = group.children || [];
@@ -483,7 +483,7 @@
   // ── 5.2 Image Block ───────────────────────────────────────────────
   const buildImageBlock = (item, settings) => {
     const container = el("div", "mc-block-image");
-    container.style.cssText = "padding:12px;display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:10px;display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;";
 
     const isOverlay = item.blockTemplate === "image2";
     const align = item.imageTextAlign || "left";
@@ -664,7 +664,7 @@
   // ── 5.4 Product Block ─────────────────────────────────────────────
   const buildProductBlock = (item, settings) => {
     const container = el("div", "mc-block-product");
-    container.style.cssText = "padding:12px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:10px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
 
     const bt = item.blockTemplate || "product";
     const isCarousel = bt === "product-carousel";
@@ -1250,7 +1250,7 @@
     const maxW = parseCssSize(parentItem.submenuMaxWidth || settings.submenuMaxWidth || settings.layoutMaxWidth || "1200px");
 
     // CSS Grid: 12-column grid — each item spans its columns naturally
-    container.style.cssText = `display:grid;grid-template-columns:repeat(12, 1fr);gap:0;width:100%;max-width:${maxW};margin:0 auto;padding:16px 0;box-sizing:border-box;`;
+    container.style.cssText = `display:grid;grid-template-columns:repeat(12, minmax(0, 1fr));gap:0;width:100%;max-width:${maxW};margin:0 auto;padding:16px 0;box-sizing:border-box;`;
 
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
 

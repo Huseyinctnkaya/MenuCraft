@@ -419,7 +419,7 @@ export const buildCustomNormalDropdownItems = () => {
     expanded: false,
     blockTemplate: "links",
     linkColumns: 1,
-    linkWidth: 4,
+    linkWidth: 3,
     linkTextAlign: "left",
     children: buildEasyColumnLinkItems(),
   });

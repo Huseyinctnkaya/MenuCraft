@@ -425,7 +425,7 @@
   // ── 5.1 Link List Block ───────────────────────────────────────────
   const buildLinkListBlock = (group, settings) => {
     const container = el("div", "mc-block-links");
-    container.style.cssText = "padding:16px 20px;display:flex;flex-direction:column;gap:10px;width:100%;box-sizing:border-box;";
+    container.style.cssText = "padding:12px 8px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;";
 
     const columnCount = Math.max(1, group.linkColumns || 1);
     const children = group.children || [];
@@ -433,12 +433,17 @@
     const mobile = checkMobile(settings);
 
     const grid = el("div", "mc-links-grid");
-    grid.style.cssText = `display:flex;flex-direction:${mobile ? "column" : "row"};gap:${mobile ? "14px" : "36px"};flex-wrap:wrap;width:100%;`;
+    grid.style.cssText = `display:flex;flex-direction:${mobile ? "column" : "row"};gap:0;flex-wrap:wrap;width:100%;`;
 
     const itemsPerCol = Math.ceil(children.length / columnCount);
     for (let i = 0; i < columnCount; i++) {
       const col = el("div", "mc-link-col");
-      col.style.cssText = `flex:1 1 0;display:flex;flex-direction:column;gap:4px;align-items:${textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start"};min-width:200px;`;
+      const alignItems = textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start";
+      col.style.cssText = `flex:1 1 0;display:flex;flex-direction:column;gap:2px;align-items:${alignItems};min-width:0;padding:0 12px;`;
+      // Divider between columns (not on last one)
+      if (i < columnCount - 1 && !mobile) {
+        col.style.borderRight = `1px solid ${settings.colorSubmenuBorder || "#e5e7eb"}`;
+      }
 
       const start = i * itemsPerCol;
       const end = Math.min(start + itemsPerCol, children.length);
@@ -448,20 +453,24 @@
 
         const itemEl = buildLink(child, settings, 1);
         if (!child.isHeading) {
-          itemEl.style.padding = "10px 14px";
-          itemEl.style.borderRadius = "8px";
+          itemEl.style.padding = "8px 12px";
+          itemEl.style.borderRadius = "6px";
           itemEl.style.width = textAlign === "center" ? "auto" : "100%";
           itemEl.style.transition = "all 150ms ease";
           itemEl.onmouseenter = () => {
             itemEl.style.background = "rgba(0,0,0,0.04)";
-            itemEl.style.transform = "translateX(4px)";
+            itemEl.style.transform = "translateX(3px)";
           };
           itemEl.onmouseleave = () => {
             itemEl.style.background = "transparent";
             itemEl.style.transform = "translateX(0)";
           };
         } else {
-          itemEl.style.marginTop = "8px";
+          // Heading with bottom line
+          itemEl.style.paddingBottom = "8px";
+          itemEl.style.marginBottom = "4px";
+          itemEl.style.borderBottom = `2px solid ${settings.colorSubmenuHeading || "#b91c1c"}`;
+          itemEl.style.width = "100%";
         }
         col.appendChild(itemEl);
       });
@@ -1239,29 +1248,17 @@
   const buildMegaContent = (parentItem, settings) => {
     const container = el("div", "mc-mega-container");
     const maxW = parseCssSize(parentItem.submenuMaxWidth || settings.submenuMaxWidth || settings.layoutMaxWidth || "1200px");
-    const align = parentItem.submenuContentAlign || "left";
-    let justifyContent = "flex-start";
-    if (align === "center") justifyContent = "center";
-    else if (align === "right") justifyContent = "flex-end";
-    else if (align === "space-between") justifyContent = "space-between";
-    else if (align === "space-around") justifyContent = "space-around";
-    else if (align === "space-evenly") justifyContent = "space-evenly";
 
-    container.style.cssText = `display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:${justifyContent};width:100%;max-width:${maxW};margin:0 auto;padding:24px 28px;box-sizing:border-box;`;
+    // CSS Grid: 12-column grid — each item spans its columns naturally
+    container.style.cssText = `display:grid;grid-template-columns:repeat(12, 1fr);gap:0;width:100%;max-width:${maxW};margin:0 auto;padding:16px 0;box-sizing:border-box;`;
 
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
-
-    const totalSpan = items.reduce((sum, c) => sum + getBlockSpan(c), 0);
 
     items.forEach((child) => {
       const block = buildBlockByType(child, settings);
       const span = getBlockSpan(child);
 
-      // If total span exceeds 12, scale proportionally so everything fits
-      const effectiveSpan = totalSpan > 12 ? (span / totalSpan) * 12 : span;
-      const pct = (effectiveSpan / 12) * 100;
-      block.style.flex = `1 1 calc(${pct}% - 20px)`;
-      block.style.maxWidth = `calc(${pct}% - 20px)`;
+      block.style.gridColumn = `span ${span}`;
       block.style.minWidth = "0";
       block.style.boxSizing = "border-box";
       block.style.overflow = "hidden";
@@ -1318,11 +1315,48 @@
           const wrapper = el("div", "mc-dropdown-wrapper");
           wrapper.style.cssText = "position:relative;";
 
-          const nestedPanel = el("div", "mc-nested-dropdown");
-          nestedPanel.style.cssText = `position:absolute;left:100%;top:0;min-width:200px;background:${settings.colorSubmenuBackground};border:1px solid ${settings.colorSubmenuBorder};border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:8px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1000;margin-left:8px;`;
+          // Check if children have block templates (links, images, etc.)
+          const hasBlocks = child.children.some((c) => c.blockTemplate && c.blockTemplate !== "none");
 
-          const nestedList = buildSimpleList(child.children, settings, 2);
-          nestedPanel.appendChild(nestedList);
+          const nestedPanel = el("div", "mc-nested-dropdown");
+          if (hasBlocks) {
+            // Fixed width panel for mega content grid — 4 columns at 25% = 900px works well
+            const panelWidth = 900;
+
+            nestedPanel.style.cssText = `position:absolute;left:100%;top:0;width:${panelWidth}px;background:${settings.colorSubmenuBackground};border:1px solid ${settings.colorSubmenuBorder};border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);padding:16px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1000;margin-left:8px;overflow:hidden;box-sizing:border-box;`;
+
+            // If panel would overflow right, open to the left instead
+            requestAnimationFrame(() => {
+              const rect = nestedPanel.getBoundingClientRect();
+              if (rect.right > window.innerWidth - 16) {
+                nestedPanel.style.left = "auto";
+                nestedPanel.style.right = "100%";
+                nestedPanel.style.marginLeft = "0";
+                nestedPanel.style.marginRight = "8px";
+              }
+              // Also clamp if still overflows (e.g. small viewport)
+              const rect2 = nestedPanel.getBoundingClientRect();
+              if (rect2.right > window.innerWidth - 16) {
+                nestedPanel.style.width = `${window.innerWidth - rect2.left - 32}px`;
+              }
+              if (rect2.left < 16) {
+                nestedPanel.style.width = `${rect2.right - 32}px`;
+                nestedPanel.style.left = `-${rect2.left - 16}px`;
+                nestedPanel.style.right = "auto";
+              }
+            });
+
+            // Build mega content — override maxWidth to fill the panel
+            const megaContent = buildMegaContent(child, settings);
+            megaContent.style.maxWidth = "100%";
+            megaContent.style.padding = "0";
+            nestedPanel.appendChild(megaContent);
+          } else {
+            // Simple list for plain links
+            nestedPanel.style.cssText = `position:absolute;left:100%;top:0;min-width:200px;background:${settings.colorSubmenuBackground};border:1px solid ${settings.colorSubmenuBorder};border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:8px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1000;margin-left:8px;`;
+            const nestedList = buildSimpleList(child.children, settings, 2);
+            nestedPanel.appendChild(nestedList);
+          }
 
           wrapper.appendChild(itemEl);
           wrapper.appendChild(nestedPanel);
@@ -1355,13 +1389,7 @@
   // ── 6.3 Horizontal dropdown content ───────────────────────────────
   const buildHorizontalDropdownContent = (parentItem, settings) => {
     const container = el("div", "mc-hdropdown-content");
-    container.style.cssText = "display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;padding:12px 16px;align-items:flex-start;";
-
-    if (parentItem.submenuWidth === "full") {
-      container.style.width = "100%";
-    } else if (parentItem.submenuCustomWidth) {
-      container.style.width = `${parentItem.submenuCustomWidth}px`;
-    }
+    container.style.cssText = "display:flex;flex-direction:row;flex-wrap:nowrap;gap:0;padding:0;align-items:stretch;width:max-content;";
 
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
     items.forEach((child) => {
@@ -1370,21 +1398,69 @@
         block.style.flex = "0 0 auto";
         container.appendChild(block);
       } else {
+        const hasNested = child.children && child.children.length > 0;
+
+        const wrapper = el("div", "mc-hdropdown-wrapper");
+        wrapper.style.cssText = "position:relative;flex:0 0 auto;display:flex;";
+
         const itemEl = el("div", "mc-hdropdown-item");
-        itemEl.style.cssText = `padding:10px 18px;display:flex;align-items:center;white-space:nowrap;transition:all 150ms ease;border-radius:8px;flex:0 0 auto;`;
+        itemEl.style.cssText = `padding:14px 28px;display:flex;align-items:center;white-space:nowrap;transition:all 150ms ease;flex:0 0 auto;cursor:pointer;gap:6px;background:transparent;`;
+
         const linkWrapper = buildLink(child, settings, 1);
-        // Override width for horizontal layout
         linkWrapper.style.width = "auto";
+        linkWrapper.style.whiteSpace = "nowrap";
+        // Bigger font
+        const lnk = linkWrapper.querySelector(".mc-link");
+        if (lnk) {
+          lnk.style.fontSize = `${Math.max(settings.typographySubtextSize, 15)}px`;
+          lnk.style.fontWeight = "500";
+        }
         itemEl.appendChild(linkWrapper);
-        itemEl.onmouseenter = () => {
-          itemEl.style.background = "rgba(0,0,0,0.04)";
-          itemEl.style.transform = "translateY(-2px)";
-        };
-        itemEl.onmouseleave = () => {
-          itemEl.style.background = "transparent";
-          itemEl.style.transform = "translateY(0)";
-        };
-        container.appendChild(itemEl);
+
+        if (hasNested) {
+          const arrow = el("span", "mc-hdropdown-arrow");
+          arrow.innerHTML = `<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" style="opacity:0.4;"><path d="M4 6l4 4 4-4"/></svg>`;
+          arrow.style.cssText = "display:flex;align-items:center;flex-shrink:0;transition:transform 200ms ease;";
+          itemEl.appendChild(arrow);
+        }
+
+        wrapper.appendChild(itemEl);
+
+        // Nested flyout dropdown
+        if (hasNested) {
+          const nestedPanel = el("div", "mc-hdropdown-nested");
+          nestedPanel.style.cssText = `position:absolute;left:0;top:100%;min-width:200px;background:${settings.colorSubmenuBackground};${settings.submenuShowBorder ? `border:1px solid ${settings.colorSubmenuBorder};` : ""}border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:8px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1001;margin-top:2px;`;
+
+          const nestedList = buildSimpleList(child.children, settings, 2);
+          nestedPanel.appendChild(nestedList);
+          wrapper.appendChild(nestedPanel);
+
+          let hideTimeout;
+          wrapper.onmouseenter = () => {
+            clearTimeout(hideTimeout);
+            itemEl.style.background = "rgba(0,0,0,0.05)";
+            const arrow = itemEl.querySelector(".mc-hdropdown-arrow");
+            if (arrow) arrow.style.transform = "rotate(180deg)";
+            nestedPanel.style.opacity = "1";
+            nestedPanel.style.visibility = "visible";
+            nestedPanel.style.pointerEvents = "auto";
+          };
+          wrapper.onmouseleave = () => {
+            itemEl.style.background = "transparent";
+            const arrow = itemEl.querySelector(".mc-hdropdown-arrow");
+            if (arrow) arrow.style.transform = "rotate(0deg)";
+            hideTimeout = setTimeout(() => {
+              nestedPanel.style.opacity = "0";
+              nestedPanel.style.visibility = "hidden";
+              nestedPanel.style.pointerEvents = "none";
+            }, 150);
+          };
+        } else {
+          itemEl.onmouseenter = () => { itemEl.style.background = "rgba(0,0,0,0.05)"; };
+          itemEl.onmouseleave = () => { itemEl.style.background = "transparent"; };
+        }
+
+        container.appendChild(wrapper);
       }
     });
     return container;
@@ -1602,22 +1678,19 @@
         if (!isMegaMenu(item)) {
           const isHorizontalDropdown = item.submenuTemplate === "horizontal-dropdown" || item.submenuType === "horizontal-dropdown";
 
-          // Dropdown should never be full-width, only custom width or default
           if (item.submenuCustomWidth) {
             submenu.style.width = `${item.submenuCustomWidth}px`;
             submenu.style.maxWidth = "none";
+          } else if (isHorizontalDropdown) {
+            // Horizontal dropdown: max-content forces panel to be as wide as its row content
+            submenu.style.width = "max-content";
+            submenu.style.maxWidth = "none";
+            submenu.style.minWidth = "0";
           } else {
-            // Horizontal dropdown needs more width since items are side-by-side
-            if (isHorizontalDropdown) {
-              submenu.style.maxWidth = "600px";
-              submenu.style.width = "auto";
-            } else {
-              // Regular dropdown: narrower width
-              submenu.style.maxWidth = "320px";
-              submenu.style.width = "auto";
-            }
+            // Regular dropdown: narrower width
+            submenu.style.maxWidth = "320px";
+            submenu.style.width = "auto";
           }
-          // Note: Full-width is ignored for dropdowns, only applies to mega menus
         }
 
         submenu.appendChild(buildSubmenuContent(item, settings));
@@ -1813,10 +1886,19 @@
       .mc-submenu-list { list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px; }
 
       /* ── Horizontal dropdown ── */
-      .mc-menu-item.is-hdropdown > .mc-submenu { max-width:none !important;width:auto !important; }
-      .mc-hdropdown-content { display:flex !important;flex-direction:row !important;flex-wrap:wrap !important;gap:8px !important; }
-      .mc-hdropdown-content .mc-hdropdown-item { flex:0 0 auto !important;white-space:nowrap !important; }
-      .mc-hdropdown-content .mc-link-wrapper { width:auto !important; }
+      .mc-menu-item.is-hdropdown > .mc-submenu {
+        max-width:none !important;width:max-content !important;min-width:0 !important;
+      }
+      .mc-hdropdown-content {
+        display:flex !important;flex-direction:row !important;flex-wrap:nowrap !important;
+        gap:0 !important;align-items:stretch !important;padding:0 !important;width:max-content !important;
+      }
+      .mc-hdropdown-content > * { flex:0 0 auto !important;white-space:nowrap !important; }
+      .mc-hdropdown-content .mc-hdropdown-item {
+        flex:0 0 auto !important;white-space:nowrap !important;display:flex !important;
+        align-items:center !important;
+      }
+      .mc-hdropdown-content .mc-link-wrapper { width:auto !important;white-space:nowrap !important; }
       .mc-hdropdown-content .mc-link-text { flex:0 0 auto !important; }
       .mc-hdropdown-content .mc-link { white-space:nowrap !important; }
 

@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 import type { LinksFunction } from "@remix-run/node";
 import { useFetcher, useLocation, useNavigate, useLoaderData, useRouteLoaderData } from "@remix-run/react";
-import { createPortal } from "react-dom";
 import createApp from "@shopify/app-bridge";
 import { Fullscreen } from "@shopify/app-bridge/actions";
 import {
@@ -10,88 +9,54 @@ import {
   BlockStack,
   Box,
   Button,
-  ButtonGroup,
-  ActionList,
   Card,
-  ColorPicker,
-  Checkbox,
-  ChoiceList,
   Divider,
-  DropZone,
   InlineStack,
   Modal,
-  Popover,
-  RangeSlider,
-  Select,
   Text,
-  TextField,
   Icon,
-  Link,
 } from "@shopify/polaris";
 import {
   ArrowLeftIcon,
-  ArrowsOutHorizontalIcon,
-  BlogIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CodeIcon,
-  CollectionIcon,
-  CollectionListIcon,
   DesktopIcon,
-  FormsIcon,
-  DragHandleIcon,
   DuplicateIcon,
   EditIcon,
   DeleteIcon,
-  ImageIcon,
-  HomeIcon,
   MenuIcon,
   MobileIcon,
   PaintBrushRoundIcon,
   PlusIcon,
-  UploadIcon,
-  PageIcon,
-  ProductIcon,
-  ProductListIcon,
   SearchIcon,
   SettingsIcon,
   TextAlignCenterIcon,
   TextAlignLeftIcon,
   TextAlignRightIcon,
   TextFontListIcon,
-  TextIcon,
-  XCircleIcon,
 } from "@shopify/polaris-icons";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import type { loader as appLoader } from "./app";
-import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 import type {
   AddableItem,
-  BlogSummary,
   BlockTemplateId,
   BuilderSettings,
   CustomAddItem,
   FontPickerState,
   HsbColor,
   IconPickerState,
-  LatestArticleSummary,
   MenuItem,
-  PageSummary,
-  ProductSummary,
   RailPanel,
   SubmenuTemplateId,
   ThemeSettings,
 } from "../menu-builder/types";
 import {
-  BLOCK_TEMPLATES,
   DEFAULT_BUILDER_SETTINGS,
   FONT_OPTIONS,
-  LINK_SUGGESTIONS,
-  SUBMENU_TEMPLATES,
-  buildDefaultMenuItems,
 } from "../menu-builder/constants";
-import { ICON_LIBRARY, ICON_LIBRARY_BY_ID, ICON_PREFIX } from "../menu-builder/icons";
+import { ICON_LIBRARY_BY_ID, ICON_PREFIX } from "../menu-builder/icons";
 import {
   addChildById,
   applySidebarDefaultExpansion,
@@ -106,8 +71,6 @@ import {
   getSubmenuJustify,
   moveItem,
   hexToHsb,
-  hsbToHex,
-  normalizeHexInput,
   normalizeMultiBlocks,
   removeItemById,
   updateItemById,
@@ -147,15 +110,9 @@ import { CodePanel } from "../menu-builder/components/panels/CodePanel";
 import { ColorsPanel } from "../menu-builder/components/panels/ColorsPanel";
 import { TypographyPanel } from "../menu-builder/components/panels/TypographyPanel";
 import { SettingsPanel } from "../menu-builder/components/panels/SettingsPanel";
-import { SubmenuImagePickerPanel } from "../menu-builder/components/pickers/SubmenuImagePickerPanel";
-import { ProductPickerPanel } from "../menu-builder/components/pickers/ProductPickerPanel";
-import { CollectionPickerPanel } from "../menu-builder/components/pickers/CollectionPickerPanel";
-import { ImagePickerPanel } from "../menu-builder/components/pickers/ImagePickerPanel";
 import { IconLibraryPanel } from "../menu-builder/components/pickers/IconLibraryPanel";
 import { IconUploadPanel } from "../menu-builder/components/pickers/IconUploadPanel";
 import { LinkPickerContent } from "../menu-builder/components/pickers/LinkPickerContent";
-import { renderTemplatePreviewCard } from "../menu-builder/components/templates/TemplatePreviewCard";
-import { renderBlockTemplatePreviewCard } from "../menu-builder/components/templates/BlockTemplatePreviewCard";
 import { SubmenuTemplatePreviewPanel } from "../menu-builder/components/templates/SubmenuTemplatePreviewPanel";
 import { BlockTemplatePreviewPanel } from "../menu-builder/components/templates/BlockTemplatePreviewPanel";
 import { BlockTemplatePicker } from "../menu-builder/components/templates/BlockTemplatePicker";
@@ -198,7 +155,6 @@ import {
   type MenuPanelDeps,
 } from "../menu-builder/components/panels/MenuPanel";
 import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
-import { renderSegmentedControl } from "../menu-builder/components/shared/SegmentedControl";
 
 
 

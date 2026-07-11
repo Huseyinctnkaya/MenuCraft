@@ -94,8 +94,12 @@ import {
 import { ICON_LIBRARY, ICON_LIBRARY_BY_ID, ICON_PREFIX } from "../menu-builder/icons";
 import {
   addChildById,
+  applySidebarDefaultExpansion,
   buildId,
+  buildMenuFingerprint,
   duplicateItemById,
+  filterVisibleItemsRecursive,
+  findItemInTree,
   findItemPath,
   hexToHsb,
   hsbToHex,
@@ -128,94 +132,13 @@ import {
   buildThreeColumnLinkItems,
   buildTwoColumnLinkItems,
 } from "../menu-builder/presets";
+import {
+  HOVER_PREVIEW_CLEAR_DELAY_MS,
+  HOVER_PREVIEW_DELAY_MS,
+  PREVIEW_IMAGE_SOURCES,
+} from "../menu-builder/preview-images";
 
-const PREVIEW_IMAGE_SOURCES = [
-  "/vertical-dropdown.png",
-  "/horizantal-dropdown.png",
-  "/simple-left-tabs.png",
-  "/simple-right-tabs.png",
-  "/simple-top-tabs.png",
-  "/two-top-tabs.png",
-  "/three-top-tabs.png",
-  "/two-level-tabs.png",
-  "/three-level-tabs.png",
-  "/two-nested-tabs.png",
-  "/three-nested-tabs.png",
-  "/Space.png",
-  "/4-product-list.png",
-  "/link-list-multiblock.png",
-  "/1link-list+3product-columns.png",
-  "/3columns+1photo.png",
-  "/product-carousel.png",
-  "/2columns+2photos.png",
-  "/1link-list+product-carousel.png",
-  "/1column%20+%203photos.png",
-  "/image+product-carousel.png",
-  "/4images.png",
-  "/4products.png",
-  "/map-contact-adres.png",
-  "/custom menu image.png",
-  "/image%201.png",
-  "/I%CC%87mage%202.png",
-  "/two-columns.png",
-  "/3-columns.png",
-  "/easy-column.png",
-  "/columns-with-icons.png",
-  "/product-grid.png",
-  "/product.png",
-  "/product-yatay.png",
-  "/product-list.png",
-  "/product-grid-horizontal.png",
-  "/collection-list.png",
-  "/horizontal-collection-list.png",
-  "/articles-blog.png",
-  "/latest-blog.png",
-  "/contact%20form.png",
-  "/custom-html.png",
-];
 
-const HOVER_PREVIEW_DELAY_MS = 0;
-const HOVER_PREVIEW_CLEAR_DELAY_MS = 150;
-
-const applySidebarDefaultExpansion = (items: MenuItem[]): MenuItem[] => {
-  if (items.length === 0) return items;
-  const homeRoot =
-    items.find(
-      (item) =>
-        item.role === "menu" &&
-        ((item.label || "").toLowerCase() === "home" || item.url === "/")
-    ) ?? items[0];
-  const homeId = homeRoot?.id ?? "";
-
-  const collapseItems = (list: MenuItem[], depth = 0): MenuItem[] =>
-    list.map((item) => {
-      const isHomeRoot = depth === 0 && item.id === homeId;
-      const nextChildren = item.children ? collapseItems(item.children, depth + 1) : item.children;
-      if (item.role === "item") {
-        return item.children ? { ...item, children: nextChildren } : item;
-      }
-      return { ...item, expanded: isHomeRoot, children: nextChildren };
-    });
-
-  return collapseItems(items);
-};
-
-const stripExpandedFromItems = (items: MenuItem[]): MenuItem[] =>
-  items.map(({ expanded: _expanded, children, ...rest }) => ({
-    ...rest,
-    ...(children ? { children: stripExpandedFromItems(children) } : {}),
-  }));
-
-const buildMenuFingerprint = (
-  status: "active" | "draft",
-  items: MenuItem[],
-  settings: BuilderSettings
-) =>
-  JSON.stringify({
-    status,
-    items: stripExpandedFromItems(items),
-    settings,
-  });
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: polarisStyles },
@@ -227,30 +150,6 @@ export { action } from "../menu-builder/server/action.server";
 import type { loader } from "../menu-builder/server/loader.server";
 import type { action } from "../menu-builder/server/action.server";
 
-const filterVisibleItemsRecursive = (items: MenuItem[], isMobile: boolean): MenuItem[] => {
-  return items
-    .filter((item) => {
-      if (item.hideOnDesktop && !isMobile) return false;
-      if (item.hideOnMobile && isMobile) return false;
-      return true;
-    })
-    .map((item) => ({
-      ...item,
-      children: item.children ? filterVisibleItemsRecursive(item.children, isMobile) : undefined,
-    }));
-};
-
-const findItemInTree = (items: MenuItem[], id: string | null): MenuItem | null => {
-  if (!id) return null;
-  for (const item of items) {
-    if (item.id === id) return item;
-    if (item.children) {
-      const found = findItemInTree(item.children, id);
-      if (found) return found;
-    }
-  }
-  return null;
-};
 
 export default function MenuBuilder() {
   const loaderData = useLoaderData<typeof loader>();

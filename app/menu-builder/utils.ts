@@ -1,4 +1,4 @@
-import type { HsbColor, MenuItem, RgbColor } from "./types";
+import type { BuilderSettings, HsbColor, MenuItem, RgbColor } from "./types";
 
 export const buildId = () => Math.random().toString(36).slice(2, 9);
 
@@ -218,6 +218,71 @@ export const removeItemById = (items: MenuItem[], id: string): MenuItem[] => {
   }, []);
 
   return changed ? next : items;
+};
+
+export const applySidebarDefaultExpansion = (items: MenuItem[]): MenuItem[] => {
+  if (items.length === 0) return items;
+  const homeRoot =
+    items.find(
+      (item) =>
+        item.role === "menu" &&
+        ((item.label || "").toLowerCase() === "home" || item.url === "/")
+    ) ?? items[0];
+  const homeId = homeRoot?.id ?? "";
+
+  const collapseItems = (list: MenuItem[], depth = 0): MenuItem[] =>
+    list.map((item) => {
+      const isHomeRoot = depth === 0 && item.id === homeId;
+      const nextChildren = item.children ? collapseItems(item.children, depth + 1) : item.children;
+      if (item.role === "item") {
+        return item.children ? { ...item, children: nextChildren } : item;
+      }
+      return { ...item, expanded: isHomeRoot, children: nextChildren };
+    });
+
+  return collapseItems(items);
+};
+
+export const stripExpandedFromItems = (items: MenuItem[]): MenuItem[] =>
+  items.map(({ expanded: _expanded, children, ...rest }) => ({
+    ...rest,
+    ...(children ? { children: stripExpandedFromItems(children) } : {}),
+  }));
+
+export const buildMenuFingerprint = (
+  status: "active" | "draft",
+  items: MenuItem[],
+  settings: BuilderSettings
+) =>
+  JSON.stringify({
+    status,
+    items: stripExpandedFromItems(items),
+    settings,
+  });
+
+export const filterVisibleItemsRecursive = (items: MenuItem[], isMobile: boolean): MenuItem[] => {
+  return items
+    .filter((item) => {
+      if (item.hideOnDesktop && !isMobile) return false;
+      if (item.hideOnMobile && isMobile) return false;
+      return true;
+    })
+    .map((item) => ({
+      ...item,
+      children: item.children ? filterVisibleItemsRecursive(item.children, isMobile) : undefined,
+    }));
+};
+
+export const findItemInTree = (items: MenuItem[], id: string | null): MenuItem | null => {
+  if (!id) return null;
+  for (const item of items) {
+    if (item.id === id) return item;
+    if (item.children) {
+      const found = findItemInTree(item.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
 };
 
 export const normalizeMultiBlocks = (items: MenuItem[]): MenuItem[] => {

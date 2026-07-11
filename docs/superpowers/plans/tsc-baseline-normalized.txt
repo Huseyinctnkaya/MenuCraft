@@ -110,7 +110,7 @@ error TS2322: Type '{ linkColumns?: number | undefined; linkWidth?: number | und
 error TS2322: Type '{ type: "number"; value: string; onChange: (next: string) => void; suffix: string; autoComplete: string; }' is not assignable to type 'IntrinsicAttributes & TextFieldProps'.
 error TS2322: Type '{ type: "number"; value: string; onChange: (value: string) => void; suffix: string; autoComplete: string; }' is not assignable to type 'IntrinsicAttributes & TextFieldProps'.
 error TS2339: Property 'blogs' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
-error TS2339: Property 'child' does not exist on type '{ child: MenuItem | undefined; product: any; } | { product: ProductSummary | null; }'.
+error TS2339: Property 'child' does not exist on type '{ product: ProductSummary | null; }'.
 error TS2339: Property 'collections' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
 error TS2339: Property 'connectedThemeId' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; status: string | null; updatedAt: Date; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
 error TS2339: Property 'connectedThemeName' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; status: string | null; updatedAt: Date; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
@@ -126,7 +126,6 @@ error TS2339: Property 'language' does not exist on type '{ id: number; test: bo
 error TS2339: Property 'latestArticles' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
 error TS2339: Property 'marketingEmails' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; status: string | null; updatedAt: Date; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
 error TS2339: Property 'menu' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
-error TS2339: Property 'menuItemId' does not exist on type 'JsonifyObject<{ ok: boolean; }>'.
 error TS2339: Property 'menuItems' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
 error TS2339: Property 'menuItemSpacing' does not exist on type 'BuilderSettings'.
 error TS2339: Property 'menus' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
@@ -136,7 +135,7 @@ error TS2339: Property 'mode' does not exist on type 'never'.
 error TS2339: Property 'pages' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
 error TS2339: Property 'products' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
 error TS2339: Property 'shopDomain' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
-error TS2339: Property 'submission' does not exist on type 'FetcherWithComponents<JsonifyObject<{ ok: boolean; }>>'.
+error TS2339: Property 'submission' does not exist on type 'FetcherWithComponents<any>'.
 error TS2339: Property 'trim' does not exist on type 'FormDataEntryValue'.
 error TS2339: Property 'trim' does not exist on type 'FormDataEntryValue'.
 error TS2339: Property 'trim' does not exist on type 'FormDataEntryValue'.
@@ -184,12 +183,8 @@ error TS2783: 'fontWeight' is specified more than once, so this usage will be ov
 error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
 error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
 error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
-error TS7006: Parameter 'article' implicitly has an 'any' type.
 error TS7006: Parameter 'blog' implicitly has an 'any' type.
 error TS7006: Parameter 'blog' implicitly has an 'any' type.
-error TS7006: Parameter 'blog' implicitly has an 'any' type.
-error TS7006: Parameter 'blog' implicitly has an 'any' type.
-error TS7006: Parameter 'collection' implicitly has an 'any' type.
 error TS7006: Parameter 'collection' implicitly has an 'any' type.
 error TS7006: Parameter 'collection' implicitly has an 'any' type.
 error TS7006: Parameter 'collection' implicitly has an 'any' type.
@@ -197,16 +192,12 @@ error TS7006: Parameter 'collection' implicitly has an 'any' type.
 error TS7006: Parameter 'event' implicitly has an 'any' type.
 error TS7006: Parameter 'event' implicitly has an 'any' type.
 error TS7006: Parameter 'event' implicitly has an 'any' type.
-error TS7006: Parameter 'index' implicitly has an 'any' type.
 error TS7006: Parameter 'index' implicitly has an 'any' type.
 error TS7006: Parameter 'index' implicitly has an 'any' type.
 error TS7006: Parameter 'key' implicitly has an 'any' type.
 error TS7006: Parameter 'link' implicitly has an 'any' type.
 error TS7006: Parameter 'menu' implicitly has an 'any' type.
 error TS7006: Parameter 'page' implicitly has an 'any' type.
-error TS7006: Parameter 'product' implicitly has an 'any' type.
-error TS7006: Parameter 'product' implicitly has an 'any' type.
-error TS7006: Parameter 'product' implicitly has an 'any' type.
 error TS7006: Parameter 'product' implicitly has an 'any' type.
 error TS7006: Parameter 'product' implicitly has an 'any' type.
 error TS7006: Parameter 'product' implicitly has an 'any' type.

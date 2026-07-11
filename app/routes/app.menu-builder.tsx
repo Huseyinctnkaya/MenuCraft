@@ -140,6 +140,8 @@ import {
 import { CodePanel } from "../menu-builder/components/panels/CodePanel";
 import { ColorsPanel } from "../menu-builder/components/panels/ColorsPanel";
 import { TypographyPanel } from "../menu-builder/components/panels/TypographyPanel";
+import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
+import { renderSegmentedControl } from "../menu-builder/components/shared/SegmentedControl";
 
 
 
@@ -3692,41 +3694,6 @@ export default function MenuBuilder() {
     );
   };
 
-  const renderMenuIcon = (
-    icon?: string,
-    options?: { size?: number; className?: string; color?: string }
-  ) => {
-    if (!icon) return null;
-    const size = options?.size ?? 16;
-    const className = options?.className ?? "";
-    const color = options?.color;
-    if (icon.startsWith("data:")) {
-      return (
-        <img
-          src={icon}
-          alt=""
-          className={`object-contain ${className}`}
-          style={{ width: size, height: size }}
-        />
-      );
-    }
-    if (icon.startsWith(ICON_PREFIX)) {
-      const iconId = icon.slice(ICON_PREFIX.length);
-      const option = ICON_LIBRARY_BY_ID[iconId];
-      if (option) {
-        return (
-          <option.Icon
-            size={size}
-            strokeWidth={1.6}
-            className={className}
-            style={color ? { color } : undefined}
-          />
-        );
-      }
-    }
-    return null;
-  };
-
   const handleIconUploadFile = (
     itemId: string,
     file: File | null | undefined,
@@ -4072,35 +4039,6 @@ export default function MenuBuilder() {
     updateEditDraft("submenuWidth", "content");
     updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"]);
   };
-
-  const renderSegmentedControl = (
-    options: Array<{ label: string; value: string }>,
-    value: string,
-    onChange: (next: string) => void
-  ) => (
-    <ul className="Menu-SegmentedControl__SegmentedControlContainer flex w-full items-center gap-1 rounded-lg bg-gray-100 p-1">
-      {options.map((option) => {
-        const isSelected = option.value === value;
-        return (
-          <li
-            key={option.value}
-            className="Menu-SegmentedControl-Option__OptionWrapper list-none flex-1"
-          >
-            <button
-              type="button"
-              onClick={() => onChange(option.value)}
-              className={`Menu-SegmentedControl-Option__SegmentedControlItem w-full rounded-md px-3 py-1 text-sm font-medium ${isSelected
-                ? "Menu-SegmentedControl-Option--selected bg-white shadow-sm"
-                : "bg-transparent"
-                }`}
-            >
-              {option.label}
-            </button>
-          </li>
-        );
-      })}
-    </ul>
-  );
 
   const resolveSubmenuWidthAlignment = (item: MenuItem) => {
     if (item.submenuWidth === "full") return "full";

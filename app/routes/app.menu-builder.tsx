@@ -141,6 +141,10 @@ import { CodePanel } from "../menu-builder/components/panels/CodePanel";
 import { ColorsPanel } from "../menu-builder/components/panels/ColorsPanel";
 import { TypographyPanel } from "../menu-builder/components/panels/TypographyPanel";
 import { SettingsPanel } from "../menu-builder/components/panels/SettingsPanel";
+import { SubmenuImagePickerPanel } from "../menu-builder/components/pickers/SubmenuImagePickerPanel";
+import { ProductPickerPanel } from "../menu-builder/components/pickers/ProductPickerPanel";
+import { CollectionPickerPanel } from "../menu-builder/components/pickers/CollectionPickerPanel";
+import { ImagePickerPanel } from "../menu-builder/components/pickers/ImagePickerPanel";
 import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
 import { renderSegmentedControl } from "../menu-builder/components/shared/SegmentedControl";
 
@@ -1006,373 +1010,6 @@ export default function MenuBuilder() {
       }
     }
     closeCollectionPicker();
-  };
-
-  const renderSubmenuImagePickerPanel = () => {
-    const editingItem = editDraft ?? selectedItem;
-    if (!submenuImagePickerOpen) return null;
-    return (
-      <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <InlineStack gap="200" blockAlign="center">
-            <Button
-              variant="tertiary"
-              icon={ArrowLeftIcon}
-              onClick={() => setSubmenuImagePickerOpen(false)}
-              accessibilityLabel="Back"
-            />
-            <Text as="h2" variant="headingSm">
-              Images
-            </Text>
-          </InlineStack>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-          <DropZone
-            accept="image/*"
-            allowMultiple={false}
-            onDrop={(files) => {
-              handleSubmenuBackgroundUpload(files?.[0]);
-              setSubmenuImagePickerOpen(false);
-            }}
-          >
-            <DropZone.FileUpload actionTitle="Add image" actionHint="Drag and drop your image" />
-          </DropZone>
-          {builderSettings.imageLibrary && builderSettings.imageLibrary.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {builderSettings.imageLibrary.map((image) => {
-                const isSelected = editingItem?.submenuBackgroundImage === image;
-                return (
-                  <button
-                    key={image}
-                    type="button"
-                    onClick={() => {
-                      if (menuView === "edit") {
-                        updateEditDraft("submenuBackgroundImage", image);
-                      } else {
-                        handleUpdateSelected("submenuBackgroundImage", image);
-                      }
-                      setSubmenuImagePickerOpen(false);
-                    }}
-                    className={`relative overflow-hidden rounded-lg border p-1 text-left transition ${isSelected ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-200 hover:border-gray-300"
-                      } bg-white shadow-sm group`}
-                  >
-                    {isSelected && (
-                      <div className="absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded bg-gray-900 text-white shadow-sm">
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    )}
-                    <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-100">
-                      <img
-                        src={image}
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const renderProductPickerPanel = () => {
-    if (!productPickerOpen) return null;
-    const searchValue = productPickerSearch.trim().toLowerCase();
-    const filteredProducts = searchValue
-      ? products.filter((product) => product.title.toLowerCase().includes(searchValue))
-      : products;
-    return (
-      <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <InlineStack gap="200" blockAlign="center">
-            <Button
-              variant="tertiary"
-              icon={ArrowLeftIcon}
-              onClick={closeProductPicker}
-              accessibilityLabel="Back"
-            />
-            <Text as="h2" variant="headingSm">
-              {productPickerTargetId ? "Select product" : "Select products"}
-            </Text>
-          </InlineStack>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-          <BlockStack gap="300">
-            <TextField
-              label="Search"
-              labelHidden
-              value={productPickerSearch}
-              onChange={setProductPickerSearch}
-              placeholder="Search"
-              autoComplete="off"
-              prefix={<Icon source={SearchIcon} tone="subdued" />}
-            />
-            <BlockStack gap="200">
-              {filteredProducts.length ? (
-                filteredProducts.map((product) => {
-                  const isSelected = Boolean(productPickerSelection[product.id]);
-                  return (
-                    <label
-                      key={product.id}
-                      className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm transition-colors ${isSelected
-                        ? "border-blue-600 bg-blue-50 text-blue-700"
-                        : "border-gray-200 text-gray-700 hover:border-gray-300"
-                        }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleProductSelection(product.id)}
-                        className="h-4 w-4"
-                      />
-                      <div className="h-10 w-10 overflow-hidden rounded-md border border-gray-200 bg-white">
-                        <img
-                          src={product.featuredImage?.url ?? "/product.png"}
-                          alt={product.featuredImage?.altText ?? product.title}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <span className="flex-1">{product.title}</span>
-                    </label>
-                  );
-                })
-              ) : (
-                <Text as="p" variant="bodySm" tone="subdued">
-                  No products found.
-                </Text>
-              )}
-            </BlockStack>
-          </BlockStack>
-        </div>
-        <div className="border-t border-gray-200 bg-white px-4 py-3">
-          <InlineStack align="end" gap="200">
-            <Button variant="tertiary" onClick={closeProductPicker}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={applyProductSelection}>
-              Apply
-            </Button>
-          </InlineStack>
-        </div>
-      </div>
-    );
-  };
-
-  const renderCollectionPickerPanel = () => {
-    if (!collectionPickerOpen) return null;
-    const searchValue = collectionPickerSearch.trim().toLowerCase();
-    const filteredCollections = searchValue
-      ? collections.filter((collection) => collection.title.toLowerCase().includes(searchValue))
-      : collections;
-    return (
-      <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <InlineStack gap="200" blockAlign="center">
-            <Button
-              variant="tertiary"
-              icon={ArrowLeftIcon}
-              onClick={closeCollectionPicker}
-              accessibilityLabel="Back"
-            />
-            <Text as="h2" variant="headingSm">
-              {collectionPickerTargetId ? "Select collection" : "Select collections"}
-            </Text>
-          </InlineStack>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-          <BlockStack gap="300">
-            <TextField
-              label="Search"
-              labelHidden
-              value={collectionPickerSearch}
-              onChange={setCollectionPickerSearch}
-              placeholder="Search"
-              autoComplete="off"
-              prefix={<Icon source={SearchIcon} tone="subdued" />}
-            />
-            <BlockStack gap="200">
-              {filteredCollections.length ? (
-                filteredCollections.map((collection) => {
-                  const isSelected = Boolean(collectionPickerSelection[collection.id]);
-                  return (
-                    <label
-                      key={collection.id}
-                      className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-sm transition-colors ${isSelected
-                        ? "border-blue-600 bg-blue-50 text-blue-700"
-                        : "border-gray-200 text-gray-700 hover:border-gray-300"
-                        }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleCollectionSelection(collection.id)}
-                        className="h-4 w-4"
-                      />
-                      <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-white">
-                        {collection.image?.url ? (
-                          <img
-                            src={collection.image.url}
-                            alt={collection.image.altText ?? collection.title}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <Icon source={CollectionIcon} tone="subdued" />
-                        )}
-                      </div>
-                      <span className="flex-1">{collection.title}</span>
-                    </label>
-                  );
-                })
-              ) : (
-                <Text as="p" variant="bodySm" tone="subdued">
-                  No collections found.
-                </Text>
-              )}
-            </BlockStack>
-          </BlockStack>
-        </div>
-        <div className="border-t border-gray-200 bg-white px-4 py-3">
-          <InlineStack align="end" gap="200">
-            <Button variant="tertiary" onClick={closeCollectionPicker}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={applyCollectionSelection}>
-              Apply
-            </Button>
-          </InlineStack>
-        </div>
-      </div>
-    );
-  };
-
-  const renderImagePickerPanel = () => {
-    if (!imagePickerOpen) return null;
-    const imageLibrary = builderSettings.imageLibrary ?? [];
-    const hasSelection = Boolean(imagePickerSelection);
-    return (
-      <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <InlineStack gap="200" blockAlign="center">
-            <Button
-              variant="tertiary"
-              icon={ArrowLeftIcon}
-              onClick={() => setImagePickerOpen(false)}
-              accessibilityLabel="Back"
-            />
-            <Text as="h2" variant="headingSm">
-              Images
-            </Text>
-          </InlineStack>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-          <label
-            className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={(event) => {
-              event.preventDefault();
-              handleImageUpload(event.dataTransfer.files?.[0]);
-            }}
-          >
-            <Button
-              variant="tertiary"
-              onClick={(event) => {
-                event.preventDefault();
-                const input = event.currentTarget
-                  .closest("label")
-                  ?.querySelector("input[type=file]") as HTMLInputElement | null;
-                input?.click();
-              }}
-            >
-              Add image
-            </Button>
-            <Text as="p" variant="bodySm" tone="subdued">
-              Drag and drop your image
-            </Text>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(event) => {
-                handleImageUpload(event.target.files?.[0] ?? null);
-              }}
-            />
-          </label>
-          {imageLibrary.length === 0 ? (
-            <Text as="p" variant="bodySm" tone="subdued" alignment="center" className="mt-4">
-              No images uploaded yet.
-            </Text>
-          ) : (
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {imageLibrary.map((image) => {
-                const isSelected = imagePickerSelection === image;
-                return (
-                  <button
-                    key={image}
-                    type="button"
-                    onClick={() => setImagePickerSelection(image)}
-                    className={`relative overflow-hidden rounded-lg border p-1 text-left transition ${isSelected ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-200 hover:border-gray-300"
-                      } bg-white shadow-sm group`}
-                  >
-                    {isSelected && (
-                      <div className="absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded bg-gray-900 text-white shadow-sm">
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    )}
-                    <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-100">
-                      <img
-                        src={image}
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-        <div className="mt-auto border-t border-gray-200 bg-white px-4 py-3">
-          <InlineStack gap="200" align="end">
-            <Button
-              variant="tertiary"
-              disabled={!hasSelection}
-              onClick={() => {
-                if (!imagePickerSelection) return;
-                const nextSelection = imagePickerSelection;
-                setBuilderSettings((prev) => ({
-                  ...prev,
-                  imageLibrary: (prev.imageLibrary ?? []).filter((image) => image !== nextSelection),
-                }));
-                if (currentImageUrl === nextSelection) {
-                  updateEditDraft("imageUrl", "");
-                }
-                setImagePickerSelection(null);
-              }}
-            >
-              Delete
-            </Button>
-            <Button
-              variant="primary"
-              disabled={!hasSelection}
-              onClick={() => {
-                if (!imagePickerSelection) return;
-                updateEditDraft("imageUrl", imagePickerSelection);
-                setImagePickerOpen(false);
-              }}
-            >
-              Select
-            </Button>
-          </InlineStack>
-        </div>
-      </div>
-    );
   };
 
   const clearSubmenuTemplateHoverTimeout = () => {
@@ -5241,16 +4878,56 @@ export default function MenuBuilder() {
         );
       }
       if (imagePickerOpen) {
-        return renderImagePickerPanel();
+        return <ImagePickerPanel
+          imagePickerOpen={imagePickerOpen}
+          setImagePickerOpen={setImagePickerOpen}
+          imagePickerSelection={imagePickerSelection}
+          setImagePickerSelection={setImagePickerSelection}
+          builderSettings={builderSettings}
+          setBuilderSettings={setBuilderSettings}
+          currentImageUrl={currentImageUrl}
+          handleImageUpload={handleImageUpload}
+          updateEditDraft={updateEditDraft}
+        />;
       }
       if (submenuImagePickerOpen) {
-        return renderSubmenuImagePickerPanel();
+        return <SubmenuImagePickerPanel
+          submenuImagePickerOpen={submenuImagePickerOpen}
+          setSubmenuImagePickerOpen={setSubmenuImagePickerOpen}
+          editDraft={editDraft}
+          selectedItem={selectedItem}
+          builderSettings={builderSettings}
+          menuView={menuView}
+          handleSubmenuBackgroundUpload={handleSubmenuBackgroundUpload}
+          updateEditDraft={updateEditDraft}
+          handleUpdateSelected={handleUpdateSelected}
+        />;
       }
       if (productPickerOpen) {
-        return renderProductPickerPanel();
+        return <ProductPickerPanel
+          productPickerOpen={productPickerOpen}
+          productPickerSearch={productPickerSearch}
+          setProductPickerSearch={setProductPickerSearch}
+          productPickerSelection={productPickerSelection}
+          productPickerTargetId={productPickerTargetId}
+          products={products}
+          toggleProductSelection={toggleProductSelection}
+          closeProductPicker={closeProductPicker}
+          applyProductSelection={applyProductSelection}
+        />;
       }
       if (collectionPickerOpen) {
-        return renderCollectionPickerPanel();
+        return <CollectionPickerPanel
+          collectionPickerOpen={collectionPickerOpen}
+          collectionPickerSearch={collectionPickerSearch}
+          setCollectionPickerSearch={setCollectionPickerSearch}
+          collectionPickerSelection={collectionPickerSelection}
+          collectionPickerTargetId={collectionPickerTargetId}
+          collections={collections}
+          toggleCollectionSelection={toggleCollectionSelection}
+          closeCollectionPicker={closeCollectionPicker}
+          applyCollectionSelection={applyCollectionSelection}
+        />;
       }
       return (
         <div className="flex h-full flex-col border border-gray-200 bg-white shadow-sm">
@@ -7061,7 +6738,17 @@ export default function MenuBuilder() {
       if (imagePickerOpen) {
         return (
           <div className="flex min-h-0 flex-1 flex-col bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-            {renderImagePickerPanel()}
+            {<ImagePickerPanel
+          imagePickerOpen={imagePickerOpen}
+          setImagePickerOpen={setImagePickerOpen}
+          imagePickerSelection={imagePickerSelection}
+          setImagePickerSelection={setImagePickerSelection}
+          builderSettings={builderSettings}
+          setBuilderSettings={setBuilderSettings}
+          currentImageUrl={currentImageUrl}
+          handleImageUpload={handleImageUpload}
+          updateEditDraft={updateEditDraft}
+        />}
           </div>
         );
       }

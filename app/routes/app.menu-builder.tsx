@@ -152,6 +152,8 @@ import { renderTemplatePreviewCard } from "../menu-builder/components/templates/
 import { renderBlockTemplatePreviewCard } from "../menu-builder/components/templates/BlockTemplatePreviewCard";
 import { SubmenuTemplatePreviewPanel } from "../menu-builder/components/templates/SubmenuTemplatePreviewPanel";
 import { BlockTemplatePreviewPanel } from "../menu-builder/components/templates/BlockTemplatePreviewPanel";
+import { BlockTemplatePicker } from "../menu-builder/components/templates/BlockTemplatePicker";
+import { SubmenuTemplatePicker } from "../menu-builder/components/templates/SubmenuTemplatePicker";
 import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
 import { renderSegmentedControl } from "../menu-builder/components/shared/SegmentedControl";
 
@@ -1081,120 +1083,6 @@ export default function MenuBuilder() {
         setBlockTemplateHoverId(null);
       }
     }, HOVER_PREVIEW_CLEAR_DELAY_MS);
-  };
-
-  const renderBlockTemplatePicker = () => {
-    const isOpen = Boolean(blockTemplateTargetId);
-    return (
-      <div
-        className={`absolute right-0 top-0 z-40 flex h-full w-80 min-h-0 flex-col border-l border-gray-200 bg-white shadow-xl transition-none ${isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
-          }`}
-        aria-hidden={!isOpen}
-      >
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-          <Text as="h2" variant="headingSm">
-            Select block
-          </Text>
-          <button
-            type="button"
-            aria-label="Close block picker"
-            onClick={() => setBlockTemplateTargetId(null)}
-            className="text-xl text-gray-400 hover:text-gray-600"
-          >
-            ×
-          </button>
-        </div>
-        <div
-          className="flex-1 min-h-0 overflow-y-auto px-3 py-3"
-          onMouseEnter={() => clearBlockTemplateHoverTimeout()}
-          onMouseLeave={() => scheduleBlockTemplateHoverClear()}
-        >
-          <BlockStack gap="0">
-            {BLOCK_TEMPLATES.map((template) => {
-              const isHovered = blockTemplateHoverId === template.id;
-              return (
-                <button
-                  key={template.id}
-                  type="button"
-                  onClick={() => {
-                    clearBlockTemplateHoverTimeout();
-                    setBlockTemplateHoverId(template.id);
-                  }}
-                  onMouseEnter={() => {
-                    scheduleBlockTemplateHover(template.id);
-                  }}
-                  onMouseLeave={() => scheduleBlockTemplateHoverClear()}
-                  className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 transition-colors ${isHovered ? "bg-gray-100" : "hover:bg-gray-100"
-                    }`}
-                >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-gray-600">
-                    <Icon source={template.icon} tone="subdued" />
-                  </span>
-                  <span className="font-medium text-gray-800">{template.label}</span>
-                </button>
-              );
-            })}
-          </BlockStack>
-        </div>
-      </div>
-    );
-  };
-
-  const renderSubmenuTemplatePicker = () => {
-    const isOpen = Boolean(submenuTemplateTargetId);
-    return (
-      <div
-        className={`absolute right-0 top-0 z-40 flex h-full w-80 min-h-0 flex-col border-l border-gray-200 bg-white shadow-xl transition-none ${isOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"
-          }`}
-        aria-hidden={!isOpen}
-      >
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-          <Text as="h2" variant="headingSm">
-            Select template
-          </Text>
-          <button
-            type="button"
-            aria-label="Close template picker"
-            onClick={() => setSubmenuTemplateTargetId(null)}
-            className="text-xl text-gray-400 hover:text-gray-600"
-          >
-            ×
-          </button>
-        </div>
-        <div
-          className="flex-1 min-h-0 overflow-y-auto px-3 py-3"
-          onMouseEnter={() => {
-            clearSubmenuTemplateHoverTimeout();
-            setSubmenuTemplatePanelHover(false); // Reset panel hover when entering picker
-          }}
-          onMouseLeave={() => scheduleSubmenuTemplateHoverClear()}
-        >
-          <BlockStack gap="0">
-            {SUBMENU_TEMPLATES.map((template) => {
-              const isHovered = submenuTemplateHoverId === template.id;
-              return (
-                <button
-                  key={template.id}
-                  type="button"
-                  onClick={() => handleApplySubmenuTemplate(template.id)}
-                  onMouseEnter={() => {
-                    scheduleSubmenuTemplateHover(template.id);
-                  }}
-                  onMouseLeave={() => scheduleSubmenuTemplateHoverClear()}
-                  className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 transition-colors ${isHovered ? "bg-gray-100" : "hover:bg-gray-100"
-                    }`}
-                >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-gray-600">
-                    <Icon source={template.icon} tone="subdued" />
-                  </span>
-                  <span className="font-medium text-gray-800">{template.label}</span>
-                </button>
-              );
-            })}
-          </BlockStack>
-        </div>
-      </div>
-    );
   };
 
   const openIconPicker = (
@@ -12941,7 +12829,15 @@ export default function MenuBuilder() {
           isProPlan={isProPlan}
           navigate={navigate}
         />
-        {renderBlockTemplatePicker()}
+        <BlockTemplatePicker
+          blockTemplateTargetId={blockTemplateTargetId}
+          setBlockTemplateTargetId={setBlockTemplateTargetId}
+          blockTemplateHoverId={blockTemplateHoverId}
+          setBlockTemplateHoverId={setBlockTemplateHoverId}
+          clearBlockTemplateHoverTimeout={clearBlockTemplateHoverTimeout}
+          scheduleBlockTemplateHover={scheduleBlockTemplateHover}
+          scheduleBlockTemplateHoverClear={scheduleBlockTemplateHoverClear}
+        />
         <SubmenuTemplatePreviewPanel
           submenuTemplateTargetId={submenuTemplateTargetId}
           submenuTemplateHoverId={submenuTemplateHoverId}
@@ -12955,7 +12851,16 @@ export default function MenuBuilder() {
           isProPlan={isProPlan}
           navigate={navigate}
         />
-        {renderSubmenuTemplatePicker()}
+        <SubmenuTemplatePicker
+          submenuTemplateTargetId={submenuTemplateTargetId}
+          setSubmenuTemplateTargetId={setSubmenuTemplateTargetId}
+          submenuTemplateHoverId={submenuTemplateHoverId}
+          setSubmenuTemplatePanelHover={setSubmenuTemplatePanelHover}
+          clearSubmenuTemplateHoverTimeout={clearSubmenuTemplateHoverTimeout}
+          scheduleSubmenuTemplateHover={scheduleSubmenuTemplateHover}
+          scheduleSubmenuTemplateHoverClear={scheduleSubmenuTemplateHoverClear}
+          handleApplySubmenuTemplate={handleApplySubmenuTemplate}
+        />
         <div
           className={`fixed inset-0 z-30 bg-gray-900/40 transition-opacity duration-200 ${isTemplatePickerOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             }`}

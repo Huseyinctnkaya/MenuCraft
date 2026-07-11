@@ -101,6 +101,10 @@ import {
   filterVisibleItemsRecursive,
   findItemInTree,
   findItemPath,
+  findParentId,
+  getBlockSpan,
+  getSubmenuJustify,
+  moveItem,
   hexToHsb,
   hsbToHex,
   normalizeHexInput,
@@ -109,6 +113,8 @@ import {
   updateItemById,
 } from "../menu-builder/utils";
 import {
+  buildTabsBlockItems,
+  buildTabsTemplateItems,
   buildCollectionListItems,
   buildDropdownMenuItems,
   buildEasyColumnLinkItems,
@@ -1470,37 +1476,6 @@ export default function MenuBuilder() {
     updateEditDraft("submenuContentAlign", value as MenuItem["submenuContentAlign"]);
   };
 
-  const getBlockSpan = (item: MenuItem): number => {
-    if (item.blockTemplate === "links") {
-      return Math.max(1, Math.min(12, item.linkWidth ?? 3));
-    }
-    if (item.blockTemplate === "image" || item.blockTemplate === "image2") {
-      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
-    }
-    if (item.blockTemplate === "html") {
-      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
-    }
-    if (
-      item.blockTemplate === "product" ||
-      item.blockTemplate === "product-horizontal" ||
-      item.blockTemplate === "product-grid" ||
-      item.blockTemplate === "product-carousel" ||
-      item.blockTemplate === "product-grid-horizontal"
-    ) {
-      return Math.max(1, Math.min(12, item.productWidth ?? 3));
-    }
-    if (item.blockTemplate === "collection" || item.blockTemplate === "collection-horizontal") {
-      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
-    }
-    if (item.blockTemplate === "blogs" || item.blockTemplate === "blogs-latest") {
-      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
-    }
-    if (item.blockTemplate === "contact") {
-      return Math.max(1, Math.min(12, item.imageWidth ?? 3));
-    }
-    return 3; // Default
-  };
-
   const removeEditDraftItemById = (id: string) => {
     setEditDraft((prev) => {
       const base = prev ?? selectedItem;
@@ -1822,57 +1797,6 @@ export default function MenuBuilder() {
       }))
     );
     setBlockTemplateTargetId(null);
-  };
-
-  const extractBlockItemsFromTemplate = (items: MenuItem[]): MenuItem[] => {
-    for (const item of items) {
-      const children = item.children ?? [];
-      if (children.some((child) => child.blockTemplate)) {
-        return children.filter((child) => child.blockTemplate);
-      }
-      if (children.length) {
-        const nested = extractBlockItemsFromTemplate(children);
-        if (nested.length) return nested;
-      }
-    }
-    return [];
-  };
-
-  const buildTabsBlockItems = (templateId: SubmenuTemplateId): MenuItem[] => {
-    const items =
-      templateId === "simple-left-tabs"
-        ? buildSimpleLeftTabsItems()
-        : templateId === "simple-right-tabs"
-          ? buildSimpleRightTabsItems()
-          : templateId === "simple-top-tabs"
-            ? buildSimpleTopTabsItems()
-            : templateId === "two-top-tabs"
-              ? buildTwoTopTabsItems()
-              : templateId === "three-top-tabs"
-                ? buildThreeTopTabsItems()
-                : templateId === "two-level-tabs"
-                  ? buildTwoLevelTabsItems()
-                  : templateId === "three-level-tabs"
-                    ? buildThreeLevelTabsItems()
-                    : templateId === "two-nested-tabs-right"
-                      ? buildTwoNestedTabsRightItems()
-                      : templateId === "three-nested-tabs-right"
-                        ? buildThreeNestedTabsRightItems()
-                        : [];
-    return extractBlockItemsFromTemplate(items);
-  };
-
-  const buildTabsTemplateItems = (templateId: SubmenuTemplateId): MenuItem[] => {
-    if (templateId === "simple-left-tabs") return buildSimpleLeftTabsItems();
-    if (templateId === "simple-right-tabs") return buildSimpleRightTabsItems();
-    if (templateId === "simple-top-tabs") return buildSimpleTopTabsItems();
-    if (templateId === "two-top-tabs") return buildTwoTopTabsItems();
-    if (templateId === "three-top-tabs") return buildThreeTopTabsItems();
-    if (templateId === "two-level-tabs") return buildTwoLevelTabsItems();
-    if (templateId === "three-level-tabs") return buildThreeLevelTabsItems();
-    if (templateId === "two-nested-tabs-right") return buildTwoNestedTabsRightItems();
-    if (templateId === "three-nested-tabs-right") return buildThreeNestedTabsRightItems();
-    return [];
   };
 
   const handleApplyTabsBlockTemplate = (templateId: SubmenuTemplateId) => {
@@ -2264,41 +2188,6 @@ export default function MenuBuilder() {
     handleDeleteItem(pendingDeleteItemId);
     setPendingDeleteItemId(null);
     setPendingDeleteItemLabel("");
-  };
-
-  const findParentId = (items: MenuItem[], id: string, parentId: string | null = null): string | null | undefined => {
-    for (const item of items) {
-      if (item.id === id) return parentId;
-      if (item.children?.length) {
-        const found = findParentId(item.children, id, item.id);
-        if (found !== undefined) return found;
-      }
-    }
-    return undefined;
-  };
-
-  const reorderItems = (items: MenuItem[], draggedId: string, targetId: string) => {
-    const fromIndex = items.findIndex((entry) => entry.id === draggedId);
-    const toIndex = items.findIndex((entry) => entry.id === targetId);
-    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return items;
-    const next = [...items];
-    const [moved] = next.splice(fromIndex, 1);
-    next.splice(toIndex, 0, moved);
-    return next;
-  };
-
-  const moveItem = (items: MenuItem[], draggedId: string, targetId: string) => {
-    const dragParent = findParentId(items, draggedId);
-    const targetParent = findParentId(items, targetId);
-    if (dragParent === undefined || targetParent === undefined) return items;
-    if (dragParent !== targetParent) return items;
-    if (dragParent === null) {
-      return reorderItems(items, draggedId, targetId);
-    }
-    return updateItemById(items, dragParent, (item) => ({
-      ...item,
-      children: item.children ? reorderItems(item.children, draggedId, targetId) : item.children,
-    }));
   };
 
   const handleAddItemAt = (parentId: string | null, afterId: string | undefined) => {
@@ -2731,14 +2620,6 @@ export default function MenuBuilder() {
   const dropdownContentAlign = isDropdownMenu
     ? previewMenu?.submenuContentAlign ?? "left"
     : previewMenu?.submenuContentAlign ?? "center";
-  const getSubmenuJustify = (align?: MenuItem["submenuContentAlign"]) => {
-    if (align === "left") return "flex-start";
-    if (align === "right") return "flex-end";
-    if (align === "space-between") return "space-between";
-    if (align === "space-around") return "space-around";
-    if (align === "space-evenly") return "space-evenly";
-    return "center";
-  };
   const dropdownAlignJustify = getSubmenuJustify(dropdownContentAlign);
   const dropdownPanelWidth =
     isMobilePreview

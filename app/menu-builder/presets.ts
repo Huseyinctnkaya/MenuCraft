@@ -1,6 +1,6 @@
 import type { BlockTemplateId, MenuItem } from "./types";
 import { ICON_LIBRARY, ICON_PREFIX } from "./icons";
-import { buildId } from "./utils";
+import { buildId, extractBlockItemsFromTemplate } from "./utils";
 
 export const buildTwoColumnLinkItems = () => {
   const defaultItemLabels = [
@@ -996,4 +996,43 @@ export const buildMultiBlockPreset = (templateId: BlockTemplateId) => {
   if (templateId === "multi-image-product-carousel") return buildMultiBlockImageProductCarousel();
   if (templateId === "multi-element-group-masonry") return buildMultiBlockElementGroupMasonry();
   return buildMultiBlockLinkGroups();
+};
+
+import type { SubmenuTemplateId } from "./types";
+
+export const buildTabsBlockItems = (templateId: SubmenuTemplateId): MenuItem[] => {
+  const items =
+    templateId === "simple-left-tabs"
+      ? buildSimpleLeftTabsItems()
+      : templateId === "simple-right-tabs"
+        ? buildSimpleRightTabsItems()
+        : templateId === "simple-top-tabs"
+          ? buildSimpleTopTabsItems()
+          : templateId === "two-top-tabs"
+            ? buildTwoTopTabsItems()
+            : templateId === "three-top-tabs"
+              ? buildThreeTopTabsItems()
+              : templateId === "two-level-tabs"
+                ? buildTwoLevelTabsItems()
+                : templateId === "three-level-tabs"
+                  ? buildThreeLevelTabsItems()
+                  : templateId === "two-nested-tabs-right"
+                    ? buildTwoNestedTabsRightItems()
+                    : templateId === "three-nested-tabs-right"
+                      ? buildThreeNestedTabsRightItems()
+                      : [];
+  return extractBlockItemsFromTemplate(items);
+};
+
+export const buildTabsTemplateItems = (templateId: SubmenuTemplateId): MenuItem[] => {
+  if (templateId === "simple-left-tabs") return buildSimpleLeftTabsItems();
+  if (templateId === "simple-right-tabs") return buildSimpleRightTabsItems();
+  if (templateId === "simple-top-tabs") return buildSimpleTopTabsItems();
+  if (templateId === "two-top-tabs") return buildTwoTopTabsItems();
+  if (templateId === "three-top-tabs") return buildThreeTopTabsItems();
+  if (templateId === "two-level-tabs") return buildTwoLevelTabsItems();
+  if (templateId === "three-level-tabs") return buildThreeLevelTabsItems();
+  if (templateId === "two-nested-tabs-right") return buildTwoNestedTabsRightItems();
+  if (templateId === "three-nested-tabs-right") return buildThreeNestedTabsRightItems();
+  return [];
 };

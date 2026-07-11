@@ -304,3 +304,96 @@ export const normalizeMultiBlocks = (items: MenuItem[]): MenuItem[] => {
   });
   return changed ? next : items;
 };
+
+export const findParentId = (
+  items: MenuItem[],
+  id: string,
+  parentId: string | null = null
+): string | null | undefined => {
+  for (const item of items) {
+    if (item.id === id) return parentId;
+    if (item.children?.length) {
+      const found = findParentId(item.children, id, item.id);
+      if (found !== undefined) return found;
+    }
+  }
+  return undefined;
+};
+
+export const reorderItems = (items: MenuItem[], draggedId: string, targetId: string) => {
+  const fromIndex = items.findIndex((entry) => entry.id === draggedId);
+  const toIndex = items.findIndex((entry) => entry.id === targetId);
+  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return items;
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  return next;
+};
+
+export const moveItem = (items: MenuItem[], draggedId: string, targetId: string) => {
+  const dragParent = findParentId(items, draggedId);
+  const targetParent = findParentId(items, targetId);
+  if (dragParent === undefined || targetParent === undefined) return items;
+  if (dragParent !== targetParent) return items;
+  if (dragParent === null) {
+    return reorderItems(items, draggedId, targetId);
+  }
+  return updateItemById(items, dragParent, (item) => ({
+    ...item,
+    children: item.children ? reorderItems(item.children, draggedId, targetId) : item.children,
+  }));
+};
+
+export const getSubmenuJustify = (align?: MenuItem["submenuContentAlign"]) => {
+  if (align === "left") return "flex-start";
+  if (align === "right") return "flex-end";
+  if (align === "space-between") return "space-between";
+  if (align === "space-around") return "space-around";
+  if (align === "space-evenly") return "space-evenly";
+  return "center";
+};
+
+export const extractBlockItemsFromTemplate = (items: MenuItem[]): MenuItem[] => {
+  for (const item of items) {
+    const children = item.children ?? [];
+    if (children.some((child) => child.blockTemplate)) {
+      return children.filter((child) => child.blockTemplate);
+    }
+    if (children.length) {
+      const nested = extractBlockItemsFromTemplate(children);
+      if (nested.length) return nested;
+    }
+  }
+  return [];
+};
+
+export const getBlockSpan = (item: MenuItem): number => {
+  if (item.blockTemplate === "links") {
+    return Math.max(1, Math.min(12, item.linkWidth ?? 3));
+  }
+  if (item.blockTemplate === "image" || item.blockTemplate === "image2") {
+    return Math.max(1, Math.min(12, item.imageWidth ?? 3));
+  }
+  if (item.blockTemplate === "html") {
+    return Math.max(1, Math.min(12, item.imageWidth ?? 3));
+  }
+  if (
+    item.blockTemplate === "product" ||
+    item.blockTemplate === "product-horizontal" ||
+    item.blockTemplate === "product-grid" ||
+    item.blockTemplate === "product-carousel" ||
+    item.blockTemplate === "product-grid-horizontal"
+  ) {
+    return Math.max(1, Math.min(12, item.productWidth ?? 3));
+  }
+  if (item.blockTemplate === "collection" || item.blockTemplate === "collection-horizontal") {
+    return Math.max(1, Math.min(12, item.imageWidth ?? 3));
+  }
+  if (item.blockTemplate === "blogs" || item.blockTemplate === "blogs-latest") {
+    return Math.max(1, Math.min(12, item.imageWidth ?? 3));
+  }
+  if (item.blockTemplate === "contact") {
+    return Math.max(1, Math.min(12, item.imageWidth ?? 3));
+  }
+  return 3; // Default
+};

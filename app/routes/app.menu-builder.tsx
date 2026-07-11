@@ -137,6 +137,7 @@ import {
   HOVER_PREVIEW_DELAY_MS,
   PREVIEW_IMAGE_SOURCES,
 } from "../menu-builder/preview-images";
+import { CodePanel } from "../menu-builder/components/panels/CodePanel";
 
 
 
@@ -8685,32 +8686,6 @@ export default function MenuBuilder() {
     );
   };
 
-  const renderCodePanel = () => (
-    <Card padding="400">
-      <BlockStack gap="300">
-        <Text as="h2" variant="headingMd">
-          Custom code
-        </Text>
-        <Divider />
-        <BlockStack gap="200">
-          <Text as="h3" variant="headingSm">
-            Stylesheet / CSS
-          </Text>
-          <TextField
-            label="Custom CSS"
-            labelHidden
-            value={builderSettings.customCss}
-            placeholder="// enter custom CSS here"
-            onChange={(value) => updateBuilderSetting("customCss", value)}
-            multiline={8}
-            autoComplete="off"
-            className="rounded-xl bg-white"
-          />
-        </BlockStack>
-      </BlockStack>
-    </Card>
-  );
-
   const renderLinkListToolbarButtons = (group: MenuItem) => (
     <>
       <button
@@ -13836,7 +13811,12 @@ export default function MenuBuilder() {
               {activePanel === "settings" && renderSettingsPanel()}
               {activePanel === "typography" && renderTypographyPanel()}
               {activePanel === "colors" && renderColorsPanel()}
-              {activePanel === "code" && renderCodePanel()}
+              {activePanel === "code" && (
+                <CodePanel
+                  builderSettings={builderSettings}
+                  updateBuilderSetting={updateBuilderSetting}
+                />
+              )}
             </BlockStack>
           </div>
         </aside>

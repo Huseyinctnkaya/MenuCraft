@@ -82,4 +82,12 @@ export type PreviewBlockDeps = {
   blogs: BlogSummary[];
   latestArticles: LatestArticleSummary[];
   contactFetcher: FetcherWithComponents<any>;
+  subtextTypography: TypographyStyle;
+  floatingLinkListToolbarId: string | null;
+  setFloatingLinkListToolbarId: Dispatch<SetStateAction<string | null>>;
+  floatingLinkListToolbarHoverRef: MutableRefObject<boolean>;
+  hideFloatingLinkListToolbarTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  mobileLinkListExpandedById: Record<string, boolean>;
+  setMobileLinkListExpandedById: Dispatch<SetStateAction<Record<string, boolean>>>;
+  handleOpenAddRoot: (targetId?: string | null) => void;
 };

@@ -183,11 +183,6 @@ error TS2783: 'fontWeight' is specified more than once, so this usage will be ov
 error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
 error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
 error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
-error TS7006: Parameter 'blog' implicitly has an 'any' type.
-error TS7006: Parameter 'blog' implicitly has an 'any' type.
-error TS7006: Parameter 'collection' implicitly has an 'any' type.
-error TS7006: Parameter 'collection' implicitly has an 'any' type.
-error TS7006: Parameter 'collection' implicitly has an 'any' type.
 error TS7006: Parameter 'collection' implicitly has an 'any' type.
 error TS7006: Parameter 'event' implicitly has an 'any' type.
 error TS7006: Parameter 'event' implicitly has an 'any' type.
@@ -197,9 +192,4 @@ error TS7006: Parameter 'index' implicitly has an 'any' type.
 error TS7006: Parameter 'key' implicitly has an 'any' type.
 error TS7006: Parameter 'link' implicitly has an 'any' type.
 error TS7006: Parameter 'menu' implicitly has an 'any' type.
-error TS7006: Parameter 'page' implicitly has an 'any' type.
-error TS7006: Parameter 'product' implicitly has an 'any' type.
-error TS7006: Parameter 'product' implicitly has an 'any' type.
-error TS7006: Parameter 'product' implicitly has an 'any' type.
-error TS7006: Parameter 'product' implicitly has an 'any' type.
 error TS7006: Parameter 'product' implicitly has an 'any' type.

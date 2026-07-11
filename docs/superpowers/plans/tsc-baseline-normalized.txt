@@ -1,0 +1,220 @@
+error TS18047: 'previewMenu' is possibly 'null'.
+error TS18047: 'previewMenu' is possibly 'null'.
+error TS18047: 'previewMenu' is possibly 'null'.
+error TS18047: 'previewMenu' is possibly 'null'.
+error TS18047: 'previewMenu' is possibly 'null'.
+error TS18047: 'previewMenu' is possibly 'null'.
+error TS18047: 'previewMenu' is possibly 'null'.
+error TS18047: 'previewMenu' is possibly 'null'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"left" | "right" | "center" | "space-between" | "space-around" | "space-evenly"' is not assignable to type 'TextAlign | undefined'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"MenuCraft Pro Monthly" | "MenuCraft Pro Annual" | "MenuCraft Plus Monthly" | "MenuCraft Plus Annual"' is not assignable to type 'never'.
+error TS2322: Type '"outline"' is not assignable to type '"primary"'.
+error TS2322: Type '"outline"' is not assignable to type '"primary"'.
+error TS2322: Type '"outline"' is not assignable to type '"primary"'.
+error TS2322: Type '"outline"' is not assignable to type '"primary"'.
+error TS2322: Type '"outline"' is not assignable to type '"primary"'.
+error TS2322: Type '"outline"' is not assignable to type '"primary"'.
+error TS2322: Type '"outline"' is not assignable to type '"primary"'.
+error TS2322: Type '"primary" | "outline"' is not assignable to type '"primary" | undefined'.
+error TS2322: Type '({ id: string; label: string; url: string; role: string; expanded?: undefined; children?: undefined; } | { id: string; label: string; url: string; role: string; expanded: boolean; children: ({ id: string; ... 4 more ...; children?: undefined; } | { ...; })[]; })[]' is not assignable to type 'MenuItem[]'.
+error TS2322: Type '({ id: string; label: string; url: string; role: string; expanded?: undefined; children?: undefined; } | { id: string; label: string; url: string; role: string; expanded: boolean; children: ({ id: string; ... 4 more ...; children?: undefined; } | { ...; })[]; })[]' is not assignable to type 'MenuItem[]'.
+error TS2322: Type '({ id: string; label: string; url: string; role: string; expanded?: undefined; children?: undefined; } | { id: string; label: string; url: string; role: string; expanded: boolean; children: ({ id: string; ... 4 more ...; children?: undefined; } | { ...; })[]; })[]' is not assignable to type 'MenuItem[]'.
+error TS2322: Type '({ id: string; label: string; url: string; role: string; expanded?: undefined; children?: undefined; } | { id: string; label: string; url: string; role: string; expanded: boolean; children: ({ id: string; ... 4 more ...; children?: undefined; } | { ...; })[]; })[]' is not assignable to type 'MenuItem[]'.
+error TS2322: Type '(event: any) => void' is not assignable to type '() => unknown'.
+error TS2322: Type '(event: any) => void' is not assignable to type '() => void'.
+error TS2322: Type '(value: number) => string' is not assignable to type 'Formatter<number, NameType>'.
+error TS2322: Type '{ children: (false | Element | null)[]; gap: "400"; className: string; }' is not assignable to type 'IntrinsicAttributes & BlockStackProps'.
+error TS2322: Type '{ children: Element; padding: "300"; style: { borderRadius: number; }; className: string; }' is not assignable to type 'IntrinsicAttributes & CardProps'.
+error TS2322: Type '{ children: Element; paddingInlineStart: "0"; style: { paddingInlineStart: number; }; }' is not assignable to type 'IntrinsicAttributes & BoxProps & RefAttributes<HTMLElement>'.
+error TS2322: Type '{ children: string; as: "p"; textAlign: string; tone: "subdued"; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+error TS2322: Type '{ children: string; as: "p"; variant: "bodySm"; alignment: "center"; fontWeight: "semibold"; className: string; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+error TS2322: Type '{ children: string; as: "p"; variant: "bodySm"; tone: "subdued"; alignment: "center"; className: string; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+error TS2322: Type '{ children: string; as: "p"; variant: "headingMd"; fontWeight: "medium"; style: { fontFamily: string; }; }' is not assignable to type 'IntrinsicAttributes & TextProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: (() => void) | undefined; disabled: boolean; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; disabled: false; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ children: string; fullWidth: true; onClick: () => void; size: "slim"; variant: "primary"; style: { backgroundColor: string; borderColor: string; color: string; }; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
+error TS2322: Type '{ label: string; labelHidden: true; value: string; placeholder: string; onChange: (value: string) => void; multiline: number; autoComplete: string; className: string; }' is not assignable to type 'IntrinsicAttributes & TextFieldProps'.
+error TS2322: Type '{ label: string; labelHidden: true; value: string; readOnly: true; autoComplete: string; onFocus: () => void; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes & TextFieldProps'.
+error TS2322: Type '{ linkColumns?: number | undefined; linkWidth?: number | undefined; linkTextAlign?: "left" | undefined; imageWidth: number; blogIds: never[]; collectionLayout: string; productLayout: string; ... 20 more ...; description: string | undefined; } | ... 62 more ... | { ...; }' is not assignable to type 'MenuItem'.
+error TS2322: Type '{ type: "number"; value: string; onChange: (next: string) => void; suffix: string; autoComplete: string; }' is not assignable to type 'IntrinsicAttributes & TextFieldProps'.
+error TS2322: Type '{ type: "number"; value: string; onChange: (value: string) => void; suffix: string; autoComplete: string; }' is not assignable to type 'IntrinsicAttributes & TextFieldProps'.
+error TS2339: Property 'blogs' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'child' does not exist on type '{ child: MenuItem | undefined; product: any; } | { product: ProductSummary | null; }'.
+error TS2339: Property 'collections' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'connectedThemeId' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; updatedAt: Date; status: string | null; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
+error TS2339: Property 'connectedThemeName' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; updatedAt: Date; status: string | null; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
+error TS2339: Property 'connectedThemeSelected' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; updatedAt: Date; status: string | null; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
+error TS2339: Property 'disabled' does not exist on type 'object'.
+error TS2339: Property 'disabled' does not exist on type 'object'.
+error TS2339: Property 'emailNotifications' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; updatedAt: Date; status: string | null; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
+error TS2339: Property 'enabled' does not exist on type 'object'.
+error TS2339: Property 'enabled' does not exist on type 'object'.
+error TS2339: Property 'error' does not exist on type 'JsonifyObject<{ ok: boolean; }>'.
+error TS2339: Property 'error' does not exist on type 'JsonifyObject<{ ok: boolean; }>'.
+error TS2339: Property 'language' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; updatedAt: Date; status: string | null; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
+error TS2339: Property 'latestArticles' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'marketingEmails' does not exist on type '{ id: number; test: boolean; shop: string; trialDays: number | null; createdAt: Date; updatedAt: Date; status: string | null; subscriptionId: string | null; planName: string | null; currentPeriodEnd: Date | null; }'.
+error TS2339: Property 'menu' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'menuItemId' does not exist on type 'JsonifyObject<{ ok: boolean; }>'.
+error TS2339: Property 'menuItems' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'menuItemSpacing' does not exist on type 'BuilderSettings'.
+error TS2339: Property 'menus' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'menuSettings' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'menuSettingsRaw' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'mode' does not exist on type 'never'.
+error TS2339: Property 'pages' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'products' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'shopDomain' does not exist on type 'JsonifyObject<{ ok: boolean; error: string; }> | JsonifyObject<{ menu: { id: number; name: string; status: string; }; menuItems: MenuItem[]; menuSettingsRaw: BuilderSettings | null; ... 7 more ...; shopDomain: string; }>'.
+error TS2339: Property 'submission' does not exist on type 'FetcherWithComponents<JsonifyObject<{ ok: boolean; }>>'.
+error TS2339: Property 'trim' does not exist on type 'FormDataEntryValue'.
+error TS2339: Property 'trim' does not exist on type 'FormDataEntryValue'.
+error TS2339: Property 'trim' does not exist on type 'FormDataEntryValue'.
+error TS2339: Property 'trim' does not exist on type 'FormDataEntryValue'.
+error TS2339: Property 'typographyDescriptionFont' does not exist on type 'BuilderSettings'.
+error TS2339: Property 'typographyDescriptionSize' does not exist on type 'BuilderSettings'.
+error TS2339: Property 'typographyDescriptionWeight' does not exist on type 'BuilderSettings'.
+error TS2345: Argument of type '"typographyDescriptionUseCustom"' is not assignable to parameter of type 'keyof BuilderSettings'.
+error TS2345: Argument of type '({ id: string; label: string; url: string; role: "item"; expanded?: undefined; children?: undefined; } | { id: string; label: string; url: string; role: "group"; expanded: boolean; children: ({ id: string; ... 9 more ...; children: ({ ...; } | { ...; })[]; } | { ...; })[]; })[] | ({ ...; } | { ...; })[] | ({ ...; } ...' is not assignable to parameter of type 'MenuItem[]'.
+error TS2345: Argument of type '(item: MenuItem) => { expanded: true; submenuTemplate: SubmenuTemplateId; submenuType: "mega" | "dropdown" | "horizontal-dropdown"; submenuWidth: "full" | "content"; ... 53 more ...; multiLayout?: "multi-3-photo" | ... 12 more ... | undefined; }' is not assignable to parameter of type '(item: MenuItem) => MenuItem'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2345: Argument of type 'RangeSliderValue' is not assignable to parameter of type 'number | undefined'.
+error TS2352: Conversion of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>' to type '{ shopPreference?: { findUnique: <T extends BillingSubscriptionFindUniqueArgs>(args: SelectSubset<T, BillingSubscriptionFindUniqueArgs<DefaultArgs>>) => Prisma__BillingSubscriptionClient<...>; upsert: <T extends BillingSubscriptionUpsertArgs>(args: SelectSubset<...>) => Prisma__BillingSubscriptionClient<...>; } | un...' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+error TS2352: Conversion of type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>' to type '{ shopPreference?: { findUnique: <T extends BillingSubscriptionFindUniqueArgs>(args: SelectSubset<T, BillingSubscriptionFindUniqueArgs<DefaultArgs>>) => Prisma__BillingSubscriptionClient<...>; upsert: <T extends BillingSubscriptionUpsertArgs>(args: SelectSubset<...>) => Prisma__BillingSubscriptionClient<...>; } | un...' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+error TS2353: Object literal may only specify known properties, and 'language' does not exist in type '(Without<BillingSubscriptionCreateInput, BillingSubscriptionUncheckedCreateInput> & BillingSubscriptionUncheckedCreateInput) | (Without<...> & BillingSubscriptionCreateInput)'.
+error TS2353: Object literal may only specify known properties, and 'language' does not exist in type '(Without<BillingSubscriptionUpdateInput, BillingSubscriptionUncheckedUpdateInput> & BillingSubscriptionUncheckedUpdateInput) | (Without<...> & BillingSubscriptionUpdateInput)'.
+error TS2353: Object literal may only specify known properties, and 'removeRest' does not exist in type 'FutureFlags'.
+error TS2531: Object is possibly 'null'.
+error TS2531: Object is possibly 'null'.
+error TS2531: Object is possibly 'null'.
+error TS2531: Object is possibly 'null'.
+error TS2551: Property 'typographyDescriptionUseCustom' does not exist on type 'BuilderSettings'. Did you mean 'typographyMainUseCustom'?
+error TS2552: Cannot find name 'renderMultiBlock'. Did you mean 'renderHtmlBlock'?
+error TS2741: Property 'title' is missing in type '{ choices: { label: string; value: string; }[]; selected: ("auto" | "replaceNavigation" | "cssSelector")[]; onChange: (value: string[]) => void; }' but required in type 'ChoiceListProps'.
+error TS2741: Property 'title' is missing in type '{ choices: { label: string; value: string; helpText: Element; }[]; selected: ("auto" | "replaceNavigation" | "cssSelector")[]; onChange: (value: string[]) => void; }' but required in type 'ChoiceListProps'.
+error TS2769: No overload matches this call.
+error TS2783: 'fontSize' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontSize' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontSize' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontSize' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS2783: 'fontWeight' is specified more than once, so this usage will be overwritten.
+error TS7006: Parameter 'article' implicitly has an 'any' type.
+error TS7006: Parameter 'blog' implicitly has an 'any' type.
+error TS7006: Parameter 'blog' implicitly has an 'any' type.
+error TS7006: Parameter 'blog' implicitly has an 'any' type.
+error TS7006: Parameter 'blog' implicitly has an 'any' type.
+error TS7006: Parameter 'collection' implicitly has an 'any' type.
+error TS7006: Parameter 'collection' implicitly has an 'any' type.
+error TS7006: Parameter 'collection' implicitly has an 'any' type.
+error TS7006: Parameter 'collection' implicitly has an 'any' type.
+error TS7006: Parameter 'collection' implicitly has an 'any' type.
+error TS7006: Parameter 'collection' implicitly has an 'any' type.
+error TS7006: Parameter 'collection' implicitly has an 'any' type.
+error TS7006: Parameter 'event' implicitly has an 'any' type.
+error TS7006: Parameter 'event' implicitly has an 'any' type.
+error TS7006: Parameter 'event' implicitly has an 'any' type.
+error TS7006: Parameter 'index' implicitly has an 'any' type.
+error TS7006: Parameter 'index' implicitly has an 'any' type.
+error TS7006: Parameter 'index' implicitly has an 'any' type.
+error TS7006: Parameter 'key' implicitly has an 'any' type.
+error TS7006: Parameter 'link' implicitly has an 'any' type.
+error TS7006: Parameter 'menu' implicitly has an 'any' type.
+error TS7006: Parameter 'menuOption' implicitly has an 'any' type.
+error TS7006: Parameter 'menuOption' implicitly has an 'any' type.
+error TS7006: Parameter 'page' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.
+error TS7006: Parameter 'product' implicitly has an 'any' type.

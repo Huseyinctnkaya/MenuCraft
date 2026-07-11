@@ -145,6 +145,8 @@ import { SubmenuImagePickerPanel } from "../menu-builder/components/pickers/Subm
 import { ProductPickerPanel } from "../menu-builder/components/pickers/ProductPickerPanel";
 import { CollectionPickerPanel } from "../menu-builder/components/pickers/CollectionPickerPanel";
 import { ImagePickerPanel } from "../menu-builder/components/pickers/ImagePickerPanel";
+import { IconLibraryPanel } from "../menu-builder/components/pickers/IconLibraryPanel";
+import { IconUploadPanel } from "../menu-builder/components/pickers/IconUploadPanel";
 import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
 import { renderSegmentedControl } from "../menu-builder/components/shared/SegmentedControl";
 
@@ -3357,120 +3359,31 @@ export default function MenuBuilder() {
     reader.readAsDataURL(file);
   };
 
-  const renderIconLibraryPanel = () => {
-    if (!iconPickerState || iconPickerState.mode !== "library") return null;
-    const editableItem =
-      iconPickerState.target === "custom" ? null : findEditableItemById(iconPickerState.itemId);
-    const selectedItemIcon =
-      iconPickerState.target === "custom"
-        ? customItems.find((entry) => entry.id === iconPickerState.itemId)?.icon
-        : iconPickerState.target === "settings"
-          ? resolveSettingsIcon(iconPickerState.itemId)
-          : editableItem?.icon ?? findItemPath(menuItems, iconPickerState.itemId)?.slice(-1)[0]?.icon;
-    const selectedIconId = selectedItemIcon?.startsWith(ICON_PREFIX)
-      ? selectedItemIcon.slice(ICON_PREFIX.length)
-      : null;
-    const filteredIcons = ICON_LIBRARY.filter((option) =>
-      option.label.toLowerCase().includes(iconPickerSearch.trim().toLowerCase())
-    );
+  const renderIconLibraryPanel = () => (
+    <IconLibraryPanel
+      iconPickerState={iconPickerState}
+      iconPickerSearch={iconPickerSearch}
+      setIconPickerSearch={setIconPickerSearch}
+      iconPickerScrollRef={iconPickerScrollRef}
+      closeIconPicker={closeIconPicker}
+      menuItems={menuItems}
+      customItems={customItems}
+      findEditableItemById={findEditableItemById}
+      resolveSettingsIcon={resolveSettingsIcon}
+      accountIconKeyMap={accountIconKeyMap}
+      updateBuilderSetting={updateBuilderSetting}
+      updateCustomItem={updateCustomItem}
+      updateEditDraftItemById={updateEditDraftItemById}
+    />
+  );
 
-    const applyIconSelection = (iconValue: string) => {
-      if (iconPickerState.target === "custom") {
-        updateCustomItem(iconPickerState.itemId, { icon: iconValue });
-      } else if (iconPickerState.target === "settings") {
-        const key = accountIconKeyMap[iconPickerState.itemId];
-        if (key) {
-          updateBuilderSetting(key, iconValue as never);
-        }
-      } else {
-        updateEditDraftItemById(iconPickerState.itemId, (item) => ({ ...item, icon: iconValue }));
-      }
-    };
-
-    return (
-      <div className="flex min-h-[560px] flex-col">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <InlineStack gap="200" blockAlign="center">
-            <Button
-              variant="tertiary"
-              icon={ArrowLeftIcon}
-              onClick={closeIconPicker}
-              accessibilityLabel="Back"
-            />
-            <Text as="h2" variant="headingSm">
-              Select icon
-            </Text>
-          </InlineStack>
-        </div>
-        <div className="px-4 py-3">
-          <TextField
-            label="Search"
-            labelHidden
-            value={iconPickerSearch}
-            onChange={setIconPickerSearch}
-            autoComplete="off"
-            placeholder="Search"
-            prefix={<Icon source={SearchIcon} tone="subdued" />}
-          />
-        </div>
-        <div className="flex-1 overflow-auto px-4 pb-4" ref={iconPickerScrollRef}>
-          <div className="grid grid-cols-6 gap-2">
-            {filteredIcons.map((option) => {
-              const isSelected = option.id === selectedIconId;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => {
-                    applyIconSelection(`${ICON_PREFIX}${option.id}`);
-                    closeIconPicker();
-                  }}
-                  className={`flex h-10 w-10 items-center justify-center rounded-md border ${isSelected ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-                    }`}
-                >
-                  <option.Icon size={18} strokeWidth={1.6} className="text-gray-700" />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderIconUploadPanel = () => {
-    if (!iconPickerState || iconPickerState.mode !== "upload") return null;
-
-    return (
-      <div className="flex min-h-[560px] flex-col">
-        <div className="border-b border-gray-200 px-4 py-3">
-          <InlineStack gap="200" blockAlign="center">
-            <Button
-              variant="tertiary"
-              icon={ArrowLeftIcon}
-              onClick={closeIconPicker}
-              accessibilityLabel="Back"
-            />
-            <Text as="h2" variant="headingSm">
-              Images
-            </Text>
-          </InlineStack>
-        </div>
-        <div className="flex-1 px-4 py-4">
-          <DropZone
-            allowMultiple={false}
-            accept="image/*"
-            onDrop={(_files, acceptedFiles) => {
-              const file = acceptedFiles[0] ?? null;
-              handleIconUploadFile(iconPickerState.itemId, file, iconPickerState.target);
-            }}
-          >
-            <DropZone.FileUpload actionTitle="Add image" actionHint="Drag and drop your image" />
-          </DropZone>
-        </div>
-      </div>
-    );
-  };
+  const renderIconUploadPanel = () => (
+    <IconUploadPanel
+      iconPickerState={iconPickerState}
+      closeIconPicker={closeIconPicker}
+      handleIconUploadFile={handleIconUploadFile}
+    />
+  );
 
 
 

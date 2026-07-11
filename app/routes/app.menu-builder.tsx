@@ -167,6 +167,11 @@ import {
   renderLinkListToolbarButtonsImpl,
 } from "../menu-builder/components/preview/blocks/LinkListBlock";
 import { renderFloatingLinkListToolbarImpl } from "../menu-builder/components/preview/FloatingLinkListToolbar";
+import { renderElementGroupMasonryImpl } from "../menu-builder/components/preview/ElementGroupMasonry";
+import {
+  renderMegaPanelImpl,
+  type MegaPanelDeps,
+} from "../menu-builder/components/preview/MegaPanel";
 import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
 import { renderSegmentedControl } from "../menu-builder/components/shared/SegmentedControl";
 
@@ -4823,85 +4828,8 @@ export default function MenuBuilder() {
   ) =>
     renderBlogBlockImpl(previewBlockDeps, group, options);
 
-  const renderElementGroupMasonry = (groups: MenuItem[]) => {
-    if (!groups.length) return null;
-    const productGroup = groups.find((group) => group.blockTemplate === "product");
-    const htmlGroup = groups.find((group) => group.blockTemplate === "html");
-    const linkGroups = groups.filter((group) => group.blockTemplate === "links");
-    const leftWidthUnits = Math.max(
-      1,
-      Math.min(11, productGroup?.productWidth ?? htmlGroup?.imageWidth ?? 3)
-    );
-    const rightWidthUnits = Math.max(1, 12 - leftWidthUnits);
-    const leftBasis = `${Math.round((leftWidthUnits / 12) * 100)}%`;
-    const rightBasis = `${Math.round((rightWidthUnits / 12) * 100)}%`;
-    const linkWeights = linkGroups.map((group) =>
-      Math.max(1, Math.min(12, group.linkWidth ?? 3))
-    );
-    const linkTotal = linkWeights.reduce((sum, value) => sum + value, 0) || 1;
-
-    const isMobileMasonry = isMobilePreview;
-
-    return (
-      <div
-        key="multi-element-group-masonry"
-        style={{
-          display: "flex",
-          gap: isMobileMasonry ? 12 : 24,
-          flexWrap: "nowrap",
-          flexDirection: isMobileMasonry ? "column" : "row",
-          alignItems: "flex-start",
-          width: "100%",
-          flex: useBlockFlexLayout ? "0 0 100%" : undefined,
-        }}
-      >
-        <div
-          style={{
-            flex: isMobileMasonry ? "1 1 100%" : `0 1 ${leftBasis}`,
-            minWidth: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: 6,
-            width: isMobileMasonry ? "100%" : undefined,
-          }}
-        >
-          {productGroup
-            ? renderProductBlock(productGroup, {
-              flex: "0 0 auto",
-              wrapperStyle: { minWidth: 0, padding: 0, width: "100%" },
-            })
-            : null}
-          {htmlGroup
-            ? renderHtmlBlock(htmlGroup, {
-              flex: "0 0 auto",
-              wrapperStyle: { minWidth: 0, padding: 0, width: "100%" },
-            })
-            : null}
-        </div>
-        <div
-          style={{
-            flex: isMobileMasonry ? "1 1 100%" : `0 1 ${rightBasis}`,
-            minWidth: 0,
-            display: "flex",
-            gap: isMobileMasonry ? 12 : 16,
-            flexWrap: "nowrap",
-            flexDirection: isMobileMasonry ? "column" : "row",
-            width: isMobileMasonry ? "100%" : undefined,
-          }}
-        >
-          {linkGroups.map((child, index) => {
-            const linkShare = linkWeights[index] / linkTotal;
-            const linkBasis = `${Math.round(linkShare * 100)}%`;
-            return renderLinkListBlock(child, {
-              flex: isMobileMasonry ? "1 1 100%" : `0 1 ${linkBasis}`,
-              wrapperStyle: { minWidth: 0, width: isMobileMasonry ? "100%" : undefined },
-              toolbarPlacement: "floating",
-            });
-          })}
-        </div>
-      </div>
-    );
-  };
+  const renderElementGroupMasonry = (groups: MenuItem[]) =>
+    renderElementGroupMasonryImpl(previewBlockDeps, groups);
 
 
   const isTopTabsTemplate =
@@ -5127,6 +5055,15 @@ export default function MenuBuilder() {
     mobileLinkListExpandedById,
     setMobileLinkListExpandedById,
     handleOpenAddRoot,
+  };
+  const megaPanelDeps: MegaPanelDeps = {
+    ...previewBlockDeps,
+    dropdownGroups,
+    linkBlockCount,
+    submenuMaxWidth,
+    isDropdownMenu,
+    isHorizontalDropdownMenu,
+    getBlockSpan,
   };
   const dropdownOverflowY =
     previewMode === "mobile"
@@ -7293,248 +7230,8 @@ export default function MenuBuilder() {
   ) =>
     renderSpaceBlockImpl(previewBlockDeps, group, options);
 
-  const renderMegaPanel = (inline: boolean) => {
-    if (dropdownGroups.length === 0 || isDropdownMenu || isHorizontalDropdownMenu) return null;
-    const isMobileInline = inline && isMobilePreview;
-    const panelStyle: CSSProperties = {
-      background: previewColors.submenuBackground,
-      border: builderSettings.submenuShowBorder
-        ? `1px solid ${previewColors.submenuBorder}`
-        : "none",
-      borderRadius: 0,
-      marginTop: 0,
-      padding: "10px",
-      boxShadow: "0 10px 30px rgba(15, 23, 42, 0.15)",
-      maxWidth: submenuMaxWidth ?? "none",
-      overflowY: "visible",
-      maxHeight: "none",
-      scrollbarWidth: "none",
-      msOverflowStyle: "none",
-      opacity: 1,
-      transform:
-        builderSettings.animationEffect === "slide"
-          ? "translateY(0)"
-          : builderSettings.animationEffect === "scale"
-            ? "scale(1)"
-            : "none",
-      transition: `opacity ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms, transform ${builderSettings.animationDuration}ms ease ${builderSettings.animationDelay}ms`,
-    };
-
-    if (inline) {
-      panelStyle.width = "100%";
-      panelStyle.maxWidth = "100%";
-      panelStyle.boxShadow = "0 6px 18px rgba(15, 23, 42, 0.12)";
-    }
-    if (isMobileInline) {
-      panelStyle.overflowY = "visible";
-      panelStyle.maxHeight = "none";
-    }
-
-    return (
-      <div className="menu-builder-hide-scrollbar" style={panelStyle}>
-        {(() => {
-          const orderedDropdownGroups = useImageSpaceLayout
-            ? dropdownGroups.some((group) => group.multiLayout)
-              ? dropdownGroups
-              : [...dropdownGroups].sort((a, b) => {
-                const aPriority =
-                  a.blockTemplate === "image" ||
-                    a.blockTemplate === "image2" ||
-                    a.blockTemplate === "contact" ||
-                    a.blockTemplate === "product" ||
-                    a.blockTemplate === "product-horizontal" ||
-                    a.blockTemplate === "product-grid" ||
-                    a.blockTemplate === "product-carousel" ||
-                    a.blockTemplate === "product-grid-horizontal"
-                    ? 0
-                    : 1;
-                const bPriority =
-                  b.blockTemplate === "image" ||
-                    b.blockTemplate === "image2" ||
-                    b.blockTemplate === "contact" ||
-                    b.blockTemplate === "product" ||
-                    b.blockTemplate === "product-horizontal" ||
-                    b.blockTemplate === "product-grid" ||
-                    b.blockTemplate === "product-carousel" ||
-                    b.blockTemplate === "product-grid-horizontal"
-                    ? 0
-                    : 1;
-                return aPriority - bPriority;
-              })
-            : dropdownGroups;
-          const masonryGroups = orderedDropdownGroups.filter(
-            (group) => group.multiLayout === "multi-element-group-masonry"
-          );
-          const renderQueue: Array<
-            | { type: "masonry"; key: string }
-            | { type: "group"; key: string; group: MenuItem }
-          > = [];
-          let masonryInserted = false;
-          orderedDropdownGroups.forEach((group) => {
-            if (group.multiLayout === "multi-element-group-masonry") {
-              if (!masonryInserted) {
-                renderQueue.push({
-                  type: "masonry",
-                  key: "multi-element-group-masonry",
-                });
-                masonryInserted = true;
-              }
-              return;
-            }
-            renderQueue.push({ type: "group", key: group.id, group });
-          });
-
-          return (
-            <div
-              style={{
-                display: isMobileInline ? "flex" : useBlockFlexLayout ? "flex" : "grid",
-                gridTemplateColumns: isMobileInline
-                  ? undefined
-                  : useBlockFlexLayout
-                    ? undefined
-                    : `repeat(${dropdownGroups.length}, minmax(0, 1fr))`,
-                flexDirection: isMobileInline ? "column" : undefined,
-                gap: isMobileInline ? 12 : useImageSpaceLayout ? 0 : 24,
-                alignItems: useBlockFlexLayout ? "flex-start" : undefined,
-                flexWrap: useBlockFlexLayout ? "wrap" : undefined,
-                color: previewColors.submenuText,
-              }}
-            >
-              {renderQueue.map((entry) => {
-                if (entry.type === "masonry") {
-                  return renderElementGroupMasonry(masonryGroups);
-                }
-                const group = entry.group;
-                const isGroupSelected = selectedItemId === group.id;
-                if (group.blockTemplate === "space") {
-                  const spaceGridColumn = useImageSpaceLayout ? undefined : "1 / -1";
-                  const spaceFlex = useImageSpaceLayout
-                    ? linkBlockCount >= 2
-                      ? "0 0 100%"
-                      : "1 1 auto"
-                    : undefined;
-                  const spaceOrder = useImageSpaceLayout ? (linkBlockCount >= 2 ? 2 : 1) : undefined;
-                  return renderSpaceBlock(group, {
-                    isSelected: isGroupSelected,
-                    wrapperStyle: {
-                      flex: isMobileInline ? "1 1 100%" : spaceFlex,
-                      order: spaceOrder,
-                      width: isMobileInline ? "100%" : undefined,
-                    },
-                  });
-                }
-                const span = getBlockSpan(group);
-                const desktopGap = useImageSpaceLayout ? 0 : 24;
-                const commonFlexBasis = isMobileInline
-                  ? "100%"
-                  : `calc(${(span / 12) * 100}% - ${desktopGap * (1 - span / 12)}px)`;
-                const commonFlexStyle = isMobileInline || !useBlockFlexLayout ? {} : { flex: `0 0 ${commonFlexBasis}` };
-
-                if (group.blockTemplate === "links") {
-                  return renderLinkListBlock(group, {
-                    flex: isMobileInline ? "1 1 100%" : "auto",
-                    wrapperStyle: {
-                      minWidth: 0,
-                      width: isMobileInline ? "100%" : undefined,
-                      ...commonFlexStyle
-                    },
-                    toolbarPlacement: "floating",
-                  });
-                }
-                if (
-                  group.blockTemplate === "image" ||
-                  group.blockTemplate === "image2" ||
-                  group.blockTemplate === "contact" ||
-                  group.blockTemplate === "product" ||
-                  group.blockTemplate === "product-horizontal" ||
-                  group.blockTemplate === "product-grid" ||
-                  group.blockTemplate === "product-carousel" ||
-                  group.blockTemplate === "product-grid-horizontal" ||
-                  group.blockTemplate === "collection" ||
-                  group.blockTemplate === "blogs" ||
-                  group.blockTemplate === "blogs-latest" ||
-                  group.blockTemplate === "html"
-                ) {
-                  if (group.blockTemplate === "image" || group.blockTemplate === "image2") {
-                    return renderImageBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : "auto",
-                      wrapperStyle: {
-                        minWidth: 0,
-                        width: isMobileInline ? "100%" : undefined,
-                        ...commonFlexStyle
-                      },
-                    });
-                  }
-                  if (group.blockTemplate === "contact") {
-                    return renderContactBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : "auto",
-                      wrapperStyle: {
-                        width: isMobileInline ? "100%" : undefined,
-                        ...commonFlexStyle
-                      },
-                    });
-                  }
-                  if (
-                    group.blockTemplate === "product" ||
-                    group.blockTemplate === "product-horizontal" ||
-                    group.blockTemplate === "product-grid" ||
-                    group.blockTemplate === "product-carousel" ||
-                    group.blockTemplate === "product-grid-horizontal"
-                  ) {
-                    return renderProductBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : "auto",
-                      wrapperStyle: {
-                        width: isMobileInline ? "100%" : undefined,
-                        ...commonFlexStyle
-                      },
-                    });
-                  }
-                  if (group.blockTemplate === "collection") {
-                    return renderCollectionBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : "auto",
-                      wrapperStyle: {
-                        width: isMobileInline ? "100%" : undefined,
-                        ...commonFlexStyle
-                      },
-                    });
-                  }
-                  if (group.blockTemplate === "blogs" || group.blockTemplate === "blogs-latest") {
-                    return renderBlogBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : "auto",
-                      wrapperStyle: {
-                        width: isMobileInline ? "100%" : undefined,
-                        ...commonFlexStyle
-                      },
-                    });
-                  }
-                  if (group.blockTemplate === "html") {
-                    return renderHtmlBlock(group, {
-                      flex: isMobileInline ? "1 1 100%" : "auto",
-                      wrapperStyle: {
-                        width: isMobileInline ? "100%" : undefined,
-                        ...commonFlexStyle
-                      },
-                    });
-                  }
-                }
-                if (group.blockTemplate === "multi") {
-                  return (
-                    <div
-                      key={group.id}
-                      style={{ flex: "1 1 100%", width: isMobileInline ? "100%" : undefined }}
-                    >
-                      {group.children?.map((child) => renderMultiBlock(child))}
-                    </div>
-                  );
-                }
-                return null;
-              })}
-            </div>
-          );
-        })()}
-      </div>
-    );
-  };
+  const renderMegaPanel = (inline: boolean) =>
+    renderMegaPanelImpl(megaPanelDeps, inline);
 
   return (
     <div className="menucraft-builder h-screen flex flex-col bg-gray-100">

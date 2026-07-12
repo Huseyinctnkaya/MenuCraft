@@ -7,6 +7,43 @@
      ═══════════════════════════════════════════════════════════════════ */
   const ROOT_IDS = ["menucraft-block-root", "menucraft-embed-root"];
   const PROXY_URL = "/apps/menucraft/menu";
+  const ANALYTICS_URL = "/apps/menucraft/analytics";
+
+  let activeMenuInfo = null; // { id, name } of the currently rendered menu
+  let lastImpressionKey = null;
+
+  const sendEvent = (payload) => {
+    try {
+      const body = JSON.stringify(payload);
+      if (navigator.sendBeacon) {
+        const blob = new Blob([body], { type: "text/plain" });
+        if (navigator.sendBeacon(ANALYTICS_URL, blob)) return;
+      }
+      fetch(ANALYTICS_URL, {
+        method: "POST",
+        body,
+        keepalive: true,
+        credentials: "include",
+      }).catch(() => {});
+    } catch (e) {
+      /* analytics must never break the menu */
+    }
+  };
+
+  const trackImpression = (menu) => {
+    try {
+      const key = window.location.pathname + "::" + menu.id;
+      if (lastImpressionKey === key) return;
+      lastImpressionKey = key;
+      sendEvent({
+        eventType: "impression",
+        menuId: menu.id,
+        menuName: menu.name || null,
+      });
+    } catch (e) {
+      /* ignore */
+    }
+  };
 
   const getRoot = () => {
     for (const id of ROOT_IDS) {
@@ -349,6 +386,7 @@
 
     const link = el("a", "mc-link");
     link.href = item.url || "#";
+    if (item.id) link.dataset.mcItemId = item.id;
     let label = (item.label || "").trim();
     if (!label && item.productIds && item.productIds.length) {
       const p = getResource("product", item.productIds[0]);
@@ -1606,6 +1644,7 @@
      Section 7 — Main Menu Renderer
      ═══════════════════════════════════════════════════════════════════ */
   const renderMenu = (menu) => {
+    activeMenuInfo = { id: menu.id, name: menu.name || null };
     const settings = normalizeSettings(menu.settings);
     const mobile = checkMobile(settings);
     const bp = settings.advancedMobileBreakpoint || 768;
@@ -2082,7 +2121,42 @@
       // Prevent horizontal scrollbar
       document.documentElement.style.overflowX = "clip";
     }
+
+    trackImpression(menu);
   };
+
+  const resolveItemType = (anchor) => {
+    const cls = anchor.className || "";
+    if (cls.indexOf("mc-product") !== -1) return "product";
+    if (cls.indexOf("mc-collection") !== -1) return "collection";
+    if (cls.indexOf("mc-blog") !== -1) return "blog";
+    if (cls.indexOf("mc-search") !== -1) return "search";
+    return "link";
+  };
+
+  // Capture phase: fires before navigation-preventing handlers.
+  document.addEventListener(
+    "click",
+    (e) => {
+      try {
+        const anchor =
+          e.target && e.target.closest ? e.target.closest(".mc-menu a[href]") : null;
+        if (!anchor) return;
+        if (!activeMenuInfo) return;
+        sendEvent({
+          eventType: "click",
+          menuId: activeMenuInfo.id,
+          menuName: activeMenuInfo.name,
+          itemId: (anchor.dataset && anchor.dataset.mcItemId) || null,
+          itemLabel: (anchor.textContent || "").trim().slice(0, 255) || null,
+          itemType: resolveItemType(anchor),
+        });
+      } catch (err) {
+        /* ignore */
+      }
+    },
+    true
+  );
 
   /* ═══════════════════════════════════════════════════════════════════
      Section 9 — Mount & Navigation

@@ -112,8 +112,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     if (settings) {
-      await tx.menu.update({
-        where: { id: menuId },
+      await tx.menu.updateMany({
+        where: { id: menuId, shop },
         data: { settings },
       });
     }

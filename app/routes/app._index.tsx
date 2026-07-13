@@ -2,26 +2,36 @@ import { useEffect, useRef, useState } from "react";
 import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator, useRouteLoaderData } from "@remix-run/react";
 import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import {
-  AlertCircle,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  Download,
-  Menu,
-  Shield,
-  Smartphone,
-  Star,
-} from "lucide-react";
-import { Select, Modal, BlockStack, Text as PolarisText } from "@shopify/polaris";
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+  Badge,
+  BlockStack,
+  Box,
+  Button,
+  Card,
+  Collapsible,
+  Icon,
+  InlineGrid,
+  InlineStack,
+  Layout,
+  List,
+  Modal,
+  Page,
+  Select,
+  Text,
+} from "@shopify/polaris";
+import {
+  AlertCircleIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ImportIcon,
+  MenuIcon,
+  MobileIcon,
+  ShieldCheckMarkIcon,
+  StarIcon,
+} from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
 import type { loader as appLoader } from "./app";
-
-export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 const appBlockCache = new Map<string, { value: boolean; expiresAt: number }>();
 
@@ -393,19 +403,19 @@ export default function Dashboard() {
     badge?: string;
   }> = [
       {
-        icon: Menu,
+        icon: MenuIcon,
         title: "Create Mega Menu",
         description: "Build powerful navigation menus with unlimited depth and customization",
         action: () => navigate(withSearch("/app/mega-menus")),
       },
       {
-        icon: Smartphone,
+        icon: MobileIcon,
         title: "Mobile Menu",
         description: "Responsive mobile-first menus optimized for all devices",
         action: () => navigate(withSearch("/app/mega-menus")),
       },
       {
-        icon: Download,
+        icon: ImportIcon,
         title: "Import Menu",
         description: "Import existing menus from your Shopify store instantly",
         action: () => {
@@ -532,241 +542,223 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div className="text-center py-8 flex flex-col items-center gap-4">
-          <h1 className="!text-[32px] !leading-tight font-semibold text-gray-900">
-            Welcome to MenuCraft
-          </h1>
-          <p className="!text-[18px] !leading-7 text-gray-600 max-w-2xl mx-auto">
-            Create stunning mega menus that boost navigation and increase conversions for your Shopify store
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <Page title="Welcome to MenuCraft" subtitle="Create stunning mega menus that boost navigation and increase conversions for your Shopify store">
+      <BlockStack gap="500">
+        <Layout>
           {features.map((feature, index) => (
-            <Card
-              key={index}
-              className="text-center space-y-2 hover:shadow-md transition-shadow cursor-pointer p-6"
-              onClick={feature.action}
-            >
-              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
-                <feature.icon className="w-8 h-8 text-indigo-600" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-center gap-2">
-                  <h3 className="text-lg text-gray-900">{feature.title}</h3>
-                  {feature.badge && <Badge variant="plus">{feature.badge}</Badge>}
+            <Layout.Section key={index} variant="oneThird">
+              <Card>
+                <div style={{ cursor: "pointer" }} onClick={feature.action}>
+                  <BlockStack gap="300" inlineAlign="center">
+                    <Box background="bg-fill-info-secondary" borderRadius="full" padding="400">
+                      <Icon source={feature.icon} tone="info" />
+                    </Box>
+                    <BlockStack gap="150" inlineAlign="center">
+                      <InlineStack gap="150" blockAlign="center">
+                        <Text as="h3" variant="headingMd">{feature.title}</Text>
+                        {feature.badge && <Badge tone="info">{feature.badge}</Badge>}
+                      </InlineStack>
+                      <Text as="p" variant="bodySm" tone="subdued" alignment="center">
+                        {feature.description}
+                      </Text>
+                    </BlockStack>
+                  </BlockStack>
                 </div>
-                <p className="text-sm text-gray-600">{feature.description}</p>
-              </div>
-            </Card>
+              </Card>
+            </Layout.Section>
           ))}
-        </div>
+        </Layout>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 tracking-tight mb-4">
-              App Status
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  {integrationStatus === "active" ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 text-rose-600" />
-                  )}
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm text-gray-900">Installation Status</p>
-                      <Badge variant={integrationStatus === "active" ? "success" : "danger"}>
-                        {integrationStatus === "active" ? "Active" : "Deactive"}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-gray-600">Theme integration</p>
-                  </div>
-                </div>
-                <Button
-                  variant={"outline" as any}
-                  size="sm"
-                  onClick={() => {
-                    if (typeof window !== "undefined") {
-                      window.open(resolvedThemeEditorUrl, "_blank", "noopener,noreferrer");
-                    }
-                  }}
-                >
-                  Configure
-                </Button>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  {hasConnectedTheme ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 text-rose-600" />
-                  )}
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm text-gray-900">Connected Theme</p>
-                      <Badge variant={hasConnectedTheme ? "success" : "danger"}>
-                        {hasConnectedTheme ? "Active" : "Deactive"}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      {hasConnectedTheme ? activeThemeName : "Not selected"}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant={"outline" as any}
-                  size="sm"
-                  onClick={() => {
-                    setSelectedThemeId(activeThemeId || selectedTheme?.id || "");
-                    setThemeConfigOpen((prev) => !prev);
-                  }}
-                >
-                  Configure
-                </Button>
-              </div>
-              {themeConfigOpen ? (
-                <div className="rounded-lg border border-gray-200 bg-white p-3">
-                  <div className="text-sm text-gray-900 font-medium mb-2">Select theme</div>
-                  <Select
-                    label="Select theme"
-                    labelHidden
-                    options={themeOptions}
-                    value={selectedThemeId}
-                    onChange={setSelectedThemeId}
-                    disabled={themeOptions.length === 0}
-                  />
-                  <div className="mt-3 flex justify-end gap-2">
+        <Layout>
+          <Layout.Section variant="oneHalf">
+            <Card>
+              <BlockStack gap="400">
+                <Text as="h2" variant="headingMd">App Status</Text>
+                <Box background="bg-surface-secondary" padding="300" borderRadius="200">
+                  <InlineStack align="space-between" blockAlign="center">
+                    <InlineStack gap="300" blockAlign="center">
+                      <Icon
+                        source={integrationStatus === "active" ? CheckCircleIcon : AlertCircleIcon}
+                        tone={integrationStatus === "active" ? "success" : "critical"}
+                      />
+                      <BlockStack gap="050">
+                        <InlineStack gap="150" blockAlign="center">
+                          <Text as="p" variant="bodySm">Installation Status</Text>
+                          <Badge tone={integrationStatus === "active" ? "success" : "critical"}>
+                            {integrationStatus === "active" ? "Active" : "Deactive"}
+                          </Badge>
+                        </InlineStack>
+                        <Text as="p" variant="bodySm" tone="subdued">Theme integration</Text>
+                      </BlockStack>
+                    </InlineStack>
                     <Button
-                      variant={"outline" as any}
-                      size="sm"
                       onClick={() => {
-                        setSelectedThemeId(activeThemeId);
-                        setThemeConfigOpen(false);
+                        if (typeof window !== "undefined") {
+                          window.open(resolvedThemeEditorUrl, "_blank", "noopener,noreferrer");
+                        }
                       }}
                     >
-                      Cancel
+                      Configure
                     </Button>
+                  </InlineStack>
+                </Box>
+                <Box background="bg-surface-secondary" padding="300" borderRadius="200">
+                  <InlineStack align="space-between" blockAlign="center">
+                    <InlineStack gap="300" blockAlign="center">
+                      <Icon
+                        source={hasConnectedTheme ? CheckCircleIcon : AlertCircleIcon}
+                        tone={hasConnectedTheme ? "success" : "critical"}
+                      />
+                      <BlockStack gap="050">
+                        <InlineStack gap="150" blockAlign="center">
+                          <Text as="p" variant="bodySm">Connected Theme</Text>
+                          <Badge tone={hasConnectedTheme ? "success" : "critical"}>
+                            {hasConnectedTheme ? "Active" : "Deactive"}
+                          </Badge>
+                        </InlineStack>
+                        <Text as="p" variant="bodySm" tone="subdued">
+                          {hasConnectedTheme ? activeThemeName : "Not selected"}
+                        </Text>
+                      </BlockStack>
+                    </InlineStack>
                     <Button
-                      size="sm"
-                      onClick={handleSaveConnectedTheme}
-                      disabled={!selectedTheme || isThemeSaving}
+                      onClick={() => {
+                        setSelectedThemeId(activeThemeId || selectedTheme?.id || "");
+                        setThemeConfigOpen((prev) => !prev);
+                      }}
                     >
-                      Save
+                      Configure
                     </Button>
+                  </InlineStack>
+                </Box>
+                <Collapsible open={themeConfigOpen} id="theme-config-collapsible">
+                  <Card>
+                    <BlockStack gap="300">
+                      <Select
+                        label="Select theme"
+                        options={themeOptions}
+                        value={selectedThemeId}
+                        onChange={setSelectedThemeId}
+                        disabled={themeOptions.length === 0}
+                      />
+                      <InlineStack align="end" gap="200">
+                        <Button
+                          onClick={() => {
+                            setSelectedThemeId(activeThemeId);
+                            setThemeConfigOpen(false);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={handleSaveConnectedTheme}
+                          disabled={!selectedTheme || isThemeSaving}
+                        >
+                          Save
+                        </Button>
+                      </InlineStack>
+                    </BlockStack>
+                  </Card>
+                </Collapsible>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+
+          <Layout.Section variant="oneHalf">
+            <Card>
+              <BlockStack gap="400">
+                <Text as="h2" variant="headingMd">Setup Checklist</Text>
+                <BlockStack gap="300">
+                  {setupSteps.map((step, index) => (
+                    <InlineStack key={index} gap="300" blockAlign="center">
+                      <Icon
+                        source={CheckCircleIcon}
+                        tone={step.completed ? "success" : "subdued"}
+                      />
+                      <Text as="span" variant="bodySm" tone={step.completed ? "subdued" : undefined}>
+                        {step.title}
+                      </Text>
+                    </InlineStack>
+                  ))}
+                </BlockStack>
+                <Button onClick={handleSetupClick} fullWidth>
+                  {setupButtonLabel}
+                </Button>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        </Layout>
+
+        <InlineGrid columns={{ xs: 1, md: 2 }} gap="400">
+          <Card>
+            <InlineStack gap="300" blockAlign="center">
+              <Icon source={ShieldCheckMarkIcon} tone="success" />
+              <Text as="p" variant="bodySm">30-day money back guarantee</Text>
+            </InlineStack>
+          </Card>
+          <Card>
+            <InlineStack gap="300" blockAlign="center">
+              <Icon source={StarIcon} tone="info" />
+              <Text as="p" variant="bodySm">Built for Shopify by Shopify Experts</Text>
+            </InlineStack>
+          </Card>
+        </InlineGrid>
+
+        <Card>
+          <BlockStack gap="300">
+            <Text as="h2" variant="headingMd">Frequently Asked Questions</Text>
+            <BlockStack gap="0">
+              {faqs.map((faq, index) => (
+                <Box key={index} paddingBlock="300" borderBlockEndWidth={index < faqs.length - 1 ? "025" : undefined} borderColor="border">
+                  <div style={{ cursor: "pointer" }} onClick={() => setOpenFaq(openFaq === index ? null : index)}>
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text as="span" variant="bodySm">{faq.q}</Text>
+                      <Icon source={openFaq === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                    </InlineStack>
                   </div>
-                </div>
-              ) : null}
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-lg text-gray-900 mb-4">Setup Checklist</h2>
-            <div className="space-y-3">
-              {setupSteps.map((step, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  {step.completed ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
-                  )}
-                  <span
-                    className={`text-sm ${step.completed ? "text-gray-600 line-through" : "text-gray-900"}`}
-                  >
-                    {step.title}
-                  </span>
-                </div>
+                  <Collapsible open={openFaq === index} id={`faq-${index}`}>
+                    <Box paddingBlockStart="200">
+                      <Text as="p" variant="bodySm" tone="subdued">{faq.a}</Text>
+                    </Box>
+                  </Collapsible>
+                </Box>
               ))}
-              <Button
-                variant={"outline" as any}
-                size="sm"
-                className="w-full mt-4"
-                onClick={handleSetupClick}
-              >
-                {setupButtonLabel}
-              </Button>
-            </div>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
-              <Shield className="w-4 h-4 text-green-600" />
-            </div>
-            <p className="text-sm text-gray-700">30-day money back guarantee</p>
-          </div>
-
-          <div className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center flex-shrink-0">
-              <Star className="w-4 h-4 text-indigo-600" />
-            </div>
-            <p className="text-sm text-gray-700">Built for Shopify by Shopify Experts</p>
-          </div>
-        </div>
-
-        <Card className="p-6">
-          <h2 className="text-xl text-gray-900 mb-2">Frequently Asked Questions</h2>
-          <div className="space-y-3">
-            {faqs.map((faq, index) => (
-              <div key={index} className="border-b border-gray-200 last:border-0 pb-3">
-                <button
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="w-full flex items-center justify-between text-left py-2"
-                >
-                  <span className="text-sm text-gray-900">{faq.q}</span>
-                  {openFaq === index ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
-                  )}
-                </button>
-                {openFaq === index && (
-                  <p className="text-sm text-gray-600 mt-2">{faq.a}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Upgrade Modal */}
-        <Modal
-          open={upgradeModalOpen}
-          onClose={() => setUpgradeModalOpen(false)}
-          title="Upgrade to Plus"
-          primaryAction={{
-            content: "Upgrade Now",
-            onAction: () => navigate("/app/pricing"),
-          }}
-          secondaryActions={[
-            {
-              content: "Cancel",
-              onAction: () => setUpgradeModalOpen(false),
-            },
-          ]}
-        >
-          <Modal.Section>
-            <BlockStack gap="400">
-              <PolarisText as="p" variant="bodyMd">
-                Import and Export features are available on the <strong>Plus plan</strong>.
-              </PolarisText>
-              <PolarisText as="p" variant="bodyMd">
-                Upgrade now to unlock:
-              </PolarisText>
-              <ul style={{ marginLeft: "20px", listStyle: "disc" }}>
-                <li>Import menus from Shopify navigation</li>
-                <li>Import menus from JSON files</li>
-                <li>Export menus as JSON files</li>
-                <li>Unlimited menus</li>
-              </ul>
             </BlockStack>
-          </Modal.Section>
-        </Modal>
-      </div>
-    </div>
+          </BlockStack>
+        </Card>
+      </BlockStack>
+
+      <Modal
+        open={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        title="Upgrade to Plus"
+        primaryAction={{
+          content: "Upgrade Now",
+          onAction: () => navigate("/app/pricing"),
+        }}
+        secondaryActions={[
+          {
+            content: "Cancel",
+            onAction: () => setUpgradeModalOpen(false),
+          },
+        ]}
+      >
+        <Modal.Section>
+          <BlockStack gap="400">
+            <Text as="p" variant="bodyMd">
+              Import and Export features are available on the <strong>Plus plan</strong>.
+            </Text>
+            <Text as="p" variant="bodyMd">Upgrade now to unlock:</Text>
+            <List type="bullet">
+              <List.Item>Import menus from Shopify navigation</List.Item>
+              <List.Item>Import menus from JSON files</List.Item>
+              <List.Item>Export menus as JSON files</List.Item>
+              <List.Item>Unlimited menus</List.Item>
+            </List>
+          </BlockStack>
+        </Modal.Section>
+      </Modal>
+    </Page>
   );
 }

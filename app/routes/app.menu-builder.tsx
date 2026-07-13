@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { LinksFunction } from "@remix-run/node";
 import { useFetcher, useLocation, useNavigate, useLoaderData, useRouteLoaderData } from "@remix-run/react";
 import createApp from "@shopify/app-bridge";
 import { Fullscreen } from "@shopify/app-bridge/actions";
@@ -37,7 +36,6 @@ import {
   TextAlignRightIcon,
   TextFontListIcon,
 } from "@shopify/polaris-icons";
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import type { loader as appLoader } from "./app";
 import type {
   AddableItem,
@@ -157,10 +155,6 @@ import {
 import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
 
 
-
-export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: polarisStyles },
-];
 
 export { loader } from "../menu-builder/server/loader.server";
 export { action } from "../menu-builder/server/action.server";

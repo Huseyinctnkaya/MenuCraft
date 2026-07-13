@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Button, DropZone, InlineStack, Text } from "@shopify/polaris";
+import { Box, Button, DropZone, InlineStack, Text } from "@shopify/polaris";
 import { ArrowLeftIcon } from "@shopify/polaris-icons";
 
 import type { BuilderSettings, MenuItem } from "../../types";
@@ -56,9 +56,11 @@ export function ImagePickerPanel({
           <DropZone.FileUpload actionTitle="Add image" actionHint="Drag and drop your image" />
         </DropZone>
         {imageLibrary.length === 0 ? (
-          <Text as="p" variant="bodySm" tone="subdued" alignment="center" className="mt-4">
-            No images uploaded yet.
-          </Text>
+          <Box paddingBlockStart="400">
+            <Text as="p" variant="bodySm" tone="subdued" alignment="center">
+              No images uploaded yet.
+            </Text>
+          </Box>
         ) : (
           <div className="mt-4 grid grid-cols-3 gap-2">
             {imageLibrary.map((image) => {

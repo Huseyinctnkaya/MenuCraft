@@ -16,6 +16,7 @@ import {
   EmptyState,
   IndexTable,
   InlineStack,
+  List,
   Modal,
   Page,
   Select,
@@ -803,12 +804,12 @@ export default function MegaMenusList() {
               Import and Export features are available on the <strong>Plus plan</strong>.
             </Text>
             <Text as="p" variant="bodyMd">Upgrade now to unlock:</Text>
-            <ul style={{ marginLeft: "20px", listStyle: "disc" }}>
-              <li>Import menus from Shopify navigation</li>
-              <li>Import menus from JSON files</li>
-              <li>Export menus as JSON files</li>
-              <li>Unlimited menus</li>
-            </ul>
+            <List type="bullet">
+              <List.Item>Import menus from Shopify navigation</List.Item>
+              <List.Item>Import menus from JSON files</List.Item>
+              <List.Item>Export menus as JSON files</List.Item>
+              <List.Item>Unlimited menus</List.Item>
+            </List>
           </BlockStack>
         </Modal.Section>
       </Modal>

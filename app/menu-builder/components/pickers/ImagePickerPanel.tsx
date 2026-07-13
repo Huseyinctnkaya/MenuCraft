@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Button, InlineStack, Text } from "@shopify/polaris";
+import { Button, DropZone, InlineStack, Text } from "@shopify/polaris";
 import { ArrowLeftIcon } from "@shopify/polaris-icons";
 
 import type { BuilderSettings, MenuItem } from "../../types";
@@ -46,38 +46,15 @@ export function ImagePickerPanel({
         </InlineStack>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-        <label
-          className="flex h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 text-center"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
-            event.preventDefault();
-            handleImageUpload(event.dataTransfer.files?.[0]);
+        <DropZone
+          accept="image/*"
+          allowMultiple={false}
+          onDrop={(files) => {
+            handleImageUpload(files?.[0]);
           }}
         >
-          <Button
-            variant="tertiary"
-            onClick={(event) => {
-              event.preventDefault();
-              const input = event.currentTarget
-                .closest("label")
-                ?.querySelector("input[type=file]") as HTMLInputElement | null;
-              input?.click();
-            }}
-          >
-            Add image
-          </Button>
-          <Text as="p" variant="bodySm" tone="subdued">
-            Drag and drop your image
-          </Text>
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(event) => {
-              handleImageUpload(event.target.files?.[0] ?? null);
-            }}
-          />
-        </label>
+          <DropZone.FileUpload actionTitle="Add image" actionHint="Drag and drop your image" />
+        </DropZone>
         {imageLibrary.length === 0 ? (
           <Text as="p" variant="bodySm" tone="subdued" alignment="center" className="mt-4">
             No images uploaded yet.

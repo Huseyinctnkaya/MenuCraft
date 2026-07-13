@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   json,
   type ActionFunctionArgs,
@@ -232,6 +233,9 @@ export default function AccountSettings() {
 
   const withSearch = (path: string) => ({ pathname: path, search: location.search });
   const usagePercent = menuLimit ? Math.min((menuCount / menuLimit) * 100, 100) : 0;
+  const [languageValue, setLanguageValue] = useState(preferences.language);
+  const [emailNotificationsValue, setEmailNotificationsValue] = useState(preferences.emailNotifications);
+  const [marketingEmailsValue, setMarketingEmailsValue] = useState(preferences.marketingEmails);
 
   return (
     <Page title="Account Settings" subtitle="Manage your account and preferences">
@@ -324,10 +328,21 @@ export default function AccountSettings() {
                     label="Language"
                     name="language"
                     options={[{ label: "English", value: "en" }]}
-                    defaultValue={preferences.language}
+                    value={languageValue}
+                    onChange={setLanguageValue}
                   />
-                  <Checkbox label="Email notifications" name="emailNotifications" defaultChecked={preferences.emailNotifications} />
-                  <Checkbox label="Marketing emails" name="marketingEmails" defaultChecked={preferences.marketingEmails} />
+                  <Checkbox
+                    label="Email notifications"
+                    name="emailNotifications"
+                    checked={emailNotificationsValue}
+                    onChange={setEmailNotificationsValue}
+                  />
+                  <Checkbox
+                    label="Marketing emails"
+                    name="marketingEmails"
+                    checked={marketingEmailsValue}
+                    onChange={setMarketingEmailsValue}
+                  />
                   <InlineStack align="space-between" blockAlign="center">
                     <Text as="span" variant="bodySm" tone="subdued">Changes apply to this store only.</Text>
                     <Button submit disabled={!preferencesAvailable}>Save Preferences</Button>

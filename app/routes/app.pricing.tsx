@@ -242,8 +242,9 @@ export default function Pricing() {
               Monthly
             </Button>
             <Button pressed={billingPeriod === "yearly"} onClick={() => setBillingPeriod("yearly")}>
-              Yearly {billingPeriod === "yearly" && <Badge tone="success">Save 20%</Badge>}
+              Yearly
             </Button>
+            {billingPeriod === "yearly" && <Badge tone="success">Save 20%</Badge>}
           </InlineStack>
         </InlineStack>
 

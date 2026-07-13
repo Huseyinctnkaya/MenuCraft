@@ -1,11 +1,21 @@
 import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { useLocation, useNavigate } from "@remix-run/react";
-import { ChevronDown, ChevronUp, FileText, Mail, MessageCircle } from "lucide-react";
+import {
+  Badge,
+  BlockStack,
+  Box,
+  Button,
+  Card,
+  Collapsible,
+  Icon,
+  InlineGrid,
+  InlineStack,
+  Page,
+  Text,
+} from "@shopify/polaris";
+import { ChatIcon, ChevronDownIcon, ChevronUpIcon, EmailIcon, FileIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
-import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
@@ -43,89 +53,72 @@ export default function Support() {
   ];
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl text-gray-900">Support & Help</h1>
-          <p className="text-gray-600 mt-1">Get help and find answers to common questions</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="text-center space-y-3 p-6">
-            <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
-              <FileText className="w-6 h-6 text-indigo-600" />
-            </div>
-            <h3 className="text-sm text-gray-900">Documentation</h3>
-            <p className="text-xs text-gray-600">Detailed guides and tutorials</p>
-            <Button
-              variant={"outline" as any}
-              size="sm"
-              className="w-full"
-              onClick={() => navigate(withSearch("/app/documentation"))}
-            >
-              View Docs
-            </Button>
+    <Page title="Support & Help" subtitle="Get help and find answers to common questions">
+      <BlockStack gap="400">
+        <InlineGrid columns={{ xs: 1, md: 3 }} gap="400">
+          <Card>
+            <BlockStack gap="300" inlineAlign="center">
+              <Icon source={FileIcon} tone="info" />
+              <Text as="h3" variant="headingSm">Documentation</Text>
+              <Text as="p" variant="bodySm" tone="subdued" alignment="center">Detailed guides and tutorials</Text>
+              <Button fullWidth onClick={() => navigate(withSearch("/app/documentation"))}>View Docs</Button>
+            </BlockStack>
           </Card>
 
-          <Card className="text-center space-y-3 p-6">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <MessageCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="text-sm text-gray-900">Live Chat</h3>
-            <p className="text-xs text-gray-600">Chat with us in real-time</p>
-            <Button
-              variant={"outline" as any}
-              size="sm"
-              className="w-full"
-              onClick={() => {
-                if (typeof window !== "undefined" && window.$crisp) {
-                  window.$crisp.push(["do", "chat:open"]);
-                }
-              }}
-            >
-              Start Chat
-            </Button>
+          <Card>
+            <BlockStack gap="300" inlineAlign="center">
+              <Icon source={ChatIcon} tone="success" />
+              <Text as="h3" variant="headingSm">Live Chat</Text>
+              <Text as="p" variant="bodySm" tone="subdued" alignment="center">Chat with us in real-time</Text>
+              <Button
+                fullWidth
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.$crisp) {
+                    window.$crisp.push(["do", "chat:open"]);
+                  }
+                }}
+              >
+                Start Chat
+              </Button>
+            </BlockStack>
           </Card>
 
-          <Card className="text-center space-y-3 p-6">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-              <Mail className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <h3 className="text-sm text-gray-900">Email Support</h3>
-              <Badge variant="new">Soon</Badge>
-            </div>
-            <p className="text-xs text-gray-600">We will add email support shortly</p>
-            <Button variant={"outline" as any} size="sm" className="w-full" disabled>
-              Send Email
-            </Button>
+          <Card>
+            <BlockStack gap="300" inlineAlign="center">
+              <Icon source={EmailIcon} tone="info" />
+              <InlineStack gap="150" blockAlign="center">
+                <Text as="h3" variant="headingSm">Email Support</Text>
+                <Badge tone="info">Soon</Badge>
+              </InlineStack>
+              <Text as="p" variant="bodySm" tone="subdued" alignment="center">We will add email support shortly</Text>
+              <Button fullWidth disabled>Send Email</Button>
+            </BlockStack>
           </Card>
-        </div>
+        </InlineGrid>
 
-        <Card className="p-6">
-          <h2 className="text-xl text-gray-900 mb-2">Frequently Asked Questions</h2>
-          <div className="space-y-3">
-            {faqs.map((faq, index) => (
-              <div key={faq.q} className="border-b border-gray-200 last:border-0 pb-3">
-                <button
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="w-full flex items-center justify-between text-left py-2"
-                >
-                  <span className="text-sm text-gray-900">{faq.q}</span>
-                  {openFaq === index ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  )}
-                </button>
-                {openFaq === index && (
-                  <p className="text-sm text-gray-600 mt-2 pr-6">{faq.a}</p>
-                )}
-              </div>
-            ))}
-          </div>
+        <Card>
+          <BlockStack gap="300">
+            <Text as="h2" variant="headingMd">Frequently Asked Questions</Text>
+            <BlockStack gap="0">
+              {faqs.map((faq, index) => (
+                <Box key={faq.q} paddingBlock="300" borderBlockEndWidth={index < faqs.length - 1 ? "025" : undefined} borderColor="border">
+                  <div style={{ cursor: "pointer" }} onClick={() => setOpenFaq(openFaq === index ? null : index)}>
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text as="span" variant="bodySm">{faq.q}</Text>
+                      <Icon source={openFaq === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                    </InlineStack>
+                  </div>
+                  <Collapsible open={openFaq === index} id={`support-faq-${index}`}>
+                    <Box paddingBlockStart="200">
+                      <Text as="p" variant="bodySm" tone="subdued">{faq.a}</Text>
+                    </Box>
+                  </Collapsible>
+                </Box>
+              ))}
+            </BlockStack>
+          </BlockStack>
         </Card>
-      </div>
-    </div>
+      </BlockStack>
+    </Page>
   );
 }

@@ -10,11 +10,32 @@ import {
   useLocation,
   useNavigate,
 } from "@remix-run/react";
-import { CreditCard, Globe, Gauge, Store, User, Users } from "lucide-react";
 import { authenticate } from "../shopify.server";
-import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
+import {
+  Badge,
+  Banner,
+  BlockStack,
+  Button,
+  Card,
+  Checkbox,
+  Divider,
+  FormLayout,
+  Icon,
+  InlineGrid,
+  InlineStack,
+  Page,
+  ProgressBar,
+  Select,
+  Text,
+} from "@shopify/polaris";
+import {
+  CreditCardIcon,
+  GaugeIcon,
+  GlobeIcon,
+  PersonIcon,
+  StoreIcon,
+  TeamIcon,
+} from "@shopify/polaris-icons";
 import prisma from "../db.server";
 import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 
@@ -213,232 +234,189 @@ export default function AccountSettings() {
   const usagePercent = menuLimit ? Math.min((menuCount / menuLimit) * 100, 100) : 0;
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl text-gray-900">Account Settings</h1>
-          <p className="text-gray-600 mt-1">Manage your account and preferences</p>
-        </div>
-
-        <Card className="p-6">
-          <div className="flex items-start gap-4 mb-2">
-            <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-indigo-600" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-lg text-gray-900">Current Plan</h2>
-              <div className="flex items-center gap-3 mt-2">
-                <Badge variant={selection.id === "pro" ? "pro" : "default"}>
-                  {selection.id === "free" ? "Free Plan" : `${selection.id} Plan`.replace(/^./, (c) => c.toUpperCase())}
-                </Badge>
-                <span className="text-sm text-gray-600">
-                  {selection.id === "free"
-                    ? "$0/month"
-                    : selection.period === "yearly"
-                      ? "Billed yearly"
-                      : "Billed monthly"}
-                </span>
-              </div>
-            </div>
-            <Button variant="outline" onClick={() => navigate(withSearch("/app/pricing"))}>
-              Change Plan
-            </Button>
-          </div>
-
-          <div className="pt-6 border-t border-gray-200 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Next billing date</span>
-              <span className="text-gray-900">
-                {currentPeriodEnd
-                  ? new Date(currentPeriodEnd).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
-                  : "—"}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Payment method</span>
-              <span className="text-gray-900">Managed in Shopify</span>
-            </div>
-          </div>
+    <Page title="Account Settings" subtitle="Manage your account and preferences">
+      <BlockStack gap="400">
+        <Card>
+          <BlockStack gap="400">
+            <InlineStack align="space-between" blockAlign="start" wrap={false}>
+              <InlineStack gap="400" blockAlign="start">
+                <Icon source={PersonIcon} tone="info" />
+                <BlockStack gap="150">
+                  <Text as="h2" variant="headingMd">Current Plan</Text>
+                  <InlineStack gap="300" blockAlign="center">
+                    <Badge tone={selection.id === "pro" ? "info" : undefined}>
+                      {selection.id === "free" ? "Free Plan" : `${selection.id} Plan`.replace(/^./, (c) => c.toUpperCase())}
+                    </Badge>
+                    <Text as="span" variant="bodySm" tone="subdued">
+                      {selection.id === "free"
+                        ? "$0/month"
+                        : selection.period === "yearly"
+                          ? "Billed yearly"
+                          : "Billed monthly"}
+                    </Text>
+                  </InlineStack>
+                </BlockStack>
+              </InlineStack>
+              <Button onClick={() => navigate(withSearch("/app/pricing"))}>Change Plan</Button>
+            </InlineStack>
+            <Divider />
+            <BlockStack gap="200">
+              <InlineStack align="space-between">
+                <Text as="span" variant="bodySm" tone="subdued">Next billing date</Text>
+                <Text as="span" variant="bodySm">
+                  {currentPeriodEnd
+                    ? new Date(currentPeriodEnd).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+                    : "—"}
+                </Text>
+              </InlineStack>
+              <InlineStack align="space-between">
+                <Text as="span" variant="bodySm" tone="subdued">Payment method</Text>
+                <Text as="span" variant="bodySm">Managed in Shopify</Text>
+              </InlineStack>
+            </BlockStack>
+          </BlockStack>
         </Card>
 
-        <Card className="p-6">
-          <h2 className="text-lg text-gray-900 mb-4 flex items-center gap-2">
-            <CreditCard className="w-5 h-5" />
-            Billing
-          </h2>
-          <div className="space-y-3">
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.open(links.billingUrl, "_blank", "noopener,noreferrer");
-                }
-              }}
-            >
-              Update Payment Method
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.open(links.invoicesUrl, "_blank", "noopener,noreferrer");
-                }
-              }}
-            >
-              Download Invoices
-            </Button>
-          </div>
+        <Card>
+          <BlockStack gap="300">
+            <InlineStack gap="200" blockAlign="center">
+              <Icon source={CreditCardIcon} tone="info" />
+              <Text as="h2" variant="headingMd">Billing</Text>
+            </InlineStack>
+            <BlockStack gap="200">
+              <Button
+                textAlign="left"
+                fullWidth
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.open(links.billingUrl, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
+                Update Payment Method
+              </Button>
+              <Button
+                textAlign="left"
+                fullWidth
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.open(links.invoicesUrl, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
+                Download Invoices
+              </Button>
+            </BlockStack>
+          </BlockStack>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h2 className="text-lg text-gray-900 mb-2 flex items-center gap-2">
-              <Globe className="w-5 h-5" />
-              Preferences
-            </h2>
-            <Form method="post" className="space-y-4">
-              <input type="hidden" name="intent" value="update-preferences" />
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">Language</label>
-                <select
-                  name="language"
-                  defaultValue={preferences.language}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="en">English</option>
-                </select>
-              </div>
-
-              <label className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Email notifications</span>
-                <input
-                  type="checkbox"
-                  name="emailNotifications"
-                  defaultChecked={preferences.emailNotifications}
-                  className="w-4 h-4"
-                />
-              </label>
-
-              <label className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Marketing emails</span>
-                <input
-                  type="checkbox"
-                  name="marketingEmails"
-                  defaultChecked={preferences.marketingEmails}
-                  className="w-4 h-4"
-                />
-              </label>
-
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">
-                  Changes apply to this store only.
-                </span>
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="sm"
-                  disabled={!preferencesAvailable}
-                >
-                  Save Preferences
-                </Button>
-              </div>
-
-              {actionData?.ok ? (
-                <p className="text-xs text-green-600">Preferences saved.</p>
-              ) : null}
-              {actionData?.error ? (
-                <p className="text-xs text-red-600">{actionData.error}</p>
-              ) : null}
-              {!preferencesAvailable ? null : null}
-            </Form>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-lg text-gray-900 mb-3 flex items-center gap-2">
-              <Store className="w-5 h-5" />
-              Store & Theme
-            </h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Store name</span>
-                <span className="text-gray-900">{shopInfo.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Domain</span>
-                <span className="text-gray-900">{shopInfo.domain}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shopify plan</span>
-                <span className="text-gray-900">{shopInfo.plan}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Active theme</span>
-                <span className="text-gray-900">{shopInfo.themeName}</span>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-lg text-gray-900 mb-3 flex items-center gap-2">
-              <Gauge className="w-5 h-5" />
-              Usage & Limits
-            </h2>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Menus created</span>
-                <span className="text-gray-900">
-                  {menuLimit ? `${menuCount} / ${menuLimit}` : `${menuCount} / Unlimited`}
-                </span>
-              </div>
-              {menuLimit ? (
-                <div className="h-2 w-full rounded-full bg-gray-100">
-                  <div
-                    className="h-2 rounded-full bg-indigo-500"
-                    style={{ width: `${usagePercent}%` }}
+        <InlineGrid columns={{ xs: 1, lg: 2 }} gap="400">
+          <Card>
+            <BlockStack gap="300">
+              <InlineStack gap="200" blockAlign="center">
+                <Icon source={GlobeIcon} tone="info" />
+                <Text as="h2" variant="headingMd">Preferences</Text>
+              </InlineStack>
+              <Form method="post">
+                <input type="hidden" name="intent" value="update-preferences" />
+                <FormLayout>
+                  <Select
+                    label="Language"
+                    name="language"
+                    options={[{ label: "English", value: "en" }]}
+                    defaultValue={preferences.language}
                   />
-                </div>
+                  <Checkbox label="Email notifications" name="emailNotifications" defaultChecked={preferences.emailNotifications} />
+                  <Checkbox label="Marketing emails" name="marketingEmails" defaultChecked={preferences.marketingEmails} />
+                  <InlineStack align="space-between" blockAlign="center">
+                    <Text as="span" variant="bodySm" tone="subdued">Changes apply to this store only.</Text>
+                    <Button submit disabled={!preferencesAvailable}>Save Preferences</Button>
+                  </InlineStack>
+                  {actionData?.ok ? <Banner tone="success">Preferences saved.</Banner> : null}
+                  {actionData?.error ? <Banner tone="critical">{actionData.error}</Banner> : null}
+                </FormLayout>
+              </Form>
+            </BlockStack>
+          </Card>
+
+          <Card>
+            <BlockStack gap="300">
+              <InlineStack gap="200" blockAlign="center">
+                <Icon source={StoreIcon} tone="info" />
+                <Text as="h2" variant="headingMd">Store &amp; Theme</Text>
+              </InlineStack>
+              <BlockStack gap="200">
+                <InlineStack align="space-between">
+                  <Text as="span" variant="bodySm" tone="subdued">Store name</Text>
+                  <Text as="span" variant="bodySm">{shopInfo.name}</Text>
+                </InlineStack>
+                <InlineStack align="space-between">
+                  <Text as="span" variant="bodySm" tone="subdued">Domain</Text>
+                  <Text as="span" variant="bodySm">{shopInfo.domain}</Text>
+                </InlineStack>
+                <InlineStack align="space-between">
+                  <Text as="span" variant="bodySm" tone="subdued">Shopify plan</Text>
+                  <Text as="span" variant="bodySm">{shopInfo.plan}</Text>
+                </InlineStack>
+                <InlineStack align="space-between">
+                  <Text as="span" variant="bodySm" tone="subdued">Active theme</Text>
+                  <Text as="span" variant="bodySm">{shopInfo.themeName}</Text>
+                </InlineStack>
+              </BlockStack>
+            </BlockStack>
+          </Card>
+
+          <Card>
+            <BlockStack gap="300">
+              <InlineStack gap="200" blockAlign="center">
+                <Icon source={GaugeIcon} tone="info" />
+                <Text as="h2" variant="headingMd">Usage &amp; Limits</Text>
+              </InlineStack>
+              <InlineStack align="space-between">
+                <Text as="span" variant="bodySm" tone="subdued">Menus created</Text>
+                <Text as="span" variant="bodySm">
+                  {menuLimit ? `${menuCount} / ${menuLimit}` : `${menuCount} / Unlimited`}
+                </Text>
+              </InlineStack>
+              {menuLimit ? (
+                <ProgressBar progress={usagePercent} size="small" tone="primary" />
               ) : (
-                <p className="text-xs text-gray-500">Unlimited menus on your current plan.</p>
+                <Text as="p" variant="bodySm" tone="subdued">Unlimited menus on your current plan.</Text>
               )}
-              <p className="text-xs text-gray-500">
+              <Text as="p" variant="bodySm" tone="subdued">
                 Upgrade for unlimited menus and advanced features.
-              </p>
-            </div>
+              </Text>
+            </BlockStack>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg text-gray-900 flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Team & Access
-              </h2>
-              <Badge variant="new">Coming soon</Badge>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Manage collaborators and control who can edit menus.
-            </p>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              disabled
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.open(links.staffUrl, "_blank", "noopener,noreferrer");
-                }
-              }}
-            >
-              Manage staff in Shopify
-            </Button>
+          <Card>
+            <BlockStack gap="300">
+              <InlineStack align="space-between" blockAlign="center">
+                <InlineStack gap="200" blockAlign="center">
+                  <Icon source={TeamIcon} tone="info" />
+                  <Text as="h2" variant="headingMd">Team &amp; Access</Text>
+                </InlineStack>
+                <Badge tone="info">Coming soon</Badge>
+              </InlineStack>
+              <Text as="p" variant="bodySm" tone="subdued">
+                Manage collaborators and control who can edit menus.
+              </Text>
+              <Button
+                textAlign="left"
+                fullWidth
+                disabled
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.open(links.staffUrl, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
+                Manage staff in Shopify
+              </Button>
+            </BlockStack>
           </Card>
-        </div>
-
-      </div>
-    </div>
+        </InlineGrid>
+      </BlockStack>
+    </Page>
   );
 }

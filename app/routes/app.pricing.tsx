@@ -26,8 +26,8 @@ import {
   StarIcon,
 } from "@shopify/polaris-icons";
 import {
-  ALL_BILLING_PLAN_NAMES,
   BILLING_PLANS,
+  getActiveAppSubscriptions,
   getPlanSelection,
   type BillingPeriod,
 } from "../config/billing";
@@ -38,10 +38,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = session.shop;
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const { appSubscriptions } = await billing.check({
-    plans: [...ALL_BILLING_PLAN_NAMES],
-    isTest: billingTestMode,
-  });
+  const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );

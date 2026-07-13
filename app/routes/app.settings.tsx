@@ -39,7 +39,7 @@ import {
   TeamIcon,
 } from "@shopify/polaris-icons";
 import prisma from "../db.server";
-import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
+import { getActiveAppSubscriptions, getPlanSelection } from "../config/billing";
 
 type PreferencesPayload = {
   language: string;
@@ -53,10 +53,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
 
-  const { appSubscriptions } = await billing.check({
-    plans: [...ALL_BILLING_PLAN_NAMES],
-    isTest: billingTestMode,
-  });
+  const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
 
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)

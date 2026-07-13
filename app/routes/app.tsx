@@ -9,7 +9,7 @@ import CrispChat from "../components/CrispChat";
 import { authenticate } from "../shopify.server";
 
 import {
-  ALL_BILLING_PLAN_NAMES,
+  getActiveAppSubscriptions,
   getPlanSelection,
 } from "../config/billing";
 import prisma from "../db.server";
@@ -23,10 +23,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Check current plan
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const { appSubscriptions } = await billing.check({
-    plans: [...ALL_BILLING_PLAN_NAMES],
-    isTest: billingTestMode,
-  });
+  const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );

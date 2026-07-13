@@ -5,7 +5,7 @@ import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator, useRouteLoaderData } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
+import { getActiveAppSubscriptions, getPlanSelection } from "../config/billing";
 import type { loader as appLoader } from "./app";
 import {
   Badge,
@@ -39,10 +39,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const { appSubscriptions } = await billing.check({
-    plans: [...ALL_BILLING_PLAN_NAMES],
-    isTest: billingTestMode,
-  });
+  const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );
@@ -136,10 +133,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Check plan limit for duplication
     const billingTestMode =
       process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-    const { appSubscriptions } = await billing.check({
-      plans: [...ALL_BILLING_PLAN_NAMES],
-      isTest: billingTestMode,
-    });
+    const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
@@ -198,10 +192,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (intent === "import") {
     // Check plan
     const billingTestMode = process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-    const { appSubscriptions } = await billing.check({
-      plans: [...ALL_BILLING_PLAN_NAMES],
-      isTest: billingTestMode,
-    });
+    const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
@@ -266,10 +257,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   if (intent === "import-shopify") {
     // Check plan
     const billingTestMode = process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-    const { appSubscriptions } = await billing.check({
-      plans: [...ALL_BILLING_PLAN_NAMES],
-      isTest: billingTestMode,
-    });
+    const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );

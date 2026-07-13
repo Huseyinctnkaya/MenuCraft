@@ -1,11 +1,9 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
+import { Badge, BlockStack, Button, Card, Icon, InlineStack, Page, Text } from "@shopify/polaris";
+import { AlertCircleIcon, CheckCircleIcon, ExternalIcon } from "@shopify/polaris-icons";
 
 const appBlockCache = new Map<string, { value: boolean; expiresAt: number }>();
 
@@ -305,80 +303,76 @@ export default function InstallStatus() {
   ];
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl text-gray-900">Install & Theme Status</h1>
-          <p className="text-gray-600 mt-1">Ensure MenuCraft is properly integrated with your theme</p>
-        </div>
-
-        <Card className="p-6">
-          <div className="space-y-4">
+    <Page title="Install & Theme Status" subtitle="Ensure MenuCraft is properly integrated with your theme">
+      <BlockStack gap="400">
+        <Card>
+          <BlockStack gap="300">
             {checks.map((check, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  {check.status === "success" ? (
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
-                  ) : (
-                    <AlertCircle className="w-6 h-6 text-amber-500" />
-                  )}
-                  <div>
-                    <p className="text-sm text-gray-900">{check.label}</p>
-                    <p className="text-xs text-gray-600">{check.message}</p>
-                  </div>
-                </div>
-                <Badge variant={check.status === "success" ? "success" : "danger"}>
+              <InlineStack key={index} align="space-between" blockAlign="center">
+                <InlineStack gap="300" blockAlign="center">
+                  <Icon
+                    source={check.status === "success" ? CheckCircleIcon : AlertCircleIcon}
+                    tone={check.status === "success" ? "success" : "caution"}
+                  />
+                  <BlockStack gap="050">
+                    <Text as="p" variant="bodySm">{check.label}</Text>
+                    <Text as="p" variant="bodySm" tone="subdued">{check.message}</Text>
+                  </BlockStack>
+                </InlineStack>
+                <Badge tone={check.status === "success" ? "success" : "critical"}>
                   {check.status === "success" ? "Active" : "Deactive"}
                 </Badge>
-              </div>
+              </InlineStack>
             ))}
-          </div>
+          </BlockStack>
         </Card>
 
-        <Card className="p-6">
-          <h2 className="text-lg text-gray-900 mb-4">Setup Instructions</h2>
-          <div className="space-y-4">
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="text-sm text-gray-900 mb-2">Step 1: Enable App Embed</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                In theme settings, enable the MenuCraft app embed under Theme Extensions
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
-                  }
-                }}
-              >
-                <ExternalLink className="w-4 h-4" />
-                Theme Settings
-              </Button>
-            </div>
-          </div>
+        <Card>
+          <BlockStack gap="300">
+            <Text as="h2" variant="headingMd">Setup Instructions</Text>
+            <Card>
+              <BlockStack gap="200">
+                <Text as="h3" variant="headingSm">Step 1: Enable App Embed</Text>
+                <Text as="p" variant="bodySm" tone="subdued">
+                  In theme settings, enable the MenuCraft app embed under Theme Extensions
+                </Text>
+                <InlineStack>
+                  <Button
+                    icon={ExternalIcon}
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.open(themeEditorUrl, "_blank", "noopener,noreferrer");
+                      }
+                    }}
+                  >
+                    Theme Settings
+                  </Button>
+                </InlineStack>
+              </BlockStack>
+            </Card>
+          </BlockStack>
         </Card>
 
-        <Card className="p-6">
-          <h2 className="text-lg text-gray-900 mb-3">Theme Information</h2>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Current Theme:</span>
-              <span className="text-gray-900">{displayThemeName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Version:</span>
-              <span className="text-gray-900">{hasConnectedTheme ? "10.0.0" : "-"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">OS 2.0 Compatible:</span>
-              <Badge variant={hasConnectedTheme ? "success" : "danger"}>
+        <Card>
+          <BlockStack gap="300">
+            <Text as="h2" variant="headingMd">Theme Information</Text>
+            <InlineStack align="space-between">
+              <Text as="span" variant="bodySm" tone="subdued">Current Theme:</Text>
+              <Text as="span" variant="bodySm">{displayThemeName}</Text>
+            </InlineStack>
+            <InlineStack align="space-between">
+              <Text as="span" variant="bodySm" tone="subdued">Version:</Text>
+              <Text as="span" variant="bodySm">{hasConnectedTheme ? "10.0.0" : "-"}</Text>
+            </InlineStack>
+            <InlineStack align="space-between" blockAlign="center">
+              <Text as="span" variant="bodySm" tone="subdued">OS 2.0 Compatible:</Text>
+              <Badge tone={hasConnectedTheme ? "success" : "critical"}>
                 {hasConnectedTheme ? "Yes" : "No"}
               </Badge>
-            </div>
-          </div>
+            </InlineStack>
+          </BlockStack>
         </Card>
-      </div>
-    </div>
+      </BlockStack>
+    </Page>
   );
 }

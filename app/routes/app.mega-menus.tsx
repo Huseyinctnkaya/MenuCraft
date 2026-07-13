@@ -39,12 +39,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 
   const [menus, shopifyMenusResponse, eventCounts] = await Promise.all([
-    prisma.$queryRaw<any[]>`
-      SELECT id, name, status, json_array_length(items) as itemCount
-      FROM Menu
-      WHERE shop = ${shop}
-      ORDER BY id ASC
-    `,
+    prisma.menu
+      .findMany({
+        where: { shop },
+        orderBy: { id: "asc" },
+        select: { id: true, name: true, status: true, items: true },
+      })
+      .then((rows) =>
+        rows.map(({ items, ...rest }) => ({
+          ...rest,
+          itemCount: Array.isArray(items) ? items.length : 0,
+        }))
+      ),
     adminLoader.graphql(
       `#graphql
       query getShopifyMenus {

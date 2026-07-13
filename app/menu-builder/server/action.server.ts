@@ -112,11 +112,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     if (settings) {
-      await tx.$executeRaw`
-        UPDATE Menu
-        SET settings = ${JSON.stringify(settings)}
-        WHERE id = ${menuId} AND shop = ${shop}
-      `;
+      await tx.menu.update({
+        where: { id: menuId },
+        data: { settings },
+      });
     }
   });
 

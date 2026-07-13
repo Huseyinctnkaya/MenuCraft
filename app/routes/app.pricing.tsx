@@ -236,7 +236,7 @@ export default function Pricing() {
           </Box>
         </InlineStack>
 
-        <InlineStack align="center">
+        <InlineStack align="center" gap="200" blockAlign="center">
           <InlineStack gap="0">
             <Button pressed={billingPeriod === "monthly"} onClick={() => setBillingPeriod("monthly")}>
               Monthly
@@ -244,8 +244,8 @@ export default function Pricing() {
             <Button pressed={billingPeriod === "yearly"} onClick={() => setBillingPeriod("yearly")}>
               Yearly
             </Button>
-            {billingPeriod === "yearly" && <Badge tone="success">Save 20%</Badge>}
           </InlineStack>
+          {billingPeriod === "yearly" && <Badge tone="success">Save 20%</Badge>}
         </InlineStack>
 
         {actionData?.billingError && (

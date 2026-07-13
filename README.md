@@ -26,19 +26,23 @@ MenuCraft is a high-performance, interactive menu builder designed for Shopify m
    npm install
    ```
 
-2. **Start Development**:
+2. **Start the local database** (Homebrew PostgreSQL 16):
+   ```bash
+   npm run db:up
+   createdb menucraft   # first time only
+   ```
+
+3. **Configure environment**: copy `.env.example` to `.env` and adjust
+   `DATABASE_URL` for your machine (the default uses Homebrew trust auth).
+
+4. **Apply migrations** (first time only):
+   ```bash
+   npx prisma migrate dev
+   ```
+
+5. **Start Development**:
    ```bash
    npm run dev
-   ```
-
-3. **Database Setup**:
-   ```bash
-   npm run setup
-   ```
-
-4. **Seed Templates**:
-   ```bash
-   npm run seed:templates
    ```
 
 ## 📂 Project Structure

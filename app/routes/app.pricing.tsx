@@ -228,7 +228,9 @@ export default function Pricing() {
         <InlineStack align="center">
           <Box background="bg-surface-success" borderRadius="full" paddingInline="400" paddingBlock="200">
             <InlineStack gap="200" blockAlign="center">
-              <Icon source={ShieldCheckMarkIcon} tone="success" />
+              <Box>
+                <Icon source={ShieldCheckMarkIcon} tone="success" />
+              </Box>
               <Text as="span" variant="bodySm" tone="success">
                 14-day free trial - No credit card required - Cancel anytime
               </Text>
@@ -269,7 +271,9 @@ export default function Pricing() {
               <Card key={plan.id}>
                 <BlockStack gap="400">
                   {plan.popular && <Badge tone="info">Most Popular</Badge>}
-                  <Icon source={plan.icon} tone="info" />
+                  <Box>
+                    <Icon source={plan.icon} tone="info" />
+                  </Box>
                   <BlockStack gap="100">
                     <Text as="h3" variant="headingLg">{plan.name}</Text>
                     <Text as="p" variant="bodySm" tone="subdued">{plan.description}</Text>
@@ -286,7 +290,9 @@ export default function Pricing() {
                   <BlockStack gap="200">
                     {plan.features.map((feature, index) => (
                       <InlineStack key={index} gap="200" blockAlign="start" wrap={false}>
-                        <Icon source={CheckIcon} tone="success" />
+                        <Box>
+                          <Icon source={CheckIcon} tone="success" />
+                        </Box>
                         <Text as="span" variant="bodySm">{feature}</Text>
                       </InlineStack>
                     ))}
@@ -327,7 +333,9 @@ export default function Pricing() {
 
         <Card>
           <InlineStack gap="400" blockAlign="start" wrap={false}>
-            <Icon source={CreditCardIcon} tone="info" />
+            <Box>
+              <Icon source={CreditCardIcon} tone="info" />
+            </Box>
             <BlockStack gap="400">
               <BlockStack gap="100">
                 <Text as="h3" variant="headingMd">How plan selection works</Text>
@@ -337,9 +345,13 @@ export default function Pricing() {
               </BlockStack>
               <InlineStack gap="300" blockAlign="center">
                 <Text as="span" variant="bodySm">1. Select plan</Text>
-                <Icon source={ArrowRightIcon} tone="subdued" />
+                <Box>
+                  <Icon source={ArrowRightIcon} tone="subdued" />
+                </Box>
                 <Text as="span" variant="bodySm">2. Confirm billing</Text>
-                <Icon source={ArrowRightIcon} tone="subdued" />
+                <Box>
+                  <Icon source={ArrowRightIcon} tone="subdued" />
+                </Box>
                 <Text as="span" variant="bodySm">3. Go to Dashboard</Text>
               </InlineStack>
             </BlockStack>
@@ -356,17 +368,22 @@ export default function Pricing() {
         <InlineGrid columns={{ xs: 1, md: 2 }} gap="400">
           <Card>
             <InlineStack gap="300" blockAlign="center">
-              <Icon source={ShieldCheckMarkIcon} tone="success" />
+              <Box>
+                <Icon source={ShieldCheckMarkIcon} tone="success" />
+              </Box>
               <Text as="p" variant="bodySm">30-day money back guarantee</Text>
             </InlineStack>
           </Card>
           <Card>
             <InlineStack gap="300" blockAlign="center">
-              <Icon source={StarIcon} tone="info" />
+              <Box>
+                <Icon source={StarIcon} tone="info" />
+              </Box>
               <Text as="p" variant="bodySm">Built for Shopify by Shopify Experts</Text>
             </InlineStack>
           </Card>
         </InlineGrid>
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
     </Page>
   );

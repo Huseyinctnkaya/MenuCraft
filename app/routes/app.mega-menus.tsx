@@ -11,6 +11,7 @@ import {
   Badge,
   Banner,
   BlockStack,
+  Box,
   Button,
   Card,
   EmptyState,
@@ -749,6 +750,7 @@ export default function MegaMenusList() {
             </IndexTable>
           )}
         </Card>
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
 
       <Modal

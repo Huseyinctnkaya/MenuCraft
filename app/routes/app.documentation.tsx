@@ -187,7 +187,9 @@ export default function Documentation() {
                       <Text as="p" variant="bodySm">{doc.title}</Text>
                       <Text as="p" variant="bodySm" tone="subdued">{doc.summary}</Text>
                     </BlockStack>
-                    <Icon source={openDoc === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                    <Box>
+                      <Icon source={openDoc === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                    </Box>
                   </InlineStack>
                 </div>
                 <Collapsible open={openDoc === index} id={`doc-${index}`}>
@@ -206,6 +208,7 @@ export default function Documentation() {
           </BlockStack>
         </BlockStack>
       </Card>
+      <Box paddingBlockEnd="1200" />
     </Page>
   );
 }

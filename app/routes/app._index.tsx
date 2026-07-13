@@ -577,10 +577,12 @@ export default function Dashboard() {
                 <Box background="bg-surface-secondary" padding="300" borderRadius="200">
                   <InlineStack align="space-between" blockAlign="center">
                     <InlineStack gap="300" blockAlign="center">
-                      <Icon
-                        source={integrationStatus === "active" ? CheckCircleIcon : AlertCircleIcon}
-                        tone={integrationStatus === "active" ? "success" : "critical"}
-                      />
+                      <Box>
+                        <Icon
+                          source={integrationStatus === "active" ? CheckCircleIcon : AlertCircleIcon}
+                          tone={integrationStatus === "active" ? "success" : "critical"}
+                        />
+                      </Box>
                       <BlockStack gap="050">
                         <InlineStack gap="150" blockAlign="center">
                           <Text as="p" variant="bodySm">Installation Status</Text>
@@ -605,10 +607,12 @@ export default function Dashboard() {
                 <Box background="bg-surface-secondary" padding="300" borderRadius="200">
                   <InlineStack align="space-between" blockAlign="center">
                     <InlineStack gap="300" blockAlign="center">
-                      <Icon
-                        source={hasConnectedTheme ? CheckCircleIcon : AlertCircleIcon}
-                        tone={hasConnectedTheme ? "success" : "critical"}
-                      />
+                      <Box>
+                        <Icon
+                          source={hasConnectedTheme ? CheckCircleIcon : AlertCircleIcon}
+                          tone={hasConnectedTheme ? "success" : "critical"}
+                        />
+                      </Box>
                       <BlockStack gap="050">
                         <InlineStack gap="150" blockAlign="center">
                           <Text as="p" variant="bodySm">Connected Theme</Text>
@@ -672,10 +676,12 @@ export default function Dashboard() {
                 <BlockStack gap="300">
                   {setupSteps.map((step, index) => (
                     <InlineStack key={index} gap="300" blockAlign="center">
-                      <Icon
-                        source={CheckCircleIcon}
-                        tone={step.completed ? "success" : "subdued"}
-                      />
+                      <Box>
+                        <Icon
+                          source={CheckCircleIcon}
+                          tone={step.completed ? "success" : "subdued"}
+                        />
+                      </Box>
                       <Text as="span" variant="bodySm" tone={step.completed ? "subdued" : undefined}>
                         {step.title}
                       </Text>
@@ -693,13 +699,17 @@ export default function Dashboard() {
         <InlineGrid columns={{ xs: 1, md: 2 }} gap="400">
           <Card>
             <InlineStack gap="300" blockAlign="center">
-              <Icon source={ShieldCheckMarkIcon} tone="success" />
+              <Box>
+                <Icon source={ShieldCheckMarkIcon} tone="success" />
+              </Box>
               <Text as="p" variant="bodySm">30-day money back guarantee</Text>
             </InlineStack>
           </Card>
           <Card>
             <InlineStack gap="300" blockAlign="center">
-              <Icon source={StarIcon} tone="info" />
+              <Box>
+                <Icon source={StarIcon} tone="info" />
+              </Box>
               <Text as="p" variant="bodySm">Built for Shopify by Shopify Experts</Text>
             </InlineStack>
           </Card>
@@ -714,7 +724,9 @@ export default function Dashboard() {
                   <div style={{ cursor: "pointer" }} onClick={() => setOpenFaq(openFaq === index ? null : index)}>
                     <InlineStack align="space-between" blockAlign="center">
                       <Text as="span" variant="bodySm">{faq.q}</Text>
-                      <Icon source={openFaq === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                      <Box>
+                        <Icon source={openFaq === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                      </Box>
                     </InlineStack>
                   </div>
                   <Collapsible open={openFaq === index} id={`faq-${index}`}>
@@ -727,6 +739,7 @@ export default function Dashboard() {
             </BlockStack>
           </BlockStack>
         </Card>
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
 
       <Modal

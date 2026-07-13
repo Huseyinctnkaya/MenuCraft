@@ -386,7 +386,9 @@ export default function Analytics() {
           <Card>
             <InlineStack align="space-between" blockAlign="center" gap="400" wrap>
               <InlineStack gap="300" blockAlign="center">
-                <Icon source={CalendarIcon} tone="info" />
+                <Box>
+                  <Icon source={CalendarIcon} tone="info" />
+                </Box>
                 <Text as="p" variant="bodyMd">
                   You are on the <strong>Free plan</strong>. Analytics history is limited to the last{" "}
                   <strong>7 days</strong>. Upgrade to Pro to see 30 and 90-day history.
@@ -580,6 +582,7 @@ export default function Analytics() {
             </InlineStack>
           </Card>
         )}
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
     </Page>
   );

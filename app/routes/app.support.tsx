@@ -58,7 +58,9 @@ export default function Support() {
         <InlineGrid columns={{ xs: 1, md: 3 }} gap="400">
           <Card>
             <BlockStack gap="300" inlineAlign="center">
-              <Icon source={FileIcon} tone="info" />
+              <Box>
+                <Icon source={FileIcon} tone="info" />
+              </Box>
               <Text as="h3" variant="headingSm">Documentation</Text>
               <Text as="p" variant="bodySm" tone="subdued" alignment="center">Detailed guides and tutorials</Text>
               <Button fullWidth onClick={() => navigate(withSearch("/app/documentation"))}>View Docs</Button>
@@ -67,7 +69,9 @@ export default function Support() {
 
           <Card>
             <BlockStack gap="300" inlineAlign="center">
-              <Icon source={ChatIcon} tone="success" />
+              <Box>
+                <Icon source={ChatIcon} tone="success" />
+              </Box>
               <Text as="h3" variant="headingSm">Live Chat</Text>
               <Text as="p" variant="bodySm" tone="subdued" alignment="center">Chat with us in real-time</Text>
               <Button
@@ -85,7 +89,9 @@ export default function Support() {
 
           <Card>
             <BlockStack gap="300" inlineAlign="center">
-              <Icon source={EmailIcon} tone="info" />
+              <Box>
+                <Icon source={EmailIcon} tone="info" />
+              </Box>
               <InlineStack gap="150" blockAlign="center">
                 <Text as="h3" variant="headingSm">Email Support</Text>
                 <Badge tone="info">Soon</Badge>
@@ -105,7 +111,9 @@ export default function Support() {
                   <div style={{ cursor: "pointer" }} onClick={() => setOpenFaq(openFaq === index ? null : index)}>
                     <InlineStack align="space-between" blockAlign="center">
                       <Text as="span" variant="bodySm">{faq.q}</Text>
-                      <Icon source={openFaq === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                      <Box>
+                        <Icon source={openFaq === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                      </Box>
                     </InlineStack>
                   </div>
                   <Collapsible open={openFaq === index} id={`support-faq-${index}`}>
@@ -118,6 +126,7 @@ export default function Support() {
             </BlockStack>
           </BlockStack>
         </Card>
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
     </Page>
   );

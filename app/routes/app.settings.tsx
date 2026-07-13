@@ -16,6 +16,7 @@ import {
   Badge,
   Banner,
   BlockStack,
+  Box,
   Button,
   Card,
   Checkbox,
@@ -244,7 +245,9 @@ export default function AccountSettings() {
           <BlockStack gap="400">
             <InlineStack align="space-between" blockAlign="start" wrap={false}>
               <InlineStack gap="400" blockAlign="start">
-                <Icon source={PersonIcon} tone="info" />
+                <Box>
+                  <Icon source={PersonIcon} tone="info" />
+                </Box>
                 <BlockStack gap="150">
                   <Text as="h2" variant="headingMd">Current Plan</Text>
                   <InlineStack gap="300" blockAlign="center">
@@ -284,7 +287,9 @@ export default function AccountSettings() {
         <Card>
           <BlockStack gap="300">
             <InlineStack gap="200" blockAlign="center">
-              <Icon source={CreditCardIcon} tone="info" />
+              <Box>
+                <Icon source={CreditCardIcon} tone="info" />
+              </Box>
               <Text as="h2" variant="headingMd">Billing</Text>
             </InlineStack>
             <BlockStack gap="200">
@@ -318,7 +323,9 @@ export default function AccountSettings() {
           <Card>
             <BlockStack gap="300">
               <InlineStack gap="200" blockAlign="center">
-                <Icon source={GlobeIcon} tone="info" />
+                <Box>
+                  <Icon source={GlobeIcon} tone="info" />
+                </Box>
                 <Text as="h2" variant="headingMd">Preferences</Text>
               </InlineStack>
               <Form method="post">
@@ -357,7 +364,9 @@ export default function AccountSettings() {
           <Card>
             <BlockStack gap="300">
               <InlineStack gap="200" blockAlign="center">
-                <Icon source={StoreIcon} tone="info" />
+                <Box>
+                  <Icon source={StoreIcon} tone="info" />
+                </Box>
                 <Text as="h2" variant="headingMd">Store &amp; Theme</Text>
               </InlineStack>
               <BlockStack gap="200">
@@ -384,7 +393,9 @@ export default function AccountSettings() {
           <Card>
             <BlockStack gap="300">
               <InlineStack gap="200" blockAlign="center">
-                <Icon source={GaugeIcon} tone="info" />
+                <Box>
+                  <Icon source={GaugeIcon} tone="info" />
+                </Box>
                 <Text as="h2" variant="headingMd">Usage &amp; Limits</Text>
               </InlineStack>
               <InlineStack align="space-between">
@@ -408,7 +419,9 @@ export default function AccountSettings() {
             <BlockStack gap="300">
               <InlineStack align="space-between" blockAlign="center">
                 <InlineStack gap="200" blockAlign="center">
-                  <Icon source={TeamIcon} tone="info" />
+                  <Box>
+                    <Icon source={TeamIcon} tone="info" />
+                  </Box>
                   <Text as="h2" variant="headingMd">Team &amp; Access</Text>
                 </InlineStack>
                 <Badge tone="info">Coming soon</Badge>
@@ -431,6 +444,7 @@ export default function AccountSettings() {
             </BlockStack>
           </Card>
         </InlineGrid>
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
     </Page>
   );

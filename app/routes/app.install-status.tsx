@@ -2,7 +2,7 @@ import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { Badge, BlockStack, Button, Card, Icon, InlineStack, Page, Text } from "@shopify/polaris";
+import { Badge, BlockStack, Box, Button, Card, Icon, InlineStack, Page, Text } from "@shopify/polaris";
 import { AlertCircleIcon, CheckCircleIcon, ExternalIcon } from "@shopify/polaris-icons";
 
 const appBlockCache = new Map<string, { value: boolean; expiresAt: number }>();
@@ -310,10 +310,12 @@ export default function InstallStatus() {
             {checks.map((check, index) => (
               <InlineStack key={index} align="space-between" blockAlign="center">
                 <InlineStack gap="300" blockAlign="center">
-                  <Icon
-                    source={check.status === "success" ? CheckCircleIcon : AlertCircleIcon}
-                    tone={check.status === "success" ? "success" : "caution"}
-                  />
+                  <Box>
+                    <Icon
+                      source={check.status === "success" ? CheckCircleIcon : AlertCircleIcon}
+                      tone={check.status === "success" ? "success" : "caution"}
+                    />
+                  </Box>
                   <BlockStack gap="050">
                     <Text as="p" variant="bodySm">{check.label}</Text>
                     <Text as="p" variant="bodySm" tone="subdued">{check.message}</Text>
@@ -372,6 +374,7 @@ export default function InstallStatus() {
             </InlineStack>
           </BlockStack>
         </Card>
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
     </Page>
   );

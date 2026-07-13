@@ -1,19 +1,30 @@
 import { useState } from "react";
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import { useActionData, useLoaderData } from "@remix-run/react";
-import {
-  ArrowRight,
-  Check,
-  CreditCard,
-  Rocket,
-  Shield,
-  Star,
-  Zap,
-} from "lucide-react";
 import { authenticate } from "../shopify.server";
-import Badge from "../components/ui/Badge";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
+import {
+  Badge,
+  Banner,
+  BlockStack,
+  Box,
+  Button,
+  Card,
+  DataTable,
+  Icon,
+  InlineGrid,
+  InlineStack,
+  Page,
+  Text,
+} from "@shopify/polaris";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  ConfettiIcon,
+  CreditCardIcon,
+  GiftCardIcon,
+  ShieldCheckMarkIcon,
+  StarIcon,
+} from "@shopify/polaris-icons";
 import {
   ALL_BILLING_PLAN_NAMES,
   BILLING_PLANS,
@@ -142,7 +153,7 @@ export default function Pricing() {
     {
       id: "free",
       name: "Free",
-      icon: Zap,
+      icon: GiftCardIcon,
       iconColor: "bg-emerald-100 text-emerald-600",
       description: "Perfect for new stores",
       priceMonthly: "$0",
@@ -160,7 +171,7 @@ export default function Pricing() {
     {
       id: "pro",
       name: "Pro",
-      icon: Star,
+      icon: StarIcon,
       iconColor: "bg-indigo-100 text-indigo-600",
       description: "Best for growing stores",
       priceMonthly: "$9.99",
@@ -178,7 +189,7 @@ export default function Pricing() {
     {
       id: "plus",
       name: "Plus",
-      icon: Rocket,
+      icon: ConfettiIcon,
       iconColor: "bg-purple-100 text-purple-600",
       description: "Advanced stores & Agencies",
       priceMonthly: "$29.99",
@@ -212,56 +223,36 @@ export default function Pricing() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl text-gray-900">Plans & Billing</h1>
-          <p className="text-lg text-gray-600">Choose the plan that fits your store's needs</p>
+    <Page title="Plans & Billing" subtitle="Choose the plan that fits your store's needs">
+      <BlockStack gap="500">
+        <InlineStack align="center">
+          <Box background="bg-surface-success" borderRadius="full" paddingInline="400" paddingBlock="200">
+            <InlineStack gap="200" blockAlign="center">
+              <Icon source={ShieldCheckMarkIcon} tone="success" />
+              <Text as="span" variant="bodySm" tone="success">
+                14-day free trial - No credit card required - Cancel anytime
+              </Text>
+            </InlineStack>
+          </Box>
+        </InlineStack>
 
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full">
-            <Shield className="w-4 h-4 text-green-600" />
-            <span className="text-sm text-green-700">
-              14-day free trial - No credit card required - Cancel anytime
-            </span>
-          </div>
-        </div>
-
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-3 p-1 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <button
-              onClick={() => setBillingPeriod("monthly")}
-              className={`px-6 py-2 rounded-md text-sm transition-all ${billingPeriod === "monthly"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-                }`}
-            >
+        <InlineStack align="center">
+          <InlineStack gap="0">
+            <Button pressed={billingPeriod === "monthly"} onClick={() => setBillingPeriod("monthly")}>
               Monthly
-            </button>
-            <button
-              onClick={() => setBillingPeriod("yearly")}
-              className={`px-6 py-2 rounded-md text-sm transition-all flex items-center gap-2 ${billingPeriod === "yearly"
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-                }`}
-            >
-              Yearly
-              {billingPeriod === "yearly" && (
-                <Badge variant="success" className="text-xs">
-                  Save 20%
-                </Badge>
-              )}
-            </button>
-          </div>
-        </div>
+            </Button>
+            <Button pressed={billingPeriod === "yearly"} onClick={() => setBillingPeriod("yearly")}>
+              Yearly {billingPeriod === "yearly" && <Badge tone="success">Save 20%</Badge>}
+            </Button>
+          </InlineStack>
+        </InlineStack>
+
         {actionData?.billingError && (
-          <div className="max-w-3xl mx-auto rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {actionData.billingError}
-          </div>
+          <Banner tone="critical">{actionData.billingError}</Banner>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <InlineGrid columns={{ xs: 1, md: 2, lg: 3 }} gap="400">
           {plans.map((plan) => {
-            const Icon = plan.icon;
             const price = billingPeriod === "monthly" ? plan.priceMonthly : plan.priceYearly;
             const planIsCurrent =
               currentPlan.id === plan.id &&
@@ -272,187 +263,110 @@ export default function Pricing() {
               : plan.id === "pro"
                 ? "Upgrade to Pro"
                 : "Upgrade to Plus";
-            const ctaVariant = planIsCurrent || plan.id === "free" ? "outline" : "primary";
 
             return (
-              <Card
-                key={plan.id}
-                className={`relative flex flex-col p-6 ${plan.popular ? "ring-2 ring-indigo-600" : ""}`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge variant="pro" className="shadow-sm">
-                      Most Popular
-                    </Badge>
-                  </div>
-                )}
-
-                <div className={`w-14 h-14 ${plan.iconColor} rounded-full flex items-center justify-center mb-4`}>
-                  <Icon className="w-7 h-7" />
-                </div>
-
-                <div className="space-y-2 mb-4">
-                  <h3 className="text-xl text-gray-900">{plan.name}</h3>
-                  <p className="text-sm text-gray-600">{plan.description}</p>
-                </div>
-
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl text-gray-900">{price}</span>
-                    <span className="text-gray-600">/ {billingPeriod === "monthly" ? "month" : "year"}</span>
-                  </div>
-                  {plan.trial && <p className="text-xs text-gray-600 mt-2">{plan.trial}</p>}
-                </div>
-
-                <ul className="space-y-3 mb-6 flex-1">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <form method="post">
-                  <input type="hidden" name="plan" value={plan.id} />
-                  <input type="hidden" name="billingPeriod" value={billingPeriod} />
-                  <Button
-                    variant={ctaVariant}
-                    className="w-full"
-                    disabled={isUpgradeDisabled}
-                    type="submit"
-                  >
-                    {ctaLabel}
-                  </Button>
-                </form>
+              <Card key={plan.id}>
+                <BlockStack gap="400">
+                  {plan.popular && <Badge tone="info">Most Popular</Badge>}
+                  <Icon source={plan.icon} tone="info" />
+                  <BlockStack gap="100">
+                    <Text as="h3" variant="headingLg">{plan.name}</Text>
+                    <Text as="p" variant="bodySm" tone="subdued">{plan.description}</Text>
+                  </BlockStack>
+                  <BlockStack gap="050">
+                    <InlineStack gap="100" blockAlign="baseline">
+                      <Text as="span" variant="heading2xl">{price}</Text>
+                      <Text as="span" variant="bodySm" tone="subdued">
+                        / {billingPeriod === "monthly" ? "month" : "year"}
+                      </Text>
+                    </InlineStack>
+                    {plan.trial && <Text as="p" variant="bodySm" tone="subdued">{plan.trial}</Text>}
+                  </BlockStack>
+                  <BlockStack gap="200">
+                    {plan.features.map((feature, index) => (
+                      <InlineStack key={index} gap="200" blockAlign="start" wrap={false}>
+                        <Icon source={CheckIcon} tone="success" />
+                        <Text as="span" variant="bodySm">{feature}</Text>
+                      </InlineStack>
+                    ))}
+                  </BlockStack>
+                  <form method="post">
+                    <input type="hidden" name="plan" value={plan.id} />
+                    <input type="hidden" name="billingPeriod" value={billingPeriod} />
+                    <Button
+                      variant={isUpgradeDisabled ? undefined : "primary"}
+                      fullWidth
+                      disabled={isUpgradeDisabled}
+                      submit
+                    >
+                      {ctaLabel}
+                    </Button>
+                  </form>
+                </BlockStack>
               </Card>
             );
           })}
-        </div>
+        </InlineGrid>
 
-        <Card className="p-6">
-          <h2 className="text-xl text-gray-900 mb-6 text-center">Feature Comparison</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm text-gray-600"></th>
-                  <th className="text-center py-3 px-4 text-sm text-gray-900">Free</th>
-                  <th className="text-center py-3 px-4 text-sm text-gray-900">
-                    <div className="flex items-center justify-center gap-2">
-                      Pro
-                      <Badge variant="pro" className="text-xs">
-                        Popular
-                      </Badge>
-                    </div>
-                  </th>
-                  <th className="text-center py-3 px-4 text-sm text-gray-900">Plus</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonFeatures.map((feature, index) => (
-                  <tr key={index} className="border-b border-gray-100 last:border-0">
-                    <td className="py-3 px-4 text-sm text-gray-700">{feature.name}</td>
-                    <td className="py-3 px-4 text-center text-sm">
-                      {typeof feature.free === "boolean" ? (
-                        feature.free ? (
-                          <Check className="w-5 h-5 text-green-600 mx-auto" />
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )
-                      ) : (
-                        <span className="text-gray-700">{feature.free}</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-center text-sm bg-indigo-50">
-                      {typeof feature.pro === "boolean" ? (
-                        feature.pro ? (
-                          <Check className="w-5 h-5 text-green-600 mx-auto" />
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )
-                      ) : (
-                        <span className="text-gray-700">{feature.pro}</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-center text-sm">
-                      {typeof feature.plus === "boolean" ? (
-                        feature.plus ? (
-                          <Check className="w-5 h-5 text-green-600 mx-auto" />
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )
-                      ) : (
-                        <span className="text-gray-700">{feature.plus}</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <Card padding="0">
+          <Box padding="400" paddingBlockEnd="0">
+            <Text as="h2" variant="headingMd" alignment="center">Feature Comparison</Text>
+          </Box>
+          <DataTable
+            columnContentTypes={["text", "text", "text", "text"]}
+            headings={["", "Free", "Pro", "Plus"]}
+            rows={comparisonFeatures.map((feature) => [
+              feature.name,
+              typeof feature.free === "boolean" ? (feature.free ? "✓" : "—") : feature.free,
+              typeof feature.pro === "boolean" ? (feature.pro ? "✓" : "—") : feature.pro,
+              typeof feature.plus === "boolean" ? (feature.plus ? "✓" : "—") : feature.plus,
+            ])}
+          />
         </Card>
 
-        <Card className="p-6 bg-blue-50 border-blue-200">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <CreditCard className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1 space-y-4">
-              <div>
-                <h3 className="text-lg text-gray-900 mb-2">How plan selection works</h3>
-                <p className="text-sm text-gray-600">
+        <Card>
+          <InlineStack gap="400" blockAlign="start" wrap={false}>
+            <Icon source={CreditCardIcon} tone="info" />
+            <BlockStack gap="400">
+              <BlockStack gap="100">
+                <Text as="h3" variant="headingMd">How plan selection works</Text>
+                <Text as="p" variant="bodySm" tone="subdued">
                   Choose a plan to unlock features. After selecting a plan, you'll be redirected to your Dashboard.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm">
-                    1
-                  </div>
-                  <span className="text-sm text-gray-700">Select plan</span>
-                </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm">
-                    2
-                  </div>
-                  <span className="text-sm text-gray-700">Confirm billing</span>
-                </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm">
-                    3
-                  </div>
-                  <span className="text-sm text-gray-700">Go to Dashboard</span>
-                </div>
-              </div>
-            </div>
-          </div>
+                </Text>
+              </BlockStack>
+              <InlineStack gap="300" blockAlign="center">
+                <Text as="span" variant="bodySm">1. Select plan</Text>
+                <Icon source={ArrowRightIcon} tone="subdued" />
+                <Text as="span" variant="bodySm">2. Confirm billing</Text>
+                <Icon source={ArrowRightIcon} tone="subdued" />
+                <Text as="span" variant="bodySm">3. Go to Dashboard</Text>
+              </InlineStack>
+            </BlockStack>
+          </InlineStack>
         </Card>
 
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Have questions about pricing?</p>
-          <Button variant="outline">Contact Sales</Button>
-        </div>
+        <InlineStack align="center">
+          <BlockStack gap="200" inlineAlign="center">
+            <Text as="p" variant="bodyMd" tone="subdued">Have questions about pricing?</Text>
+            <Button>Contact Sales</Button>
+          </BlockStack>
+        </InlineStack>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
-          <div className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
-              <Shield className="w-4 h-4 text-green-600" />
-            </div>
-            <p className="text-sm text-gray-700">30-day money back guarantee</p>
-          </div>
-
-          <div className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center flex-shrink-0">
-              <Star className="w-4 h-4 text-indigo-600" />
-            </div>
-            <p className="text-sm text-gray-700">Built for Shopify by Shopify Experts</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        <InlineGrid columns={{ xs: 1, md: 2 }} gap="400">
+          <Card>
+            <InlineStack gap="300" blockAlign="center">
+              <Icon source={ShieldCheckMarkIcon} tone="success" />
+              <Text as="p" variant="bodySm">30-day money back guarantee</Text>
+            </InlineStack>
+          </Card>
+          <Card>
+            <InlineStack gap="300" blockAlign="center">
+              <Icon source={StarIcon} tone="info" />
+              <Text as="p" variant="bodySm">Built for Shopify by Shopify Experts</Text>
+            </InlineStack>
+          </Card>
+        </InlineGrid>
+      </BlockStack>
+    </Page>
   );
 }

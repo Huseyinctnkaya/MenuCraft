@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { authenticate } from "../shopify.server";
-import Card from "../components/ui/Card";
+import { BlockStack, Box, Card, Collapsible, Icon, InlineStack, Page, Text } from "@shopify/polaris";
+import { ChevronDownIcon, ChevronUpIcon } from "@shopify/polaris-icons";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
@@ -169,49 +169,43 @@ export default function Documentation() {
   ];
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl text-gray-900">Documentation</h1>
-          <p className="text-gray-600 mt-1">
-            Complete guides to set up, build, and manage MenuCraft
-          </p>
-        </div>
-
-        <Card className="p-6">
-          <h2 className="text-xl text-gray-900 mb-1">MenuCraft Guides</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Follow these steps to build, style, and manage your menus.
-          </p>
-          <div className="space-y-3">
+    <Page title="Documentation" subtitle="Complete guides to set up, build, and manage MenuCraft">
+      <Card>
+        <BlockStack gap="300">
+          <BlockStack gap="100">
+            <Text as="h2" variant="headingMd">MenuCraft Guides</Text>
+            <Text as="p" variant="bodySm" tone="subdued">
+              Follow these steps to build, style, and manage your menus.
+            </Text>
+          </BlockStack>
+          <BlockStack gap="0">
             {documentation.map((doc, index) => (
-              <div key={doc.title} className="border-b border-gray-200 last:border-0 pb-3">
-                <button
-                  onClick={() => setOpenDoc(openDoc === index ? null : index)}
-                  className="w-full flex items-center justify-between text-left py-2"
-                >
-                  <div>
-                    <p className="text-sm text-gray-900">{doc.title}</p>
-                    <p className="text-xs text-gray-500">{doc.summary}</p>
-                  </div>
-                  {openDoc === index ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  )}
-                </button>
-                {openDoc === index ? (
-                  <ul className="mt-2 space-y-2 text-sm text-gray-600 list-disc pl-5">
-                    {doc.details.map((detail) => (
-                      <li key={detail}>{detail}</li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
+              <Box key={doc.title} paddingBlock="300" borderBlockEndWidth={index < documentation.length - 1 ? "025" : undefined} borderColor="border">
+                <div style={{ cursor: "pointer" }} onClick={() => setOpenDoc(openDoc === index ? null : index)}>
+                  <InlineStack align="space-between" blockAlign="center">
+                    <BlockStack gap="050">
+                      <Text as="p" variant="bodySm">{doc.title}</Text>
+                      <Text as="p" variant="bodySm" tone="subdued">{doc.summary}</Text>
+                    </BlockStack>
+                    <Icon source={openDoc === index ? ChevronUpIcon : ChevronDownIcon} tone="subdued" />
+                  </InlineStack>
+                </div>
+                <Collapsible open={openDoc === index} id={`doc-${index}`}>
+                  <Box paddingBlockStart="200">
+                    <ul style={{ marginLeft: "20px", listStyle: "disc" }}>
+                      {doc.details.map((detail) => (
+                        <li key={detail}>
+                          <Text as="span" variant="bodySm" tone="subdued">{detail}</Text>
+                        </li>
+                      ))}
+                    </ul>
+                  </Box>
+                </Collapsible>
+              </Box>
             ))}
-          </div>
-        </Card>
-      </div>
-    </div>
+          </BlockStack>
+        </BlockStack>
+      </Card>
+    </Page>
   );
 }

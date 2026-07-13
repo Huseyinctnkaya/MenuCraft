@@ -10,7 +10,7 @@ All app data — Shopify sessions, menus, analytics events, billing state, templ
 ## Decision Summary
 
 - **Approach:** clean cut. Switch the Prisma provider to `postgresql`, drive the URL from `DATABASE_URL`, and reset the migration history to a single fresh `init` migration. There is no production data to preserve; converting 10 SQLite migrations has zero value.
-- **Local dev:** Postgres via Docker Compose (Docker is already installed on the dev machine).
+- **Local dev:** Homebrew PostgreSQL 16 (already installed and running on the dev machine as a brew service; user explicitly prefers no Docker for local dev). ~~Docker Compose~~ — revised 2026-07-13 after user feedback.
 - **Rejected:** dual schema (SQLite dev / PG prod — drift trap) and hand-translating the migration history (effort without benefit).
 
 ## Changes
@@ -33,12 +33,12 @@ Models unchanged. `Json` columns become native `jsonb`; `BigInt userId` maps cle
 - Delete `prisma/dev.sqlite` and `prisma/dev.sqlite3` from disk; `.gitignore` entries stay (harmless) plus keep them ignored for old checkouts.
 - **Local test data is discarded.** Templates come back via `npm run seed:templates`; the dev-store test menu is recreated by hand (~1 minute).
 
-### 3. Local environment
+### 3. Local environment (revised: Homebrew, no Docker)
 
-- New `docker-compose.yml` at repo root: `postgres:17-alpine`, database/user/password `menucraft`, port `5432:5432`, named volume for persistence.
-- `.env` (gitignored — verify) gains `DATABASE_URL=postgresql://menucraft:menucraft@localhost:5432/menucraft`.
+- Uses the machine's existing Homebrew `postgresql@16` service (`brew services start postgresql@16`) and the pre-existing empty `menucraft` database.
+- `.env` (gitignored) gains `DATABASE_URL=postgresql://huseyin@localhost:5432/menucraft` (brew trust auth via macOS user).
 - New `.env.example` documenting `DATABASE_URL` (and noting `SHOPIFY_*` vars come from Shopify CLI in dev).
-- `package.json` scripts: `"db:up": "docker compose up -d"`, `"db:down": "docker compose down"`.
+- `package.json` scripts: `"db:up": "brew services start postgresql@16"`, `"db:down": "brew services stop postgresql@16"`.
 - README Quick Start updated: `npm run db:up` before `npm run dev`.
 
 ### 4. Replace SQLite-specific raw SQL (behavior identical)

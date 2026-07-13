@@ -4,6 +4,8 @@
   "scripts": {
     "build": "remix vite:build",
     "dev": "shopify app dev",
+    "db:up": "brew services start postgresql@16",
+    "db:down": "brew services stop postgresql@16",
     "config:link": "shopify app config link",
     "generate": "shopify app generate",
     "deploy": "shopify app deploy",

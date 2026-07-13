@@ -1,8 +1,9 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { Outlet, useLoaderData, useRouteError, useLocation } from "@remix-run/react";
+import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
-import Sidebar from "../components/Sidebar";
+import { NavMenu } from "@shopify/app-bridge-react";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import CrispChat from "../components/CrispChat";
 
 import { authenticate } from "../shopify.server";
@@ -12,6 +13,8 @@ import {
   getPlanSelection,
 } from "../config/billing";
 import prisma from "../db.server";
+
+export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
@@ -46,23 +49,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function App() {
   const { apiKey, crispWebsiteId } = useLoaderData<typeof loader>();
-  const location = useLocation();
-  const isBuilderView = location.pathname.startsWith("/app/menu-builder");
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
-      {isBuilderView ? (
-        <div className="min-h-screen bg-gray-100">
-          <Outlet />
-        </div>
-      ) : (
-        <div className="flex min-h-screen bg-gray-50">
-          <Sidebar />
-          <main className="flex-1 ml-64">
-            <Outlet />
-          </main>
-        </div>
-      )}
+      <NavMenu>
+        <a href="/app" rel="home">
+          Dashboard
+        </a>
+        <a href="/app/analytics">Analytics</a>
+        <a href="/app/mega-menus">Mega Menus</a>
+        <a href="/app/install-status">Install &amp; Theme Status</a>
+        <a href="/app/pricing">Pricing &amp; Plans</a>
+        <a href="/app/support">Support</a>
+        <a href="/app/settings">Settings</a>
+      </NavMenu>
+      <Outlet />
       <CrispChat websiteId={crispWebsiteId} />
     </AppProvider>
   );

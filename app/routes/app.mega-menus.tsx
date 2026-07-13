@@ -2,22 +2,34 @@ import crypto from "crypto";
 import { useEffect, useRef, useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator } from "@remix-run/react";
-import { Copy, Download, Edit, Eye, EyeOff, MoreVertical, Plus, Smartphone, Trash2, Upload } from "lucide-react";
+import { useFetcher, useLoaderData, useLocation, useNavigate, useRevalidator, useRouteLoaderData } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import Badge from "../components/ui/Badge";
-import CustomButton from "../components/ui/Button";
-import Card from "../components/ui/Card";
 import { ALL_BILLING_PLAN_NAMES, getPlanSelection } from "../config/billing";
 import type { loader as appLoader } from "./app";
-import { useRouteLoaderData } from "@remix-run/react";
-import { Banner, BlockStack, Modal, Select, Text as PolarisText, TextField } from "@shopify/polaris";
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
-
-export const links = () => [
-  { rel: "stylesheet", href: polarisStyles },
-];
+import {
+  Badge,
+  Banner,
+  BlockStack,
+  Button,
+  Card,
+  EmptyState,
+  IndexTable,
+  InlineStack,
+  Modal,
+  Page,
+  Select,
+  Text,
+  TextField,
+  useIndexResourceState,
+} from "@shopify/polaris";
+import {
+  DuplicateIcon,
+  ImportIcon,
+  MenuVerticalIcon,
+  MobileIcon,
+  PlusIcon,
+} from "@shopify/polaris-icons";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin: adminLoader, billing, session } = await authenticate.admin(request);
@@ -532,333 +544,301 @@ export default function MegaMenusList() {
     event.target.value = ""; // Reset
   };
 
-  return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <PolarisText as="h1" variant="headingXl">Mega Menus</PolarisText>
-            <PolarisText as="p" variant="bodyMd" tone="subdued">Manage all your navigation menus</PolarisText>
-          </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="file"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              accept=".json"
-              onChange={handleFileChange}
-            />
-            <CustomButton variant={"ghost" as any} onClick={handleImportClick} loading={importFetcher.state === "submitting"}>
-              <Upload className="w-4 h-4" />
-              Import from File
-            </CustomButton>
-            <CustomButton variant={"ghost" as any} onClick={handleShopifyImportClick}>
-              <Smartphone className="w-4 h-4" />
-              Import from Shopify
-            </CustomButton>
-            <CustomButton
-              disabled={limitReached}
-              onClick={() =>
-                navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname }))
-              }
-            >
-              <Plus className="w-4 h-4" />
-              Create New Menu
-            </CustomButton>
-          </div>
-        </div>
+  const resourceName = { singular: "menu", plural: "menus" };
+  const { selectedResources, allResourcesSelected, handleSelectionChange } =
+    useIndexResourceState(menus as unknown as Array<{ [key: string]: unknown; id: string }>);
 
+  const rowMarkup = menus.map((menu, index) => (
+    <IndexTable.Row
+      id={String(menu.id)}
+      key={menu.id}
+      selected={selectedResources.includes(String(menu.id))}
+      position={index}
+    >
+      <IndexTable.Cell>
+        <Button
+          variant="plain"
+          onClick={() =>
+            navigate(
+              withSearch("/app/menu-builder", {
+                id: String(menu.id),
+                returnTo: location.pathname,
+              })
+            )
+          }
+        >
+          {menu.name}
+        </Button>
+      </IndexTable.Cell>
+      <IndexTable.Cell>
+        <Badge tone={menu.status === "active" ? "success" : undefined}>
+          {menu.status === "active" ? "Active" : "Draft"}
+        </Badge>
+      </IndexTable.Cell>
+      <IndexTable.Cell>{menu.itemCount}</IndexTable.Cell>
+      <IndexTable.Cell>{menu.views.toLocaleString()}</IndexTable.Cell>
+      <IndexTable.Cell>
+        <InlineStack gap="200" align="end" blockAlign="center">
+          <Button
+            size="slim"
+            onClick={() =>
+              navigate(
+                withSearch("/app/menu-builder", {
+                  id: String(menu.id),
+                  returnTo: location.pathname,
+                })
+              )
+            }
+          >
+            Customize
+          </Button>
+          <Button
+            icon={DuplicateIcon}
+            accessibilityLabel="Duplicate menu"
+            disabled={limitReached}
+            onClick={() => {
+              if (limitReached) return;
+              const actionPath = withSearch("/app/mega-menus");
+              duplicateFetcher.submit(
+                { intent: "duplicate", menuId: String(menu.id) },
+                { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
+              );
+            }}
+          />
+          <div
+            className="relative"
+            ref={(el: HTMLDivElement | null) => {
+              if (el) {
+                buttonRefs.current[menu.id] = el.querySelector("button");
+              }
+            }}
+          >
+            <Button
+              icon={MenuVerticalIcon}
+              accessibilityLabel="More actions"
+              onClick={() => handleOpenDropdown(menu.id)}
+            />
+            {openMenuId === menu.id && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                <div
+                  className="fixed w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50"
+                  style={{ top: `${dropdownPosition.top}px`, right: `${dropdownPosition.right}px` }}
+                >
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setRenameMenuId(menu.id);
+                        setRenameNewName(menu.name);
+                        setRenameModalOpen(true);
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      Rename Menu
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleExport(menu);
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      Export Menu
+                    </button>
+                    <div className="border-t border-gray-200 my-1" />
+                    <button
+                      onClick={() => {
+                        setMenusState((prev) => prev.filter((item) => item.id !== menu.id));
+                        const actionPath = withSearch("/app/mega-menus");
+                        deleteFetcher.submit(
+                          { intent: "delete", menuId: String(menu.id) },
+                          { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
+                        );
+                        setOpenMenuId(null);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      Delete Menu
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </InlineStack>
+      </IndexTable.Cell>
+    </IndexTable.Row>
+  ));
+
+  return (
+    <Page
+      title="Mega Menus"
+      subtitle="Manage all your navigation menus"
+      primaryAction={{
+        content: "Create New Menu",
+        icon: PlusIcon,
+        disabled: limitReached,
+        onAction: () =>
+          navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname })),
+      }}
+      secondaryActions={[
+        {
+          content: "Import from File",
+          icon: ImportIcon,
+          loading: importFetcher.state === "submitting",
+          onAction: handleImportClick,
+        },
+        {
+          content: "Import from Shopify",
+          icon: MobileIcon,
+          onAction: handleShopifyImportClick,
+        },
+      ]}
+    >
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        accept=".json"
+        onChange={handleFileChange}
+      />
+      <BlockStack gap="400">
         {limitReached && (
           <Banner
             title="Menu limit reached"
             action={{ content: "Upgrade to Pro", onAction: () => navigate("/app/pricing") }}
             tone="info"
           >
-            <BlockStack gap="200">
-              <PolarisText as="p" variant="bodyMd">
-                You are currently on the <strong>Free plan</strong>, which is limited to <strong>1 mega menu</strong>.
-                Upgrade to the <strong>Pro plan</strong> to create unlimited menus and unlock advanced features.
-              </PolarisText>
-            </BlockStack>
+            <Text as="p" variant="bodyMd">
+              You are currently on the <strong>Free plan</strong>, which is limited to <strong>1 mega menu</strong>.
+              Upgrade to the <strong>Pro plan</strong> to create unlimited menus and unlock advanced features.
+            </Text>
           </Banner>
         )}
 
-        <Card>
+        <Card padding="0">
           {menus.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-gray-600">No menus yet. Create your first one!</p>
-            </div>
+            <EmptyState
+              heading="No menus yet"
+              action={{
+                content: "Create New Menu",
+                onAction: () =>
+                  navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname })),
+              }}
+              image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+            >
+              <p>Create your first mega menu to get started.</p>
+            </EmptyState>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600">Menu Name</th>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600">Status</th>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600">Items</th>
-                    <th className="px-6 py-3 text-left text-xs text-gray-600">Views</th>
-                    <th className="px-6 py-3 text-right text-xs text-gray-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {menus.map((menu) => (
-                    <tr key={menu.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <button
-                          className="text-sm text-gray-900 hover:text-indigo-600"
-                          onClick={() =>
-                            navigate(
-                              withSearch("/app/menu-builder", {
-                                id: String(menu.id),
-                                returnTo: location.pathname,
-                              })
-                            )
-                          }
-                        >
-                          {menu.name}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge variant={menu.status === "active" ? "success" : "default"}>
-                          {menu.status === "active" ? (
-                            <>
-                              <Eye className="w-3 h-3" /> Active
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="w-3 h-3" /> Draft
-                            </>
-                          )}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {menu.itemCount}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {menu.views.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 relative">
-                        <div className="flex items-center justify-end gap-2">
-                          <CustomButton
-                            variant={"ghost" as any}
-                            size="sm"
-                            onClick={() =>
-                              navigate(
-                                withSearch("/app/menu-builder", {
-                                  id: String(menu.id),
-                                  returnTo: location.pathname,
-                                })
-                              )
-                            }
-                          >
-                            Customize
-                          </CustomButton>
-                          <CustomButton
-                            variant={"ghost" as any}
-                            size="sm"
-                            disabled={limitReached}
-                            onClick={() => {
-                              if (limitReached) return;
-                              const actionPath = withSearch("/app/mega-menus");
-                              duplicateFetcher.submit(
-                                { intent: "duplicate", menuId: String(menu.id) },
-                                { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
-                              );
-                            }}
-                          >
-                            <Copy className="w-4 h-4" />
-                          </CustomButton>
-                          <div className="relative">
-                            <CustomButton
-                              variant={"ghost" as any}
-                              size="sm"
-                              ref={(el: HTMLButtonElement | null) => {
-                                buttonRefs.current[menu.id] = el;
-                              }}
-                              onClick={() => handleOpenDropdown(menu.id)}
-                            >
-                              <MoreVertical className="w-4 h-4" />
-                            </CustomButton>
-
-                            {openMenuId === menu.id && (
-                              <>
-                                <div
-                                  className="fixed inset-0 z-10"
-                                  onClick={() => setOpenMenuId(null)}
-                                />
-                                <div
-                                  className="fixed w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-50"
-                                  style={{
-                                    top: `${dropdownPosition.top}px`,
-                                    right: `${dropdownPosition.right}px`,
-                                  }}
-                                >
-                                  <div className="py-1">
-                                    <button
-                                      onClick={() => {
-                                        setRenameMenuId(menu.id);
-                                        setRenameNewName(menu.name);
-                                        setRenameModalOpen(true);
-                                        setOpenMenuId(null);
-                                      }}
-                                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                      Rename Menu
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        handleExport(menu);
-                                        setOpenMenuId(null);
-                                      }}
-                                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                    >
-                                      <Download className="w-4 h-4" />
-                                      Export Menu
-                                    </button>
-                                    <div className="border-t border-gray-200 my-1" />
-                                    <button
-                                      onClick={() => {
-                                        setMenusState((prev) => prev.filter((item) => item.id !== menu.id));
-                                        const actionPath = withSearch("/app/mega-menus");
-                                        deleteFetcher.submit(
-                                          { intent: "delete", menuId: String(menu.id) },
-                                          { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
-                                        );
-                                        setOpenMenuId(null);
-                                      }}
-                                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                      Delete Menu
-                                    </button>
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <IndexTable
+              resourceName={resourceName}
+              itemCount={menus.length}
+              selectedItemsCount={allResourcesSelected ? "All" : selectedResources.length}
+              onSelectionChange={handleSelectionChange}
+              headings={[
+                { title: "Menu Name" },
+                { title: "Status" },
+                { title: "Items" },
+                { title: "Views" },
+                { title: "Actions" },
+              ]}
+            >
+              {rowMarkup}
+            </IndexTable>
           )}
         </Card>
+      </BlockStack>
 
-        {/* Shopify Import Modal */}
-        <Modal
-          open={shopifyImportOpen}
-          onClose={() => setShopifyImportOpen(false)}
-          title="Import from Shopify Navigation"
-          primaryAction={{
-            content: "Import Menu",
-            onAction: () => {
-              if (!selectedShopifyMenuId) return;
-              const actionPath = withSearch("/app/mega-menus");
-              shopifyImportFetcher.submit(
-                { intent: "import-shopify", shopifyMenuId: selectedShopifyMenuId },
-                { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
-              );
-            },
-            loading: shopifyImportFetcher.state === "submitting",
-            disabled: !selectedShopifyMenuId,
-          }}
-          secondaryActions={[
-            {
-              content: "Cancel",
-              onAction: () => setShopifyImportOpen(false),
-            },
-          ]}
-        >
-          <Modal.Section>
-            <BlockStack gap="400">
-              <PolarisText as="p" variant="bodyMd">
-                Select an existing Shopify navigation menu to import. We will convert it into a Mega Menu structure for you.
-              </PolarisText>
-              <Select
-                label="Select Shopify Menu"
-                options={[
-                  { label: "Choose a menu...", value: "" },
-                  ...(useLoaderData<typeof loader>().shopifyMenus || []).map((m: any) => ({
-                    label: m.title,
-                    value: m.id,
-                  })),
-                ]}
-                value={selectedShopifyMenuId}
-                onChange={setSelectedShopifyMenuId}
-              />
-            </BlockStack>
-          </Modal.Section>
-        </Modal>
-
-        {/* Upgrade Modal */}
-        <Modal
-          open={upgradeModalOpen}
-          onClose={() => setUpgradeModalOpen(false)}
-          title="Upgrade to Plus"
-          primaryAction={{
-            content: "Upgrade Now",
-            onAction: () => navigate("/app/pricing"),
-          }}
-          secondaryActions={[
-            {
-              content: "Cancel",
-              onAction: () => setUpgradeModalOpen(false),
-            },
-          ]}
-        >
-          <Modal.Section>
-            <BlockStack gap="400">
-              <PolarisText as="p" variant="bodyMd">
-                Import and Export features are available on the <strong>Plus plan</strong>.
-              </PolarisText>
-              <PolarisText as="p" variant="bodyMd">
-                Upgrade now to unlock:
-              </PolarisText>
-              <ul style={{ marginLeft: "20px", listStyle: "disc" }}>
-                <li>Import menus from Shopify navigation</li>
-                <li>Import menus from JSON files</li>
-                <li>Export menus as JSON files</li>
-                <li>Unlimited menus</li>
-              </ul>
-            </BlockStack>
-          </Modal.Section>
-        </Modal>
-
-        <Modal
-          open={renameModalOpen}
-          onClose={() => setRenameModalOpen(false)}
-          title="Rename Menu"
-          primaryAction={{
-            content: "Save",
-            loading: renameFetcher.state === "submitting",
-            onAction: () => {
-              renameFetcher.submit(
-                { intent: "rename", menuId: String(renameMenuId), newName: renameNewName },
-                { method: "post" }
-              );
-            },
-          }}
-          secondaryActions={[
-            {
-              content: "Cancel",
-              onAction: () => setRenameModalOpen(false),
-            },
-          ]}
-        >
-          <Modal.Section>
-            <TextField
-              label="New Name"
-              value={renameNewName}
-              onChange={setRenameNewName}
-              autoComplete="off"
-              placeholder="Enter menu name"
+      <Modal
+        open={shopifyImportOpen}
+        onClose={() => setShopifyImportOpen(false)}
+        title="Import from Shopify Navigation"
+        primaryAction={{
+          content: "Import Menu",
+          onAction: () => {
+            if (!selectedShopifyMenuId) return;
+            const actionPath = withSearch("/app/mega-menus");
+            shopifyImportFetcher.submit(
+              { intent: "import-shopify", shopifyMenuId: selectedShopifyMenuId },
+              { method: "post", action: `${actionPath.pathname}${actionPath.search}` }
+            );
+          },
+          loading: shopifyImportFetcher.state === "submitting",
+          disabled: !selectedShopifyMenuId,
+        }}
+        secondaryActions={[{ content: "Cancel", onAction: () => setShopifyImportOpen(false) }]}
+      >
+        <Modal.Section>
+          <BlockStack gap="400">
+            <Text as="p" variant="bodyMd">
+              Select an existing Shopify navigation menu to import. We will convert it into a Mega Menu structure for you.
+            </Text>
+            <Select
+              label="Select Shopify Menu"
+              options={[
+                { label: "Choose a menu...", value: "" },
+                ...(useLoaderData<typeof loader>().shopifyMenus || []).map((m: any) => ({
+                  label: m.title,
+                  value: m.id,
+                })),
+              ]}
+              value={selectedShopifyMenuId}
+              onChange={setSelectedShopifyMenuId}
             />
-          </Modal.Section>
-        </Modal>
-      </div>
-    </div>
+          </BlockStack>
+        </Modal.Section>
+      </Modal>
+
+      <Modal
+        open={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        title="Upgrade to Plus"
+        primaryAction={{ content: "Upgrade Now", onAction: () => navigate("/app/pricing") }}
+        secondaryActions={[{ content: "Cancel", onAction: () => setUpgradeModalOpen(false) }]}
+      >
+        <Modal.Section>
+          <BlockStack gap="400">
+            <Text as="p" variant="bodyMd">
+              Import and Export features are available on the <strong>Plus plan</strong>.
+            </Text>
+            <Text as="p" variant="bodyMd">Upgrade now to unlock:</Text>
+            <ul style={{ marginLeft: "20px", listStyle: "disc" }}>
+              <li>Import menus from Shopify navigation</li>
+              <li>Import menus from JSON files</li>
+              <li>Export menus as JSON files</li>
+              <li>Unlimited menus</li>
+            </ul>
+          </BlockStack>
+        </Modal.Section>
+      </Modal>
+
+      <Modal
+        open={renameModalOpen}
+        onClose={() => setRenameModalOpen(false)}
+        title="Rename Menu"
+        primaryAction={{
+          content: "Save",
+          loading: renameFetcher.state === "submitting",
+          onAction: () => {
+            renameFetcher.submit(
+              { intent: "rename", menuId: String(renameMenuId), newName: renameNewName },
+              { method: "post" }
+            );
+          },
+        }}
+        secondaryActions={[{ content: "Cancel", onAction: () => setRenameModalOpen(false) }]}
+      >
+        <Modal.Section>
+          <TextField
+            label="New Name"
+            value={renameNewName}
+            onChange={setRenameNewName}
+            autoComplete="off"
+            placeholder="Enter menu name"
+          />
+        </Modal.Section>
+      </Modal>
+    </Page>
   );
 }

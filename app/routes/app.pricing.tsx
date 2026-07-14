@@ -90,18 +90,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const planName = BILLING_PLANS[plan][billingPeriod];
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  // Shopify hard-caps returnUrl at 255 chars (GraphQL `returnUrl: URL!` validation).
-  // request.url carries whatever query string the embedded admin/App Bridge attached
-  // (host, shop, embedded, locale, etc.) plus anything forwarded from the referring
-  // page via withSearch(). That's unbounded, so we drop it entirely and send a clean
-  // origin+path URL, matching Shopify's own documented returnUrl example.
-  const returnUrl = `${new URL(request.url).origin}/app/pricing`;
-
   try {
+    // No returnUrl override: when omitted, @shopify/shopify-api builds
+    // `https://admin.shopify.com/store/<shop>/apps/<apiKey>` itself from the
+    // authenticated session's shop — short, and it re-enters the embedded
+    // admin context correctly. A custom returnUrl pointing at our own app
+    // domain sends the merchant's browser there as a top-level (non-embedded)
+    // request with no shop/session info, landing on the manual shop-login
+    // page instead of back inside the app.
     return await billing.request({
       plan: planName,
       isTest: billingTestMode,
-      returnUrl,
     });
   } catch (error) {
     // billing.request() always throws on the happy path too: on success it throws

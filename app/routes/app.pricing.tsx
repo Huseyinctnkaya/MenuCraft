@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
-import { useActionData, useLoaderData } from "@remix-run/react";
+import { useActionData, useFetcher, useLoaderData, useRevalidator } from "@remix-run/react";
 import { authenticate } from "../shopify.server";
 import {
   Badge,
@@ -13,6 +13,7 @@ import {
   Icon,
   InlineGrid,
   InlineStack,
+  Modal,
   Page,
   Text,
 } from "@shopify/polaris";
@@ -29,6 +30,7 @@ import {
   BILLING_PLANS,
   getActiveAppSubscriptions,
   getPlanSelection,
+  invalidateAppSubscriptionsCache,
   type BillingPeriod,
 } from "../config/billing";
 import prisma from "../db.server";
@@ -76,9 +78,66 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 };
 
+function formatBillingError(error: unknown): string {
+  const errorMessage =
+    error instanceof Error ? error.message : "Billing request failed.";
+  const errorData = (error as { errorData?: unknown })?.errorData;
+  const graphQlErrors = (error as { response?: { body?: { errors?: unknown } } })?.response?.body?.errors;
+  const formatItems = (items: unknown[]) =>
+    items
+      .map((item) => {
+        if (item && typeof item === "object" && "message" in item) {
+          return String((item as { message?: string }).message);
+        }
+        return String(item);
+      })
+      .join("; ");
+  let details = "";
+  if (Array.isArray(errorData) && errorData.length > 0) {
+    details = formatItems(errorData);
+  } else if (Array.isArray(graphQlErrors) && graphQlErrors.length > 0) {
+    details = formatItems(graphQlErrors);
+  }
+  return details ? `${errorMessage}: ${details}` : errorMessage;
+}
+
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { billing } = await authenticate.admin(request);
+  const { billing, session } = await authenticate.admin(request);
+  const shop = session.shop;
   const formData = await request.formData();
+  const intent = formData.get("intent");
+  const billingTestMode =
+    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+
+  if (intent === "cancel") {
+    const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+    const activeSubscription = appSubscriptions.find((subscription) =>
+      ["ACTIVE", "ACCEPTED"].includes(subscription.status)
+    );
+    if (!activeSubscription) {
+      return json(
+        { ok: false as const, billingError: "No active subscription to cancel." },
+        { status: 400 }
+      );
+    }
+    try {
+      await billing.cancel({
+        subscriptionId: activeSubscription.id,
+        isTest: billingTestMode,
+      });
+      await prisma.billingSubscription.deleteMany({ where: { shop } });
+      invalidateAppSubscriptionsCache(shop);
+      return json({ ok: true as const });
+    } catch (error) {
+      if (error instanceof Response) {
+        throw error;
+      }
+      const billingError = formatBillingError(error);
+      console.error("Billing cancellation failed", { error: billingError });
+      return json({ ok: false as const, billingError }, { status: 400 });
+    }
+  }
+
   const plan = formData.get("plan");
   const period = formData.get("billingPeriod");
 
@@ -88,8 +147,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const billingPeriod: BillingPeriod = period === "yearly" ? "yearly" : "monthly";
   const planName = BILLING_PLANS[plan][billingPeriod];
-  const billingTestMode =
-    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
   try {
     // No returnUrl override: when omitted, @shopify/shopify-api builds
     // `https://admin.shopify.com/store/<shop>/apps/<apiKey>` itself from the
@@ -111,49 +168,27 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (error instanceof Response) {
       throw error;
     }
-    const errorMessage =
-      error instanceof Error ? error.message : "Billing request failed.";
-    const errorData = (error as { errorData?: unknown })?.errorData;
-    const graphQlErrors = (error as { response?: { body?: { errors?: unknown } } })?.response?.body?.errors;
-    let details = "";
-    if (Array.isArray(errorData) && errorData.length > 0) {
-      details = errorData
-        .map((item) => {
-          if (item && typeof item === "object" && "message" in item) {
-            return String((item as { message?: string }).message);
-          }
-          return String(item);
-        })
-        .join("; ");
-    } else if (Array.isArray(graphQlErrors) && graphQlErrors.length > 0) {
-      details = graphQlErrors
-        .map((item) => {
-          if (item && typeof item === "object" && "message" in item) {
-            return String((item as { message?: string }).message);
-          }
-          return String(item);
-        })
-        .join("; ");
-    }
-
-    console.error("Billing request failed", {
-      error: errorMessage,
-      details,
-      errorData,
-      graphQlErrors,
-    });
-
-    return json(
-      { billingError: details ? `${errorMessage}: ${details}` : errorMessage },
-      { status: 400 }
-    );
+    const billingError = formatBillingError(error);
+    console.error("Billing request failed", { error: billingError });
+    return json({ ok: false as const, billingError }, { status: 400 });
   }
 };
 
 export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const { currentPlan } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const cancelFetcher = useFetcher<typeof action>();
+  const revalidator = useRevalidator();
+  const isCancelling = cancelFetcher.state !== "idle";
+
+  useEffect(() => {
+    if (cancelFetcher.state === "idle" && cancelFetcher.data && "ok" in cancelFetcher.data && cancelFetcher.data.ok) {
+      setCancelModalOpen(false);
+      revalidator.revalidate();
+    }
+  }, [cancelFetcher.state, cancelFetcher.data, revalidator]);
 
   const plans = [
     {
@@ -256,7 +291,7 @@ export default function Pricing() {
           {billingPeriod === "yearly" && <Badge tone="success">Save 20%</Badge>}
         </InlineStack>
 
-        {actionData?.billingError && (
+        {actionData && "billingError" in actionData && actionData.billingError && (
           <Banner tone="critical">{actionData.billingError}</Banner>
         )}
 
@@ -267,6 +302,7 @@ export default function Pricing() {
               currentPlan.id === plan.id &&
               (plan.id === "free" || currentPlan.period === billingPeriod);
             const isUpgradeDisabled = plan.id === "free" || planIsCurrent;
+            const isCurrentPaidPlan = planIsCurrent && plan.id !== "free";
             const ctaLabel = planIsCurrent
               ? "Current Plan"
               : plan.id === "pro"
@@ -275,51 +311,103 @@ export default function Pricing() {
 
             return (
               <Card key={plan.id}>
-                <BlockStack gap="400">
-                  {plan.popular && <Badge tone="info">Most Popular</Badge>}
-                  <Box>
-                    <Icon source={plan.icon} tone="info" />
-                  </Box>
-                  <BlockStack gap="100">
-                    <Text as="h3" variant="headingLg">{plan.name}</Text>
-                    <Text as="p" variant="bodySm" tone="subdued">{plan.description}</Text>
-                  </BlockStack>
-                  <BlockStack gap="050">
-                    <InlineStack gap="100" blockAlign="baseline">
-                      <Text as="span" variant="heading2xl">{price}</Text>
-                      <Text as="span" variant="bodySm" tone="subdued">
-                        / {billingPeriod === "monthly" ? "month" : "year"}
-                      </Text>
-                    </InlineStack>
-                    {plan.trial && <Text as="p" variant="bodySm" tone="subdued">{plan.trial}</Text>}
-                  </BlockStack>
+                <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "var(--p-space-400)" }}>
+                  <div style={{ flexGrow: 1 }}>
+                    <BlockStack gap="400" inlineAlign="start">
+                      {plan.popular && <Badge tone="info">Most Popular</Badge>}
+                      <Box>
+                        <Icon source={plan.icon} tone="info" />
+                      </Box>
+                      <BlockStack gap="100">
+                        <Text as="h3" variant="headingLg">{plan.name}</Text>
+                        <Text as="p" variant="bodySm" tone="subdued">{plan.description}</Text>
+                      </BlockStack>
+                      <BlockStack gap="050">
+                        <InlineStack gap="100" blockAlign="baseline">
+                          <Text as="span" variant="heading2xl">{price}</Text>
+                          <Text as="span" variant="bodySm" tone="subdued">
+                            / {billingPeriod === "monthly" ? "month" : "year"}
+                          </Text>
+                        </InlineStack>
+                        {/* Reserve this line's height on every card (non-breaking space when
+                            absent) so feature lists start at the same Y position regardless
+                            of whether a plan has trial text. */}
+                        <Text as="p" variant="bodySm" tone="subdued">
+                          {plan.trial ?? " "}
+                        </Text>
+                      </BlockStack>
+                      <BlockStack gap="200">
+                        {plan.features.map((feature, index) => (
+                          <InlineStack key={index} gap="200" blockAlign="start" wrap={false}>
+                            <Box>
+                              <Icon source={CheckIcon} tone="success" />
+                            </Box>
+                            <Text as="span" variant="bodySm">{feature}</Text>
+                          </InlineStack>
+                        ))}
+                      </BlockStack>
+                    </BlockStack>
+                  </div>
                   <BlockStack gap="200">
-                    {plan.features.map((feature, index) => (
-                      <InlineStack key={index} gap="200" blockAlign="start" wrap={false}>
-                        <Box>
-                          <Icon source={CheckIcon} tone="success" />
-                        </Box>
-                        <Text as="span" variant="bodySm">{feature}</Text>
-                      </InlineStack>
-                    ))}
+                    <form method="post">
+                      <input type="hidden" name="intent" value="upgrade" />
+                      <input type="hidden" name="plan" value={plan.id} />
+                      <input type="hidden" name="billingPeriod" value={billingPeriod} />
+                      <Button
+                        variant={isUpgradeDisabled ? undefined : "primary"}
+                        fullWidth
+                        disabled={isUpgradeDisabled}
+                        submit
+                      >
+                        {ctaLabel}
+                      </Button>
+                    </form>
+                    {isCurrentPaidPlan && (
+                      <Button
+                        variant="plain"
+                        tone="critical"
+                        fullWidth
+                        onClick={() => setCancelModalOpen(true)}
+                      >
+                        Cancel Plan
+                      </Button>
+                    )}
                   </BlockStack>
-                  <form method="post">
-                    <input type="hidden" name="plan" value={plan.id} />
-                    <input type="hidden" name="billingPeriod" value={billingPeriod} />
-                    <Button
-                      variant={isUpgradeDisabled ? undefined : "primary"}
-                      fullWidth
-                      disabled={isUpgradeDisabled}
-                      submit
-                    >
-                      {ctaLabel}
-                    </Button>
-                  </form>
-                </BlockStack>
+                </div>
               </Card>
             );
           })}
         </InlineGrid>
+
+        <Modal
+          open={cancelModalOpen}
+          onClose={() => setCancelModalOpen(false)}
+          title={`Cancel ${plans.find((plan) => plan.id === currentPlan.id)?.name ?? ""} plan?`}
+          primaryAction={{
+            content: "Cancel Plan",
+            destructive: true,
+            loading: isCancelling,
+            onAction: () => {
+              cancelFetcher.submit({ intent: "cancel" }, { method: "post" });
+            },
+          }}
+          secondaryActions={[
+            { content: "Keep Plan", onAction: () => setCancelModalOpen(false), disabled: isCancelling },
+          ]}
+        >
+          <Modal.Section>
+            <BlockStack gap="300">
+              <Text as="p" variant="bodyMd">
+                This cancels your subscription immediately and moves your store to the Free plan.
+                You'll keep any menus you've already created, but Free plan limits will apply
+                right away.
+              </Text>
+              {cancelFetcher.data && "billingError" in cancelFetcher.data && cancelFetcher.data.billingError && (
+                <Banner tone="critical">{cancelFetcher.data.billingError}</Banner>
+              )}
+            </BlockStack>
+          </Modal.Section>
+        </Modal>
 
         <Card padding="0">
           <Box padding="400" paddingBlockEnd="0">

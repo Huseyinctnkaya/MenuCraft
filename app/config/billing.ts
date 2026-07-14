@@ -69,3 +69,9 @@ export const getActiveAppSubscriptions = async (
   subscriptionCache.set(shop, { appSubscriptions, expiresAt: now + SUBSCRIPTION_CACHE_TTL_MS });
   return appSubscriptions;
 };
+
+// Call after an action mutates the shop's subscription state (e.g. cancellation) so
+// the next read within the TTL window doesn't serve stale pre-mutation data.
+export const invalidateAppSubscriptionsCache = (shop: string) => {
+  subscriptionCache.delete(shop);
+};

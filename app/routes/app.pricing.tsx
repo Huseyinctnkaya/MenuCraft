@@ -90,16 +90,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const planName = BILLING_PLANS[plan][billingPeriod];
   const billingTestMode =
     process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const returnUrl = new URL(request.url);
-  returnUrl.pathname = "/app/pricing";
-  returnUrl.searchParams.delete("plan");
-  returnUrl.searchParams.delete("billingPeriod");
+  // Shopify hard-caps returnUrl at 255 chars (GraphQL `returnUrl: URL!` validation).
+  // request.url carries whatever query string the embedded admin/App Bridge attached
+  // (host, shop, embedded, locale, etc.) plus anything forwarded from the referring
+  // page via withSearch(). That's unbounded, so we drop it entirely and send a clean
+  // origin+path URL, matching Shopify's own documented returnUrl example.
+  const returnUrl = `${new URL(request.url).origin}/app/pricing`;
 
   try {
     return await billing.request({
       plan: planName,
       isTest: billingTestMode,
-      returnUrl: returnUrl.toString(),
+      returnUrl,
     });
   } catch (error) {
     const errorMessage =

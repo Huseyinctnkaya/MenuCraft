@@ -104,6 +104,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       returnUrl,
     });
   } catch (error) {
+    // billing.request() always throws on the happy path too: on success it throws
+    // a Remix redirect Response to send the merchant to Shopify's confirmation page
+    // (see @shopify/shopify-app-remix's redirectOutOfApp). A Response isn't an Error,
+    // so it must be re-thrown here for Remix to actually perform that redirect —
+    // otherwise this catch swallows every successful billing request as a failure.
+    if (error instanceof Response) {
+      throw error;
+    }
     const errorMessage =
       error instanceof Error ? error.message : "Billing request failed.";
     const errorData = (error as { errorData?: unknown })?.errorData;

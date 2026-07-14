@@ -278,7 +278,6 @@ export default function MenuBuilder() {
   const fullscreenExitRequestedRef = useRef(false);
   const fullscreenExitArmedRef = useRef(false);
   const fullscreenExitArmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fullscreenExitNavigateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitGuardRef = useRef({ isDirty: false, requiresExplicitSave: false, isSaving: false });
   const [fullscreenPhase, setFullscreenPhase] = useState<"entering" | "ready" | "exiting">("entering");
 
@@ -2775,10 +2774,6 @@ export default function MenuBuilder() {
       clearTimeout(fullscreenExitArmTimeoutRef.current);
       fullscreenExitArmTimeoutRef.current = null;
     }
-    if (fullscreenExitNavigateTimeoutRef.current) {
-      clearTimeout(fullscreenExitNavigateTimeoutRef.current);
-      fullscreenExitNavigateTimeoutRef.current = null;
-    }
     const appBridge = appBridgeRef.current;
     const unsubscribe = appBridge.subscribe(Fullscreen.Action.EXIT, () => {
       if (fullscreenExitRequestedRef.current || !fullscreenExitArmedRef.current) return;
@@ -2792,25 +2787,18 @@ export default function MenuBuilder() {
       }
       fullscreenExitRequestedRef.current = true;
       setFullscreenPhase("exiting");
-      fullscreenExitNavigateTimeoutRef.current = setTimeout(() => {
-        fullscreenExitNavigateTimeoutRef.current = null;
-        navigate({ pathname: returnToPath, search: returnToSearch });
-      }, 120);
+      navigate({ pathname: returnToPath, search: returnToSearch });
     });
     appBridge.dispatch(Fullscreen.enter());
     fullscreenExitArmTimeoutRef.current = setTimeout(() => {
       fullscreenExitArmedRef.current = true;
       setFullscreenPhase("ready");
       fullscreenExitArmTimeoutRef.current = null;
-    }, 300);
+    }, 150);
     return () => {
       if (fullscreenExitArmTimeoutRef.current) {
         clearTimeout(fullscreenExitArmTimeoutRef.current);
         fullscreenExitArmTimeoutRef.current = null;
-      }
-      if (fullscreenExitNavigateTimeoutRef.current) {
-        clearTimeout(fullscreenExitNavigateTimeoutRef.current);
-        fullscreenExitNavigateTimeoutRef.current = null;
       }
       fullscreenExitRequestedRef.current = true;
       unsubscribe();

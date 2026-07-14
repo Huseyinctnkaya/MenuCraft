@@ -364,7 +364,7 @@ export default function Pricing() {
                     </form>
                     {isCurrentPaidPlan && (
                       <Button
-                        variant="plain"
+                        variant="secondary"
                         tone="critical"
                         fullWidth
                         onClick={() => setCancelModalOpen(true)}

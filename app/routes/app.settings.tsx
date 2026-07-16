@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   json,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from "@remix-run/node";
 import {
-  Form,
-  useActionData,
+  useFetcher,
   useLoaderData,
   useLocation,
   useNavigate,
 } from "@remix-run/react";
+import { SaveBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import {
   Badge,
@@ -225,15 +225,53 @@ export default function AccountSettings() {
     preferencesAvailable,
     links,
   } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigate = useNavigate();
   const location = useLocation();
+  const preferencesFetcher = useFetcher<typeof action>();
 
   const withSearch = (path: string) => ({ pathname: path, search: location.search });
   const usagePercent = menuLimit ? Math.min((menuCount / menuLimit) * 100, 100) : 0;
+  const [savedPreferences, setSavedPreferences] = useState<PreferencesPayload>(preferences as PreferencesPayload);
   const [languageValue, setLanguageValue] = useState(preferences.language);
   const [emailNotificationsValue, setEmailNotificationsValue] = useState(preferences.emailNotifications);
   const [marketingEmailsValue, setMarketingEmailsValue] = useState(preferences.marketingEmails);
+  const pendingPreferencesRef = useRef<PreferencesPayload | null>(null);
+
+  const isPreferencesDirty =
+    languageValue !== savedPreferences.language ||
+    emailNotificationsValue !== savedPreferences.emailNotifications ||
+    marketingEmailsValue !== savedPreferences.marketingEmails;
+
+  useEffect(() => {
+    if (preferencesFetcher.state === "idle" && preferencesFetcher.data?.ok && pendingPreferencesRef.current) {
+      setSavedPreferences(pendingPreferencesRef.current);
+      pendingPreferencesRef.current = null;
+    }
+  }, [preferencesFetcher.state, preferencesFetcher.data]);
+
+  const handleSavePreferences = () => {
+    const snapshot: PreferencesPayload = {
+      language: languageValue,
+      emailNotifications: emailNotificationsValue,
+      marketingEmails: marketingEmailsValue,
+    };
+    pendingPreferencesRef.current = snapshot;
+    preferencesFetcher.submit(
+      {
+        intent: "update-preferences",
+        language: snapshot.language,
+        emailNotifications: snapshot.emailNotifications ? "on" : "",
+        marketingEmails: snapshot.marketingEmails ? "on" : "",
+      },
+      { method: "post" }
+    );
+  };
+
+  const handleDiscardPreferences = () => {
+    setLanguageValue(savedPreferences.language);
+    setEmailNotificationsValue(savedPreferences.emailNotifications);
+    setMarketingEmailsValue(savedPreferences.marketingEmails);
+  };
 
   return (
     <Page title="Account Settings" subtitle="Manage your account and preferences">
@@ -325,36 +363,45 @@ export default function AccountSettings() {
                 </Box>
                 <Text as="h2" variant="headingMd">Preferences</Text>
               </InlineStack>
-              <Form method="post">
-                <input type="hidden" name="intent" value="update-preferences" />
-                <FormLayout>
-                  <Select
-                    label="Language"
-                    name="language"
-                    options={[{ label: "English", value: "en" }]}
-                    value={languageValue}
-                    onChange={setLanguageValue}
-                  />
-                  <Checkbox
-                    label="Email notifications"
-                    name="emailNotifications"
-                    checked={emailNotificationsValue}
-                    onChange={setEmailNotificationsValue}
-                  />
-                  <Checkbox
-                    label="Marketing emails"
-                    name="marketingEmails"
-                    checked={marketingEmailsValue}
-                    onChange={setMarketingEmailsValue}
-                  />
-                  <InlineStack align="space-between" blockAlign="center">
-                    <Text as="span" variant="bodySm" tone="subdued">Changes apply to this store only.</Text>
-                    <Button submit disabled={!preferencesAvailable}>Save Preferences</Button>
-                  </InlineStack>
-                  {actionData?.ok ? <Banner tone="success">Preferences saved.</Banner> : null}
-                  {actionData?.error ? <Banner tone="critical">{actionData.error}</Banner> : null}
-                </FormLayout>
-              </Form>
+              <FormLayout>
+                <Select
+                  label="Language"
+                  name="language"
+                  options={[{ label: "English", value: "en" }]}
+                  value={languageValue}
+                  onChange={setLanguageValue}
+                />
+                <Checkbox
+                  label="Email notifications"
+                  name="emailNotifications"
+                  checked={emailNotificationsValue}
+                  onChange={setEmailNotificationsValue}
+                />
+                <Checkbox
+                  label="Marketing emails"
+                  name="marketingEmails"
+                  checked={marketingEmailsValue}
+                  onChange={setMarketingEmailsValue}
+                />
+                <Text as="span" variant="bodySm" tone="subdued">Changes apply to this store only.</Text>
+                {preferencesFetcher.data?.ok && !isPreferencesDirty ? (
+                  <Banner tone="success">Preferences saved.</Banner>
+                ) : null}
+                {preferencesFetcher.data?.ok === false ? (
+                  <Banner tone="critical">{preferencesFetcher.data.error}</Banner>
+                ) : null}
+              </FormLayout>
+              <SaveBar id="settings-preferences-save-bar" open={isPreferencesDirty}>
+                <button
+                  variant="primary"
+                  onClick={handleSavePreferences}
+                  disabled={!preferencesAvailable}
+                  loading={preferencesFetcher.state !== "idle"}
+                >
+                  Save
+                </button>
+                <button onClick={handleDiscardPreferences}>Discard</button>
+              </SaveBar>
             </BlockStack>
           </Card>
 

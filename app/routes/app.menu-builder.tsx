@@ -14,7 +14,6 @@ import {
   Icon,
 } from "@shopify/polaris";
 import {
-  ArrowLeftIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -2681,7 +2680,6 @@ export default function MenuBuilder() {
     [menuStatus, menuItems, builderSettings]
   );
   const isDirty = currentFingerprint !== savedFingerprint;
-  const backDisabled = isSaving;
 
   const discardUnsavedChanges = () => {
     try {
@@ -2930,34 +2928,18 @@ export default function MenuBuilder() {
       <div className="bg-white border-b border-gray-200 px-4 py-3 relative z-[35]">
         <InlineStack align="space-between" blockAlign="center" gap="400">
           <InlineStack gap="300" blockAlign="center">
-            <Button
-              variant="tertiary"
-              icon={ArrowLeftIcon}
-              disabled={backDisabled}
-              onClick={() => {
-                if (isDirty || requiresExplicitSave) {
-                  setDiscardChangesModalOpen(true);
-                  return;
-                }
-                closeBuilder();
-              }}
-            >
-              Back
-            </Button>
-            <InlineStack gap="300" blockAlign="center">
-              <Text as="h1" variant="headingMd">
-                {menu.name}
+            <Text as="h1" variant="headingMd">
+              {menu.name}
+            </Text>
+            {isDirty || requiresExplicitSave ? (
+              <Text as="span" variant="bodySm" tone="critical">
+                Save before leaving
               </Text>
-              {isDirty || requiresExplicitSave ? (
-                <Text as="span" variant="bodySm" tone="critical">
-                  Save before leaving
-                </Text>
-              ) : menuEnabled ? (
-                <Badge tone="success">Live</Badge>
-              ) : (
-                <Badge tone="read-only">Draft</Badge>
-              )}
-            </InlineStack>
+            ) : menuEnabled ? (
+              <Badge tone="success">Live</Badge>
+            ) : (
+              <Badge tone="read-only">Draft</Badge>
+            )}
           </InlineStack>
 
           <InlineStack gap="200" blockAlign="center">

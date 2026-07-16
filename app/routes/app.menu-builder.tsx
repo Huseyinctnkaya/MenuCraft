@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useFetcher, useLoaderData, useNavigate, useRouteLoaderData } from "@remix-run/react";
+import { TitleBar } from "@shopify/app-bridge-react";
 import {
-  Badge,
   BlockStack,
   Box,
   Button,
@@ -2925,49 +2925,28 @@ export default function MenuBuilder() {
           }
         `}
       </style>
-      <div className="bg-white border-b border-gray-200 px-4 py-3 relative z-[35]">
-        <InlineStack align="space-between" blockAlign="center" gap="400">
-          <InlineStack gap="300" blockAlign="center">
-            <Text as="h1" variant="headingMd">
-              {menu.name}
-            </Text>
-            {isDirty || requiresExplicitSave ? (
-              <Text as="span" variant="bodySm" tone="critical">
-                Save before leaving
-              </Text>
-            ) : menuEnabled ? (
-              <Badge tone="success">Live</Badge>
-            ) : (
-              <Badge tone="read-only">Draft</Badge>
-            )}
-          </InlineStack>
-
-          <InlineStack gap="200" blockAlign="center">
-            <Button
-              variant="secondary"
-              disabled={!menuEnabled || isSaving}
-              onClick={() => handleSaveMenu("draft", "enable")}
-              loading={isSaving && activeSaveAction === "enable"}
-            >
-              Disable
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => handleSaveMenu(undefined, "save")}
-              loading={isSaving && activeSaveAction === "save"}
-            >
-              Save
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => handleSaveMenu("active", "publish")}
-              loading={isSaving && activeSaveAction === "publish"}
-            >
-              Publish
-            </Button>
-          </InlineStack>
-        </InlineStack>
-      </div>
+      <TitleBar
+        title={`${menu.name} · ${
+          isDirty || requiresExplicitSave ? "Unsaved changes" : menuEnabled ? "Live" : "Draft"
+        }`}
+      >
+        <button
+          onClick={() => handleSaveMenu("draft", "enable")}
+          disabled={!menuEnabled || isSaving}
+        >
+          Disable
+        </button>
+        <button onClick={() => handleSaveMenu(undefined, "save")} disabled={isSaving}>
+          Save
+        </button>
+        <button
+          variant="primary"
+          onClick={() => handleSaveMenu("active", "publish")}
+          disabled={isSaving}
+        >
+          Publish
+        </button>
+      </TitleBar>
 
       <div className="flex flex-1 overflow-hidden relative">
         <aside

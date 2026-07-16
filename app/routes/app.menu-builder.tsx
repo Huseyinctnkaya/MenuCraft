@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useFetcher, useLoaderData, useNavigate, useRouteLoaderData } from "@remix-run/react";
+import { SaveBar } from "@shopify/app-bridge-react";
 import {
   Badge,
   BlockStack,
@@ -2952,13 +2953,6 @@ export default function MenuBuilder() {
               Disable
             </Button>
             <Button
-              variant="secondary"
-              onClick={() => handleSaveMenu(undefined, "save")}
-              loading={isSaving && activeSaveAction === "save"}
-            >
-              Save
-            </Button>
-            <Button
               variant="primary"
               onClick={() => handleSaveMenu("active", "publish")}
               loading={isSaving && activeSaveAction === "publish"}
@@ -2968,6 +2962,17 @@ export default function MenuBuilder() {
           </InlineStack>
         </InlineStack>
       </div>
+
+      <SaveBar id="menu-builder-save-bar" open={isDirty || requiresExplicitSave}>
+        <button
+          variant="primary"
+          onClick={() => handleSaveMenu(undefined, "save")}
+          loading={isSaving && activeSaveAction === "save"}
+        >
+          Save
+        </button>
+        <button onClick={discardUnsavedChanges}>Discard</button>
+      </SaveBar>
 
       <div className="flex flex-1 overflow-hidden relative">
         <aside

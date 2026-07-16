@@ -8,6 +8,12 @@ import prisma from "../db.server";
 import { getActiveAppSubscriptions, getPlanSelection } from "../config/billing";
 import type { loader as appLoader } from "./app";
 import {
+  BUILDER_DIRTY_STATE_MESSAGE,
+  CLOSE_BUILDER_MESSAGE,
+  REQUEST_CLOSE_CONFIRMATION_MESSAGE,
+  isAppWindowMessage,
+} from "../menu-builder/app-window-messages";
+import {
   Badge,
   Banner,
   BlockStack,
@@ -376,10 +382,57 @@ export default function MegaMenusList() {
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [renameMenuId, setRenameMenuId] = useState<number | null>(null);
   const [renameNewName, setRenameNewName] = useState("");
+  const [builderSrc, setBuilderSrc] = useState("");
+  const appWindowRef = useRef<SAppWindowElement | null>(null);
+  const builderDirtyRef = useRef({ isDirty: false, requiresExplicitSave: false });
 
   useEffect(() => {
     setMenusState(rawMenus);
   }, [rawMenus]);
+
+  // The Menu Builder loads inside this <s-app-window>'s nested iframe (see the
+  // element rendered below). App Bridge gives us show()/hide() on our own element
+  // ref, but content loaded inside the window has no documented API to close
+  // itself or report state back — so it talks to us via postMessage instead.
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (!isAppWindowMessage(event.data)) return;
+      if (event.data.type === BUILDER_DIRTY_STATE_MESSAGE) {
+        builderDirtyRef.current = {
+          isDirty: event.data.isDirty,
+          requiresExplicitSave: event.data.requiresExplicitSave,
+        };
+      } else if (event.data.type === CLOSE_BUILDER_MESSAGE) {
+        appWindowRef.current?.hide?.();
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  useEffect(() => {
+    const element = appWindowRef.current;
+    if (!element) return;
+    const handleHide = () => {
+      const { isDirty, requiresExplicitSave } = builderDirtyRef.current;
+      if (!isDirty && !requiresExplicitSave) return;
+      // Undo the close and ask the builder (still loaded inside) to show its own
+      // "Discard unsaved changes" confirmation instead of silently losing edits.
+      element.show?.();
+      element.contentWindow?.postMessage(
+        { type: REQUEST_CLOSE_CONFIRMATION_MESSAGE },
+        window.location.origin
+      );
+    };
+    element.addEventListener?.("hide", handleHide);
+    return () => element.removeEventListener?.("hide", handleHide);
+  }, []);
+
+  const openMenuBuilder = (menuId: string) => {
+    setBuilderSrc(`/app/menu-builder${buildSearch({ id: menuId })}`);
+    appWindowRef.current?.show?.();
+  };
 
   const countItems = (items: unknown): number => {
     if (!Array.isArray(items)) return 0;
@@ -549,14 +602,7 @@ export default function MegaMenusList() {
         <div onClick={(event) => event.stopPropagation()}>
           <Button
             variant="plain"
-            onClick={() =>
-              navigate(
-                withSearch("/app/menu-builder", {
-                  id: String(menu.id),
-                  returnTo: location.pathname,
-                })
-              )
-            }
+            onClick={() => openMenuBuilder(String(menu.id))}
           >
             {menu.name}
           </Button>
@@ -574,14 +620,7 @@ export default function MegaMenusList() {
           <InlineStack gap="200" align="end" blockAlign="center">
             <Button
               size="slim"
-              onClick={() =>
-                navigate(
-                  withSearch("/app/menu-builder", {
-                    id: String(menu.id),
-                    returnTo: location.pathname,
-                  })
-                )
-              }
+              onClick={() => openMenuBuilder(String(menu.id))}
             >
               Customize
             </Button>
@@ -674,7 +713,7 @@ export default function MegaMenusList() {
         icon: PlusIcon,
         disabled: limitReached,
         onAction: () =>
-          navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname })),
+          openMenuBuilder(""),
       }}
       secondaryActions={[
         {
@@ -718,7 +757,7 @@ export default function MegaMenusList() {
               action={{
                 content: "Create New Menu",
                 onAction: () =>
-                  navigate(withSearch("/app/menu-builder", { id: "", returnTo: location.pathname })),
+                  openMenuBuilder(""),
               }}
               image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
             >
@@ -834,6 +873,8 @@ export default function MegaMenusList() {
           />
         </Modal.Section>
       </Modal>
+
+      <s-app-window id="menu-builder-window" src={builderSrc} ref={appWindowRef} />
     </Page>
   );
 }

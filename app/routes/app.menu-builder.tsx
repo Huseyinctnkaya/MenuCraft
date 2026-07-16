@@ -1,8 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { useFetcher, useLocation, useNavigate, useLoaderData, useRouteLoaderData } from "@remix-run/react";
-import createApp from "@shopify/app-bridge";
-import { Fullscreen } from "@shopify/app-bridge/actions";
+import { useFetcher, useLoaderData, useNavigate, useRouteLoaderData } from "@remix-run/react";
 import {
   Badge,
   BlockStack,
@@ -153,6 +151,13 @@ import {
   type MenuPanelDeps,
 } from "../menu-builder/components/panels/MenuPanel";
 import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
+import {
+  BUILDER_DIRTY_STATE_MESSAGE,
+  CLOSE_BUILDER_MESSAGE,
+  REQUEST_CLOSE_CONFIRMATION_MESSAGE,
+  isAppWindowMessage,
+  type BuilderDirtyStateMessage,
+} from "../menu-builder/app-window-messages";
 
 
 
@@ -239,12 +244,10 @@ export default function MenuBuilder() {
     settings: { ...DEFAULT_BUILDER_SETTINGS, ...normalizedMenuSettings },
   });
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
-  const apiKey = appData?.apiKey ?? "";
   const planTier = (appData as { planTier?: string } | null)?.planTier;
   const isPlusPlan = true; // planTier === "plus"; // TEMPORARY OVERRIDE FOR TESTING
   const isProPlan = planTier === "pro" || isPlusPlan;
   const navigate = useNavigate();
-  const location = useLocation();
   const saveFetcher = useFetcher<typeof action>();
   const contactFetcher = useFetcher<typeof action>();
   const [activePanel, setActivePanel] = useState<RailPanel>("menu");
@@ -274,13 +277,6 @@ export default function MenuBuilder() {
   const prevPreviewPositionsRef = useRef(new Map<string, DOMRect>());
   const lastDragOverIdRef = useRef<string | null>(null);
   const prevMenuIdRef = useRef(menu.id);
-  const appBridgeRef = useRef<ReturnType<typeof createApp> | null>(null);
-  const fullscreenExitRequestedRef = useRef(false);
-  const fullscreenExitArmedRef = useRef(false);
-  const fullscreenExitArmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const exitGuardRef = useRef({ isDirty: false, requiresExplicitSave: false, isSaving: false });
-  const [fullscreenPhase, setFullscreenPhase] = useState<"entering" | "ready" | "exiting">("entering");
-
   const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
     fontFamily: "Inter, system-ui, sans-serif",
     menuBackground: "#0b0b0b",
@@ -293,21 +289,6 @@ export default function MenuBuilder() {
     menuItemSpacing: 28,
   });
   const [isPreviewLeftAligned, setIsPreviewLeftAligned] = useState(false);
-
-  const returnToPath = useMemo(() => {
-    const search = new URLSearchParams(location.search);
-    const value = search.get("returnTo");
-    return value && value.startsWith("/") ? value : "/app/mega-menus";
-  }, [location.search]);
-
-  const returnToSearch = useMemo(() => {
-    const search = new URLSearchParams(location.search);
-    search.delete("id");
-    search.delete("returnTo");
-    search.delete("template");
-    const next = search.toString();
-    return next ? `?${next}` : "";
-  }, [location.search]);
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultExpandedMenuItems);
   const [builderSettings, setBuilderSettings] = useState<BuilderSettings>({
@@ -530,7 +511,6 @@ export default function MenuBuilder() {
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [pendingDeleteItemLabel, setPendingDeleteItemLabel] = useState<string>("");
   const [discardChangesModalOpen, setDiscardChangesModalOpen] = useState(false);
-  const [pendingExitIntent, setPendingExitIntent] = useState(false);
   const [openColorPicker, setOpenColorPicker] = useState<keyof BuilderSettings | null>(null);
   const [colorPickerHsb, setColorPickerHsb] = useState<HsbColor | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -2723,6 +2703,11 @@ export default function MenuBuilder() {
     }
   };
 
+  const closeBuilder = () => {
+    if (typeof window === "undefined" || !window.parent) return;
+    window.parent.postMessage({ type: CLOSE_BUILDER_MESSAGE }, window.location.origin);
+  };
+
   useEffect(() => {
     if (saveFetcher.state === "idle" && saveFetcher.data?.ok) {
       setActiveSaveAction(null);
@@ -2756,55 +2741,31 @@ export default function MenuBuilder() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isDirty, requiresExplicitSave]);
 
+  // The builder is loaded inside the Mega Menus list page's <s-app-window>, in a
+  // nested iframe. App Bridge gives the hosting page control over showing/hiding
+  // that window, but content loaded inside it has no documented API to close
+  // itself or report its own state — so we keep the host informed of unsaved-changes
+  // state via postMessage, and ask it to close us the same way.
   useEffect(() => {
-    exitGuardRef.current = { isDirty, requiresExplicitSave, isSaving };
-  }, [isDirty, requiresExplicitSave, isSaving]);
+    if (typeof window === "undefined" || !window.parent) return;
+    window.parent.postMessage(
+      { type: BUILDER_DIRTY_STATE_MESSAGE, isDirty, requiresExplicitSave } satisfies BuilderDirtyStateMessage,
+      window.location.origin
+    );
+  }, [isDirty, requiresExplicitSave]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const host = new URLSearchParams(location.search).get("host");
-    if (!apiKey || !host) return;
-    if (!appBridgeRef.current) {
-      appBridgeRef.current = createApp({ apiKey, host, forceRedirect: true });
-    }
-    setFullscreenPhase("entering");
-    fullscreenExitRequestedRef.current = false;
-    fullscreenExitArmedRef.current = false;
-    if (fullscreenExitArmTimeoutRef.current) {
-      clearTimeout(fullscreenExitArmTimeoutRef.current);
-      fullscreenExitArmTimeoutRef.current = null;
-    }
-    const appBridge = appBridgeRef.current;
-    const unsubscribe = appBridge.subscribe(Fullscreen.Action.EXIT, () => {
-      if (fullscreenExitRequestedRef.current || !fullscreenExitArmedRef.current) return;
-      const { isDirty: hasUnsaved, requiresExplicitSave: needsExplicitSave, isSaving: saving } =
-        exitGuardRef.current;
-      if (hasUnsaved || needsExplicitSave || saving) {
-        setPendingExitIntent(true);
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (!isAppWindowMessage(event.data)) return;
+      if (event.data.type === REQUEST_CLOSE_CONFIRMATION_MESSAGE) {
         setDiscardChangesModalOpen(true);
-        appBridge.dispatch(Fullscreen.enter());
-        return;
       }
-      fullscreenExitRequestedRef.current = true;
-      setFullscreenPhase("exiting");
-      navigate({ pathname: returnToPath, search: returnToSearch });
-    });
-    appBridge.dispatch(Fullscreen.enter());
-    fullscreenExitArmTimeoutRef.current = setTimeout(() => {
-      fullscreenExitArmedRef.current = true;
-      setFullscreenPhase("ready");
-      fullscreenExitArmTimeoutRef.current = null;
-    }, 150);
-    return () => {
-      if (fullscreenExitArmTimeoutRef.current) {
-        clearTimeout(fullscreenExitArmTimeoutRef.current);
-        fullscreenExitArmTimeoutRef.current = null;
-      }
-      fullscreenExitRequestedRef.current = true;
-      unsubscribe();
-      appBridge.dispatch(Fullscreen.exit());
     };
-  }, [apiKey, location.search, navigate, returnToPath, returnToSearch]);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   useEffect(() => {
     if (prevMenuIdRef.current === menu.id) {
@@ -2896,9 +2857,6 @@ export default function MenuBuilder() {
         .menu-builder-hide-scrollbar::-webkit-scrollbar { display: none; }
         .menu-builder-hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
-      {fullscreenPhase !== "ready" ? (
-        <div className="fixed inset-0 z-50 bg-gray-100" />
-      ) : null}
       <Modal
         open={Boolean(pendingDeleteItemId)}
         onClose={() => {
@@ -2931,11 +2889,7 @@ export default function MenuBuilder() {
       </Modal>
       <Modal
         open={discardChangesModalOpen}
-        onClose={() => {
-          setDiscardChangesModalOpen(false);
-          setPendingExitIntent(false);
-          appBridgeRef.current?.dispatch(Fullscreen.enter());
-        }}
+        onClose={() => setDiscardChangesModalOpen(false)}
         title="Discard unsaved changes"
         primaryAction={{
           content: "Discard changes",
@@ -2943,21 +2897,13 @@ export default function MenuBuilder() {
           onAction: () => {
             discardUnsavedChanges();
             setDiscardChangesModalOpen(false);
-            if (pendingExitIntent) {
-              setPendingExitIntent(false);
-              navigate({ pathname: returnToPath, search: returnToSearch });
-              return;
-            }
+            closeBuilder();
           },
         }}
         secondaryActions={[
           {
             content: "Keep editing",
-            onAction: () => {
-              setDiscardChangesModalOpen(false);
-              setPendingExitIntent(false);
-              appBridgeRef.current?.dispatch(Fullscreen.enter());
-            },
+            onAction: () => setDiscardChangesModalOpen(false),
           },
         ]}
       >
@@ -2993,7 +2939,7 @@ export default function MenuBuilder() {
                   setDiscardChangesModalOpen(true);
                   return;
                 }
-                navigate({ pathname: returnToPath, search: returnToSearch });
+                closeBuilder();
               }}
             >
               Back

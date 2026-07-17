@@ -1531,9 +1531,41 @@
     const tabs = Array.isArray(parentItem.children) ? parentItem.children : [];
     const contentPanels = [];
 
+    // Only items with their own children carry expandable content — plain
+    // leaf items (a label + url, no children) are just navigable links and
+    // must never be auto-activated into an empty content pane (matches the
+    // Builder's editor behavior, where clicking a childless item closes any
+    // open panel instead of "activating" it).
+    const firstActiveIndex = tabs.findIndex(
+      (t) => t && Array.isArray(t.children) && t.children.length > 0
+    );
+    const hasAnyContent = firstActiveIndex !== -1;
+
+    const clearActiveStates = () => {
+      tabsMenu.querySelectorAll(".mc-tab-item").forEach((b) => {
+        b.classList.remove("is-active");
+        b.style.background = "transparent";
+        b.style.color = settings.colorTabHeading;
+        if (isTop) b.style.borderBottomColor = "transparent";
+        else if (isRight || isNestedRight) b.style.borderRightColor = "transparent";
+        else b.style.borderLeftColor = "transparent";
+      });
+      contentPanels.forEach((p) => { if (p) p.style.display = "none"; });
+    };
+
     tabs.forEach((tab, index) => {
-      const tabBtn = el("div", "mc-tab-item", tab.label || "Tab");
-      tabBtn.style.cssText = `padding:14px 20px;cursor:pointer;font-family:${settings.typographyTabFont};font-weight:${settings.typographyTabWeight};font-size:${settings.typographyTabSize}px;color:${settings.colorTabHeading};transition:all 0.2s;text-align:${isRight || isNestedRight ? "right" : "left"};white-space:nowrap;`;
+      const hasChildren = Boolean(tab.children && tab.children.length > 0);
+      const tabBtn = el(hasChildren ? "div" : "a", "mc-tab-item");
+      tabBtn.textContent = tab.label || "Tab";
+      tabBtn.style.cssText = `display:block;text-decoration:none;padding:14px 20px;cursor:pointer;font-family:${settings.typographyTabFont};font-weight:${settings.typographyTabWeight};font-size:${settings.typographyTabSize}px;color:${settings.colorTabHeading};transition:all 0.2s;text-align:${isRight || isNestedRight ? "right" : "left"};white-space:nowrap;`;
+
+      if (!hasChildren) {
+        tabBtn.href = tab.url || "#";
+        if (tab.openInNewTab) {
+          tabBtn.target = "_blank";
+          tabBtn.rel = "noopener noreferrer";
+        }
+      }
 
       if (isTop) {
         tabBtn.style.borderBottom = "3px solid transparent";
@@ -1543,24 +1575,27 @@
         tabBtn.style.borderLeft = "3px solid transparent";
       }
 
-      const panel = el("div", "mc-tab-panel");
-      panel.style.cssText = "display:none;padding:10px 0 10px 20px;box-sizing:border-box;overflow:visible;";
+      let panel = null;
+      if (hasChildren) {
+        panel = el("div", "mc-tab-panel");
+        panel.style.cssText = "display:none;padding:10px 0 10px 20px;box-sizing:border-box;overflow:visible;";
 
-      if (isNested && tab.children && tab.children.length > 0) {
-        // Nested tabs: render children as sub-tabs
-        const subTabContainer = buildTabsContent({
-          ...tab,
-          submenuTemplate: isTop || template.includes("top") ? "simple-top-tabs" : isNestedRight ? "simple-left-tabs" : "simple-left-tabs",
-        }, settings);
-        panel.appendChild(subTabContainer);
-      } else {
-        // Regular: render tab content
-        panel.appendChild(buildSubmenuContent(tab, settings));
+        if (isNested) {
+          // Nested tabs: render children as sub-tabs
+          const subTabContainer = buildTabsContent({
+            ...tab,
+            submenuTemplate: isTop || template.includes("top") ? "simple-top-tabs" : "simple-left-tabs",
+          }, settings);
+          panel.appendChild(subTabContainer);
+        } else {
+          // Regular: render tab content
+          panel.appendChild(buildSubmenuContent(tab, settings));
+        }
+        contentArea.appendChild(panel);
       }
-
       contentPanels.push(panel);
 
-      if (index === 0) {
+      if (hasChildren && index === firstActiveIndex) {
         tabBtn.classList.add("is-active");
         if (isTop) {
           tabBtn.style.borderBottomColor = settings.colorSubmenuHeading;
@@ -1574,38 +1609,40 @@
         panel.style.display = "block";
       }
 
-      const activate = () => {
-        tabsMenu.querySelectorAll(".mc-tab-item").forEach((b) => {
-          b.classList.remove("is-active");
-          b.style.background = "transparent";
-          b.style.color = settings.colorTabHeading;
-          if (isTop) b.style.borderBottomColor = "transparent";
-          else if (isRight || isNestedRight) b.style.borderRightColor = "transparent";
-          else b.style.borderLeftColor = "transparent";
-        });
-        contentPanels.forEach((p) => (p.style.display = "none"));
-        tabBtn.classList.add("is-active");
-        tabBtn.style.background = settings.colorTabBackgroundActive;
-        tabBtn.style.color = settings.colorTabHeadingActive;
-        if (isTop) tabBtn.style.borderBottomColor = settings.colorSubmenuHeading;
-        else if (isRight || isNestedRight) tabBtn.style.borderRightColor = settings.colorSubmenuHeading;
-        else tabBtn.style.borderLeftColor = settings.colorSubmenuHeading;
-        panel.style.display = "block";
-      };
-
-      tabBtn.addEventListener("mouseenter", activate);
-      tabBtn.addEventListener("click", activate);
+      if (hasChildren) {
+        const activate = () => {
+          clearActiveStates();
+          tabBtn.classList.add("is-active");
+          tabBtn.style.background = settings.colorTabBackgroundActive;
+          tabBtn.style.color = settings.colorTabHeadingActive;
+          if (isTop) tabBtn.style.borderBottomColor = settings.colorSubmenuHeading;
+          else if (isRight || isNestedRight) tabBtn.style.borderRightColor = settings.colorSubmenuHeading;
+          else tabBtn.style.borderLeftColor = settings.colorSubmenuHeading;
+          panel.style.display = "block";
+        };
+        tabBtn.addEventListener("mouseenter", activate);
+        tabBtn.addEventListener("click", activate);
+      } else {
+        // Leaf item: hovering it should close any open panel, and the
+        // element is a real <a href> so a click just navigates normally.
+        tabBtn.addEventListener("mouseenter", clearActiveStates);
+      }
 
       tabsMenu.appendChild(tabBtn);
-      contentArea.appendChild(panel);
     });
 
-    if (isRight || isNestedRight) {
-      container.appendChild(contentArea);
-      container.appendChild(tabsMenu);
+    if (hasAnyContent) {
+      if (isRight || isNestedRight) {
+        container.appendChild(contentArea);
+        container.appendChild(tabsMenu);
+      } else {
+        container.appendChild(tabsMenu);
+        container.appendChild(contentArea);
+      }
     } else {
+      // No tab in this group has content — skip the empty content pane
+      // entirely instead of leaving a blank box beside the tab list.
       container.appendChild(tabsMenu);
-      container.appendChild(contentArea);
     }
 
     return container;
@@ -1614,7 +1651,6 @@
   // ── 6.5 Submenu content router ────────────────────────────────────
   const buildSubmenuContent = (parentItem, settings) => {
     const tmpl = parentItem.submenuTemplate;
-    console.log("[MenuCraft Debug] submenuTemplate:", tmpl, "submenuType:", parentItem.submenuType, "label:", parentItem.label);
 
     // Tab templates
     if (isTabTemplate(tmpl)) {

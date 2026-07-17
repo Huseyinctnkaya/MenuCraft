@@ -293,6 +293,21 @@
     return val;
   };
 
+  // Menu item URLs come from the Builder (merchant/collaborator-editable, not
+  // vetted). Block javascript:/data:/vbscript: URIs so a malicious item URL
+  // can't run arbitrary JS in every storefront visitor's browser.
+  const isSafeUrl = (url) => {
+    if (typeof url !== "string") return false;
+    const trimmed = url.trim();
+    if (!trimmed) return false;
+    if (/^(https?:)?\/\//i.test(trimmed)) return true;
+    if (/^[/#?]/.test(trimmed)) return true;
+    if (/^(mailto|tel|sms):/i.test(trimmed)) return true;
+    return false;
+  };
+
+  const safeHref = (url) => (isSafeUrl(url) ? url : "#");
+
   /* ═══════════════════════════════════════════════════════════════════
      Section 3 — Icon & Badge Rendering
      ═══════════════════════════════════════════════════════════════════ */
@@ -385,7 +400,7 @@
     textContent.style.cssText = "display:flex;flex-direction:column;flex:1;min-width:0;";
 
     const link = el("a", "mc-link");
-    link.href = item.url || "#";
+    link.href = safeHref(item.url);
     if (item.id) link.dataset.mcItemId = item.id;
     let label = (item.label || "").trim();
     if (!label && item.productIds && item.productIds.length) {
@@ -607,18 +622,18 @@
       container.style.cursor = "pointer";
       container.addEventListener("click", () => {
         if (item.openInNewTab) {
-          window.open(item.url, "_blank", "noopener,noreferrer");
+          window.open(safeHref(item.url), "_blank", "noopener,noreferrer");
         } else {
-          window.location.href = item.url;
+          window.location.href = safeHref(item.url);
         }
       });
     } else if (item.url && item.url !== "#" && item.imageUrl) {
       // Click handler already added in hover section above
       container.addEventListener("click", () => {
         if (item.openInNewTab) {
-          window.open(item.url, "_blank", "noopener,noreferrer");
+          window.open(safeHref(item.url), "_blank", "noopener,noreferrer");
         } else {
-          window.location.href = item.url;
+          window.location.href = safeHref(item.url);
         }
       });
     }
@@ -1560,7 +1575,7 @@
       tabBtn.style.cssText = `display:block;text-decoration:none;padding:14px 20px;cursor:pointer;font-family:${settings.typographyTabFont};font-weight:${settings.typographyTabWeight};font-size:${settings.typographyTabSize}px;color:${settings.colorTabHeading};transition:all 0.2s;text-align:${isRight || isNestedRight ? "right" : "left"};white-space:nowrap;`;
 
       if (!hasChildren) {
-        tabBtn.href = tab.url || "#";
+        tabBtn.href = safeHref(tab.url);
         if (tab.openInNewTab) {
           tabBtn.target = "_blank";
           tabBtn.rel = "noopener noreferrer";

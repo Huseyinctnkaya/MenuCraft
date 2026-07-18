@@ -1528,20 +1528,70 @@
     const isRight = template.includes("right") && !template.includes("nested-tabs-right");
     const isNestedRight = template.includes("nested-tabs-right");
     const isNested = template.includes("two-level") || template.includes("three-level") || template.includes("two-nested") || template.includes("three-nested") || template.includes("two-top") || template.includes("three-top");
+    // Left/right tab lists are narrow by design — their content can't share
+    // that width via flex, so it flies out as an independently-sized panel
+    // (like the existing dropdown nested-flyout pattern). Top tabs already
+    // have their content below the tab row, full width, so no flyout needed.
+    // Nested variants (two/three-level, nested-tabs-right) keep the simpler
+    // inline layout at their outer level — their leaf-level recursive call
+    // (forced to plain simple-left/right-tabs) gets the flyout instead, so
+    // only one flyout is ever active at a time.
+    const useFlyout = !isTop && !isNested;
 
-    container.style.cssText = `display:flex;width:100%;background:transparent;${isTop ? "flex-direction:column;" : isRight ? "flex-direction:row-reverse;" : "flex-direction:row;"}`;
+    container.style.cssText = `display:flex;position:relative;background:transparent;${isTop ? "flex-direction:column;width:100%;" : isRight ? "flex-direction:row-reverse;" : "flex-direction:row;"}`;
 
     const tabsMenu = el("div", "mc-tabs-menu");
     const contentArea = el("div", "mc-tabs-content-area");
-    contentArea.style.cssText = "flex:1;";
 
     if (isTop) {
       tabsMenu.style.cssText = `flex:0 0 auto;display:flex;flex-direction:row;border-bottom:1px solid ${settings.colorSubmenuBorder};overflow-x:auto;gap:0;`;
+      contentArea.style.cssText = "flex:1;width:100%;";
     } else if (isRight || isNestedRight) {
       tabsMenu.style.cssText = `flex:0 0 200px;display:flex;flex-direction:column;border-left:1px solid ${settings.colorSubmenuBorder};background:rgba(0,0,0,0.01);`;
     } else {
       tabsMenu.style.cssText = `flex:0 0 200px;display:flex;flex-direction:column;border-right:1px solid ${settings.colorSubmenuBorder};background:rgba(0,0,0,0.01);`;
     }
+
+    if (useFlyout) {
+      const maxW = parseCssSize(
+        parentItem.submenuMaxWidth || settings.submenuMaxWidth || settings.layoutMaxWidth || "720px"
+      );
+      contentArea.style.cssText = `position:absolute;top:0;${isRight || isNestedRight ? "right:100%;margin-right:8px;" : "left:100%;margin-left:8px;"}min-width:320px;width:max-content;max-width:${maxW};background:${settings.colorSubmenuBackground};${settings.submenuShowBorder ? `border:1px solid ${settings.colorSubmenuBorder};` : ""}border-radius:0;box-shadow:0 10px 30px rgba(0,0,0,0.15);opacity:0;visibility:hidden;pointer-events:none;transition:opacity 150ms ease;z-index:1001;box-sizing:border-box;overflow:hidden;`;
+
+      // Flip to the opposite side if the flyout would overflow the viewport.
+      requestAnimationFrame(() => {
+        const rect = contentArea.getBoundingClientRect();
+        if (rect.right > window.innerWidth - 16 && !(isRight || isNestedRight)) {
+          contentArea.style.left = "auto";
+          contentArea.style.right = "100%";
+          contentArea.style.marginLeft = "0";
+          contentArea.style.marginRight = "8px";
+        } else if (rect.left < 16 && (isRight || isNestedRight)) {
+          contentArea.style.right = "auto";
+          contentArea.style.left = "100%";
+          contentArea.style.marginRight = "0";
+          contentArea.style.marginLeft = "8px";
+        }
+      });
+    } else if (!isTop) {
+      // Nested outer level: keep the content inline, but the wrapper's
+      // width cap was already relaxed above (isTabTemplate branch), so
+      // there's real room for it now instead of the old 320px squeeze.
+      contentArea.style.cssText = "flex:1;";
+    }
+
+    const showContentArea = () => {
+      if (!useFlyout) return;
+      contentArea.style.opacity = "1";
+      contentArea.style.visibility = "visible";
+      contentArea.style.pointerEvents = "auto";
+    };
+    const hideContentArea = () => {
+      if (!useFlyout) return;
+      contentArea.style.opacity = "0";
+      contentArea.style.visibility = "hidden";
+      contentArea.style.pointerEvents = "none";
+    };
 
     const tabs = Array.isArray(parentItem.children) ? parentItem.children : [];
     const contentPanels = [];
@@ -1622,6 +1672,7 @@
         tabBtn.style.background = settings.colorTabBackgroundActive;
         tabBtn.style.color = settings.colorTabHeadingActive;
         panel.style.display = "block";
+        showContentArea();
       }
 
       if (hasChildren) {
@@ -1634,13 +1685,17 @@
           else if (isRight || isNestedRight) tabBtn.style.borderRightColor = settings.colorSubmenuHeading;
           else tabBtn.style.borderLeftColor = settings.colorSubmenuHeading;
           panel.style.display = "block";
+          showContentArea();
         };
         tabBtn.addEventListener("mouseenter", activate);
         tabBtn.addEventListener("click", activate);
       } else {
-        // Leaf item: hovering it should close any open panel, and the
-        // element is a real <a href> so a click just navigates normally.
-        tabBtn.addEventListener("mouseenter", clearActiveStates);
+        // Leaf item: hovering it should close any open panel/flyout, and
+        // the element is a real <a href> so a click just navigates normally.
+        tabBtn.addEventListener("mouseenter", () => {
+          clearActiveStates();
+          hideContentArea();
+        });
       }
 
       tabsMenu.appendChild(tabBtn);
@@ -1776,6 +1831,15 @@
             submenu.style.width = "max-content";
             submenu.style.maxWidth = "none";
             submenu.style.minWidth = "0";
+          } else if (isTabTemplate(item.submenuTemplate)) {
+            // Tab-style submenus manage their own width internally: the tab
+            // list stays narrow and its content is either a wide flyout
+            // (left/right tabs) or a full-width panel below the tab row
+            // (top tabs) — the plain-dropdown 320px cap would squeeze both.
+            submenu.style.width = "auto";
+            submenu.style.maxWidth = parseCssSize(
+              item.submenuMaxWidth || settings.submenuMaxWidth || settings.layoutMaxWidth || "720px"
+            );
           } else {
             // Regular dropdown: narrower width
             submenu.style.maxWidth = "320px";

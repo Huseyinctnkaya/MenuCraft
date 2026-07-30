@@ -1,9 +1,12 @@
 import { json } from "@remix-run/node";
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import crypto from "node:crypto";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 import prisma from "../db.server";
 import shopify from "../shopify.server";
+import { ICON_LIBRARY_BY_ID } from "../menu-builder/icons";
 
 
 
@@ -144,18 +147,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         }
       }
 
-      // Icon Collection
+      // Icon Collection - render the same lucide-react icons the builder uses
+      // so the storefront matches the admin exactly instead of guessing a
+      // lucide-static filename over an unpinned CDN.
       const iconMap: Record<string, string> = {};
       const traverseIcons = (list: any[]) => {
         for (const item of list) {
-          if (item.icon && (item.icon.startsWith("lucide:") || item.icon.startsWith("polaris:"))) {
-            const id = item.icon.split(":")[1];
-            if (item.icon.startsWith("lucide:")) {
-              iconMap[item.icon] = `https://unpkg.com/lucide-static@latest/icons/${id}.svg`;
-            } else {
-              // Polaris fallback - they don't have a simple static icon CDN like Lucide
-              // We'll use a placeholder or handle it in the script
-            }
+          if (item.icon && item.icon.startsWith("lucide:") && !iconMap[item.icon]) {
+            const id = item.icon.slice("lucide:".length);
+            const option = ICON_LIBRARY_BY_ID[id];
+            iconMap[item.icon] = option
+              ? renderToStaticMarkup(React.createElement(option.Icon, { strokeWidth: 1.6 }))
+              : `https://unpkg.com/lucide-static@latest/icons/${id}.svg`;
           }
           if (item.children?.length) traverseIcons(item.children);
         }

@@ -2943,14 +2943,16 @@ export default function MenuBuilder() {
           </InlineStack>
 
           <InlineStack gap="200" blockAlign="center">
-            <Button
-              variant="secondary"
-              disabled={!menuEnabled || isSaving}
-              onClick={() => handleSaveMenu("draft", "enable")}
-              loading={isSaving && activeSaveAction === "enable"}
-            >
-              Disable
-            </Button>
+            {menuEnabled ? (
+              <Button
+                variant="secondary"
+                disabled={isSaving}
+                onClick={() => handleSaveMenu("draft", "enable")}
+                loading={isSaving && activeSaveAction === "enable"}
+              >
+                Disable
+              </Button>
+            ) : null}
             <Button
               variant="secondary"
               onClick={() => handleSaveMenu(undefined, "save")}
@@ -2958,13 +2960,15 @@ export default function MenuBuilder() {
             >
               Save
             </Button>
-            <Button
-              variant="primary"
-              onClick={() => handleSaveMenu("active", "publish")}
-              loading={isSaving && activeSaveAction === "publish"}
-            >
-              Publish
-            </Button>
+            {!menuEnabled ? (
+              <Button
+                variant="primary"
+                onClick={() => handleSaveMenu("active", "publish")}
+                loading={isSaving && activeSaveAction === "publish"}
+              >
+                Publish
+              </Button>
+            ) : null}
           </InlineStack>
         </InlineStack>
       </div>

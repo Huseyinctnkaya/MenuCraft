@@ -331,7 +331,11 @@
       if (svg) {
         svg.style.width = "100%";
         svg.style.height = "100%";
-        svg.style.fill = "currentColor";
+        if (svg.getAttribute("fill") === "none") {
+          svg.style.stroke = "currentColor";
+        } else {
+          svg.style.fill = "currentColor";
+        }
       }
     } else {
       const img = el("img");
@@ -427,7 +431,7 @@
     textContent.appendChild(link);
 
     const descText = (item.description || "").trim();
-    const isRedundantDesc = descText.toLowerCase() === "description" || descText === label;
+    const isRedundantDesc = descText === label;
     if (descText && !isRedundantDesc) {
       const desc = el("div", "mc-link-desc", descText);
       desc.style.cssText = `font-size:${depth > 0 ? "11px" : "12px"};margin-top:1px;line-height:1.2;overflow-wrap:break-word;opacity:0.8;`;
@@ -485,10 +489,41 @@
     const textAlign = group.linkTextAlign || "left";
     const mobile = checkMobile(settings);
 
+    const decorateAsHeading = (itemEl) => {
+      itemEl.style.paddingBottom = "8px";
+      itemEl.style.marginBottom = "4px";
+      itemEl.style.borderBottom = `2px solid ${settings.colorSubmenuHeading || "#b91c1c"}`;
+      itemEl.style.width = "100%";
+    };
+    const decorateAsLink = (itemEl) => {
+      itemEl.style.padding = "8px 12px";
+      itemEl.style.borderRadius = "6px";
+      itemEl.style.width = textAlign === "center" ? "auto" : "100%";
+      itemEl.style.transition = "all 150ms ease";
+      itemEl.onmouseenter = () => {
+        itemEl.style.background = "rgba(0,0,0,0.04)";
+        itemEl.style.transform = "translateX(3px)";
+      };
+      itemEl.onmouseleave = () => {
+        itemEl.style.background = "transparent";
+        itemEl.style.transform = "translateX(0)";
+      };
+    };
+    const isHidden = (child) => (mobile && child.hideOnMobile) || (!mobile && child.hideOnDesktop);
+
+    const primaryHeading = children.find((c) => c.isHeading);
+    const linkItems = primaryHeading ? children.filter((c) => c.id !== primaryHeading.id) : children;
+
+    if (primaryHeading && !isHidden(primaryHeading)) {
+      const headingEl = buildLink(primaryHeading, settings, 1);
+      decorateAsHeading(headingEl);
+      container.appendChild(headingEl);
+    }
+
     const grid = el("div", "mc-links-grid");
     grid.style.cssText = `display:flex;flex-direction:${mobile ? "column" : "row"};gap:0;flex-wrap:wrap;width:100%;`;
 
-    const itemsPerCol = Math.ceil(children.length / columnCount);
+    const itemsPerCol = Math.ceil(linkItems.length / columnCount);
     for (let i = 0; i < columnCount; i++) {
       const col = el("div", "mc-link-col");
       const alignItems = textAlign === "center" ? "center" : textAlign === "right" ? "flex-end" : "flex-start";
@@ -499,32 +534,13 @@
       }
 
       const start = i * itemsPerCol;
-      const end = Math.min(start + itemsPerCol, children.length);
-      children.slice(start, end).forEach((child) => {
-        if (checkMobile(settings) && child.hideOnMobile) return;
-        if (!checkMobile(settings) && child.hideOnDesktop) return;
+      const end = Math.min(start + itemsPerCol, linkItems.length);
+      linkItems.slice(start, end).forEach((child) => {
+        if (isHidden(child)) return;
 
         const itemEl = buildLink(child, settings, 1);
-        if (!child.isHeading) {
-          itemEl.style.padding = "8px 12px";
-          itemEl.style.borderRadius = "6px";
-          itemEl.style.width = textAlign === "center" ? "auto" : "100%";
-          itemEl.style.transition = "all 150ms ease";
-          itemEl.onmouseenter = () => {
-            itemEl.style.background = "rgba(0,0,0,0.04)";
-            itemEl.style.transform = "translateX(3px)";
-          };
-          itemEl.onmouseleave = () => {
-            itemEl.style.background = "transparent";
-            itemEl.style.transform = "translateX(0)";
-          };
-        } else {
-          // Heading with bottom line
-          itemEl.style.paddingBottom = "8px";
-          itemEl.style.marginBottom = "4px";
-          itemEl.style.borderBottom = `2px solid ${settings.colorSubmenuHeading || "#b91c1c"}`;
-          itemEl.style.width = "100%";
-        }
+        if (child.isHeading) decorateAsHeading(itemEl);
+        else decorateAsLink(itemEl);
         col.appendChild(itemEl);
       });
       grid.appendChild(col);
@@ -544,7 +560,7 @@
     const justifyContent = align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start";
 
     const imgWrap = el("div", "mc-img-wrap");
-    imgWrap.style.cssText = "position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border-radius:12px;transition:transform 300ms ease,box-shadow 300ms ease;";
+    imgWrap.style.cssText = "position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border-radius:12px;transition:transform 300ms ease,box-shadow 300ms ease;aspect-ratio:1/1;width:100%;";
 
     if (item.imageUrl) {
       const img = el("img");
@@ -578,7 +594,6 @@
       }
     } else {
       imgWrap.style.background = "linear-gradient(135deg, rgba(133,133,133,0.08) 0%, rgba(133,133,133,0.15) 100%)";
-      imgWrap.style.minHeight = "180px";
       imgWrap.style.border = "1px dashed #d1d5db";
       imgWrap.innerHTML = `<svg viewBox="0 0 525.5 525.5" style="width:50%;height:50%;fill:rgba(133,133,133,0.25);"><path d="M324.5 212.7H203c-1.6 0-2.8 1.3-2.8 2.8V308c0 1.6 1.3 2.8 2.8 2.8h121.6c1.6 0 2.8-1.3 2.8-2.8v-92.5c0-1.6-1.3-2.8-2.9-2.8zm1.1 95.3c0 .6-.5 1.1-1.1 1.1H203c-.6 0-1.1-.5-1.1-1.1v-92.5c0-.6.5-1.1 1.1-1.1h121.6c.6 0 1.1.5 1.1 1.1V308z"/></svg>`;
     }
@@ -591,7 +606,7 @@
       info.style.cssText = `display:flex;flex-direction:column;gap:8px;text-align:${align};align-items:${alignItems};justify-content:${justifyContent};width:100%;`;
 
       if (isOverlay) {
-        info.style.cssText += "position:absolute;left:20px;right:20px;bottom:20px;background:linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);backdrop-filter:blur(8px);color:#fff;padding:16px 18px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
+        info.style.cssText += "position:absolute;left:20px;right:20px;bottom:20px;width:auto;box-sizing:border-box;background:linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.85) 100%);backdrop-filter:blur(8px);color:#fff;padding:16px 18px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
       } else {
         info.style.marginTop = "12px";
         info.style.padding = "0 4px";
@@ -642,22 +657,22 @@
   };
 
   // ── 5.3 Product Card ──────────────────────────────────────────────
-  const buildProductCard = (productId, settings, layout) => {
+  const buildProductCard = (productId, settings, layout, fallbackLabel) => {
     const product = getResource("product", productId);
     const isLeft = layout === "image-left";
     const card = el("a", "mc-product-card");
-    card.style.cssText = `display:flex;flex-direction:${isLeft ? "row" : "column"};gap:${isLeft ? "12px" : "10px"};padding:0;background:transparent;text-decoration:none;color:inherit;transition:all 200ms ease;border-radius:10px;`;
+    card.style.cssText = `display:flex;flex-direction:${isLeft ? "row" : "column"};gap:${isLeft ? "12px" : "10px"};padding:0;background:transparent;text-decoration:none;color:inherit;border-radius:10px;`;
     if (product && product.handle) card.href = `/products/${product.handle}`;
 
     const imgSize = isLeft ? 80 : "100%";
     const imgWrap = el("div", "mc-product-img-wrap");
-    imgWrap.style.cssText = `width:${isLeft ? imgSize + "px" : "100%"};height:${isLeft ? imgSize + "px" : "auto"};${isLeft ? `flex:0 0 ${imgSize}px;` : "aspect-ratio:1/1;max-height:280px;"}background:#f9fafb;border:1px solid #e5e7eb;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 200ms ease,box-shadow 200ms ease;`;
+    imgWrap.style.cssText = `width:${isLeft ? imgSize + "px" : "100%"};height:${isLeft ? imgSize + "px" : "auto"};${isLeft ? `flex:0 0 ${imgSize}px;` : "aspect-ratio:1/1;max-height:280px;"}background:#f9fafb;border:1px solid #e5e7eb;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);`;
 
     const imgUrl = product?.featuredImage?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-product-1_large.png";
     const img = el("img");
     img.src = imgUrl;
     img.alt = product?.title || "";
-    img.style.cssText = "width:100%;height:100%;object-fit:contain;transition:transform 200ms ease;";
+    img.style.cssText = "width:100%;height:100%;object-fit:contain;";
     img.onerror = () => { img.style.display = "none"; };
     if (settings.advancedEnableLazyLoading) img.loading = "lazy";
     imgWrap.appendChild(img);
@@ -666,13 +681,14 @@
     const info = el("div", "mc-product-info");
     info.style.cssText = "display:flex;flex-direction:column;gap:6px;justify-content:center;flex:1;";
 
-    const title = el("div", "mc-product-title", product?.title || "Product");
+    const title = el("div", "mc-product-title", product?.title || fallbackLabel || "Product");
     title.style.cssText = `font-weight:600;font-size:${isLeft ? "14px" : "15px"};font-family:${settings.typographySubheadingFont};line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:color 150ms ease;`;
     title.style.setProperty("color", settings.colorSubmenuText, "important");
     info.appendChild(title);
 
-    if (product?.priceRange?.minVariantPrice) {
-      const price = el("div", "mc-product-price", formatPrice(product.priceRange.minVariantPrice));
+    const priceText = product?.priceRange?.minVariantPrice ? formatPrice(product.priceRange.minVariantPrice) : (!product ? "$ 19,99" : "");
+    if (priceText) {
+      const price = el("div", "mc-product-price", priceText);
       price.style.cssText = `font-size:${isLeft ? "13px" : "14px"};font-weight:600;margin-top:2px;`;
       price.style.setProperty("color", settings.colorSubmenuHeading || "#111827", "important");
       info.appendChild(price);
@@ -698,19 +714,6 @@
 
     card.appendChild(info);
 
-    card.onmouseenter = () => {
-      card.style.background = "rgba(0,0,0,0.02)";
-      imgWrap.style.transform = "scale(1.03)";
-      imgWrap.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-      title.style.color = settings.colorSubmenuTextHover || settings.colorSubmenuHeading;
-    };
-    card.onmouseleave = () => {
-      card.style.background = "transparent";
-      imgWrap.style.transform = "scale(1)";
-      imgWrap.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
-      title.style.color = settings.colorSubmenuText;
-    };
-
     return card;
   };
 
@@ -720,15 +723,23 @@
     container.style.cssText = "padding:10px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
 
     const bt = item.blockTemplate || "product";
-    const isCarousel = bt === "product-carousel";
+    const groupCarouselLayouts = ["multi-product-carousel", "multi-link-list-product-carousel", "multi-image-product-carousel", "multi-element-group-masonry"];
+    const isChildCarousel = Array.isArray(item.children) && item.children.length > 0 && groupCarouselLayouts.includes(item.multiLayout);
+    const isCarousel = bt === "product-carousel" || isChildCarousel;
     const isHorizontal = bt === "product-horizontal" || bt === "product-grid-horizontal";
     const isGrid = bt === "product-grid" || bt === "product-grid-horizontal";
     const isList = bt === "product-list";
-    const layout = item.productLayout || (isHorizontal ? "image-left" : "image-top");
-    const ids = Array.isArray(item.productIds) ? item.productIds : [];
+    const isProductListGroup = (bt === "product" || isGrid) && Array.isArray(item.children) && item.children.length > 0 && !isCarousel;
+    const layout = isProductListGroup && !isGrid
+      ? "image-left"
+      : item.productLayout || (isHorizontal ? "image-left" : "image-top");
+    const cardSources = (isChildCarousel || isProductListGroup)
+      ? item.children.filter((c) => !c.isHeading).map((c) => ({ id: Array.isArray(c.productIds) ? c.productIds[0] : undefined, label: c.label }))
+      : (Array.isArray(item.productIds) && item.productIds.length ? item.productIds : [undefined]).map((id) => ({ id, label: "Example Product Title" }));
 
     // Heading
-    const heading = (item.label || "").trim();
+    const showHeading = isCarousel || isProductListGroup || Boolean(item.productListCount);
+    const heading = showHeading ? (item.label || "").trim() : "";
     if (heading) {
       const h = el("div", "mc-block-heading", heading);
       h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:18px;line-height:1.2;letter-spacing:-0.02em;margin-bottom:4px;`;
@@ -748,11 +759,12 @@
 
       const pw = item.productWidth || getBlockSpan(item);
       const pageSize = pw < 10 ? 3 : 4;
-      const totalPages = Math.ceil(ids.length / pageSize);
-      let currentPage = 0;
+      const maxIndex = Math.max(0, cardSources.length - pageSize);
+      const totalSteps = maxIndex + 1;
+      let currentIndex = 0;
 
-      ids.forEach((id) => {
-        const card = buildProductCard(id, settings, layout);
+      cardSources.forEach(({ id, label }) => {
+        const card = buildProductCard(id, settings, layout, label);
         card.style.flex = `0 0 calc(${100 / pageSize}% - ${(16 * (pageSize - 1)) / pageSize}px)`;
         track.appendChild(card);
       });
@@ -760,7 +772,10 @@
       carouselWrap.appendChild(track);
 
       // Navigation
-      if (totalPages > 1) {
+      if (totalSteps > 1) {
+        carouselWrap.style.padding = "0 40px";
+        carouselWrap.style.boxSizing = "border-box";
+
         const prevBtn = el("button", "mc-carousel-prev");
         prevBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 0 1 0 1.414L9.414 10l3.293 3.293a1 1 0 0 1-1.414 1.414l-4-4a1 1 0 0 1 0-1.414l4-4a1 1 0 0 1 1.414 0Z" clip-rule="evenodd"/></svg>`;
         prevBtn.style.cssText = "position:absolute;top:50%;left:4px;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;border:1px solid #e5e7eb;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;";
@@ -772,32 +787,32 @@
         // Dots
         const dots = el("div", "mc-carousel-dots");
         dots.style.cssText = "display:flex;justify-content:center;gap:6px;margin-top:10px;";
-        for (let i = 0; i < totalPages; i++) {
+        for (let i = 0; i < totalSteps; i++) {
           const dot = el("button", "mc-dot");
           dot.style.cssText = `width:8px;height:8px;border-radius:50%;border:none;cursor:pointer;background:${i === 0 ? "#111827" : "#cbd5e1"};padding:0;`;
-          dot.addEventListener("click", () => goToPage(i));
+          dot.addEventListener("click", () => goToIndex(i));
           dots.appendChild(dot);
         }
 
         const updateState = () => {
-          prevBtn.style.opacity = currentPage === 0 ? "0.4" : "1";
-          prevBtn.style.cursor = currentPage === 0 ? "not-allowed" : "pointer";
-          nextBtn.style.opacity = currentPage >= totalPages - 1 ? "0.4" : "1";
-          nextBtn.style.cursor = currentPage >= totalPages - 1 ? "not-allowed" : "pointer";
-          track.style.transform = `translateX(-${currentPage * 100}%)`;
+          prevBtn.style.opacity = currentIndex === 0 ? "0.4" : "1";
+          prevBtn.style.cursor = currentIndex === 0 ? "not-allowed" : "pointer";
+          nextBtn.style.opacity = currentIndex >= maxIndex ? "0.4" : "1";
+          nextBtn.style.cursor = currentIndex >= maxIndex ? "not-allowed" : "pointer";
+          track.style.transform = `translateX(-${currentIndex * (100 / pageSize)}%)`;
           dots.querySelectorAll(".mc-dot").forEach((d, i) => {
-            d.style.background = i === currentPage ? "#111827" : "#cbd5e1";
+            d.style.background = i === currentIndex ? "#111827" : "#cbd5e1";
           });
         };
 
-        const goToPage = (page) => {
-          if (page < 0 || page >= totalPages) return;
-          currentPage = page;
+        const goToIndex = (index) => {
+          if (index < 0 || index > maxIndex) return;
+          currentIndex = index;
           updateState();
         };
 
-        prevBtn.addEventListener("click", (e) => { e.stopPropagation(); goToPage(currentPage - 1); });
-        nextBtn.addEventListener("click", (e) => { e.stopPropagation(); goToPage(currentPage + 1); });
+        prevBtn.addEventListener("click", (e) => { e.stopPropagation(); goToIndex(currentIndex - 1); });
+        nextBtn.addEventListener("click", (e) => { e.stopPropagation(); goToIndex(currentIndex + 1); });
 
         carouselWrap.appendChild(prevBtn);
         carouselWrap.appendChild(nextBtn);
@@ -807,15 +822,15 @@
         // Auto play
         if (settings.carouselAutoPlay) {
           let interval = setInterval(() => {
-            const next = settings.carouselLoop ? (currentPage + 1) % totalPages : currentPage + 1;
-            if (next < totalPages) goToPage(next);
+            const next = settings.carouselLoop ? (currentIndex + 1) % totalSteps : currentIndex + 1;
+            if (next <= maxIndex) goToIndex(next);
             else if (!settings.carouselLoop) clearInterval(interval);
           }, 4000);
           carouselWrap.addEventListener("mouseenter", () => clearInterval(interval));
           carouselWrap.addEventListener("mouseleave", () => {
             interval = setInterval(() => {
-              const next = settings.carouselLoop ? (currentPage + 1) % totalPages : currentPage + 1;
-              if (next < totalPages) goToPage(next);
+              const next = settings.carouselLoop ? (currentIndex + 1) % totalSteps : currentIndex + 1;
+              if (next <= maxIndex) goToIndex(next);
               else if (!settings.carouselLoop) clearInterval(interval);
             }, 4000);
           });
@@ -826,21 +841,23 @@
     } else {
       // Grid / List / Standard
       const grid = el("div", "mc-product-grid");
-      if (isGrid) {
-        const cols = Math.min(ids.length, 2);
+      if (isProductListGroup && !isGrid) {
+        grid.style.cssText = "display:grid;gap:14px;grid-template-columns:1fr;width:100%;";
+      } else if (isGrid) {
+        const cols = Math.min(cardSources.length, 2);
         grid.style.cssText = `display:grid;gap:16px;grid-template-columns:repeat(${cols}, 1fr);`;
       } else if (isList) {
         grid.style.cssText = "display:grid;gap:16px;grid-template-columns:1fr;max-width:360px;";
       } else if (isHorizontal) {
         grid.style.cssText = "display:grid;gap:16px;grid-template-columns:1fr;max-width:360px;";
-      } else if (ids.length === 1) {
+      } else if (cardSources.length === 1) {
         grid.style.cssText = "display:grid;gap:16px;grid-template-columns:1fr;max-width:280px;";
       } else {
         grid.style.cssText = "display:grid;gap:16px;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));";
       }
 
-      ids.forEach((id) => {
-        grid.appendChild(buildProductCard(id, settings, isHorizontal || isList ? "image-left" : layout));
+      cardSources.forEach(({ id, label }) => {
+        grid.appendChild(buildProductCard(id, settings, isHorizontal || isList || (isProductListGroup && !isGrid) ? "image-left" : layout, label));
       });
       container.appendChild(grid);
     }
@@ -1255,6 +1272,45 @@
     return container;
   };
 
+  // ── Element group masonry (product carousel + text / link columns) ─
+  const buildElementGroupMasonry = (groups, settings) => {
+    const container = el("div", "mc-element-group-masonry");
+    const mobile = checkMobile(settings);
+
+    const productGroup = groups.find((g) => g.blockTemplate === "product" || g.blockTemplate === "product-carousel");
+    const htmlGroup = groups.find((g) => g.blockTemplate === "html" || g.blockTemplate === "html-special");
+    const linkGroups = groups.filter((g) => g.blockTemplate === "links" || g.blockTemplate === "links-easy" || g.blockTemplate === "links-3" || g.blockTemplate === "links-icons");
+
+    const leftWidthUnits = Math.max(1, Math.min(11, productGroup?.productWidth ?? htmlGroup?.imageWidth ?? 3));
+    const rightWidthUnits = Math.max(1, 12 - leftWidthUnits);
+    const leftBasis = `${Math.round((leftWidthUnits / 12) * 100)}%`;
+    const rightBasis = `${Math.round((rightWidthUnits / 12) * 100)}%`;
+
+    container.style.cssText = `display:flex;gap:${mobile ? 12 : 24}px;flex-wrap:nowrap;flex-direction:${mobile ? "column" : "row"};align-items:flex-start;width:100%;box-sizing:border-box;`;
+
+    const left = el("div", "mc-element-group-left");
+    left.style.cssText = `flex:${mobile ? "1 1 100%" : `0 1 ${leftBasis}`};min-width:0;display:flex;flex-direction:column;gap:6px;width:${mobile ? "100%" : "auto"};box-sizing:border-box;`;
+    if (productGroup) left.appendChild(buildProductBlock(productGroup, settings));
+    if (htmlGroup) left.appendChild(buildHtmlBlock(htmlGroup, settings));
+    container.appendChild(left);
+
+    const right = el("div", "mc-element-group-right");
+    right.style.cssText = `flex:${mobile ? "1 1 100%" : `0 1 ${rightBasis}`};min-width:0;display:flex;gap:${mobile ? 12 : 16}px;flex-wrap:nowrap;flex-direction:${mobile ? "column" : "row"};width:${mobile ? "100%" : "auto"};box-sizing:border-box;`;
+    const linkWeights = linkGroups.map((g) => Math.max(1, Math.min(12, g.linkWidth || 3)));
+    const linkTotal = linkWeights.reduce((sum, value) => sum + value, 0) || 1;
+    linkGroups.forEach((child, index) => {
+      const block = buildLinkListBlock(child, settings);
+      const linkBasis = `${Math.round((linkWeights[index] / linkTotal) * 100)}%`;
+      block.style.flex = mobile ? "1 1 100%" : `0 1 ${linkBasis}`;
+      block.style.minWidth = "0";
+      if (mobile) block.style.width = "100%";
+      right.appendChild(block);
+    });
+    container.appendChild(right);
+
+    return container;
+  };
+
   // ── Simple list (for dropdown items) ──────────────────────────────
   const buildSimpleList = (items, settings, depth) => {
     const list = el("ul", "mc-submenu-list");
@@ -1306,8 +1362,21 @@
     container.style.cssText = `display:grid;grid-template-columns:repeat(12, minmax(0, 1fr));gap:0;width:100%;max-width:${maxW};margin:0 auto;padding:16px 0;box-sizing:border-box;`;
 
     const items = Array.isArray(parentItem.children) ? parentItem.children : [];
+    let masonryInserted = false;
 
     items.forEach((child) => {
+      if (child.multiLayout === "multi-element-group-masonry") {
+        if (masonryInserted) return;
+        masonryInserted = true;
+        const masonryGroups = items.filter((c) => c.multiLayout === "multi-element-group-masonry");
+        const block = buildElementGroupMasonry(masonryGroups, settings);
+        block.style.gridColumn = "span 12";
+        block.style.minWidth = "0";
+        block.style.boxSizing = "border-box";
+        container.appendChild(block);
+        return;
+      }
+
       const block = buildBlockByType(child, settings);
       const span = getBlockSpan(child);
 

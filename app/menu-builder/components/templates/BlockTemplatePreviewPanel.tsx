@@ -512,11 +512,6 @@ export function BlockTemplatePreviewPanel({
                     image: "/simple-left-tabs.png",
                   },
                   {
-                    id: "simple-right-tabs",
-                    label: "Simple Right Tabs",
-                    image: "/simple-right-tabs.png",
-                  },
-                  {
                     id: "simple-top-tabs",
                     label: "Simple Top Tabs",
                     image: "/simple-top-tabs.png",
@@ -524,16 +519,6 @@ export function BlockTemplatePreviewPanel({
                   { id: "two-top-tabs", label: "Two Top Tabs", image: "/two-top-tabs.png" },
                   { id: "three-top-tabs", label: "Three Top Tabs", image: "/three-top-tabs.png" },
                   { id: "two-level-tabs", label: "Two Level Tabs", image: "/two-level-tabs.png" },
-                  {
-                    id: "two-nested-tabs-right",
-                    label: "Two Nested Tabs on the Right",
-                    image: "/two-nested-tabs.png",
-                  },
-                  {
-                    id: "three-nested-tabs-right",
-                    label: "Three Nested Tabs on the Right",
-                    image: "/three-nested-tabs.png",
-                  },
                   { id: "three-level-tabs", label: "Three Level Tabs", image: "/three-level-tabs.png" },
                 ] as Array<{ id: SubmenuTemplateId; label: string; image: string }>
               ).map((template) => {

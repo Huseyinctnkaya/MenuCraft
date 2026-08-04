@@ -870,104 +870,48 @@
     const container = el("div", "mc-block-collection");
     container.style.cssText = "padding:12px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
 
-    const isHorizontal = item.blockTemplate === "collection-horizontal";
-    const ids = Array.isArray(item.collectionIds) ? item.collectionIds : [];
-
-    // Heading
-    const heading = (item.label || "").trim();
-    if (heading) {
-      const h = el("div", "mc-block-heading", heading);
-      h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:18px;line-height:1.2;letter-spacing:-0.02em;margin-bottom:4px;`;
-      container.appendChild(h);
-      const hr = el("div");
-      hr.style.cssText = `border-top:2px solid ${settings.colorSubmenuHeading};opacity:0.2;margin-bottom:8px;border-radius:2px;`;
-      container.appendChild(hr);
-    }
+    const isHorizontal = item.collectionLayout === "image-left";
+    const children = Array.isArray(item.children) && item.children.length ? item.children : [null, null, null];
 
     const grid = el("div", "mc-collection-grid");
-    if (isHorizontal) {
-      grid.style.cssText = "display:flex;flex-direction:column;gap:12px;";
-    } else {
-      grid.style.cssText = "display:grid;gap:16px;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));";
-    }
+    grid.style.cssText = "display:flex;gap:16px;flex-wrap:nowrap;width:100%;";
 
-    ids.forEach((id) => {
-      const collection = getResource("collection", id);
+    children.forEach((child) => {
+      const collectionId = child && Array.isArray(child.collectionIds) ? child.collectionIds[0] : undefined;
+      const collection = collectionId ? getResource("collection", collectionId) : null;
+      const title = collection?.title || (child && child.label) || "Collection title";
 
-      if (isHorizontal) {
-        // Horizontal layout: image left
-        const row = el("a", "mc-collection-row");
-        row.style.cssText = `display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;padding:10px 12px;border-radius:10px;transition:all 200ms ease;background:transparent;`;
-        if (collection?.handle) row.href = `/collections/${collection.handle}`;
+      const card = el("a", "mc-collection-card");
+      card.style.cssText = isHorizontal
+        ? "display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;flex:0 1 32%;min-width:0;"
+        : "display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;flex:0 1 32%;min-width:0;";
+      if (collection?.handle) card.href = `/collections/${collection.handle}`;
 
-        const thumb = el("div", "mc-collection-thumb");
-        thumb.style.cssText = "width:70px;height:70px;flex:0 0 70px;border-radius:10px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:all 200ms ease;";
+      const thumb = el("div", "mc-collection-thumb");
+      thumb.style.cssText = isHorizontal
+        ? "width:60px;height:60px;flex:0 0 60px;border:1px solid #e5e7eb;background:#f3f4f4;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"
+        : "width:100%;aspect-ratio:1/1;border:1px solid #e5e7eb;background:#f3f4f4;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;";
+
+      const imgUrl = collection?.image?.url;
+      if (imgUrl) {
         const img = el("img");
-        img.src = collection?.image?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-collection-1_large.png";
-        img.alt = collection?.title || "";
-        img.style.cssText = "width:100%;height:100%;object-fit:cover;transition:transform 200ms ease;";
+        img.src = imgUrl;
+        img.alt = collection?.image?.altText || title;
+        img.style.cssText = "width:100%;height:100%;object-fit:contain;";
         img.onerror = () => { img.style.display = "none"; };
         if (settings.advancedEnableLazyLoading) img.loading = "lazy";
         thumb.appendChild(img);
-        row.appendChild(thumb);
-
-        const lbl = el("div", "mc-collection-label", collection?.title || "Collection");
-        lbl.style.cssText = `font-weight:600;font-size:15px;font-family:${settings.typographySubheadingFont};line-height:1.3;transition:color 150ms ease;`;
-        lbl.style.setProperty("color", settings.colorSubmenuText, "important");
-        row.appendChild(lbl);
-
-        row.onmouseenter = () => {
-          row.style.background = "rgba(0,0,0,0.03)";
-          thumb.style.transform = "scale(1.05)";
-          thumb.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
-          lbl.style.color = settings.colorSubmenuTextHover || settings.colorSubmenuHeading;
-        };
-        row.onmouseleave = () => {
-          row.style.background = "transparent";
-          thumb.style.transform = "scale(1)";
-          thumb.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
-          lbl.style.color = settings.colorSubmenuText;
-        };
-
-        grid.appendChild(row);
       } else {
-        // Card layout with overlay
-        const card = el("a", "mc-collection-card");
-        card.style.cssText = "display:block;position:relative;border-radius:14px;overflow:hidden;text-decoration:none;background:#f9fafb;border:1px solid #e5e7eb;aspect-ratio:16/9;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:all 250ms ease;";
-        if (collection?.handle) card.href = `/collections/${collection.handle}`;
-
-        const imgUrl = collection?.image?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-collection-1_large.png";
-        const img = el("img");
-        img.src = imgUrl;
-        img.alt = collection?.title || "";
-        img.style.cssText = "width:100%;height:100%;object-fit:cover;display:block;transition:transform 400ms ease;";
-        img.onerror = () => { img.style.display = "none"; };
-        if (settings.advancedEnableLazyLoading) img.loading = "lazy";
-        card.appendChild(img);
-
-        const overlay = el("div", "mc-collection-overlay");
-        overlay.style.cssText = "position:absolute;bottom:0;left:0;right:0;padding:18px 20px;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.5) 50%,transparent 100%);color:#fff;display:flex;flex-direction:column;justify-content:flex-end;height:65%;transition:padding 200ms ease;";
-
-        const lbl = el("div", "mc-collection-label", collection?.title || "Collection");
-        lbl.style.cssText = `font-weight:700;font-size:17px;font-family:${settings.typographySubheadingFont};letter-spacing:-0.01em;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,0.3);`;
-        overlay.appendChild(lbl);
-        card.appendChild(overlay);
-
-        card.onmouseenter = () => {
-          img.style.transform = "scale(1.08)";
-          card.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)";
-          card.style.transform = "translateY(-2px)";
-          overlay.style.paddingBottom = "24px";
-        };
-        card.onmouseleave = () => {
-          img.style.transform = "scale(1)";
-          card.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-          card.style.transform = "translateY(0)";
-          overlay.style.paddingBottom = "18px";
-        };
-
-        grid.appendChild(card);
+        thumb.innerHTML = `<svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" style="color:#9ca3af;"><path d="M6 3h8l1 3H5l1-3Z"/><path d="M4 6h12v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6Z"/><path d="M8 10h4"/></svg>`;
       }
+      card.appendChild(thumb);
+
+      const lbl = el("div", "mc-collection-label", title);
+      lbl.style.cssText = `font-weight:600;font-size:${isHorizontal ? "15px" : "14px"};font-family:${settings.typographySubheadingFont};line-height:1.3;`;
+      lbl.style.setProperty("color", settings.colorSubmenuText, "important");
+      card.appendChild(lbl);
+
+      grid.appendChild(card);
     });
 
     container.appendChild(grid);
@@ -979,16 +923,20 @@
     const container = el("div", "mc-block-blog");
     container.style.cssText = "padding:12px;display:flex;flex-direction:column;gap:12px;width:100%;box-sizing:border-box;";
 
-    const blogId = Array.isArray(item.blogIds) ? item.blogIds[0] : null;
-    const blog = getResource("blog", blogId);
-    const articles = blog?.articles?.nodes || blog?.articles || [];
-    const limit = item.productListCount || 3;
-    const displayArticles = articles.slice(0, limit);
+    const isLatestBlock = item.blockTemplate === "blogs-latest";
+    const blogId = !isLatestBlock && Array.isArray(item.blogIds) ? item.blogIds[0] : null;
+    const blog = blogId ? getResource("blog", blogId) : null;
+    const hasSelection = isLatestBlock || Boolean(blog);
+    const articles = isLatestBlock
+      ? (window.MenuCraftData?.resources?.latestArticles || [])
+      : (blog?.articles?.nodes || blog?.articles || []);
+    const limit = item.productListCount || 4;
+    const showEmptyState = hasSelection && articles.length === 0;
 
     // Heading
-    const blogTitle = (item.label || blog?.title || "Blog").trim();
-    if (blogTitle) {
-      const h = el("div", "mc-block-heading", blogTitle);
+    const heading = (item.label || (isLatestBlock ? "Latest blog" : "Articles")).trim();
+    if (heading) {
+      const h = el("div", "mc-block-heading", heading);
       h.style.cssText = `color:${settings.colorSubmenuHeading};font-weight:700;font-family:${settings.typographySubheadingFont};font-size:18px;line-height:1.2;letter-spacing:-0.02em;margin-bottom:4px;`;
       container.appendChild(h);
       const hr = el("div");
@@ -996,52 +944,53 @@
       container.appendChild(hr);
     }
 
-    const list = el("div", "mc-blog-list");
-    list.style.cssText = "display:flex;flex-direction:column;gap:8px;";
+    if (showEmptyState) {
+      const empty = el("div", "mc-blog-empty", "No posts found.");
+      empty.style.cssText = "font-size:14px;opacity:0.7;";
+      empty.style.setProperty("color", settings.colorSubmenuText, "important");
+      container.appendChild(empty);
+      return container;
+    }
 
-    displayArticles.forEach((article) => {
-      const row = el("a", "mc-blog-row");
-      row.href = blog ? `/blogs/${blog.handle}/${article.handle}` : "#";
-      row.style.cssText = `display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:10px;text-decoration:none;color:inherit;transition:all 200ms ease;background:transparent;`;
+    const cards = hasSelection ? articles.slice(0, limit) : [null, null, null, null];
+    const isSingleCard = cards.length === 1;
 
-      const thumbWrap = el("div", "mc-blog-thumb");
-      thumbWrap.style.cssText = "width:60px;height:60px;flex:0 0 60px;border-radius:8px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:all 200ms ease;";
-      const img = el("img");
-      img.src = article.image?.url || "https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-lifestyle-2_large.png";
-      img.alt = article.title || "";
-      img.style.cssText = "width:100%;height:100%;object-fit:cover;transition:transform 200ms ease;";
-      img.onerror = () => { img.style.display = "none"; };
-      if (settings.advancedEnableLazyLoading) img.loading = "lazy";
-      thumbWrap.appendChild(img);
-      row.appendChild(thumbWrap);
+    const grid = el("div", "mc-blog-grid");
+    grid.style.cssText = `display:flex;gap:16px;flex-wrap:nowrap;justify-content:${isSingleCard ? "flex-start" : "space-between"};width:100%;`;
 
-      const textWrap = el("div", "mc-blog-text");
-      textWrap.style.cssText = "flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;";
+    cards.forEach((article, index) => {
+      const title = article?.title || `Blog post ${index + 1}`;
 
-      const title = el("div", "mc-blog-title", article.title);
-      title.style.cssText = `font-size:14px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:color 150ms ease;`;
-      title.style.setProperty("color", settings.colorSubmenuText, "important");
-      textWrap.appendChild(title);
+      const card = el("a", "mc-blog-card");
+      card.style.cssText = `display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;min-width:0;flex:${isSingleCard ? "0 0 25%" : "1 1 0"};${isSingleCard ? "max-width:25%;" : ""}`;
+      const articleBlogHandle = blog?.handle || article?.blog?.handle;
+      if (article && articleBlogHandle) card.href = `/blogs/${articleBlogHandle}/${article.handle}`;
 
-      row.appendChild(textWrap);
+      const thumb = el("div", "mc-blog-thumb");
+      thumb.style.cssText = "width:100%;aspect-ratio:1/1;border:1px solid #e5e7eb;background:#f3f4f4;overflow:hidden;display:flex;align-items:center;justify-content:center;box-sizing:border-box;";
+      const imgUrl = article?.image?.url;
+      if (imgUrl) {
+        const img = el("img");
+        img.src = imgUrl;
+        img.alt = article?.image?.altText || title;
+        img.style.cssText = "width:100%;height:100%;object-fit:cover;";
+        img.onerror = () => { img.style.display = "none"; };
+        if (settings.advancedEnableLazyLoading) img.loading = "lazy";
+        thumb.appendChild(img);
+      } else {
+        thumb.innerHTML = `<svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" style="color:#9ca3af;"><path d="M4 4h9l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M13 4v3h3"/><path d="M6.5 10.5h7M6.5 13.5h5"/></svg>`;
+      }
+      card.appendChild(thumb);
 
-      row.onmouseenter = () => {
-        row.style.background = "rgba(0,0,0,0.03)";
-        thumbWrap.style.transform = "scale(1.05)";
-        thumbWrap.style.boxShadow = "0 4px 10px rgba(0,0,0,0.12)";
-        title.style.color = settings.colorSubmenuTextHover || settings.colorSubmenuHeading;
-      };
-      row.onmouseleave = () => {
-        row.style.background = "transparent";
-        thumbWrap.style.transform = "scale(1)";
-        thumbWrap.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
-        title.style.color = settings.colorSubmenuText;
-      };
+      const lbl = el("div", "mc-blog-title", title);
+      lbl.style.cssText = `font-weight:600;font-size:14px;font-family:${settings.typographySubheadingFont};line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+      lbl.style.setProperty("color", settings.colorSubmenuText, "important");
+      card.appendChild(lbl);
 
-      list.appendChild(row);
+      grid.appendChild(card);
     });
 
-    container.appendChild(list);
+    container.appendChild(grid);
     return container;
   };
 
@@ -1445,7 +1394,7 @@
             // Fixed width panel for mega content grid — 4 columns at 25% = 900px works well
             const panelWidth = 900;
 
-            nestedPanel.style.cssText = `position:absolute;left:100%;top:0;width:${panelWidth}px;background:${settings.colorSubmenuBackground};border:1px solid ${settings.colorSubmenuBorder};border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);padding:16px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1000;margin-left:8px;overflow:hidden;box-sizing:border-box;`;
+            nestedPanel.style.cssText = `position:absolute;left:100%;top:0;width:${panelWidth}px;background:${settings.colorSubmenuBackground};border:1px solid ${settings.colorSubmenuBorder};border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);padding:16px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1000;margin-left:0;overflow:hidden;box-sizing:border-box;`;
 
             // If panel would overflow right, open to the left instead
             requestAnimationFrame(() => {
@@ -1454,7 +1403,7 @@
                 nestedPanel.style.left = "auto";
                 nestedPanel.style.right = "100%";
                 nestedPanel.style.marginLeft = "0";
-                nestedPanel.style.marginRight = "8px";
+                nestedPanel.style.marginRight = "0";
               }
               // Also clamp if still overflows (e.g. small viewport)
               const rect2 = nestedPanel.getBoundingClientRect();
@@ -1475,7 +1424,7 @@
             nestedPanel.appendChild(megaContent);
           } else {
             // Simple list for plain links
-            nestedPanel.style.cssText = `position:absolute;left:100%;top:0;min-width:200px;background:${settings.colorSubmenuBackground};border:1px solid ${settings.colorSubmenuBorder};border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:8px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1000;margin-left:8px;`;
+            nestedPanel.style.cssText = `position:absolute;left:100%;top:0;min-width:200px;background:${settings.colorSubmenuBackground};border:1px solid ${settings.colorSubmenuBorder};border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:8px;opacity:0;visibility:hidden;transition:all 200ms ease;pointer-events:none;z-index:1000;margin-left:0;`;
             const nestedList = buildSimpleList(child.children, settings, 2);
             nestedPanel.appendChild(nestedList);
           }
@@ -1625,7 +1574,7 @@
       const maxW = parseCssSize(
         parentItem.submenuMaxWidth || settings.submenuMaxWidth || settings.layoutMaxWidth || "720px"
       );
-      contentArea.style.cssText = `position:absolute;top:0;${isRight || isNestedRight ? "right:100%;margin-right:8px;" : "left:100%;margin-left:8px;"}min-width:320px;width:max-content;max-width:${maxW};background:${settings.colorSubmenuBackground};${settings.submenuShowBorder ? `border:1px solid ${settings.colorSubmenuBorder};` : ""}border-radius:0;box-shadow:0 10px 30px rgba(0,0,0,0.15);opacity:0;visibility:hidden;pointer-events:none;transition:opacity 150ms ease;z-index:1001;box-sizing:border-box;overflow:hidden;`;
+      contentArea.style.cssText = `position:absolute;top:0;${isRight || isNestedRight ? "right:100%;margin-right:0;" : "left:100%;margin-left:0;"}min-width:320px;width:max-content;max-width:${maxW};background:${settings.colorSubmenuBackground};${settings.submenuShowBorder ? `border:1px solid ${settings.colorSubmenuBorder};` : ""}border-radius:0;box-shadow:0 10px 30px rgba(0,0,0,0.15);opacity:0;visibility:hidden;pointer-events:none;transition:opacity 150ms ease;z-index:1001;box-sizing:border-box;overflow:hidden;`;
 
       // Flip to the opposite side if the flyout would overflow the viewport.
       requestAnimationFrame(() => {
@@ -1634,12 +1583,12 @@
           contentArea.style.left = "auto";
           contentArea.style.right = "100%";
           contentArea.style.marginLeft = "0";
-          contentArea.style.marginRight = "8px";
+          contentArea.style.marginRight = "0";
         } else if (rect.left < 16 && (isRight || isNestedRight)) {
           contentArea.style.right = "auto";
           contentArea.style.left = "100%";
           contentArea.style.marginRight = "0";
-          contentArea.style.marginLeft = "8px";
+          contentArea.style.marginLeft = "0";
         }
       });
     } else if (!isTop) {
@@ -1715,10 +1664,21 @@
         panel.style.cssText = "display:none;padding:10px 0 10px 20px;box-sizing:border-box;overflow:visible;";
 
         if (isNested) {
-          // Nested tabs: render children as sub-tabs
+          // Nested tabs: render children as sub-tabs. "three-*" templates
+          // need two levels of tab rows before the leaf content, so their
+          // immediate child must still be a nested ("two-*") template —
+          // forcing straight to "simple-*" here would truncate the third
+          // row and drop it back to plain content one level too early.
+          const childTemplate = template.includes("three-top")
+            ? "two-top-tabs"
+            : template.includes("three-level")
+              ? "two-level-tabs"
+              : (isTop || template.includes("top"))
+                ? "simple-top-tabs"
+                : "simple-left-tabs";
           const subTabContainer = buildTabsContent({
             ...tab,
-            submenuTemplate: isTop || template.includes("top") ? "simple-top-tabs" : "simple-left-tabs",
+            submenuTemplate: childTemplate,
           }, settings);
           panel.appendChild(subTabContainer);
         } else {
@@ -1729,20 +1689,10 @@
       }
       contentPanels.push(panel);
 
-      if (hasChildren && index === firstActiveIndex) {
-        tabBtn.classList.add("is-active");
-        if (isTop) {
-          tabBtn.style.borderBottomColor = settings.colorSubmenuHeading;
-        } else if (isRight || isNestedRight) {
-          tabBtn.style.borderRightColor = settings.colorSubmenuHeading;
-        } else {
-          tabBtn.style.borderLeftColor = settings.colorSubmenuHeading;
-        }
-        tabBtn.style.background = settings.colorTabBackgroundActive;
-        tabBtn.style.color = settings.colorTabHeadingActive;
-        panel.style.display = "block";
-        showContentArea();
-      }
+      // Nothing is pre-activated: every level starts fully collapsed, and
+      // a tab only opens once the shopper actually hovers it — hovering the
+      // top-level nav item must not instantly reveal the whole tree with a
+      // default tab already selected at every level.
 
       if (hasChildren) {
         const activate = () => {
@@ -1909,6 +1859,18 @@
             submenu.style.maxWidth = parseCssSize(
               item.submenuMaxWidth || settings.submenuMaxWidth || settings.layoutMaxWidth || "720px"
             );
+            // Right-oriented tab templates fly their content out to the
+            // LEFT of the (narrow) tab list. If the panel stays anchored to
+            // the trigger's left edge (the default), that flyout has to
+            // extend further left than the trigger itself — for any trigger
+            // that isn't already far from the left edge of the viewport it
+            // renders off-screen and never becomes visible. Anchoring the
+            // panel to the trigger's right edge instead gives the leftward
+            // flyout room to actually appear.
+            if (item.submenuTemplate === "simple-right-tabs" || item.submenuTemplate === "two-nested-tabs-right" || item.submenuTemplate === "three-nested-tabs-right") {
+              submenu.style.left = "auto";
+              submenu.style.right = "0";
+            }
           } else {
             // Regular dropdown: narrower width
             submenu.style.maxWidth = "320px";
@@ -2043,6 +2005,7 @@
       }
       .mc-submenu::before {
         content:"";position:absolute;top:-30px;left:0;width:100%;height:30px;background:transparent;
+        pointer-events:none;
       }
 
       /* ── Mega submenu ── */

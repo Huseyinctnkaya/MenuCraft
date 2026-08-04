@@ -151,44 +151,6 @@ export function SubmenuTemplatePreviewPanel({
                 ),
               })}
               {renderTemplatePreviewCard({
-                title: "Simple Right Tabs",
-                onSelect: () => handleApplySubmenuTemplate("simple-right-tabs"),
-                previewHeightClassName: "h-44",
-                previewContainerClassName: "bg-transparent p-0",
-                showSelectButton: false,
-                showTitle: false,
-                preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                    <img
-                      src="/simple-right-tabs.png"
-                      alt="Simple Right Tabs template"
-                      className="h-full w-full object-contain"
-                    />
-                    <div
-                      className="absolute right-3 top-3 z-10"
-                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
-                    >
-                      <Badge tone="warning">Plus</Badge>
-                    </div>
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                      Simple Right Tabs
-                    </div>
-                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                      <Button
-                        fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-right-tabs") : () => navigate("/app/pricing")}
-                        disabled={false}
-                        size="slim"
-                        variant="primary"
-                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                      >
-                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
-                      </Button>
-                    </div>
-                  </div>
-                ),
-              })}
-              {renderTemplatePreviewCard({
                 title: "Simple Top Tabs",
                 onSelect: () => handleApplySubmenuTemplate("simple-top-tabs"),
                 previewHeightClassName: "h-44",
@@ -329,86 +291,6 @@ export function SubmenuTemplatePreviewPanel({
                       <Button
                         fullWidth
                         onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-level-tabs") : () => navigate("/app/pricing")}
-                        disabled={false}
-                        size="slim"
-                        variant="primary"
-                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                      >
-                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
-                      </Button>
-                    </div>
-                  </div>
-                ),
-              })}
-              {renderTemplatePreviewCard({
-                title: "Two Nested Tabs on the Right",
-                onSelect: () => handleApplySubmenuTemplate("two-nested-tabs-right"),
-                previewHeightClassName: "h-44",
-                previewContainerClassName: "bg-transparent p-0",
-                showSelectButton: false,
-                showTitle: false,
-                preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                    <img
-                      src="/two-nested-tabs.png"
-                      alt="Two Nested Tabs on the Right template"
-                      className="h-full w-full object-contain"
-                    />
-                    <div
-                      className="absolute right-3 top-3 z-10"
-                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
-                    >
-                      <Badge tone="warning">Plus</Badge>
-                    </div>
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                      Two Nested Tabs on the Right
-                    </div>
-                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                      <Button
-                        fullWidth
-                        onClick={
-                          isPlusPlan ? () => handleApplySubmenuTemplate("two-nested-tabs-right") : () => navigate("/app/pricing")
-                        }
-                        disabled={false}
-                        size="slim"
-                        variant="primary"
-                        style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
-                      >
-                        {isPlusPlan ? "Select" : "Upgrade to Plus"}
-                      </Button>
-                    </div>
-                  </div>
-                ),
-              })}
-              {renderTemplatePreviewCard({
-                title: "Three Nested Tabs on the Right",
-                onSelect: () => handleApplySubmenuTemplate("three-nested-tabs-right"),
-                previewHeightClassName: "h-44",
-                previewContainerClassName: "bg-transparent p-0",
-                showSelectButton: false,
-                showTitle: false,
-                preview: (
-                  <div className="relative flex h-full w-full items-center justify-center rounded-none bg-gray-200 p-2 transition-colors group-hover:bg-gray-300">
-                    <img
-                      src="/three-nested-tabs.png"
-                      alt="Three Nested Tabs on the Right template"
-                      className="h-full w-full object-contain"
-                    />
-                    <div
-                      className="absolute right-3 top-3 z-10"
-                      style={{ transform: "scale(1.12)", transformOrigin: "top right" }}
-                    >
-                      <Badge tone="warning">Plus</Badge>
-                    </div>
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 max-w-[90%] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-gray-700 transition-opacity group-hover:opacity-0">
-                      Three Nested Tabs on the Right
-                    </div>
-                    <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
-                      <Button
-                        fullWidth
-                        onClick={
-                          isPlusPlan ? () => handleApplySubmenuTemplate("three-nested-tabs-right") : () => navigate("/app/pricing")
-                        }
                         disabled={false}
                         size="slim"
                         variant="primary"

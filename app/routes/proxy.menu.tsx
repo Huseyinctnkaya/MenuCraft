@@ -37,6 +37,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       products: {},
       collections: {},
       blogs: {},
+      latestArticles: [],
     };
 
     try {
@@ -44,6 +45,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       const productIds = new Set<string>();
       const collectionIds = new Set<string>();
       const blogIds = new Set<string>();
+      let needsLatestArticles = false;
 
       const traverse = (list: any[]) => {
         for (const item of list) {
@@ -51,10 +53,34 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           if (item.collectionIds?.length)
             item.collectionIds.forEach((id: string) => collectionIds.add(id));
           if (item.blogIds?.length) item.blogIds.forEach((id: string) => blogIds.add(id));
+          if (item.blockTemplate === "blogs-latest") needsLatestArticles = true;
           if (item.children?.length) traverse(item.children);
         }
       };
       traverse(items);
+
+      if (needsLatestArticles) {
+        const query = `
+          query GetLatestArticles($first: Int!) {
+            articles(first: $first, sortKey: PUBLISHED_AT, reverse: true) {
+              nodes {
+                id
+                title
+                handle
+                image {
+                  url
+                }
+                blog {
+                  handle
+                }
+              }
+            }
+          }
+        `;
+        const response = await admin.graphql(query, { variables: { first: 4 } });
+        const data: any = await response.json();
+        resources.latestArticles = data.data?.articles?.nodes || [];
+      }
 
       if (productIds.size > 0 || collectionIds.size > 0 || blogIds.size > 0) {
 
@@ -123,7 +149,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
                 id
                 title
                 handle
-                articles(first: 3) {
+                articles(first: 4) {
                   nodes {
                     id
                     title

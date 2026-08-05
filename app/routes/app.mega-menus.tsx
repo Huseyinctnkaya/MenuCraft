@@ -20,7 +20,7 @@ import {
   Box,
   Button,
   Card,
-  EmptyState,
+  Icon,
   IndexTable,
   InlineStack,
   List,
@@ -34,6 +34,7 @@ import {
 import {
   DuplicateIcon,
   ImportIcon,
+  MenuIcon,
   MenuVerticalIcon,
   MobileIcon,
   PlusIcon,
@@ -752,17 +753,22 @@ export default function MegaMenusList() {
 
         <Card padding="0">
           {menus.length === 0 ? (
-            <EmptyState
-              heading="No menus yet"
-              action={{
-                content: "Create New Menu",
-                onAction: () =>
-                  openMenuBuilder(""),
-              }}
-              image="/empty-state.svg"
-            >
-              <p>Create your first mega menu to get started.</p>
-            </EmptyState>
+            <Box paddingBlockStart="800" paddingBlockEnd="1600">
+              <BlockStack gap="400" inlineAlign="center">
+                <Box background="bg-surface-secondary" borderRadius="full" padding="800">
+                  <Icon source={MenuIcon} tone="subdued" />
+                </Box>
+                <BlockStack gap="150" inlineAlign="center">
+                  <Text as="p" variant="headingMd" alignment="center">No menus yet</Text>
+                  <Text as="p" variant="bodySm" tone="subdued" alignment="center">
+                    Create your first mega menu to get started.
+                  </Text>
+                </BlockStack>
+                <Button variant="primary" onClick={() => openMenuBuilder("")}>
+                  Create New Menu
+                </Button>
+              </BlockStack>
+            </Box>
           ) : (
             <IndexTable
               resourceName={resourceName}

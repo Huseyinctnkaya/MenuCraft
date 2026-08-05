@@ -759,7 +759,7 @@ export default function MegaMenusList() {
                 onAction: () =>
                   openMenuBuilder(""),
               }}
-              image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+              image="https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg"
             >
               <p>Create your first mega menu to get started.</p>
             </EmptyState>

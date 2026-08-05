@@ -72,18 +72,12 @@ export default function Support() {
               <Box>
                 <Icon source={ChatIcon} tone="success" />
               </Box>
-              <Text as="h3" variant="headingSm">Live Chat</Text>
-              <Text as="p" variant="bodySm" tone="subdued" alignment="center">Chat with us in real-time</Text>
-              <Button
-                fullWidth
-                onClick={() => {
-                  if (typeof window !== "undefined" && window.$crisp) {
-                    window.$crisp.push(["do", "chat:open"]);
-                  }
-                }}
-              >
-                Start Chat
-              </Button>
+              <InlineStack gap="150" blockAlign="center">
+                <Text as="h3" variant="headingSm">Live Chat</Text>
+                <Badge tone="info">Soon</Badge>
+              </InlineStack>
+              <Text as="p" variant="bodySm" tone="subdued" alignment="center">Chat with us in real-time — coming soon</Text>
+              <Button fullWidth disabled>Start Chat</Button>
             </BlockStack>
           </Card>
 

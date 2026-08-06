@@ -1,5 +1,4 @@
 import { Button, Text } from "@shopify/polaris";
-import type { NavigateFunction } from "@remix-run/react";
 
 import { BLOCK_TEMPLATES } from "../../constants";
 import type { BlockTemplateId, SubmenuTemplateId } from "../../types";
@@ -16,7 +15,6 @@ type BlockTemplatePreviewPanelProps = {
   handleApplyTabsBlockTemplate: (templateId: SubmenuTemplateId) => void;
   isPlusPlan: boolean;
   isProPlan: boolean;
-  navigate: NavigateFunction;
 };
 
 export function BlockTemplatePreviewPanel({
@@ -30,7 +28,6 @@ export function BlockTemplatePreviewPanel({
   handleApplyTabsBlockTemplate,
   isPlusPlan,
   isProPlan,
-  navigate,
 }: BlockTemplatePreviewPanelProps) {
     const isOpen = Boolean(blockTemplateTargetId);
     const activeTemplate = BLOCK_TEMPLATES.find((template) => template.id === blockTemplateHoverId);
@@ -78,7 +75,7 @@ export function BlockTemplatePreviewPanel({
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Element Group (Mansory Order)",
-                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => navigate("/app/pricing"),
+                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => {},
                 badge: "Plus",
                 selectLabel: isPlusPlan ? "Select" : "Upgrade to Plus",
                 showSelectButton: false,
@@ -99,7 +96,7 @@ export function BlockTemplatePreviewPanel({
                       <Button
                         fullWidth
                         onClick={
-                          isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => navigate("/app/pricing")
+                          isPlusPlan ? () => handleApplyBlockTemplate("multi-element-group-masonry") : () => {}
                         }
                         size="slim"
                         variant="primary"
@@ -144,7 +141,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "4 product list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -164,7 +161,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-4-product-list") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -208,7 +205,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "1 link list + 3 product list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -229,7 +226,7 @@ export function BlockTemplatePreviewPanel({
                       <Button
                         fullWidth
                         onClick={
-                          isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => navigate("/app/pricing")
+                          isProPlan ? () => handleApplyBlockTemplate("multi-1-column-3-product-list") : () => {}
                         }
                         size="slim"
                         variant="primary"
@@ -274,7 +271,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Product carousel",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -294,7 +291,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("multi-product-carousel") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -338,7 +335,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "1 link list + product carousel",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -359,7 +356,7 @@ export function BlockTemplatePreviewPanel({
                       <Button
                         fullWidth
                         onClick={
-                          isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => navigate("/app/pricing")
+                          isProPlan ? () => handleApplyBlockTemplate("multi-link-list-product-carousel") : () => {}
                         }
                         size="slim"
                         variant="primary"
@@ -404,7 +401,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Image + product carousel",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -425,7 +422,7 @@ export function BlockTemplatePreviewPanel({
                       <Button
                         fullWidth
                         onClick={
-                          isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => navigate("/app/pricing")
+                          isProPlan ? () => handleApplyBlockTemplate("multi-image-product-carousel") : () => {}
                         }
                         size="slim"
                         variant="primary"
@@ -526,7 +523,7 @@ export function BlockTemplatePreviewPanel({
                 return renderBlockTemplatePreviewCard({
                   title: template.label,
                   onSelect: () => {
-                    if (!isAllowed) return navigate("/app/pricing");
+                    if (!isAllowed) return;
                     handleApplyTabsBlockTemplate(template.id);
                   },
                   badge: "Plus",
@@ -753,7 +750,7 @@ export function BlockTemplatePreviewPanel({
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Product grid",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -773,7 +770,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -817,7 +814,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Product carousel",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -837,7 +834,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-carousel") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -881,7 +878,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Product list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-list") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-list") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -901,7 +898,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-list") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-list") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -914,7 +911,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Horizontal product grid",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -934,7 +931,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("product-grid-horizontal") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -952,7 +949,7 @@ export function BlockTemplatePreviewPanel({
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Collection list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("collection") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("collection") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -972,7 +969,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("collection") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("collection") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -985,7 +982,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Horizontal collection list",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("collection-horizontal") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("collection-horizontal") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -1005,7 +1002,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("collection-horizontal") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("collection-horizontal") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -1023,7 +1020,7 @@ export function BlockTemplatePreviewPanel({
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Articles",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -1043,7 +1040,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -1056,7 +1053,7 @@ export function BlockTemplatePreviewPanel({
               })}
               {renderBlockTemplatePreviewCard({
                 title: "Latest blog",
-                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => navigate("/app/pricing"),
+                onSelect: isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => {},
                 badge: "Pro",
                 selectLabel: isProPlan ? "Select" : "Upgrade to Pro",
                 showSelectButton: false,
@@ -1076,7 +1073,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => navigate("/app/pricing")}
+                        onClick={isProPlan ? () => handleApplyBlockTemplate("blogs-latest") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}
@@ -1127,7 +1124,7 @@ export function BlockTemplatePreviewPanel({
             <div className="flex flex-col gap-0">
               {renderBlockTemplatePreviewCard({
                 title: "Special HTML",
-                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => navigate("/app/pricing"),
+                onSelect: isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => {},
                 badge: "Plus",
                 selectLabel: isPlusPlan ? "Select" : "Upgrade to Plus",
                 showSelectButton: false,
@@ -1147,7 +1144,7 @@ export function BlockTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => navigate("/app/pricing")}
+                        onClick={isPlusPlan ? () => handleApplyBlockTemplate("html-special") : () => {}}
                         size="slim"
                         variant="primary"
                         style={{ backgroundColor: "#111827", borderColor: "#111827", color: "#ffffff" }}

@@ -25,7 +25,6 @@ declare global {
 export const BUILDER_DIRTY_STATE_MESSAGE = "menucraft:builderDirtyState" as const;
 export const CLOSE_BUILDER_MESSAGE = "menucraft:closeBuilder" as const;
 export const REQUEST_CLOSE_CONFIRMATION_MESSAGE = "menucraft:requestCloseConfirmation" as const;
-export const NAVIGATE_TO_PRICING_MESSAGE = "menucraft:navigateToPricing" as const;
 
 export type BuilderDirtyStateMessage = {
   type: typeof BUILDER_DIRTY_STATE_MESSAGE;
@@ -41,15 +40,10 @@ export type RequestCloseConfirmationMessage = {
   type: typeof REQUEST_CLOSE_CONFIRMATION_MESSAGE;
 };
 
-export type NavigateToPricingMessage = {
-  type: typeof NAVIGATE_TO_PRICING_MESSAGE;
-};
-
 export type AppWindowMessage =
   | BuilderDirtyStateMessage
   | CloseBuilderMessage
-  | RequestCloseConfirmationMessage
-  | NavigateToPricingMessage;
+  | RequestCloseConfirmationMessage;
 
 export const isAppWindowMessage = (data: unknown): data is AppWindowMessage =>
   typeof data === "object" &&
@@ -57,5 +51,4 @@ export const isAppWindowMessage = (data: unknown): data is AppWindowMessage =>
   "type" in data &&
   (data.type === BUILDER_DIRTY_STATE_MESSAGE ||
     data.type === CLOSE_BUILDER_MESSAGE ||
-    data.type === REQUEST_CLOSE_CONFIRMATION_MESSAGE ||
-    data.type === NAVIGATE_TO_PRICING_MESSAGE);
+    data.type === REQUEST_CLOSE_CONFIRMATION_MESSAGE);

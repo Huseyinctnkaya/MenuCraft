@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useFetcher, useLoaderData, useRouteLoaderData } from "@remix-run/react";
 import {
@@ -153,7 +153,6 @@ import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
 import {
   BUILDER_DIRTY_STATE_MESSAGE,
   CLOSE_BUILDER_MESSAGE,
-  NAVIGATE_TO_PRICING_MESSAGE,
   REQUEST_CLOSE_CONFIRMATION_MESSAGE,
   isAppWindowMessage,
   type BuilderDirtyStateMessage,
@@ -506,22 +505,6 @@ export default function MenuBuilder() {
   const [blockTemplatePanelHover, setBlockTemplatePanelHover] = useState(false);
   const blockTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingBlockTemplateIdRef = useRef<BlockTemplateId | null>(null);
-  const navigateToPricing = useCallback(() => {
-    setSubmenuTemplateTargetId(null);
-    setSubmenuTemplateHoverId(null);
-    setSubmenuTemplatePanelHover(false);
-    setBlockTemplateTargetId(null);
-    setBlockTemplateHoverId(null);
-    setBlockTemplatePanelHover(false);
-    // The builder itself only ever runs inside the <s-app-window> iframe that
-    // app.mega-menus.tsx hosts (see app-window-messages.ts) — navigating this
-    // frame to /app/pricing would render the pricing page squeezed inside that
-    // same small app window instead of the real embedded app. The host page
-    // owns the actual app navigation, so ask it to close the window and go
-    // to /app/pricing itself.
-    if (typeof window === "undefined" || !window.parent) return;
-    window.parent.postMessage({ type: NAVIGATE_TO_PRICING_MESSAGE }, window.location.origin);
-  }, []);
   const previewImageCacheRef = useRef<Set<string>>(new Set());
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [pendingDeleteItemLabel, setPendingDeleteItemLabel] = useState<string>("");
@@ -5983,7 +5966,6 @@ export default function MenuBuilder() {
           handleApplyTabsBlockTemplate={handleApplyTabsBlockTemplate}
           isPlusPlan={isPlusPlan}
           isProPlan={isProPlan}
-          navigate={navigateToPricing}
         />
         <BlockTemplatePicker
           blockTemplateTargetId={blockTemplateTargetId}
@@ -6005,7 +5987,6 @@ export default function MenuBuilder() {
           handleApplyMegaMenuPreset={handleApplyMegaMenuPreset}
           isPlusPlan={isPlusPlan}
           isProPlan={isProPlan}
-          navigate={navigateToPricing}
         />
         <SubmenuTemplatePicker
           submenuTemplateTargetId={submenuTemplateTargetId}

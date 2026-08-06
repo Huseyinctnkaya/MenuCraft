@@ -10,7 +10,6 @@ import type { loader as appLoader } from "./app";
 import {
   BUILDER_DIRTY_STATE_MESSAGE,
   CLOSE_BUILDER_MESSAGE,
-  NAVIGATE_TO_PRICING_MESSAGE,
   REQUEST_CLOSE_CONFIRMATION_MESSAGE,
   isAppWindowMessage,
 } from "../menu-builder/app-window-messages";
@@ -406,14 +405,6 @@ export default function MegaMenusList() {
         };
       } else if (event.data.type === CLOSE_BUILDER_MESSAGE) {
         appWindowRef.current?.hide?.();
-      } else if (event.data.type === NAVIGATE_TO_PRICING_MESSAGE) {
-        // Navigating away unmounts this whole route (and the app-window with
-        // it) regardless, so there's no need to wait on the app-window's own
-        // "hide" event here the way CLOSE_BUILDER_MESSAGE does — that event
-        // isn't guaranteed to fire for a programmatic hide() call, and gating
-        // the navigation on it left the button doing nothing.
-        appWindowRef.current?.hide?.();
-        navigate("/app/pricing");
       }
     };
     window.addEventListener("message", handleMessage);

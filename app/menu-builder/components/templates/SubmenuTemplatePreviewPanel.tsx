@@ -1,5 +1,4 @@
 import { Badge, Button, Text } from "@shopify/polaris";
-import type { NavigateFunction } from "@remix-run/react";
 
 import { SUBMENU_TEMPLATES } from "../../constants";
 import type { BlockTemplateId, SubmenuTemplateId } from "../../types";
@@ -17,7 +16,6 @@ type SubmenuTemplatePreviewPanelProps = {
   handleApplyMegaMenuPreset: (templateId: BlockTemplateId) => void;
   isPlusPlan: boolean;
   isProPlan: boolean;
-  navigate: NavigateFunction;
 };
 
 export function SubmenuTemplatePreviewPanel({
@@ -31,7 +29,6 @@ export function SubmenuTemplatePreviewPanel({
   handleApplyMegaMenuPreset,
   isPlusPlan,
   isProPlan,
-  navigate,
 }: SubmenuTemplatePreviewPanelProps) {
     const isOpen = Boolean(submenuTemplateTargetId);
     const activeTemplate = SUBMENU_TEMPLATES.find((template) => template.id === submenuTemplateHoverId);
@@ -138,7 +135,7 @@ export function SubmenuTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-left-tabs") : () => navigate("/app/pricing")}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-left-tabs") : () => {}}
                         disabled={false}
                         size="slim"
                         variant="primary"
@@ -176,7 +173,7 @@ export function SubmenuTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-top-tabs") : () => navigate("/app/pricing")}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("simple-top-tabs") : () => {}}
                         disabled={false}
                         size="slim"
                         variant="primary"
@@ -214,7 +211,7 @@ export function SubmenuTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-top-tabs") : () => navigate("/app/pricing")}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-top-tabs") : () => {}}
                         disabled={false}
                         size="slim"
                         variant="primary"
@@ -252,7 +249,7 @@ export function SubmenuTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-top-tabs") : () => navigate("/app/pricing")}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-top-tabs") : () => {}}
                         disabled={false}
                         size="slim"
                         variant="primary"
@@ -290,7 +287,7 @@ export function SubmenuTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-level-tabs") : () => navigate("/app/pricing")}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("two-level-tabs") : () => {}}
                         disabled={false}
                         size="slim"
                         variant="primary"
@@ -328,7 +325,7 @@ export function SubmenuTemplatePreviewPanel({
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                       <Button
                         fullWidth
-                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-level-tabs") : () => navigate("/app/pricing")}
+                        onClick={isPlusPlan ? () => handleApplySubmenuTemplate("three-level-tabs") : () => {}}
                         disabled={false}
                         size="slim"
                         variant="primary"
@@ -436,7 +433,7 @@ export function SubmenuTemplatePreviewPanel({
                         : true;
                   return renderBlockTemplatePreviewCard({
                     title: preset.label,
-                    onSelect: isAllowed ? () => handleApplyMegaMenuPreset(preset.id) : () => navigate("/app/pricing"),
+                    onSelect: isAllowed ? () => handleApplyMegaMenuPreset(preset.id) : () => {},
                     badge: preset.plan ? (preset.plan === "plus" ? "Plus" : "Pro") : undefined,
                     selectLabel: isAllowed ? "Select" : (requiredPlan === "plus" ? "Upgrade to Plus" : "Upgrade to Pro"),
                     selectDisabled: false,
@@ -487,7 +484,7 @@ export function SubmenuTemplatePreviewPanel({
                 <div className="pointer-events-none absolute inset-x-4 bottom-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
                   <Button
                     fullWidth
-                    onClick={isPlusPlan ? () => handleApplySubmenuTemplate("custom-normal-dropdown") : () => navigate("/app/pricing")}
+                    onClick={isPlusPlan ? () => handleApplySubmenuTemplate("custom-normal-dropdown") : () => {}}
                     disabled={false}
                     size="slim"
                     variant="primary"

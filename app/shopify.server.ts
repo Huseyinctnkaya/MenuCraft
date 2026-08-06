@@ -27,7 +27,7 @@ const shopify = shopifyApp({
           interval: BillingInterval.Every30Days,
         },
       ],
-      trialDays: 14,
+      trialDays: 7,
     },
     [BILLING_PLANS.pro.yearly]: {
       lineItems: [
@@ -37,7 +37,7 @@ const shopify = shopifyApp({
           interval: BillingInterval.Annual,
         },
       ],
-      trialDays: 14,
+      trialDays: 7,
     },
     [BILLING_PLANS.plus.monthly]: {
       lineItems: [
@@ -47,7 +47,7 @@ const shopify = shopifyApp({
           interval: BillingInterval.Every30Days,
         },
       ],
-      trialDays: 14,
+      trialDays: 7,
     },
     [BILLING_PLANS.plus.yearly]: {
       lineItems: [
@@ -57,7 +57,7 @@ const shopify = shopifyApp({
           interval: BillingInterval.Annual,
         },
       ],
-      trialDays: 14,
+      trialDays: 7,
     },
   },
   future: {

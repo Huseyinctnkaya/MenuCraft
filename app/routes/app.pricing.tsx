@@ -225,7 +225,7 @@ export default function Pricing() {
         "90-Day Analytics History",
       ],
       popular: true,
-      trial: "Includes 14-day trial",
+      trial: "Includes 7-day trial",
     },
     {
       id: "plus",
@@ -273,7 +273,7 @@ export default function Pricing() {
                 <Icon source={ShieldCheckMarkIcon} tone="success" />
               </Box>
               <Text as="span" variant="bodySm" tone="success">
-                14-day free trial - No credit card required - Cancel anytime
+                7-day free trial - No credit card required - Cancel anytime
               </Text>
             </InlineStack>
           </Box>

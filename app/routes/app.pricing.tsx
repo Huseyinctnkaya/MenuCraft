@@ -291,10 +291,14 @@ export default function Pricing() {
                 <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "var(--p-space-400)" }}>
                   <div style={{ flexGrow: 1 }}>
                     <BlockStack gap="400" inlineAlign="start">
-                      {plan.popular && <Badge tone="info">Most Popular</Badge>}
-                      <Box>
-                        <Icon source={plan.icon} tone="info" />
-                      </Box>
+                      <div style={{ width: "100%" }}>
+                        <InlineStack align="space-between" blockAlign="center">
+                          <Box>
+                            <Icon source={plan.icon} tone="info" />
+                          </Box>
+                          {plan.popular && <Badge tone="info">Most Popular</Badge>}
+                        </InlineStack>
+                      </div>
                       <BlockStack gap="100">
                         <Text as="h3" variant="headingLg">{plan.name}</Text>
                         <Text as="p" variant="bodySm" tone="subdued">{plan.description}</Text>

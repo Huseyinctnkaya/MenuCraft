@@ -244,7 +244,7 @@ export default function MenuBuilder() {
   });
   const appData = useRouteLoaderData<typeof appLoader>("routes/app");
   const planTier = (appData as { planTier?: string } | null)?.planTier;
-  const isPlusPlan = true; // planTier === "plus"; // TEMPORARY OVERRIDE FOR TESTING
+  const isPlusPlan = planTier === "plus";
   const isProPlan = planTier === "pro" || isPlusPlan;
   const navigate = useNavigate();
   const saveFetcher = useFetcher<typeof action>();

@@ -10,6 +10,7 @@ import type { loader as appLoader } from "./app";
 import {
   BUILDER_DIRTY_STATE_MESSAGE,
   CLOSE_BUILDER_MESSAGE,
+  NAVIGATE_TO_PRICING_MESSAGE,
   REQUEST_CLOSE_CONFIRMATION_MESSAGE,
   isAppWindowMessage,
 } from "../menu-builder/app-window-messages";
@@ -385,6 +386,7 @@ export default function MegaMenusList() {
   const [builderSrc, setBuilderSrc] = useState("");
   const appWindowRef = useRef<SAppWindowElement | null>(null);
   const builderDirtyRef = useRef({ isDirty: false, requiresExplicitSave: false });
+  const pendingPricingNavigationRef = useRef(false);
 
   useEffect(() => {
     setMenusState(rawMenus);
@@ -405,6 +407,13 @@ export default function MegaMenusList() {
         };
       } else if (event.data.type === CLOSE_BUILDER_MESSAGE) {
         appWindowRef.current?.hide?.();
+      } else if (event.data.type === NAVIGATE_TO_PRICING_MESSAGE) {
+        // Same hide() path as a normal close: if the builder has unsaved edits,
+        // the "hide" handler below reopens it and asks for confirmation instead
+        // of silently discarding them — the pricing navigation only fires once
+        // the window actually finishes hiding.
+        pendingPricingNavigationRef.current = true;
+        appWindowRef.current?.hide?.();
       }
     };
     window.addEventListener("message", handleMessage);
@@ -416,14 +425,23 @@ export default function MegaMenusList() {
     if (!element) return;
     const handleHide = () => {
       const { isDirty, requiresExplicitSave } = builderDirtyRef.current;
-      if (!isDirty && !requiresExplicitSave) return;
-      // Undo the close and ask the builder (still loaded inside) to show its own
-      // "Discard unsaved changes" confirmation instead of silently losing edits.
-      element.show?.();
-      element.contentWindow?.postMessage(
-        { type: REQUEST_CLOSE_CONFIRMATION_MESSAGE },
-        window.location.origin
-      );
+      if (isDirty || requiresExplicitSave) {
+        // Undo the close and ask the builder (still loaded inside) to show its own
+        // "Discard unsaved changes" confirmation instead of silently losing edits.
+        // A pending pricing navigation is cancelled too — it resumes only if the
+        // merchant discards and closes the builder again.
+        pendingPricingNavigationRef.current = false;
+        element.show?.();
+        element.contentWindow?.postMessage(
+          { type: REQUEST_CLOSE_CONFIRMATION_MESSAGE },
+          window.location.origin
+        );
+        return;
+      }
+      if (pendingPricingNavigationRef.current) {
+        pendingPricingNavigationRef.current = false;
+        navigate("/app/pricing");
+      }
     };
     element.addEventListener?.("hide", handleHide);
     return () => element.removeEventListener?.("hide", handleHide);

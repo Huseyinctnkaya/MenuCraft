@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { useFetcher, useLoaderData, useNavigate, useRouteLoaderData } from "@remix-run/react";
+import { useFetcher, useLoaderData, useRouteLoaderData } from "@remix-run/react";
 import {
   Badge,
   BlockStack,
@@ -153,6 +153,7 @@ import { renderMenuIcon } from "../menu-builder/components/shared/MenuIcon";
 import {
   BUILDER_DIRTY_STATE_MESSAGE,
   CLOSE_BUILDER_MESSAGE,
+  NAVIGATE_TO_PRICING_MESSAGE,
   REQUEST_CLOSE_CONFIRMATION_MESSAGE,
   isAppWindowMessage,
   type BuilderDirtyStateMessage,
@@ -246,7 +247,6 @@ export default function MenuBuilder() {
   const planTier = (appData as { planTier?: string } | null)?.planTier;
   const isPlusPlan = planTier === "plus";
   const isProPlan = planTier === "pro" || isPlusPlan;
-  const navigate = useNavigate();
   const saveFetcher = useFetcher<typeof action>();
   const contactFetcher = useFetcher<typeof action>();
   const [activePanel, setActivePanel] = useState<RailPanel>("menu");
@@ -513,8 +513,15 @@ export default function MenuBuilder() {
     setBlockTemplateTargetId(null);
     setBlockTemplateHoverId(null);
     setBlockTemplatePanelHover(false);
-    navigate("/app/pricing");
-  }, [navigate]);
+    // The builder itself only ever runs inside the <s-app-window> iframe that
+    // app.mega-menus.tsx hosts (see app-window-messages.ts) — navigating this
+    // frame to /app/pricing would render the pricing page squeezed inside that
+    // same small app window instead of the real embedded app. The host page
+    // owns the actual app navigation, so ask it to close the window and go
+    // to /app/pricing itself.
+    if (typeof window === "undefined" || !window.parent) return;
+    window.parent.postMessage({ type: NAVIGATE_TO_PRICING_MESSAGE }, window.location.origin);
+  }, []);
   const previewImageCacheRef = useRef<Set<string>>(new Set());
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [pendingDeleteItemLabel, setPendingDeleteItemLabel] = useState<string>("");

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useFetcher, useLoaderData, useNavigate, useRouteLoaderData } from "@remix-run/react";
 import {
@@ -506,6 +506,15 @@ export default function MenuBuilder() {
   const [blockTemplatePanelHover, setBlockTemplatePanelHover] = useState(false);
   const blockTemplateHoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingBlockTemplateIdRef = useRef<BlockTemplateId | null>(null);
+  const navigateToPricing = useCallback(() => {
+    setSubmenuTemplateTargetId(null);
+    setSubmenuTemplateHoverId(null);
+    setSubmenuTemplatePanelHover(false);
+    setBlockTemplateTargetId(null);
+    setBlockTemplateHoverId(null);
+    setBlockTemplatePanelHover(false);
+    navigate("/app/pricing");
+  }, [navigate]);
   const previewImageCacheRef = useRef<Set<string>>(new Set());
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
   const [pendingDeleteItemLabel, setPendingDeleteItemLabel] = useState<string>("");
@@ -5967,7 +5976,7 @@ export default function MenuBuilder() {
           handleApplyTabsBlockTemplate={handleApplyTabsBlockTemplate}
           isPlusPlan={isPlusPlan}
           isProPlan={isProPlan}
-          navigate={navigate}
+          navigate={navigateToPricing}
         />
         <BlockTemplatePicker
           blockTemplateTargetId={blockTemplateTargetId}
@@ -5989,7 +5998,7 @@ export default function MenuBuilder() {
           handleApplyMegaMenuPreset={handleApplyMegaMenuPreset}
           isPlusPlan={isPlusPlan}
           isProPlan={isProPlan}
-          navigate={navigate}
+          navigate={navigateToPricing}
         />
         <SubmenuTemplatePicker
           submenuTemplateTargetId={submenuTemplateTargetId}

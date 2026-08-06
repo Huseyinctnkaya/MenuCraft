@@ -30,7 +30,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const planSelection = getPlanSelection(activeSubscription?.name) ?? {
     id: "free" as const,
-    period: null,
   };
 
   // Check menu count

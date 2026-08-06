@@ -31,7 +31,6 @@ import {
   getActiveAppSubscriptions,
   getPlanSelection,
   invalidateAppSubscriptionsCache,
-  type BillingPeriod,
 } from "../config/billing";
 import prisma from "../db.server";
 
@@ -70,7 +69,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
   const selection = getPlanSelection(activeSubscription?.name) ?? {
     id: "free",
-    period: null,
   };
 
   return json({
@@ -139,14 +137,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   const plan = formData.get("plan");
-  const period = formData.get("billingPeriod");
 
   if (plan !== "pro" && plan !== "plus") {
     return redirect("/app/pricing");
   }
 
-  const billingPeriod: BillingPeriod = period === "yearly" ? "yearly" : "monthly";
-  const planName = BILLING_PLANS[plan][billingPeriod];
+  const planName = BILLING_PLANS[plan].monthly;
   try {
     // No returnUrl override: when omitted, @shopify/shopify-api builds
     // `https://admin.shopify.com/store/<shop>/apps/<apiKey>` itself from the
@@ -175,7 +171,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Pricing() {
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const { currentPlan } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
@@ -197,8 +192,7 @@ export default function Pricing() {
       icon: GiftCardIcon,
       iconColor: "bg-emerald-100 text-emerald-600",
       description: "Perfect for new stores",
-      priceMonthly: "$0",
-      priceYearly: "$0",
+      price: "$0",
       features: [
         "1 mega menu",
         "Dropdown & Mega menu types",
@@ -215,8 +209,7 @@ export default function Pricing() {
       icon: StarIcon,
       iconColor: "bg-indigo-100 text-indigo-600",
       description: "Best for growing stores",
-      priceMonthly: "$9.99",
-      priceYearly: "$7.99",
+      price: "$9.99",
       features: [
         "Unlimited Mega Menus",
         "Menu Item Badges & Labels",
@@ -233,8 +226,7 @@ export default function Pricing() {
       icon: ConfettiIcon,
       iconColor: "bg-purple-100 text-purple-600",
       description: "Advanced stores & Agencies",
-      priceMonthly: "$29.99",
-      priceYearly: "$23.99",
+      price: "$29.99",
       features: [
         "Tabbed (Sekmeli) Menus",
         "Custom HTML & Liquid Blocks",
@@ -279,28 +271,13 @@ export default function Pricing() {
           </Box>
         </InlineStack>
 
-        <InlineStack align="center" gap="200" blockAlign="center">
-          <InlineStack gap="0">
-            <Button pressed={billingPeriod === "monthly"} onClick={() => setBillingPeriod("monthly")}>
-              Monthly
-            </Button>
-            <Button pressed={billingPeriod === "yearly"} onClick={() => setBillingPeriod("yearly")}>
-              Yearly
-            </Button>
-          </InlineStack>
-          {billingPeriod === "yearly" && <Badge tone="success">Save 20%</Badge>}
-        </InlineStack>
-
         {actionData && "billingError" in actionData && actionData.billingError && (
           <Banner tone="critical">{actionData.billingError}</Banner>
         )}
 
         <InlineGrid columns={{ xs: 1, md: 2, lg: 3 }} gap="400">
           {plans.map((plan) => {
-            const price = billingPeriod === "monthly" ? plan.priceMonthly : plan.priceYearly;
-            const planIsCurrent =
-              currentPlan.id === plan.id &&
-              (plan.id === "free" || currentPlan.period === billingPeriod);
+            const planIsCurrent = currentPlan.id === plan.id;
             const isUpgradeDisabled = plan.id === "free" || planIsCurrent;
             const isCurrentPaidPlan = planIsCurrent && plan.id !== "free";
             const ctaLabel = planIsCurrent
@@ -324,9 +301,9 @@ export default function Pricing() {
                       </BlockStack>
                       <BlockStack gap="050">
                         <InlineStack gap="100" blockAlign="baseline">
-                          <Text as="span" variant="heading2xl">{price}</Text>
+                          <Text as="span" variant="heading2xl">{plan.price}</Text>
                           <Text as="span" variant="bodySm" tone="subdued">
-                            / {billingPeriod === "monthly" ? "month" : "year"}
+                            / month
                           </Text>
                         </InlineStack>
                         {/* Reserve this line's height on every card (non-breaking space when
@@ -352,7 +329,6 @@ export default function Pricing() {
                     <form method="post">
                       <input type="hidden" name="intent" value="upgrade" />
                       <input type="hidden" name="plan" value={plan.id} />
-                      <input type="hidden" name="billingPeriod" value={billingPeriod} />
                       <Button
                         variant={isUpgradeDisabled ? undefined : "primary"}
                         fullWidth

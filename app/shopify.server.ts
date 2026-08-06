@@ -22,19 +22,9 @@ const shopify = shopifyApp({
     [BILLING_PLANS.pro.monthly]: {
       lineItems: [
         {
-          amount: 19.99,
+          amount: 9.99,
           currencyCode: "USD",
           interval: BillingInterval.Every30Days,
-        },
-      ],
-      trialDays: 7,
-    },
-    [BILLING_PLANS.pro.yearly]: {
-      lineItems: [
-        {
-          amount: 15.99,
-          currencyCode: "USD",
-          interval: BillingInterval.Annual,
         },
       ],
       trialDays: 7,
@@ -42,19 +32,9 @@ const shopify = shopifyApp({
     [BILLING_PLANS.plus.monthly]: {
       lineItems: [
         {
-          amount: 49.99,
+          amount: 29.99,
           currencyCode: "USD",
           interval: BillingInterval.Every30Days,
-        },
-      ],
-      trialDays: 7,
-    },
-    [BILLING_PLANS.plus.yearly]: {
-      lineItems: [
-        {
-          amount: 39.99,
-          currencyCode: "USD",
-          interval: BillingInterval.Annual,
         },
       ],
       trialDays: 7,

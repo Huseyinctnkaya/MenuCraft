@@ -53,7 +53,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const planSelection = getPlanSelection(activeSubscription?.name) ?? {
     id: "free" as const,
-    period: "monthly" as const,
   };
 
   const [menus, shopifyMenusResponse, eventCounts] = await Promise.all([

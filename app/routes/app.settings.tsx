@@ -87,7 +87,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const record = await prisma.billingSubscription.findUnique({ where: { shop } });
   const selection = getPlanSelection(record?.planName) ?? {
     id: "free",
-    period: null,
   };
 
   const menuCount = await prisma.menu.count({ where: { shop } });
@@ -290,11 +289,7 @@ export default function AccountSettings() {
                       {selection.id === "free" ? "Free Plan" : `${selection.id} Plan`.replace(/^./, (c) => c.toUpperCase())}
                     </Badge>
                     <Text as="span" variant="bodySm" tone="subdued">
-                      {selection.id === "free"
-                        ? "$0/month"
-                        : selection.period === "yearly"
-                          ? "Billed yearly"
-                          : "Billed monthly"}
+                      {selection.id === "free" ? "$0/month" : "Billed monthly"}
                     </Text>
                   </InlineStack>
                 </BlockStack>

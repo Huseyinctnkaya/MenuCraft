@@ -96,6 +96,7 @@ import {
   buildThreeColumnLinkItems,
   buildTwoColumnLinkItems,
 } from "../menu-builder/presets";
+import { buildLinkPool, hydratePresetItems } from "../menu-builder/preset-hydration";
 import {
   HOVER_PREVIEW_CLEAR_DELAY_MS,
   HOVER_PREVIEW_DELAY_MS,
@@ -202,6 +203,24 @@ export default function MenuBuilder() {
     menus,
     shopDomain,
   } = loaderData;
+
+  // Template presets ship placeholder items ("Menu item 1" → "/"). Fill them
+  // with destinations that exist in this shop so an applied template is a
+  // working menu rather than one whose items go nowhere.
+  //
+  // Runs only when a merchant applies a template, so the pool is built on
+  // demand rather than memoised: this component returns early above, so a hook
+  // added here would be a conditional one.
+  //
+  // T binds to the array type itself, not its element — preset builders return
+  // a union of differently-shaped arrays, which no single element type
+  // satisfies.
+  const withRealLinks = <T extends readonly unknown[]>(items: T): T =>
+    hydratePresetItems(
+      items as any,
+      buildLinkPool(collections ?? [], pages ?? [])
+    ) as unknown as T;
+
   const normalizedMenuSettings = useMemo(() => {
     const next = { ...menuSettings } as BuilderSettings;
     const hasIconWidthSettings =
@@ -1361,7 +1380,7 @@ export default function MenuBuilder() {
       }
       const nextType = value === "horizontal" ? "horizontal-dropdown" : "dropdown";
       const hasChildren = Boolean(base.children?.length);
-      const dropdownItems = hasChildren ? base.children : buildDropdownMenuItems();
+      const dropdownItems = hasChildren ? base.children : withRealLinks(buildDropdownMenuItems());
       return {
         ...base,
         submenuType: nextType,
@@ -1520,7 +1539,7 @@ export default function MenuBuilder() {
     const isProductGridHorizontalTemplate = templateId === "product-grid-horizontal";
     const isCollectionListTemplate = templateId === "collection" || templateId === "collection-horizontal";
     if (isMultiBlockTemplate) {
-      const newBlocks = buildMultiBlockPreset(templateId);
+      const newBlocks = withRealLinks(buildMultiBlockPreset(templateId));
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
           ...item,
@@ -1702,7 +1721,7 @@ export default function MenuBuilder() {
       url: "",
       role: "group",
       expanded: false,
-      children: newBlockChildren,
+      children: withRealLinks(newBlockChildren),
       blockTemplate: resolvedBlockTemplate,
       icon: iconMap[templateId],
       description: descriptionMap[templateId],
@@ -1745,7 +1764,7 @@ export default function MenuBuilder() {
         templateId === "simple-top-tabs" ||
         templateId === "two-top-tabs" ||
         templateId === "three-top-tabs";
-      const dropdownItems = buildTabsTemplateItems(templateId);
+      const dropdownItems = withRealLinks(buildTabsTemplateItems(templateId));
       if (!dropdownItems.length) return;
       setMenuItems((items) =>
         updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -1773,7 +1792,7 @@ export default function MenuBuilder() {
       setBlockTemplateTargetId(null);
       return;
     }
-    const newBlocks = buildTabsBlockItems(templateId);
+    const newBlocks = withRealLinks(buildTabsBlockItems(templateId));
     if (!newBlocks.length) return;
     setMenuItems((items) =>
       updateItemById(items, blockTemplateTargetId, (item) => ({
@@ -1787,7 +1806,7 @@ export default function MenuBuilder() {
 
   const handleApplyMegaMenuPreset = (templateId: BlockTemplateId) => {
     if (!submenuTemplateTargetId) return;
-    const newBlocks = buildMultiBlockPreset(templateId);
+    const newBlocks = withRealLinks(buildMultiBlockPreset(templateId));
     setMenuItems((items) =>
       updateItemById(items, submenuTemplateTargetId, (item) => {
         const hasChildren = Boolean(item.children?.length);
@@ -1875,6 +1894,7 @@ export default function MenuBuilder() {
                         : templateId === "three-level-tabs"
                           ? buildThreeLevelTabsItems()
                           : buildDropdownMenuItems();
+    const hydratedDropdownItems = withRealLinks(dropdownItems);
     setMenuItems((items) =>
       updateItemById(items, submenuTemplateTargetId, (item) => {
         const hasChildren = Boolean(item.children?.length);
@@ -1896,7 +1916,7 @@ export default function MenuBuilder() {
               : templateId === "mega"
                 ? [spaceBlock]
                 : isDropdownTemplate || isHorizontalDropdownTemplate
-                  ? dropdownItems
+                  ? hydratedDropdownItems
                   : [newGroup],
         };
       })

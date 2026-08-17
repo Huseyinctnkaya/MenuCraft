@@ -306,7 +306,30 @@
     return false;
   };
 
-  const safeHref = (url) => (isSafeUrl(url) ? url : "#");
+  // Decide how a menu item behaves on the storefront.
+  //
+  // The builder models three roles ("menu" | "group" | "item"), but the
+  // storefront used to ignore them and render every non-heading item as
+  // <a href="{url}">, falling back to "#" whenever the URL was missing or
+  // unsafe. Template presets ship items with url:"", so a freshly applied
+  // template produced a menu in which every click did nothing — the defect
+  // Shopify App Review reported under 5.1.2.
+  //
+  // "link"   → real <a href>; navigates.
+  // "toggle" → <span role="button">; opens/closes its own submenu.
+  // "text"   → inert <span>; not focusable, not clickable.
+  //
+  // @param {object}  item        menu item as stored by the builder
+  // @param {boolean} hasChildren whether this item renders a submenu
+  // @returns {"link"|"toggle"|"text"}
+  const classifyItem = (item, hasChildren) => {
+    // A usable URL wins even when the item also has children: hover and tap
+    // both still open the submenu, so treating it as a link costs nothing and
+    // keeps the parent category page reachable.
+    if (isSafeUrl(item.url)) return "link";
+    if (hasChildren) return "toggle";
+    return "text";
+  };
 
   /* ═══════════════════════════════════════════════════════════════════
      Section 3 — Icon & Badge Rendering
@@ -403,8 +426,24 @@
     const textContent = el("div", "mc-link-text");
     textContent.style.cssText = "display:flex;flex-direction:column;flex:1;min-width:0;";
 
-    const link = el("a", "mc-link");
-    link.href = safeHref(item.url);
+    // A menu item is only ever an <a> when it actually goes somewhere; an item
+    // with no usable URL becomes a submenu toggle or inert text instead of a
+    // dead <a href="#"> that silently swallows the shopper's click.
+    const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+    const kind = classifyItem(item, hasChildren);
+    wrapper.dataset.mcKind = kind;
+
+    const link = el(kind === "link" ? "a" : "span", "mc-link");
+    if (kind === "link") {
+      link.href = item.url;
+    } else if (kind === "toggle") {
+      link.setAttribute("role", "button");
+      link.setAttribute("tabindex", "0");
+      link.setAttribute("aria-expanded", "false");
+      link.style.cursor = "pointer";
+    } else {
+      link.style.cursor = "default";
+    }
     if (item.id) link.dataset.mcItemId = item.id;
     let label = (item.label || "").trim();
     if (!label && item.productIds && item.productIds.length) {
@@ -424,7 +463,7 @@
       link.style.setProperty("color", item.customTextColor || settings.colorSubmenuText, "important");
     }
 
-    if (item.openInNewTab) {
+    if (kind === "link" && item.openInNewTab) {
       link.target = "_blank";
       link.rel = "noopener noreferrer";
     }
@@ -632,23 +671,16 @@
       }
     }
 
-    // Wrap in link if URL (only add click if not already added in hover section)
-    if (item.url && item.url !== "#" && !item.imageUrl) {
-      container.style.cursor = "pointer";
+    // Make the block navigable only when the URL actually resolves somewhere.
+    // Testing `item.url !== "#"` used to let any unusable URL through and then
+    // navigate the shopper to "#", i.e. nowhere.
+    if (isSafeUrl(item.url)) {
+      if (!item.imageUrl) container.style.cursor = "pointer";
       container.addEventListener("click", () => {
         if (item.openInNewTab) {
-          window.open(safeHref(item.url), "_blank", "noopener,noreferrer");
+          window.open(item.url, "_blank", "noopener,noreferrer");
         } else {
-          window.location.href = safeHref(item.url);
-        }
-      });
-    } else if (item.url && item.url !== "#" && item.imageUrl) {
-      // Click handler already added in hover section above
-      container.addEventListener("click", () => {
-        if (item.openInNewTab) {
-          window.open(safeHref(item.url), "_blank", "noopener,noreferrer");
-        } else {
-          window.location.href = safeHref(item.url);
+          window.location.href = item.url;
         }
       });
     }
@@ -1638,16 +1670,21 @@
 
     tabs.forEach((tab, index) => {
       const hasChildren = Boolean(tab.children && tab.children.length > 0);
-      const tabBtn = el(hasChildren ? "div" : "a", "mc-tab-item");
+      // A leaf tab is only an anchor when it has somewhere to go; without a
+      // usable URL it stays a <div> rather than a dead <a href="#">.
+      const isTabLink = !hasChildren && isSafeUrl(tab.url);
+      const tabBtn = el(isTabLink ? "a" : "div", "mc-tab-item");
       tabBtn.textContent = tab.label || "Tab";
       tabBtn.style.cssText = `display:block;text-decoration:none;padding:14px 20px;cursor:pointer;font-family:${settings.typographyTabFont};font-weight:${settings.typographyTabWeight};font-size:${settings.typographyTabSize}px;color:${settings.colorTabHeading};transition:all 0.2s;text-align:${isRight || isNestedRight ? "right" : "left"};white-space:nowrap;`;
 
-      if (!hasChildren) {
-        tabBtn.href = safeHref(tab.url);
+      if (isTabLink) {
+        tabBtn.href = tab.url;
         if (tab.openInNewTab) {
           tabBtn.target = "_blank";
           tabBtn.rel = "noopener noreferrer";
         }
+      } else if (!hasChildren) {
+        tabBtn.style.cursor = "default";
       }
 
       if (isTop) {
@@ -1881,6 +1918,34 @@
         submenu.appendChild(buildSubmenuContent(item, settings));
         li.appendChild(submenu);
 
+        // An item rendered as a toggle has no href to fall back on, so it must
+        // open its submenu on click (and via keyboard) whatever the configured
+        // desktop trigger is — otherwise a pointer that never hovers, or a
+        // keyboard user, can't reach the submenu at all.
+        const toggleEl = li.querySelector('.mc-link-wrapper[data-mc-kind="toggle"] .mc-link');
+        if (toggleEl) {
+          const setOpen = (open) => {
+            li.classList.toggle("is-open", open);
+            toggleEl.setAttribute("aria-expanded", open ? "true" : "false");
+          };
+          toggleEl.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const willOpen = !li.classList.contains("is-open");
+            list.querySelectorAll(".mc-menu-item.is-open").forEach((s) => {
+              s.classList.remove("is-open");
+              const t = s.querySelector('.mc-link-wrapper[data-mc-kind="toggle"] .mc-link');
+              if (t) t.setAttribute("aria-expanded", "false");
+            });
+            setOpen(willOpen);
+          });
+          toggleEl.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+            e.preventDefault();
+            toggleEl.click();
+          });
+        }
+
         // Desktop trigger
         if (!mobile && settings.animationDesktopTrigger === "click") {
           li.addEventListener("click", (e) => {
@@ -2019,7 +2084,8 @@
       /* ── Desktop hover ── */
       @media (min-width:${bp + 1}px) {
         ${settings.animationDesktopTrigger === "hover" ? `
-        .mc-menu-item.has-children:hover > .mc-submenu {
+        .mc-menu-item.has-children:hover > .mc-submenu,
+        .mc-menu-item.has-children.is-open > .mc-submenu {
           display:block !important;opacity:1 !important;transform:${submenuTransformActive} !important;
         }
         ` : `
@@ -2235,11 +2301,16 @@
       setupMobileInteractions(container, settings);
     }
 
-    // Close desktop click-triggered menus when clicking outside
-    if (!mobile && settings.animationDesktopTrigger === "click") {
+    // Close click-opened menus when clicking outside. Toggles open on click in
+    // hover mode too, so this can't be limited to the "click" trigger setting.
+    if (!mobile) {
       document.addEventListener("click", (e) => {
         if (!e.target.closest(".mc-menu")) {
-          list.querySelectorAll(".mc-menu-item.is-open").forEach((s) => s.classList.remove("is-open"));
+          list.querySelectorAll(".mc-menu-item.is-open").forEach((s) => {
+            s.classList.remove("is-open");
+            const t = s.querySelector('.mc-link-wrapper[data-mc-kind="toggle"] .mc-link');
+            if (t) t.setAttribute("aria-expanded", "false");
+          });
         }
       });
     }

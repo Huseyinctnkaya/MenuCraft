@@ -11,6 +11,7 @@ import { authenticate } from "../shopify.server";
 import {
   getActiveAppSubscriptions,
   getPlanSelection,
+  invalidateAppSubscriptionsCache,
 } from "../config/billing";
 import prisma from "../db.server";
 
@@ -20,10 +21,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
   const shop = session.shop;
 
+  // Shopify appends `charge_id` to the return URL when it sends the merchant back
+  // after they approve a subscription. Landing here with one means the plan just
+  // changed, so the cached pre-approval result (which still says "no subscription")
+  // must not be reused — otherwise a merchant who approves within the cache TTL is
+  // shown the old plan and assumes the upgrade silently failed.
+  if (new URL(request.url).searchParams.has("charge_id")) {
+    invalidateAppSubscriptionsCache(shop);
+  }
+
   // Check current plan
-  const billingTestMode =
-    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+  const appSubscriptions = await getActiveAppSubscriptions(billing, shop);
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );

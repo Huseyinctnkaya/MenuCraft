@@ -44,9 +44,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin: adminLoader, billing, session } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const billingTestMode =
-    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+  const appSubscriptions = await getActiveAppSubscriptions(billing, shop);
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );
@@ -137,9 +135,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     // Check plan limit for duplication
-    const billingTestMode =
-      process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-    const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+    const appSubscriptions = await getActiveAppSubscriptions(billing, shop);
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
@@ -197,8 +193,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   if (intent === "import") {
     // Check plan
-    const billingTestMode = process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-    const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+    const appSubscriptions = await getActiveAppSubscriptions(billing, shop);
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );
@@ -262,8 +257,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   if (intent === "import-shopify") {
     // Check plan
-    const billingTestMode = process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-    const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+    const appSubscriptions = await getActiveAppSubscriptions(billing, shop);
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );

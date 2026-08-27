@@ -31,15 +31,14 @@ import {
   getActiveAppSubscriptions,
   getPlanSelection,
   invalidateAppSubscriptionsCache,
+  isBillingTestMode,
 } from "../config/billing";
 import prisma from "../db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
   const shop = session.shop;
-  const billingTestMode =
-    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
-  const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+  const appSubscriptions = await getActiveAppSubscriptions(billing, shop);
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)
   );
@@ -104,11 +103,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const shop = session.shop;
   const formData = await request.formData();
   const intent = formData.get("intent");
-  const billingTestMode =
-    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+  const billingTestMode = isBillingTestMode();
 
   if (intent === "cancel") {
-    const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+    const appSubscriptions = await getActiveAppSubscriptions(billing, shop);
     const activeSubscription = appSubscriptions.find((subscription) =>
       ["ACTIVE", "ACCEPTED"].includes(subscription.status)
     );

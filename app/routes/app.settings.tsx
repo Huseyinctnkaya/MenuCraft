@@ -50,10 +50,8 @@ type PreferencesPayload = {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, billing, session } = await authenticate.admin(request);
   const shop = session.shop;
-  const billingTestMode =
-    process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
 
-  const appSubscriptions = await getActiveAppSubscriptions(billing, shop, billingTestMode);
+  const appSubscriptions = await getActiveAppSubscriptions(billing, shop);
 
   const activeSubscription = appSubscriptions.find((subscription) =>
     ["ACTIVE", "ACCEPTED"].includes(subscription.status)

@@ -31,15 +31,54 @@ export const getPlanSelection = (planName?: string | null) => {
 
 type AdminContext = Awaited<ReturnType<typeof authenticate.admin>>;
 type Billing = AdminContext["billing"];
+type Admin = AdminContext["admin"];
 type AppSubscriptions = Awaited<ReturnType<Billing["check"]>>["appSubscriptions"];
+
+const SHOP_BILLABILITY_QUERY = `#graphql
+  query BillingShopPlan {
+    shop {
+      plan {
+        partnerDevelopment
+      }
+    }
+  }
+`;
 
 // Whether a NEW charge should be created as a test charge (no real money).
 //
 // This only ever belongs on billing.request(). Do not pass it to billing.check() —
 // see the comment on getActiveAppSubscriptions for why that combination silently
 // hides real subscriptions.
-export const isBillingTestMode = () =>
-  process.env.BILLING_TEST === "true" || process.env.NODE_ENV !== "production";
+//
+// The question that decides this is "can this shop actually be charged?", which is
+// a property of the shop, not of our server. Keying it off NODE_ENV conflated the
+// two: against the production server every shop got a live charge, including
+// partner development stores, which have no payment method and therefore cannot
+// approve one — the merchant just lands on a confirmation page with a disabled
+// button. That blocks our own testing and, more importantly, blocks App Store
+// reviewers, who install onto development stores.
+export const resolveBillingTestMode = async (admin: Admin): Promise<boolean> => {
+  // Escape hatch for forcing test charges on a shop that would otherwise be
+  // billable. Not needed for development stores anymore — those are detected.
+  if (process.env.BILLING_TEST === "true") {
+    return true;
+  }
+  try {
+    const response = await admin.graphql(SHOP_BILLABILITY_QUERY);
+    const body = (await response.json()) as {
+      data?: { shop?: { plan?: { partnerDevelopment?: boolean } } };
+    };
+    return body?.data?.shop?.plan?.partnerDevelopment === true;
+  } catch (error) {
+    // Fall back to a live charge rather than a test one. The two failure modes are
+    // not symmetric: guessing "test" would hand a real merchant a paid plan they
+    // are never billed for, and nothing would surface that. Guessing "live" at
+    // worst blocks a development store at the approval screen, which is loud and
+    // gets noticed.
+    console.error("Could not determine whether the shop is billable", error);
+    return false;
+  }
+};
 
 const subscriptionCache = new Map<string, { appSubscriptions: AppSubscriptions; expiresAt: number }>();
 const SUBSCRIPTION_CACHE_TTL_MS = 5000;

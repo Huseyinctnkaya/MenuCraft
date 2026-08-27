@@ -31,7 +31,7 @@ import {
   getActiveAppSubscriptions,
   getPlanSelection,
   invalidateAppSubscriptionsCache,
-  isBillingTestMode,
+  resolveBillingTestMode,
 } from "../config/billing";
 import prisma from "../db.server";
 
@@ -99,11 +99,11 @@ function formatBillingError(error: unknown): string {
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { billing, session } = await authenticate.admin(request);
+  const { admin, billing, session } = await authenticate.admin(request);
   const shop = session.shop;
   const formData = await request.formData();
   const intent = formData.get("intent");
-  const billingTestMode = isBillingTestMode();
+  const billingTestMode = await resolveBillingTestMode(admin);
 
   if (intent === "cancel") {
     const appSubscriptions = await getActiveAppSubscriptions(billing, shop);

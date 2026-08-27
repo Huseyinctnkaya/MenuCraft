@@ -12,7 +12,12 @@ import { BILLING_PLANS } from "./config/billing";
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
-  apiVersion: ApiVersion.January25,
+  // Keep in sync with `api_version` in shopify.app.toml and with .graphqlrc.ts,
+  // otherwise codegen validates against a different schema than the one actually
+  // served. Shopify supports a version for ~12 months and then "falls forward",
+  // silently serving the oldest supported version instead of the requested one —
+  // so an outdated value here does not fail loudly, it just drifts.
+  apiVersion: ApiVersion.January26,
   scopes: process.env.SCOPES?.split(","),
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
@@ -50,7 +55,7 @@ const shopify = shopifyApp({
 });
 
 export default shopify;
-export const apiVersion = ApiVersion.January25;
+export const apiVersion = ApiVersion.January26;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;

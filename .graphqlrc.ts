@@ -8,7 +8,9 @@ function getConfig() {
     projects: {
       default: shopifyApiProject({
         apiType: ApiType.Admin,
-        apiVersion: ApiVersion.July25,
+        // Must match `apiVersion` in app/shopify.server.ts, otherwise generated
+        // types describe a schema the app never actually talks to.
+        apiVersion: ApiVersion.January26,
         documents: [
           "./app/**/*.{js,ts,jsx,tsx}",
           "./app/.server/**/*.{js,ts,jsx,tsx}",

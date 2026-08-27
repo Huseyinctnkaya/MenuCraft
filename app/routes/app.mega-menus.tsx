@@ -272,7 +272,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // Fetch Shopify menus using the same query format as loader
     const shopifyMenusResponse = await admin.graphql(
       `#graphql
-      query getShopifyMenus {
+      query getShopifyMenusWithItems {
         menus(first: 50) {
           nodes {
             id

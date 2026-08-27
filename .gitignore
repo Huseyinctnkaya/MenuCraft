@@ -21,6 +21,9 @@ database.sqlite
 
 /extensions/*/dist
 
+# Admin API types written by `npm run graphql-codegen` (~9 MB, regenerate on demand)
+/app/types
+
 # Ignore shopify files created during app dev
 .shopify/*
 .shopify.lock

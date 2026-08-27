@@ -278,11 +278,17 @@ export default function Pricing() {
             const planIsCurrent = currentPlan.id === plan.id;
             const isUpgradeDisabled = plan.id === "free" || planIsCurrent;
             const isCurrentPaidPlan = planIsCurrent && plan.id !== "free";
+            // The Free card needs its own branch. Without one it fell through to the
+            // "Upgrade to Plus" default, so a shop on Pro saw a Free plan advertised
+            // as an upgrade to Plus. The button is disabled either way — downgrading
+            // happens through Cancel Plan — so this only has to describe the tier.
             const ctaLabel = planIsCurrent
               ? "Current Plan"
-              : plan.id === "pro"
-                ? "Upgrade to Pro"
-                : "Upgrade to Plus";
+              : plan.id === "free"
+                ? "Free Plan"
+                : plan.id === "pro"
+                  ? "Upgrade to Pro"
+                  : "Upgrade to Plus";
 
             return (
               <Card key={plan.id}>
